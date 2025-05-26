@@ -1103,7 +1103,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self.subvars = subvars
         self.fastaccess = self._CLS_FASTACCESS_PYTHON()
         self._valueready = False
-        self.__shapeready = False
+        self._shapeready = False
         self._refweights = type(self)._refweights
 
     def __init_subclass__(cls) -> None:
@@ -1251,7 +1251,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         >>> var.value   # doctest: +ELLIPSIS
         array([], shape=(0, 0), dtype=...)
         """
-        if (self.NDIM > 0) and not self.__shapeready:
+        if (self.NDIM > 0) and not self._shapeready:
             self._get_shape()  # raise the proper error
         value = self._prepare_getvalue(
             self._valueready or not self.strict_valuehandling,
@@ -1462,7 +1462,7 @@ as `var` can only be `()`, but `(2,)` is given.
         -999999
         """
         if self.NDIM:
-            if self.__shapeready:
+            if self._shapeready:
                 shape = getattr(self.fastaccess, self.name).shape
                 return tuple(int(x) for x in shape)
             raise exceptiontools.AttributeNotReady(
@@ -1473,7 +1473,7 @@ as `var` can only be `()`, but `(2,)` is given.
 
     def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         self._valueready = False
-        self.__shapeready = False
+        self._shapeready = False
         initvalue, initflag = self.initinfo
         if self.NDIM:
             try:
@@ -1494,7 +1494,7 @@ as `var` can only be `()`, but `(2,)` is given.
                     f"shape indicates `{array.ndim}` dimensions."
                 )
             setattr(self.fastaccess, self.name, array)
-            self.__shapeready = True
+            self._shapeready = True
         else:
             if shape:
                 setattr(self.fastaccess, self.name, TYPE2MISSINGVALUE[self.TYPE])

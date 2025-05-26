@@ -293,7 +293,7 @@ For variable `latitude`, no value has been defined so far.
         moy(0, 0, 1, 1, 1)
         hours(24.0)
         days(1.0)
-        sct(12.0)
+        sct(12.0, 12.0, 12.0, 12.0, 12.0)
         utclongitude(15)
         latituderad(0.872665)
 
@@ -4294,13 +4294,71 @@ class DaysParameter(Parameter):
         self.value = hydpy.pub.options.simulationstep.days
 
 
-class TOYParameter(Parameter):
+class IndexParameter(Parameter):
+    """Base class for parameters that do not allocate RAM for handling their data but
+    reference an index array provided by the instance of class|Indexer| available in
+    module |pub|."""
+
+    NDIM = 1
+    TIME = None
+
+    def compress_repr(self) -> str | None:
+        """Return a compressed parameter value representation that agrees with the
+        current setting of the |Options.ellipsis| option.
+
+        |IndexParameter| instances reference arrays that handle one value per s
+        imulation time step.  Therefore, the usual |Parameter| string representation
+        generation mechanism would often print too much information:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "27.02.2004", "4.03.2004", "1d"
+        >>> from hydpy.core.parametertools import TOYParameter
+        >>> toyparameter = TOYParameter(None)
+        >>> toyparameter.update()
+        >>> toyparameter
+        toyparameter(57, 58, 59, 60, 61, 62)
+
+        Hence, |IndexParameter| makes use of the |Options.ellipsis| option.  By
+        default, it shows only the first and the last value:
+
+        >>> with pub.options.ellipsis(-999):
+        ...     toyparameter
+        toyparameter(57, ..., 62)
+
+        You can increase the number of shown values up to the number of available
+        ones:
+
+        >>> with pub.options.ellipsis(2):
+        ...     toyparameter
+        toyparameter(57, 58, ..., 61, 62)
+
+        >>> with pub.options.ellipsis(3):
+        ...     toyparameter
+        toyparameter(57, 58, 59, 60, 61, 62)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+
+        with hydpy.pub.options.ellipsis(1, optional=True):
+            ellipsis_ = hydpy.pub.options.ellipsis
+            if (ellipsis_ == 0) or (2 * ellipsis_ >= self.shape[0]):
+                return None
+            return "".join(
+                (
+                    ", ".join(str(v) for v in self.values[:ellipsis_]),
+                    ", ..., ",
+                    ", ".join(str(v) for v in self.values[-ellipsis_:]),
+                )
+            )
+
+
+class TOYParameter(IndexParameter):
     """References the |Indexer.timeofyear| index array provided by the
     instance of class |Indexer| available in module |pub|. [-]."""
 
-    NDIM = 1
     TYPE = int
-    TIME = None
     SPAN = (0, None)
 
     def update(self) -> None:
@@ -4319,18 +4377,16 @@ class TOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        indexarray = hydpy.pub.indexer.timeofyear
-        self._set_shape(indexarray.shape)
-        self._set_value(indexarray)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.timeofyear)
+        self._shapeready, self._valueready = True, True
 
 
-class MOYParameter(Parameter):
+class MOYParameter(IndexParameter):
     """References the |Indexer.monthofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
 
-    NDIM = 1
     TYPE = int
-    TIME = None
     SPAN = (0, 11)
 
     def update(self) -> None:
@@ -4349,18 +4405,16 @@ class MOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        indexarray = hydpy.pub.indexer.monthofyear
-        self._set_shape(indexarray.shape)
-        self._set_value(indexarray)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.monthofyear)
+        self._shapeready, self._valueready = True, True
 
 
-class DOYParameter(Parameter):
+class DOYParameter(IndexParameter):
     """References the |Indexer.dayofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
 
-    NDIM = 1
     TYPE = int
-    TIME = None
     SPAN = (0, 365)
 
     def update(self) -> None:
@@ -4379,18 +4433,16 @@ class DOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        indexarray = hydpy.pub.indexer.dayofyear
-        self._set_shape(indexarray.shape)
-        self._set_value(indexarray)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.dayofyear)
+        self._shapeready, self._valueready = True, True
 
 
-class SCTParameter(Parameter):
+class SCTParameter(IndexParameter):
     """References the |Indexer.standardclocktime| array provided by the
     instance of class |Indexer| available in module |pub| [h]."""
 
-    NDIM = 1
     TYPE = float
-    TIME = None
     SPAN = (0.0, 86400.0)
 
     def update(self) -> None:
@@ -4409,12 +4461,12 @@ class SCTParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        array = hydpy.pub.indexer.standardclocktime
-        self._set_shape(array.shape)
-        self._set_value(array)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.standardclocktime)
+        self._shapeready, self._valueready = True, True
 
 
-class UTCLongitudeParameter(Parameter):
+class UTCLongitudeParameter(IndexParameter):
     """References the current "UTC longitude" defined by option
     |Options.utclongitude|."""
 

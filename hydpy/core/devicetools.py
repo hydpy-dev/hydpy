@@ -79,6 +79,7 @@ import copy
 import itertools
 import operator
 import warnings
+import weakref
 
 # ...from site-packages
 import numpy
@@ -1839,7 +1840,7 @@ class Device:
             setattr(self, "new_instance", True)
             self._keywords = Keywords()
             self._keywords.device = self
-            _id2devices[self] = {}
+            _id2devices[self] = weakref.WeakValueDictionary()
             _registry[cls][name] = self
         _selection[cls][name] = _registry[cls][name]
         return self
@@ -3799,7 +3800,7 @@ sequence named `xy`.
         return self.assignrepr("")
 
 
-_id2devices: dict[Device, dict[int, Devices[Device]]] = {}
+_id2devices: dict[Device, weakref.WeakValueDictionary[int, Devices[Device]]] = {}
 _registry: Mapping[type[Device], dict[str, Device]] = {Node: {}, Element: {}}
 _selection: Mapping[type[Device], dict[str, Device]] = {Node: {}, Element: {}}
 

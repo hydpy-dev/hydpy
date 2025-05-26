@@ -1,0 +1,49 @@
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |None| replace:: :const:`None`
+.. |Options.ellipsis| replace:: :const:`~hydpy.core.optiontools.Options.ellipsis`
+.. |Options.reprdigits| replace:: :const:`~hydpy.core.optiontools.Options.reprdigits`
+.. |ResetAttrFuncs.funcnames| replace:: :const:`~hydpy.core.objecttools.ResetAttrFuncs.funcnames`
+.. |ResetAttrFuncs| replace:: :class:`~hydpy.core.objecttools.ResetAttrFuncs`
+.. |ValueError| replace:: :class:`ValueError`
+.. |apply_black| replace:: :func:`~hydpy.core.objecttools.apply_black`
+.. |assignrepr_list2| replace:: :func:`~hydpy.core.objecttools.assignrepr_list2`
+.. |assignrepr_list3| replace:: :func:`~hydpy.core.objecttools.assignrepr_list3`
+.. |assignrepr_list| replace:: :const:`~hydpy.core.objecttools.assignrepr_list`
+.. |assignrepr_tuple2| replace:: :func:`~hydpy.core.objecttools.assignrepr_tuple2`
+.. |assignrepr_tuple3| replace:: :func:`~hydpy.core.objecttools.assignrepr_tuple3`
+.. |assignrepr_tuple| replace:: :const:`~hydpy.core.objecttools.assignrepr_tuple`
+.. |assignrepr_values2| replace:: :func:`~hydpy.core.objecttools.assignrepr_values2`
+.. |augment_excmessage| replace:: :func:`~hydpy.core.objecttools.augment_excmessage`
+.. |copy_| replace:: :func:`~hydpy.core.objecttools.copy_`
+.. |decorator| replace:: :func:`~hydpy.core.objecttools.decorator`
+.. |deepcopy_| replace:: :func:`~hydpy.core.objecttools.deepcopy_`
+.. |doctest| replace:: :mod:`~doctest`
+.. |enumeration| replace:: :func:`~hydpy.core.objecttools.enumeration`
+.. |excmessage_decorator| replace:: :func:`~hydpy.core.objecttools.excmessage_decorator`
+.. |extract| replace:: :func:`~hydpy.core.objecttools.extract`
+.. |flatten_repr| replace:: :func:`~hydpy.core.objecttools.flatten_repr`
+.. |get_printtarget| replace:: :func:`~hydpy.core.objecttools.get_printtarget`
+.. |is_equal| replace:: :func:`~hydpy.core.objecttools.is_equal`
+.. |kinw_williams| replace:: :mod:`~hydpy.models.kinw_williams`
+.. |numpy| replace:: :mod:`~numpy`
+.. |objecttools| replace:: :mod:`~hydpy.core.objecttools`
+.. |print| replace:: :func:`print`
+.. |repr_numbers| replace:: :func:`~hydpy.core.objecttools.repr_numbers`
+.. |repr_| replace:: :const:`~hydpy.core.objecttools.repr_`
+.. |repr| replace:: :func:`repr`
+.. |round_| replace:: :func:`~hydpy.core.objecttools.round_`
+.. |str| replace:: :class:`str`
+.. |kinw_williams.Characteristics| replace:: :class:`~hydpy.models.kinw_williams.Characteristics`
+.. |numpy.float16| replace:: :class:`~numpy.float16`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _objecttools:
+
+objecttools
+===========
+
+.. automodule:: hydpy.core.objecttools
+    :members:
+    :show-inheritance:
+    :exclude-members: cast, Any, SupportsAbs, NotRequired, reveal_type, Counter, final, TypeVar, ByteString, ValuesView, TypedDict, override, Awaitable, SOLVERSEQUENCES, assert_never, AsyncIterator, Concatenate, dataclass_transform, NoExtraItems, TYPE_CHECKING, SupportsFloat, KeysView, REQUIREDSEQUENCES, SupportsRound, ADD_METHODS, DERIVEDPARAMETERS, NewType, AbstractSet, NoDefault, evaluate_forward_ref, AsyncContextManager, INTERFACE_METHODS, Pattern, ContextManager, Reversible, Dict, runtime, SupportsIndex, SupportsInt, Coroutine, TypeGuard, ReadOnly, ChainMap, Iterable, no_type_check, AsyncGenerator, Type, RESULTSEQUENCES, AnyStr, Literal, List, Text, Generator, fastaccess, FULL_ODE_METHODS, SUBMETHODS, Deque, Protocol, Callable, ClassVar, Tuple, NoReturn, SupportsComplex, PART_ODE_METHODS, ItemsView, AsyncIterable, SupportsBytes, OUTLET_METHODS, get_origin, LiteralString, SOLVERPARAMETERS, MappingView, get_args, RUN_METHODS, FIXEDPARAMETERS, Match, DefaultDict, seqs, get_type_hints, runtime_checkable, get_annotations, SENDER_METHODS, Doc, CapsuleType, Self, MutableMapping, Never, Collection, fastaccess_new, SUBMODELS, Optional, Unpack, INLET_METHODS, Union, TypeAlias, Buffer, SUBMODELINTERFACES, get_protocol_members, is_protocol, RECEIVER_METHODS, pars, no_type_check_decorator, get_original_bases, UPDATEDSEQUENCES, ForwardRef, clear_overloads, IntVar, CLASSES, OrderedDict, Hashable, MutableSequence, Set, assert_type, Generic, FrozenSet, TypeIs, fastaccess_old, Iterator, overload, ParamSpecKwargs, subvars, is_typeddict, subseqs, ParamSpec, deprecated, Mapping, IO, TypeForm, BinaryIO, TypeVarTuple, Format, Sequence, get_overloads, TypeAliasType, Annotated, subpars, Final, NamedTuple, TextIO, Sized, Required, CONTROLPARAMETERS, MutableSet, ParamSpecArgs, Container

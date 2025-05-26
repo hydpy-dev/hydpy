@@ -1,0 +1,19 @@
+.. |H| replace:: :class:`~hydpy.models.kinw.kinw_states.H`
+.. |VG2FG| replace:: :class:`~hydpy.models.kinw.kinw_control.VG2FG`
+.. |VG| replace:: :class:`~hydpy.models.kinw.kinw_states.VG`
+.. |anntools| replace:: :mod:`~hydpy.auxs.anntools`
+.. |arma_rimorido| replace:: :mod:`~hydpy.models.arma_rimorido`
+.. |kinw_williams_ext.DOCNAME.complete| replace:: HydPy-KinW-Williams-Ext (Williams routing based on an externally calculated volume-discharge relationship)
+.. |kinw_williams_ext| replace:: :mod:`~hydpy.models.kinw_williams_ext`
+.. |kinw_williams| replace:: :mod:`~hydpy.models.kinw_williams`
+.. |ppolytools| replace:: :mod:`~hydpy.auxs.ppolytools`
+
+.. _kinw_williams_ext:
+
+kinw_williams_ext
+=================
+
+.. automodule:: hydpy.models.kinw_williams_ext
+    :members:
+    :show-inheritance:
+    :exclude-members: cast, AideSequences, Any, SupportsAbs, NotRequired, SenderSequences, reveal_type, Counter, final, TypeVar, ByteString, ValuesView, TypedDict, override, Awaitable, SOLVERSEQUENCES, assert_never, AsyncIterator, Concatenate, dataclass_transform, NoExtraItems, TYPE_CHECKING, SupportsFloat, KeysView, REQUIREDSEQUENCES, FactorSequences, SupportsRound, ADD_METHODS, DERIVEDPARAMETERS, NewType, AbstractSet, NoDefault, evaluate_forward_ref, AsyncContextManager, INTERFACE_METHODS, Pattern, ContextManager, Reversible, Dict, runtime, SupportsIndex, SupportsInt, Coroutine, InputSequences, TypeGuard, ReadOnly, ChainMap, Iterable, no_type_check, ReceiverSequences, AsyncGenerator, Type, RESULTSEQUENCES, AnyStr, Literal, List, Text, Generator, fastaccess, FULL_ODE_METHODS, SUBMETHODS, LogSequences, Deque, Protocol, Callable, ClassVar, Tuple, NoReturn, SupportsComplex, PART_ODE_METHODS, ItemsView, AsyncIterable, SupportsBytes, OUTLET_METHODS, get_origin, LiteralString, SOLVERPARAMETERS, MappingView, get_args, RUN_METHODS, FIXEDPARAMETERS, Match, DefaultDict, seqs, get_type_hints, runtime_checkable, get_annotations, SENDER_METHODS, Doc, CapsuleType, Self, MutableMapping, Never, Collection, fastaccess_new, SUBMODELS, Optional, Unpack, INLET_METHODS, Union, TypeAlias, Buffer, SUBMODELINTERFACES, get_protocol_members, is_protocol, RECEIVER_METHODS, pars, no_type_check_decorator, get_original_bases, UPDATEDSEQUENCES, ForwardRef, clear_overloads, IntVar, CLASSES, OrderedDict, Hashable, MutableSequence, Set, assert_type, Generic, FrozenSet, TypeIs, fastaccess_old, Iterator, overload, ParamSpecKwargs, subvars, is_typeddict, subseqs, ParamSpec, deprecated, Mapping, IO, TypeForm, BinaryIO, TypeVarTuple, Format, Sequence, get_overloads, TypeAliasType, Annotated, subpars, Final, NamedTuple, TextIO, Sized, Required, CONTROLPARAMETERS, MutableSet, ParamSpecArgs, Container

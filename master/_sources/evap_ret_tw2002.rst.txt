@@ -1,0 +1,26 @@
+.. |CoastFactor| replace:: :class:`~hydpy.models.evap.evap_control.CoastFactor`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |RadiationModel_V1| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V1`
+.. |RadiationModel_V2| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V2`
+.. |RadiationModel_V3| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V3`
+.. |RadiationModel_V4| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V4`
+.. |TempModel_V1| replace:: :class:`~hydpy.interfaces.tempinterfaces.TempModel_V1`
+.. |TempModel_V2| replace:: :class:`~hydpy.interfaces.tempinterfaces.TempModel_V2`
+.. |evap_ret_fao56| replace:: :mod:`~hydpy.models.evap_ret_fao56`
+.. |evap_ret_tw2002.DOCNAME.complete| replace:: HydPy-Evap-RET-TW2002 (Turc-Wendling reference evapotranspiration, 2002)
+.. |evap_ret_tw2002| replace:: :mod:`~hydpy.models.evap_ret_tw2002`
+.. |lland_dd| replace:: :mod:`~hydpy.models.lland_dd`
+.. |meteo_glob_fao56| replace:: :mod:`~hydpy.models.meteo_glob_fao56`
+.. |meteo_glob_io| replace:: :mod:`~hydpy.models.meteo_glob_io`
+.. |meteo_temp_io| replace:: :mod:`~hydpy.models.meteo_temp_io`
+
+.. _evap_ret_tw2002:
+
+evap_ret_tw2002
+===============
+
+.. automodule:: hydpy.models.evap_ret_tw2002
+    :members:
+    :show-inheritance:
+    :exclude-members: cast, AideSequences, Any, SupportsAbs, NotRequired, SenderSequences, reveal_type, Counter, final, TypeVar, ByteString, ValuesView, TypedDict, override, Awaitable, SOLVERSEQUENCES, assert_never, AsyncIterator, Concatenate, dataclass_transform, NoExtraItems, TYPE_CHECKING, SupportsFloat, KeysView, REQUIREDSEQUENCES, SupportsRound, ADD_METHODS, DERIVEDPARAMETERS, NewType, AbstractSet, NoDefault, evaluate_forward_ref, AsyncContextManager, INTERFACE_METHODS, Pattern, ContextManager, Reversible, OutletSequences, Dict, runtime, SupportsIndex, SupportsInt, Coroutine, InputSequences, TypeGuard, ReadOnly, ChainMap, Iterable, no_type_check, ReceiverSequences, AsyncGenerator, Type, RESULTSEQUENCES, AnyStr, Literal, List, Text, Generator, fastaccess, FULL_ODE_METHODS, SUBMETHODS, LogSequences, Deque, Protocol, Callable, ClassVar, Tuple, NoReturn, SupportsComplex, PART_ODE_METHODS, ItemsView, AsyncIterable, SupportsBytes, OUTLET_METHODS, get_origin, LiteralString, SOLVERPARAMETERS, MappingView, get_args, RUN_METHODS, FIXEDPARAMETERS, Match, DefaultDict, seqs, get_type_hints, runtime_checkable, get_annotations, SENDER_METHODS, Doc, CapsuleType, Self, MutableMapping, Never, Collection, fastaccess_new, SUBMODELS, Optional, Unpack, INLET_METHODS, Union, TypeAlias, Buffer, SUBMODELINTERFACES, get_protocol_members, is_protocol, RECEIVER_METHODS, pars, no_type_check_decorator, get_original_bases, UPDATEDSEQUENCES, ForwardRef, clear_overloads, IntVar, CLASSES, OrderedDict, Hashable, MutableSequence, Set, assert_type, Generic, FrozenSet, TypeIs, fastaccess_old, Iterator, overload, ParamSpecKwargs, StateSequences, subvars, is_typeddict, subseqs, ParamSpec, deprecated, Mapping, IO, TypeForm, BinaryIO, TypeVarTuple, Format, Sequence, get_overloads, TypeAliasType, InletSequences, Annotated, subpars, Final, NamedTuple, TextIO, Sized, Required, CONTROLPARAMETERS, MutableSet, ParamSpecArgs, Container

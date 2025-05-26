@@ -1,0 +1,21 @@
+.. |Calc_Discharge_V3| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Calc_Discharge_V3`
+.. |DampingRadius| replace:: :class:`~hydpy.models.sw1d.sw1d_control.DampingRadius`
+.. |GateHeight| replace:: :class:`~hydpy.models.sw1d.sw1d_control.GateHeight`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_gate_out.DOCNAME.complete| replace:: HydPy-SW1D-Gate-Out (submodel for calculating flow under a submerged gate at a channel outlet)
+.. |sw1d_gate_out| replace:: :mod:`~hydpy.models.sw1d_gate_out`
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+.. |sw1d_inlets.WaterLevel| replace:: :class:`~hydpy.models.sw1d.sw1d_inlets.WaterLevel`
+.. |sw1d_outlets.LongQ| replace:: :class:`~hydpy.models.sw1d.sw1d_outlets.LongQ`
+
+.. _sw1d_gate_out:
+
+sw1d_gate_out
+=============
+
+.. automodule:: hydpy.models.sw1d_gate_out
+    :members:
+    :show-inheritance:
+    :exclude-members: cast, AideSequences, Any, SupportsAbs, NotRequired, SenderSequences, reveal_type, Counter, final, TypeVar, ByteString, ValuesView, TypedDict, override, Awaitable, SOLVERSEQUENCES, assert_never, AsyncIterator, Concatenate, dataclass_transform, NoExtraItems, TYPE_CHECKING, SupportsFloat, KeysView, REQUIREDSEQUENCES, SupportsRound, ADD_METHODS, DERIVEDPARAMETERS, NewType, AbstractSet, NoDefault, evaluate_forward_ref, AsyncContextManager, INTERFACE_METHODS, Pattern, ContextManager, Reversible, Dict, runtime, SupportsIndex, SupportsInt, Coroutine, InputSequences, TypeGuard, ReadOnly, ChainMap, Iterable, no_type_check, ReceiverSequences, AsyncGenerator, Type, RESULTSEQUENCES, AnyStr, Literal, List, Text, Generator, fastaccess, FULL_ODE_METHODS, SUBMETHODS, LogSequences, Deque, Protocol, Callable, ClassVar, Tuple, NoReturn, SupportsComplex, PART_ODE_METHODS, ItemsView, AsyncIterable, SupportsBytes, OUTLET_METHODS, get_origin, LiteralString, SOLVERPARAMETERS, MappingView, get_args, RUN_METHODS, FIXEDPARAMETERS, Match, DefaultDict, seqs, get_type_hints, runtime_checkable, get_annotations, SENDER_METHODS, Doc, CapsuleType, Self, MutableMapping, Never, Collection, fastaccess_new, SUBMODELS, Optional, Unpack, INLET_METHODS, Union, TypeAlias, Buffer, SUBMODELINTERFACES, get_protocol_members, is_protocol, RECEIVER_METHODS, pars, no_type_check_decorator, get_original_bases, UPDATEDSEQUENCES, ForwardRef, clear_overloads, IntVar, CLASSES, OrderedDict, Hashable, MutableSequence, Set, assert_type, Generic, FrozenSet, TypeIs, fastaccess_old, Iterator, overload, ParamSpecKwargs, subvars, is_typeddict, subseqs, ParamSpec, deprecated, Mapping, IO, TypeForm, BinaryIO, TypeVarTuple, Format, Sequence, get_overloads, TypeAliasType, Annotated, subpars, Final, NamedTuple, TextIO, Sized, Required, CONTROLPARAMETERS, MutableSet, ParamSpecArgs, Container

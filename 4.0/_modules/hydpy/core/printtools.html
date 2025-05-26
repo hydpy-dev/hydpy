@@ -1,0 +1,361 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.printtools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.printtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.printtools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements features for printing additional information and</span>
+<span class="sd">for modifying how information is printed.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TextIO</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="PrintStyle"><a class="viewcode-back" href="../../../printtools.html#hydpy.core.printtools.PrintStyle">[docs]</a><span class="k">class</span> <span class="nc">PrintStyle</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Context manager for changing the colour and font of printed</span>
+<span class="sd">    output temporarilly.&quot;&quot;&quot;</span>
+
+    <span class="n">color</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">font</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">file</span><span class="p">:</span> <span class="n">TextIO</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">color</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">font</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">file</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TextIO</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="n">font</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="k">if</span> <span class="n">file</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">file</span>
+
+    <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printincolor</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">end</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\x1B</span><span class="s2">[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="si">}</span><span class="s2">;30;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="si">}</span><span class="s2">m&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__exit__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">exception_type</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span>
+        <span class="n">exception_value</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">,</span>
+        <span class="n">traceback</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">TracebackType</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printincolor</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\x1B</span><span class="s2">[0m&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">)</span></div>
+
+
+<span class="n">_printprogress_indentation</span> <span class="o">=</span> <span class="o">-</span><span class="mi">4</span>
+
+
+<div class="viewcode-block" id="print_progress"><a class="viewcode-back" href="../../../printtools.html#hydpy.core.printtools.print_progress">[docs]</a><span class="nd">@objecttools</span><span class="o">.</span><span class="n">decorator</span>
+<span class="k">def</span> <span class="nf">print_progress</span><span class="p">(</span>  <span class="c1"># type: ignore[no-untyped-def]</span>
+    <span class="n">wrapped</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add print commands time to the given function informing about</span>
+<span class="sd">     execution time.</span>
+
+<span class="sd">    To show how the |print_progress| decorator works, we need to modify the</span>
+<span class="sd">    functions used by |print_progress| to gain system time information</span>
+<span class="sd">    available in module |time|.</span>
+
+<span class="sd">    First, we mock the functions |time.strftime| and |time.perf_counter|:</span>
+
+<span class="sd">    &gt;&gt;&gt; import time</span>
+<span class="sd">    &gt;&gt;&gt; from unittest import mock</span>
+<span class="sd">    &gt;&gt;&gt; strftime = time.strftime</span>
+<span class="sd">    &gt;&gt;&gt; perf_counter = time.perf_counter</span>
+<span class="sd">    &gt;&gt;&gt; strftime_mock = mock.MagicMock()</span>
+<span class="sd">    &gt;&gt;&gt; time.strftime = strftime_mock</span>
+<span class="sd">    &gt;&gt;&gt; time.perf_counter = mock.MagicMock()</span>
+
+<span class="sd">    The mock of |time.strftime| shall respond to two calls, as if the first</span>
+<span class="sd">    call to a decorated function occurs at quarter past eight, and the second</span>
+<span class="sd">    one two seconds later:</span>
+
+<span class="sd">    &gt;&gt;&gt; time.strftime.side_effect = &quot;20:15:00&quot;, &quot;20:15:02&quot;</span>
+
+<span class="sd">    The mock of |time.perf_counter| shall respond to four calls, as if the</span>
+<span class="sd">    subsequent calls by decorated functions occur at second 1, 3, 4, and 7:</span>
+
+<span class="sd">    &gt;&gt;&gt; time.perf_counter.side_effect = 1, 3, 4, 7</span>
+
+<span class="sd">    Now we decorate two test functions.  The first one does nothing; the</span>
+<span class="sd">    second one only calls the first one:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.printtools import print_progress</span>
+<span class="sd">    &gt;&gt;&gt; @print_progress</span>
+<span class="sd">    ... def test1():</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; @print_progress</span>
+<span class="sd">    ... def test2():</span>
+<span class="sd">    ...     test1()</span>
+
+<span class="sd">    The first example shows that the output is appropriately indented,</span>
+<span class="sd">    tat the returned times are at the right place, that the calculated</span>
+<span class="sd">    execution the is correct, and that the mock of |time.strftime|</span>
+<span class="sd">    received a valid format string:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = True</span>
+<span class="sd">    &gt;&gt;&gt; test2()</span>
+<span class="sd">    method test2 started at 20:15:00</span>
+<span class="sd">        method test1 started at 20:15:02</span>
+<span class="sd">            seconds elapsed: 1</span>
+<span class="sd">        seconds elapsed: 6</span>
+<span class="sd">    &gt;&gt;&gt; strftime_mock.call_args</span>
+<span class="sd">    call(&#39;%H:%M:%S&#39;)</span>
+
+<span class="sd">    The second example verifies that resetting the indentation works:</span>
+
+<span class="sd">    &gt;&gt;&gt; time.strftime.side_effect = &quot;20:15:00&quot;, &quot;20:15:02&quot;</span>
+<span class="sd">    &gt;&gt;&gt; time.perf_counter.side_effect = 1, 3, 4, 7</span>
+<span class="sd">    &gt;&gt;&gt; test2()</span>
+<span class="sd">    method test2 started at 20:15:00</span>
+<span class="sd">        method test1 started at 20:15:02</span>
+<span class="sd">            seconds elapsed: 1</span>
+<span class="sd">        seconds elapsed: 6</span>
+
+<span class="sd">    The last example shows that disabling the |Options.printprogress|</span>
+<span class="sd">    option works as expected:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = False</span>
+<span class="sd">    &gt;&gt;&gt; test2()</span>
+
+<span class="sd">    &gt;&gt;&gt; time.strftime = strftime</span>
+<span class="sd">    &gt;&gt;&gt; time.perf_counter = perf_counter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_printprogress_indentation</span>
+    <span class="n">_printprogress_indentation</span> <span class="o">+=</span> <span class="mi">4</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">:</span>
+            <span class="n">blanks</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">_printprogress_indentation</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">wrapped</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="n">time_</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%H:%M:%S&quot;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">PrintStyle</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">blanks</span><span class="si">}</span><span class="s2">method </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> started at </span><span class="si">{</span><span class="n">time_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">seconds</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="n">wrapped</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">blanks</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="n">_printprogress_indentation</span> <span class="o">+</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="n">seconds</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">seconds</span>
+            <span class="k">with</span> <span class="n">PrintStyle</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="mi">34</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">blanks</span><span class="si">}</span><span class="s2">seconds elapsed: </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">wrapped</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">_printprogress_indentation</span> <span class="o">-=</span> <span class="mi">4</span></div>
+
+
+<div class="viewcode-block" id="progressbar"><a class="viewcode-back" href="../../../printtools.html#hydpy.core.printtools.progressbar">[docs]</a><span class="k">def</span> <span class="nf">progressbar</span><span class="p">(</span><span class="n">iterable</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">23</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">T</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Print a simple progress bar while processing the given iterable.</span>
+
+<span class="sd">    Function |progressbar| does print the progress bar when option</span>
+<span class="sd">    `printprogress` is activted:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = True</span>
+
+<span class="sd">    You can pass an iterable object.  Say you want to calculate the the sum</span>
+<span class="sd">    of all integer values from 1 to 100 and print the progress of the</span>
+<span class="sd">    calculation.  Using function |range| (which returns a list in Python 2</span>
+<span class="sd">    and an iterator in Python3, but both are fine), one just has to</span>
+<span class="sd">    interpose function |progressbar|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.printtools import progressbar</span>
+<span class="sd">    &gt;&gt;&gt; x_sum = 0</span>
+<span class="sd">    &gt;&gt;&gt; for x in progressbar(range(1, 101)):</span>
+<span class="sd">    ...     x_sum += x</span>
+<span class="sd">        |---------------------|</span>
+<span class="sd">        ***********************</span>
+<span class="sd">    &gt;&gt;&gt; x_sum</span>
+<span class="sd">    5050</span>
+
+<span class="sd">    To prevent possible interim print commands from dismembering the status</span>
+<span class="sd">    bar, they are delayed until the status bar is complete.  For intermediate</span>
+<span class="sd">    print outs of each fiftieth calculation, the result looks as follows:</span>
+
+<span class="sd">    &gt;&gt;&gt; x_sum = 0</span>
+<span class="sd">    &gt;&gt;&gt; for x in progressbar(range(1, 101)):</span>
+<span class="sd">    ...     x_sum += x</span>
+<span class="sd">    ...     if not x % 50:</span>
+<span class="sd">    ...         print(x, x_sum)</span>
+<span class="sd">        |---------------------|</span>
+<span class="sd">        ***********************</span>
+<span class="sd">    50 1275</span>
+<span class="sd">    100 5050</span>
+
+
+<span class="sd">    The number of characters of the progress bar can be changed:</span>
+
+<span class="sd">    &gt;&gt;&gt; for i in progressbar(range(100), length=50):</span>
+<span class="sd">    ...     continue</span>
+<span class="sd">        |------------------------------------------------|</span>
+<span class="sd">        **************************************************</span>
+
+<span class="sd">    But its maximum number of characters is restricted by the length of the</span>
+<span class="sd">    given iterable:</span>
+
+<span class="sd">    &gt;&gt;&gt; for i in progressbar(range(10), length=50):</span>
+<span class="sd">    ...     continue</span>
+<span class="sd">        |--------|</span>
+<span class="sd">        **********</span>
+
+<span class="sd">    The smallest possible progress bar has two characters:</span>
+
+<span class="sd">    &gt;&gt;&gt; for i in progressbar(range(2)):</span>
+<span class="sd">    ...     continue</span>
+<span class="sd">        ||</span>
+<span class="sd">        **</span>
+
+<span class="sd">    For iterables of length one or zero, no progress bar is plottet:</span>
+
+<span class="sd">    &gt;&gt;&gt; for i in progressbar(range(1)):</span>
+<span class="sd">    ...     continue</span>
+
+<span class="sd">    The same is True when the |Options.printprogress| option is inactivated:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = False</span>
+<span class="sd">    &gt;&gt;&gt; for i in progressbar(range(100)):</span>
+<span class="sd">    ...     continue</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nmbitems</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">iterable</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="ow">and</span> <span class="p">(</span><span class="n">nmbitems</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">temp_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s2">&quot;HydPy_progressbar_stdout&quot;</span><span class="p">)</span>
+        <span class="n">temp_stdout</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">temp_name</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">real_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">temp_stdout</span>
+            <span class="n">nmbstars</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">nmbitems</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span>
+            <span class="n">nmbcounts</span> <span class="o">=</span> <span class="n">nmbitems</span> <span class="o">/</span> <span class="n">nmbstars</span>
+            <span class="n">indentation</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="n">_printprogress_indentation</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">PrintStyle</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">real_stdout</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;    </span><span class="si">%s</span><span class="s2">|</span><span class="si">%s</span><span class="s2">|</span><span class="se">\n</span><span class="si">%s</span><span class="s2">    &quot;</span>
+                    <span class="o">%</span> <span class="p">(</span><span class="n">indentation</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="p">(</span><span class="n">nmbstars</span> <span class="o">-</span> <span class="mi">2</span><span class="p">),</span> <span class="n">indentation</span><span class="p">),</span>
+                    <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="n">file</span><span class="o">=</span><span class="n">real_stdout</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">counts</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="k">for</span> <span class="n">next_</span> <span class="ow">in</span> <span class="n">iterable</span><span class="p">:</span>
+                    <span class="n">counts</span> <span class="o">+=</span> <span class="mf">1.0</span>
+                    <span class="k">if</span> <span class="n">counts</span> <span class="o">&gt;=</span> <span class="n">nmbcounts</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">end</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">real_stdout</span><span class="p">)</span>
+                        <span class="n">counts</span> <span class="o">-=</span> <span class="n">nmbcounts</span>
+                    <span class="k">yield</span> <span class="n">next_</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">temp_stdout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">real_stdout</span>
+            <span class="nb">print</span><span class="p">()</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">temp_name</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">temp_stdout</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">temp_stdout</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">next_</span> <span class="ow">in</span> <span class="n">iterable</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">next_</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.printtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

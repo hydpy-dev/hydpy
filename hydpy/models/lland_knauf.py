@@ -130,6 +130,7 @@ First, we set the values of those parameters also required by the application mo
 >>> rbeta(False)
 >>> dmax(r_dmax=0.55)
 >>> dmin(r_dmin=10.0)
+>>> bsf0(0.0)
 >>> bsf(0.3)
 >>> volbmax(inf)
 >>> gsbmax(1.0)

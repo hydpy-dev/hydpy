@@ -3842,6 +3842,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> lnk(WASSER, FLUSS, SEE, BODEN, BODEN)
         >>> ft(10.0)
         >>> fhru(0.2)
+        >>> bsf0(0.0)
         >>> wmax(200.0)
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-05-30", "2000-06-03", "1d"
@@ -3933,6 +3934,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> lnk(NADELW)
         >>> fhru(1.0)
         >>> wmax(200.0)
+        >>> bsf0(0.0)
         >>> model.update_parameters(ignore_errors=True)
         >>> control.hrutype
         hrutype(NADELW)

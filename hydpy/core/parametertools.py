@@ -301,6 +301,8 @@ For variable `latitude`, no value has been defined so far.
 
             >>> del pub.timegrids
         """
+        for par in self.control:
+            par.update()
         for subpars in self.secondary_subpars:
             for par in subpars:
                 try:
@@ -1570,26 +1572,8 @@ parameter and a simulation time step size first.
         return values
 
     def update(self) -> None:
-        """To be overridden by all "secondary" parameters.
-
-        |Parameter| subclasses to be used as "primary" parameters (control
-        parameters) do not need to implement method |Parameter.update|.
-        For such classes, invoking the method results in the following
-        error message:
-
-        >>> from hydpy.core.parametertools import Parameter
-        >>> class Par(Parameter):
-        ...     pass
-        >>> Par(None).update()
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Parameter `par` of element `?` does not \
-implement method `update`.
-        """
-        raise RuntimeError(
-            f"Parameter {objecttools.elementphrase(self)} does not "
-            f"implement method `update`."
-        )
+        """To be overridden by those "primary" parameters which need special handling
+        and all "secondary" parameters."""
 
     @property
     def keywordarguments(self) -> KeywordArguments:

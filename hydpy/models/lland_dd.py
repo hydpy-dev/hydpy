@@ -115,6 +115,7 @@ implemented methods on the shown results:
 >>> rbeta(False)
 >>> dmax(1.0)
 >>> dmin(0.1)
+>>> bsf0(0.0)
 >>> bsf(0.4)
 >>> volbmax(inf)
 >>> gsbmax(1.0)

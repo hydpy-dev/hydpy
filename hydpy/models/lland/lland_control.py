@@ -567,6 +567,45 @@ class PWP(lland_parameters.ParameterSoilThreshold):
 # runoff generation
 
 
+class BSf0(lland_parameters.ParameterSoil):
+    """Mindestbodenfeuchte der Sättigungsflächenbildung (relative soil moisture at
+    which the development of saturated areas starts) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    INIT = 0.0
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> bsf0.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`bsf0` (introduced in HydPy 6.2), has not been explicitly defined and is \
+automatically set to `0.0`.  We will remove this fallback mechanism in HydPy 8.0; \
+therefore, please consider updating your model setup.
+        >>> bsf0
+        bsf0(0.0)
+
+        >>> bsf0(0.5)
+        >>> bsf0
+        bsf0(0.5)
+        """
+        if not exceptiontools.attrready(self, "values"):
+            self._set_value(0.0)
+            warnings.warn(
+                f"The value of parameter `{self.name}` (introduced in HydPy 6.2), has "
+                f"not been explicitly defined and is automatically set to `0.0`.  We "
+                f"will remove this fallback mechanism in HydPy 8.0; therefore, please "
+                f"consider updating your model setup.",
+                category=exceptiontools.HydPyDeprecationWarning,
+            )
+
+
 class BSf(lland_parameters.ParameterSoil):
     """Bodenfeuchte-Sättigungsfläche-Parameter (shape parameter for the
     relation between the avarage soil moisture and the relative saturated

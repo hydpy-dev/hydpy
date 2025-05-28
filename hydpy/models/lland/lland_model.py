@@ -5299,38 +5299,40 @@ class Calc_QIB2_V1(modeltools.Method):
 
 
 class Calc_QDB_V1(modeltools.Method):
-    """Calculate direct runoff released from the soil.
+    r"""Calculate direct runoff released from the soil.
 
     Basic equations:
       .. math::
-        QDB = \\begin{cases}
-        max\\bigl(Exz, 0\\bigl)
-        &|\\
-        SfA \\leq 0
-        \\\\
-        max\\bigl(Exz + WMax \\cdot SfA^{BSf+1}, 0\\bigl)
-        &|\\
+        QDB = \begin{cases}
+        max\bigl(Exz, \, 0\bigl)
+        &|\
+        SfA \leq 0
+        \\
+        max\bigl(Exz + WMax^* \cdot SfA^{BSf+1}, \, 0\bigl)
+        &|\
         SfA > 0
-        \\end{cases}
-
-      :math:`SFA = \\left(1 - \\frac{BoWa}{WMax}\\right)^\\frac{1}{BSf+1} -
-      \\frac{WaDa}{(BSf+1) \\cdot WMax}`
-
-      :math:`Exz = (BoWa + WaDa) - WMax`
+        \end{cases}
+        \\ \\
+        SFA = \left(1 - \frac{BoWa^*}{WMax^*}\right)^\frac{1}{BSf+1} -
+        \frac{WaDa}{(BSf+1) \cdot WMax}
+        \\ \\
+        Exz = (BoWa^* + WaDa) - WMax^* \\
+        BoWa^* = BSf0 \cdot BoWa \\
+        WMax^* = BSf0 \cdot WMax
 
     Examples:
 
-        For water areas (|FLUSS| and |SEE|), sealed areas (|VERS|), and
-        areas without any soil storage capacity, all water is completely
-        routed as direct runoff |QDB| (see the first four HRUs).  No
-        principal distinction is made between the remaining land use
-        classes (arable land |ACKER| has been selected for the last five
-        HRUs arbitrarily):
+        For water areas (|FLUSS| and |SEE|), sealed areas (|VERS|), and areas without
+        any soil storage capacity, all water is completely routed as direct runoff
+        |QDB| (see the first four HRUs).  No principal distinction is made between the
+        remaining land use classes (arable land |ACKER| has been selected for the last
+        five HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(9)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER)
+        >>> bsf0(0.0)
         >>> bsf(0.4)
         >>> wmax(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
         >>> fluxes.wada = 10.0
@@ -5340,17 +5342,29 @@ class Calc_QDB_V1(modeltools.Method):
         >>> fluxes.qdb
         qdb(10.0, 10.0, 10.0, 10.0, 0.142039, 0.144959, 1.993649, 10.0, 10.1)
 
-        With the common |BSf| value of 0.4, the discharge coefficient
-        increases more or less exponentially with soil moisture.
-        For soil moisture values slightly below zero or above usable
-        field capacity, plausible amounts of generated direct runoff
-        are ensured.
+        With a standard |BSf| value of 0.4, the discharge coefficient increases more or
+        less exponentially with soil moisture.  For soil moisture values slightly below
+        zero or above usable field capacity, plausible amounts of generated direct
+        runoff are ensured.
+
+        You can use parameter |BSf0| to define the relative soil moisture below which
+        direct runoff generation should be suppressed:
+
+        >>> lnk(ACKER)
+        >>> bsf0(0.5)
+        >>> wmax(100.0)
+        >>> states.bowa = 40.0, 45.0, 50.0, 55.0, 60.0, 70.0, 80.0, 90.0, 100.0
+        >>> model.calc_qdb_v1()
+        >>> fluxes.qdb
+        qdb(0.0, 0.005963, 0.294382, 0.605281, 0.943351, 1.729619, 2.752723,
+            4.319298, 10.0)
     """
 
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
         lland_control.WMax,
+        lland_control.BSf0,
         lland_control.BSf,
     )
     REQUIREDSEQUENCES = (lland_fluxes.WaDa, lland_states.BoWa)
@@ -5367,16 +5381,15 @@ class Calc_QDB_V1(modeltools.Method):
             elif (con.lnk[k] in (VERS, FLUSS, SEE)) or (con.wmax[k] <= 0.0):
                 flu.qdb[k] = flu.wada[k]
             else:
-                if sta.bowa[k] < con.wmax[k]:
-                    d_sfa = (1.0 - sta.bowa[k] / con.wmax[k]) ** (
-                        1.0 / (con.bsf[k] + 1.0)
-                    ) - (flu.wada[k] / ((con.bsf[k] + 1.0) * con.wmax[k]))
-                else:
-                    d_sfa = 0.0
-                d_exz = sta.bowa[k] + flu.wada[k] - con.wmax[k]
-                flu.qdb[k] = d_exz
-                if d_sfa > 0.0:
-                    flu.qdb[k] += d_sfa ** (con.bsf[k] + 1.0) * con.wmax[k]
+                bowa: float = sta.bowa[k] - (con.bsf0[k] * con.wmax[k])
+                wmax: float = (1.0 - con.bsf0[k]) * con.wmax[k]
+                flu.qdb[k] = bowa + flu.wada[k] - wmax
+                if bowa < wmax:
+                    sfa: float = (1.0 - bowa / wmax) ** (1.0 / (con.bsf[k] + 1.0)) - (
+                        flu.wada[k] / ((con.bsf[k] + 1.0) * wmax)
+                    )
+                    if sfa > 0.0:
+                        flu.qdb[k] += sfa ** (con.bsf[k] + 1.0) * wmax
                 flu.qdb[k] = max(flu.qdb[k], 0.0)
 
 

@@ -567,6 +567,20 @@ class PWP(lland_parameters.ParameterSoilThreshold):
 # runoff generation
 
 
+class BSf0(lland_parameters.ParameterSoil):
+    """ToDo [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    INIT = 0.0
+
+
+class BSf1(lland_parameters.ParameterSoil):
+    """ToDo [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    INIT = 1.0
+
+
 class BSf(lland_parameters.ParameterSoil):
     """Bodenfeuchte-Sättigungsfläche-Parameter (shape parameter for the
     relation between the avarage soil moisture and the relative saturated

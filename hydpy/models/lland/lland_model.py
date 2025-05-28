@@ -5351,6 +5351,8 @@ class Calc_QDB_V1(modeltools.Method):
         lland_control.NHRU,
         lland_control.Lnk,
         lland_control.WMax,
+        lland_control.BSf0,
+        lland_control.BSf1,
         lland_control.BSf,
     )
     REQUIREDSEQUENCES = (lland_fluxes.WaDa, lland_states.BoWa)
@@ -5367,16 +5369,15 @@ class Calc_QDB_V1(modeltools.Method):
             elif (con.lnk[k] in (VERS, FLUSS, SEE)) or (con.wmax[k] <= 0.0):
                 flu.qdb[k] = flu.wada[k]
             else:
-                if sta.bowa[k] < con.wmax[k]:
-                    d_sfa = (1.0 - sta.bowa[k] / con.wmax[k]) ** (
+                bowa: float = sta.bowa[k] - (con.bsf0[k] * con.wmax[k])
+                wmax: float = (con.bsf1[k] - con.bsf0[k]) * con.wmax[k]
+                flu.qdb[k] = bowa + flu.wada[k] - wmax
+                if bowa < wmax:
+                    sfa: float = (1.0 - bowa / wmax) ** (
                         1.0 / (con.bsf[k] + 1.0)
-                    ) - (flu.wada[k] / ((con.bsf[k] + 1.0) * con.wmax[k]))
-                else:
-                    d_sfa = 0.0
-                d_exz = sta.bowa[k] + flu.wada[k] - con.wmax[k]
-                flu.qdb[k] = d_exz
-                if d_sfa > 0.0:
-                    flu.qdb[k] += d_sfa ** (con.bsf[k] + 1.0) * con.wmax[k]
+                    ) - (flu.wada[k] / ((con.bsf[k] + 1.0) * wmax))
+                    if sfa > 0.0:
+                        flu.qdb[k] += sfa ** (con.bsf[k] + 1.0) * wmax
                 flu.qdb[k] = max(flu.qdb[k], 0.0)
 
 

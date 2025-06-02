@@ -1201,7 +1201,7 @@ def hsepd_pdf(
     mu_xi, sigma_xi, w_beta, c_beta = _pars_sepd(xi, beta)
     x, mu = obs_, sim_
     a = (x - mu) / sigmas
-    a_xi = cast(VectorFloat, numpy.empty(a.shape))
+    a_xi = numpy.empty(a.shape)
     idxs = mu_xi + sigma_xi * a < 0.0
     a_xi[idxs] = numpy.absolute(xi * (mu_xi + sigma_xi * a[idxs]))
     a_xi[~idxs] = numpy.absolute(1.0 / xi * (mu_xi + sigma_xi * a[~idxs]))

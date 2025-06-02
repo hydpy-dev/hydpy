@@ -84,7 +84,7 @@ previously defined and is hence set to `default`.
     def call_fset(self, obj: Any, value: str) -> None:
         try:
             for filemanager in hydpy.pub.filemanagers:
-                filemanager.currentdir = None  # type: ignore[assignment]
+                filemanager.currentdir = None
         except exceptiontools.AttributeNotReady:
             pass
         super().call_fset(obj, value)

@@ -46,7 +46,7 @@ class AETModel_V1(modeltools.SubmodelInterface):
         """Set the flags for whether soil evapotranspiration is relevant for the
         individual zones."""
 
-    def prepare_plant(self, tree: VectorInputBool) -> None:
+    def prepare_plant(self, plant: VectorInputBool) -> None:
         """Set the flags for whether the individual zones contain any vegetation."""
 
     def prepare_tree(self, tree: VectorInputBool) -> None:
@@ -60,7 +60,7 @@ class AETModel_V1(modeltools.SubmodelInterface):
     def prepare_measuringheightwindspeed(self, measuringheightwindspeed: float) -> None:
         """Set the height above the ground of the wind speed measurements in m."""
 
-    def prepare_leafareaindex(self, maxsoilwater: MatrixInputFloat) -> None:
+    def prepare_leafareaindex(self, leafareaindex: MatrixInputFloat) -> None:
         """Set the leaf area index in m²/m²."""
 
     def prepare_maxsoilwater(self, maxsoilwater: VectorInputFloat) -> None:

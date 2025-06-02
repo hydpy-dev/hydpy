@@ -224,7 +224,7 @@ sequence and connect it to the respective outlet nodes properly.
                         f"branch to node `{key}`, but such a node is not available."
                     )
             try:
-                self.values[idx] = value  # type: ignore[index]
+                self.values[idx] = value
             except BaseException:
                 if shape[1] != len(value):
                     raise ValueError(
@@ -243,7 +243,7 @@ sequence and connect it to the respective outlet nodes properly.
         self.subpars.pars.model.sequences.fluxes.outputs.shape = shape[0]
         self.subpars.pars.model.nodenames.clear()
         for idx, key in enumerate(sorted(kwargs.keys())):
-            setattr(self, key, self.values[idx])  # type: ignore[index]
+            setattr(self, key, self.values[idx])
             self.subpars.pars.model.nodenames.append(key)
 
     def __repr__(self) -> str:

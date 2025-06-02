@@ -1115,7 +1115,7 @@ class XMLConditions(XMLBase):
             for element in self.master.elements:
                 element.model.load_conditions()
         finally:
-            cm.currentdir = None  # type: ignore[assignment]
+            cm.currentdir = None
 
     def save_conditions(self, currentdir: str | None = None) -> None:
         """Save the condition files of the |Model| objects of all |Element| objects
@@ -1163,7 +1163,7 @@ class XMLConditions(XMLBase):
                 if objecttools.value2bool(zip__, zip__):
                     cm.zip_currentdir()
         finally:
-            cm.currentdir = None  # type: ignore[assignment]
+            cm.currentdir = None
 
 
 class XMLSeries(XMLBase):

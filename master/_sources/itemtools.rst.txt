@@ -1,0 +1,69 @@
+.. |AddItem.update_variable| replace:: :func:`~hydpy.core.itemtools.AddItem.update_variable`
+.. |AddItem| replace:: :class:`~hydpy.core.itemtools.AddItem`
+.. |ChangeItem.collect_variables| replace:: :func:`~hydpy.core.itemtools.ChangeItem.collect_variables`
+.. |ChangeItem.level| replace:: :attr:`~hydpy.core.itemtools.ChangeItem.level`
+.. |ChangeItem.seriesshape| replace:: :const:`~hydpy.core.itemtools.ChangeItem.seriesshape`
+.. |ChangeItem.shape| replace:: :const:`~hydpy.core.itemtools.ChangeItem.shape`
+.. |ChangeItem.subnames| replace:: :const:`~hydpy.core.itemtools.ChangeItem.subnames`
+.. |ChangeItem.update_variables| replace:: :func:`~hydpy.core.itemtools.ChangeItem.update_variables`
+.. |ChangeItem.update_variable| replace:: :func:`~hydpy.core.itemtools.ChangeItem.update_variable`
+.. |ChangeItem.value| replace:: :const:`~hydpy.core.itemtools.ChangeItem.value`
+.. |ChangeItem| replace:: :class:`~hydpy.core.itemtools.ChangeItem`
+.. |Device| replace:: :class:`~hydpy.core.devicetools.Device`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |ExchangeItem.collect_variables| replace:: :func:`~hydpy.core.itemtools.ExchangeItem.collect_variables`
+.. |ExchangeItem.device2target| replace:: :attr:`~hydpy.core.itemtools.ExchangeItem.device2target`
+.. |ExchangeItem.ndim| replace:: :const:`~hydpy.core.itemtools.ExchangeItem.ndim`
+.. |ExchangeItem.selection2targets| replace:: :attr:`~hydpy.core.itemtools.ExchangeItem.selection2targets`
+.. |ExchangeItem.targetspecs| replace:: :attr:`~hydpy.core.itemtools.ExchangeItem.targetspecs`
+.. |ExchangeItem| replace:: :class:`~hydpy.core.itemtools.ExchangeItem`
+.. |ExchangeSpecification.series| replace:: :attr:`~hydpy.core.itemtools.ExchangeSpecification.series`
+.. |ExchangeSpecification| replace:: :class:`~hydpy.core.itemtools.ExchangeSpecification`
+.. |False| replace:: :const:`False`
+.. |GetItem.collect_variables| replace:: :func:`~hydpy.core.itemtools.GetItem.collect_variables`
+.. |GetItem.ndim| replace:: :const:`~hydpy.core.itemtools.GetItem.ndim`
+.. |GetItem| replace:: :class:`~hydpy.core.itemtools.GetItem`
+.. |IOSequence.average_series| replace:: :func:`~hydpy.core.sequencetools.IOSequence.average_series`
+.. |IOSequence.series| replace:: :const:`~hydpy.core.sequencetools.IOSequence.series`
+.. |IOSequence| replace:: :class:`~hydpy.core.sequencetools.IOSequence`
+.. |MathItem.target2base| replace:: :attr:`~hydpy.core.itemtools.MathItem.target2base`
+.. |MathItem| replace:: :class:`~hydpy.core.itemtools.MathItem`
+.. |MultiplyItem.update_variable| replace:: :func:`~hydpy.core.itemtools.MultiplyItem.update_variable`
+.. |MultiplyItem| replace:: :class:`~hydpy.core.itemtools.MultiplyItem`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |None| replace:: :const:`None`
+.. |Obs| replace:: :class:`~hydpy.core.sequencetools.Obs`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+.. |Sequence_| replace:: :class:`~hydpy.core.sequencetools.Sequence_`
+.. |SetItem.extract_values| replace:: :func:`~hydpy.core.itemtools.SetItem.extract_values`
+.. |SetItem| replace:: :class:`~hydpy.core.itemtools.SetItem`
+.. |Sim| replace:: :class:`~hydpy.core.sequencetools.Sim`
+.. |True| replace:: :const:`True`
+.. |Variable.average_values| replace:: :func:`~hydpy.core.variabletools.Variable.average_values`
+.. |Variable| replace:: :class:`~hydpy.core.variabletools.Variable`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+.. |hland| replace:: :mod:`~hydpy.models.hland`
+.. |musk| replace:: :mod:`~hydpy.models.musk`
+.. |hland_control.Alpha| replace:: :class:`~hydpy.models.hland.hland_control.Alpha`
+.. |hland_control.FC| replace:: :class:`~hydpy.models.hland.hland_control.FC`
+.. |hland_control.RfCF| replace:: :class:`~hydpy.models.hland.hland_control.RfCF`
+.. |hland_control.SfCF| replace:: :class:`~hydpy.models.hland.hland_control.SfCF`
+.. |hland_inputs.T| replace:: :class:`~hydpy.models.hland.hland_inputs.T`
+.. |hland_states.Ic| replace:: :class:`~hydpy.models.hland.hland_states.Ic`
+.. |hland_states.LZ| replace:: :class:`~hydpy.models.hland.hland_states.LZ`
+.. |hland_states.SM| replace:: :class:`~hydpy.models.hland.hland_states.SM`
+.. |hland_states.SP| replace:: :class:`~hydpy.models.hland.hland_states.SP`
+.. |hland_states.UZ| replace:: :class:`~hydpy.models.hland.hland_states.UZ`
+.. |hland_states.WC| replace:: :class:`~hydpy.models.hland.hland_states.WC`
+.. |musk_control.NmbSegments| replace:: :class:`~hydpy.models.musk.musk_control.NmbSegments`
+
+.. _itemtools:
+
+itemtools
+=========
+
+.. automodule:: hydpy.core.itemtools
+    :members:
+    :show-inheritance:
+    :exclude-members: cast, AnyStr, Any, SUBMETHODS, no_type_check_decorator, FIXEDPARAMETERS, Final, get_protocol_members, NotRequired, DefaultDict, INTERFACE_METHODS, Required, TypeAliasType, ClassVar, get_origin, Reader, TypeVarTuple, SOLVERPARAMETERS, AsyncIterator, assert_never, Awaitable, ReadOnly, get_overloads, Annotated, Never, TypeVar, Dict, clear_overloads, final, FrozenSet, ByteString, get_type_hints, Literal, SUBMODELS, dataclass_transform, Match, Sized, no_type_check, Writer, NewType, ForwardRef, Coroutine, Unpack, SupportsRound, subvars, NamedTuple, BinaryIO, Counter, overload, SupportsBytes, Deque, is_protocol, Self, ChainMap, KeysView, SupportsIndex, TypeAlias, TYPE_CHECKING, Mapping, AsyncIterable, ADD_METHODS, Text, assert_type, Protocol, ParamSpecKwargs, CapsuleType, List, DERIVEDPARAMETERS, Generator, LiteralString, ParamSpecArgs, SUBMODELINTERFACES, UPDATEDSEQUENCES, TypeIs, fastaccess_old, ParamSpec, Set, runtime_checkable, subseqs, Format, TypeForm, get_annotations, INLET_METHODS, TypeGuard, fastaccess_new, MutableSequence, MutableSet, ValuesView, Iterable, fastaccess, AsyncContextManager, RUN_METHODS, Container, AbstractSet, Hashable, override, Concatenate, AsyncGenerator, RESULTSEQUENCES, OrderedDict, is_typeddict, IntVar, pars, PART_ODE_METHODS, TypedDict, CONTROLPARAMETERS, SENDER_METHODS, Generic, Type, seqs, Buffer, Tuple, Optional, get_original_bases, ContextManager, Collection, get_args, Sentinel, Iterator, Callable, evaluate_forward_ref, MutableMapping, runtime, NoExtraItems, deprecated, Doc, MappingView, NoDefault, TextIO, Pattern, CLASSES, OUTLET_METHODS, FULL_ODE_METHODS, IO, SupportsComplex, RECEIVER_METHODS, SupportsAbs, SupportsFloat, Union, reveal_type, REQUIREDSEQUENCES, Reversible, NoReturn, Sequence, SupportsInt, SOLVERSEQUENCES, ItemsView, subpars

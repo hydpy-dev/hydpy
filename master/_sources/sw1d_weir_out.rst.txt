@@ -1,0 +1,16 @@
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_weir_out.DOCNAME.complete| replace:: HydPy-SW1D-Weir-Out (submodel for calculating free weir flow at a channel outlet)
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+
+.. _sw1d_weir_out:
+
+sw1d_weir_out
+=============
+
+.. automodule:: hydpy.models.sw1d_weir_out
+    :members:
+    :show-inheritance:
+    :exclude-members: cast, AnyStr, Any, SUBMETHODS, no_type_check_decorator, FIXEDPARAMETERS, Final, get_protocol_members, NotRequired, DefaultDict, INTERFACE_METHODS, Required, TypeAliasType, ClassVar, get_origin, Reader, TypeVarTuple, SOLVERPARAMETERS, AsyncIterator, assert_never, Awaitable, ReadOnly, get_overloads, Annotated, Never, TypeVar, Dict, clear_overloads, final, FrozenSet, ReceiverSequences, ByteString, get_type_hints, Literal, SUBMODELS, dataclass_transform, Match, Sized, no_type_check, Writer, NewType, SenderSequences, ForwardRef, Coroutine, Unpack, SupportsRound, subvars, NamedTuple, BinaryIO, InputSequences, Counter, overload, LogSequences, SupportsBytes, Deque, is_protocol, Self, ChainMap, KeysView, SupportsIndex, TypeAlias, TYPE_CHECKING, Mapping, AsyncIterable, ADD_METHODS, Text, assert_type, Protocol, ParamSpecKwargs, CapsuleType, List, DERIVEDPARAMETERS, Generator, LiteralString, ParamSpecArgs, SUBMODELINTERFACES, AideSequences, UPDATEDSEQUENCES, TypeIs, fastaccess_old, ParamSpec, Set, runtime_checkable, subseqs, Format, TypeForm, get_annotations, INLET_METHODS, TypeGuard, fastaccess_new, MutableSequence, MutableSet, ValuesView, Iterable, fastaccess, AsyncContextManager, RUN_METHODS, Container, AbstractSet, Hashable, override, Concatenate, AsyncGenerator, RESULTSEQUENCES, OrderedDict, is_typeddict, IntVar, pars, PART_ODE_METHODS, TypedDict, CONTROLPARAMETERS, SENDER_METHODS, Generic, Type, seqs, Buffer, Tuple, Optional, get_original_bases, ContextManager, InletSequences, Collection, get_args, Sentinel, Iterator, Callable, evaluate_forward_ref, MutableMapping, runtime, NoExtraItems, deprecated, Doc, MappingView, NoDefault, TextIO, Pattern, CLASSES, OUTLET_METHODS, FULL_ODE_METHODS, IO, SupportsComplex, RECEIVER_METHODS, SupportsAbs, SupportsFloat, Union, reveal_type, REQUIREDSEQUENCES, Reversible, NoReturn, Sequence, SupportsInt, SOLVERSEQUENCES, ItemsView, subpars

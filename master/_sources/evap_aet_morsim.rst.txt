@@ -1,0 +1,48 @@
+.. |AirTemperature| replace:: :class:`~hydpy.models.evap.evap_factors.AirTemperature`
+.. |Albedo| replace:: :class:`~hydpy.models.evap.evap_control.Albedo`
+.. |Calc_LanduseSurfaceResistance_V1| replace:: :class:`~hydpy.models.evap.evap_model.Calc_LanduseSurfaceResistance_V1`
+.. |DailyAirTemperature| replace:: :class:`~hydpy.models.evap.evap_factors.DailyAirTemperature`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |False| replace:: :const:`False`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |IntercModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.IntercModel_V1`
+.. |RadiationModel_V1| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V1`
+.. |RadiationModel_V2| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V2`
+.. |RadiationModel_V3| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V3`
+.. |RadiationModel_V4| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V4`
+.. |Return_Evaporation_PenmanMonteith_V1| replace:: :class:`~hydpy.models.evap.evap_model.Return_Evaporation_PenmanMonteith_V1`
+.. |SnowAlbedoModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.SnowAlbedoModel_V1`
+.. |SnowCoverModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.SnowCoverModel_V1`
+.. |SnowyCanopyModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.SnowyCanopyModel_V1`
+.. |SoilWaterModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.SoilWaterModel_V1`
+.. |TempModel_V1| replace:: :class:`~hydpy.interfaces.tempinterfaces.TempModel_V1`
+.. |TempModel_V2| replace:: :class:`~hydpy.interfaces.tempinterfaces.TempModel_V2`
+.. |True| replace:: :const:`True`
+.. |dummy_interceptedwater| replace:: :mod:`~hydpy.models.dummy_interceptedwater`
+.. |dummy_snowalbedo| replace:: :mod:`~hydpy.models.dummy_snowalbedo`
+.. |dummy_snowcover| replace:: :mod:`~hydpy.models.dummy_snowcover`
+.. |dummy_snowycanopy| replace:: :mod:`~hydpy.models.dummy_snowycanopy`
+.. |dummy_soilwater| replace:: :mod:`~hydpy.models.dummy_soilwater`
+.. |evap_aet_morsim.DOCNAME.complete| replace:: HydPy-Evap-AET-MORSIM  (actual evapotranspiration based on MORECS/LARSIM)
+.. |evap_aet_morsim| replace:: :mod:`~hydpy.models.evap_aet_morsim`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+.. |lland_knauf| replace:: :mod:`~hydpy.models.lland_knauf`
+.. |meteo_glob_morsim| replace:: :mod:`~hydpy.models.meteo_glob_morsim`
+.. |meteo_psun_sun_glob_io| replace:: :mod:`~hydpy.models.meteo_psun_sun_glob_io`
+.. |meteo_temp_io| replace:: :mod:`~hydpy.models.meteo_temp_io`
+.. |evap_control.Conifer| replace:: :class:`~hydpy.models.evap.evap_control.Conifer`
+.. |evap_control.Interception| replace:: :class:`~hydpy.models.evap.evap_control.Interception`
+.. |evap_control.Soil| replace:: :class:`~hydpy.models.evap.evap_control.Soil`
+.. |evap_control.Tree| replace:: :class:`~hydpy.models.evap.evap_control.Tree`
+.. |evap_control.Water| replace:: :class:`~hydpy.models.evap.evap_control.Water`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _evap_aet_morsim:
+
+evap_aet_morsim
+===============
+
+.. automodule:: hydpy.models.evap_aet_morsim
+    :members:
+    :show-inheritance:
+    :exclude-members: cast, AnyStr, Any, SUBMETHODS, no_type_check_decorator, FIXEDPARAMETERS, Final, get_protocol_members, NotRequired, DefaultDict, INTERFACE_METHODS, Required, TypeAliasType, ClassVar, get_origin, Reader, TypeVarTuple, SOLVERPARAMETERS, AsyncIterator, assert_never, Awaitable, ReadOnly, get_overloads, Annotated, Never, TypeVar, Dict, clear_overloads, final, FrozenSet, ReceiverSequences, ByteString, get_type_hints, Literal, SUBMODELS, dataclass_transform, Match, Sized, no_type_check, Writer, NewType, SenderSequences, ForwardRef, Coroutine, Unpack, SupportsRound, subvars, NamedTuple, BinaryIO, Counter, overload, SupportsBytes, Deque, is_protocol, Self, ChainMap, KeysView, SupportsIndex, TypeAlias, TYPE_CHECKING, Mapping, AsyncIterable, ADD_METHODS, Text, assert_type, Protocol, ParamSpecKwargs, CapsuleType, List, DERIVEDPARAMETERS, Generator, LiteralString, ParamSpecArgs, SUBMODELINTERFACES, AideSequences, UPDATEDSEQUENCES, TypeIs, fastaccess_old, ParamSpec, Set, runtime_checkable, subseqs, Format, TypeForm, get_annotations, INLET_METHODS, TypeGuard, fastaccess_new, MutableSequence, MutableSet, ValuesView, Iterable, fastaccess, AsyncContextManager, RUN_METHODS, Container, AbstractSet, Hashable, override, Concatenate, AsyncGenerator, RESULTSEQUENCES, OrderedDict, is_typeddict, IntVar, pars, PART_ODE_METHODS, TypedDict, CONTROLPARAMETERS, SENDER_METHODS, Generic, OutletSequences, Type, seqs, Buffer, Tuple, Optional, get_original_bases, ContextManager, InletSequences, Collection, get_args, Sentinel, Iterator, Callable, evaluate_forward_ref, MutableMapping, StateSequences, runtime, NoExtraItems, deprecated, Doc, MappingView, NoDefault, TextIO, Pattern, CLASSES, OUTLET_METHODS, FULL_ODE_METHODS, IO, SupportsComplex, RECEIVER_METHODS, SupportsAbs, SupportsFloat, Union, reveal_type, REQUIREDSEQUENCES, Reversible, NoReturn, Sequence, SupportsInt, SOLVERSEQUENCES, ItemsView, subpars

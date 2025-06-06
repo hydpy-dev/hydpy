@@ -1,0 +1,17 @@
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |evap_pet_m.DOCNAME.complete| replace:: HydPy-Evap-PET-M (month-based adjustment of reference evapotranspiration)
+.. |evap_pet_m| replace:: :mod:`~hydpy.models.evap_pet_m`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |evap_ret_tw2002| replace:: :mod:`~hydpy.models.evap_ret_tw2002`
+.. |lland_dd| replace:: :mod:`~hydpy.models.lland_dd`
+
+.. _evap_pet_m:
+
+evap_pet_m
+==========
+
+.. automodule:: hydpy.models.evap_pet_m
+    :members:
+    :show-inheritance:
+    :exclude-members: cast, AnyStr, Any, SUBMETHODS, no_type_check_decorator, FIXEDPARAMETERS, Final, get_protocol_members, NotRequired, DefaultDict, INTERFACE_METHODS, Required, TypeAliasType, ClassVar, get_origin, Reader, TypeVarTuple, SOLVERPARAMETERS, AsyncIterator, assert_never, Awaitable, ReadOnly, get_overloads, Annotated, Never, TypeVar, Dict, clear_overloads, final, FrozenSet, ReceiverSequences, ByteString, get_type_hints, Literal, FactorSequences, SUBMODELS, dataclass_transform, Match, Sized, no_type_check, Writer, NewType, SenderSequences, ForwardRef, Coroutine, Unpack, SupportsRound, subvars, NamedTuple, BinaryIO, InputSequences, Counter, overload, SupportsBytes, Deque, is_protocol, Self, ChainMap, KeysView, SupportsIndex, TypeAlias, TYPE_CHECKING, Mapping, AsyncIterable, ADD_METHODS, Text, assert_type, Protocol, ParamSpecKwargs, CapsuleType, List, DERIVEDPARAMETERS, Generator, LiteralString, ParamSpecArgs, SUBMODELINTERFACES, AideSequences, UPDATEDSEQUENCES, TypeIs, fastaccess_old, ParamSpec, Set, runtime_checkable, subseqs, Format, TypeForm, get_annotations, INLET_METHODS, TypeGuard, fastaccess_new, MutableSequence, MutableSet, ValuesView, Iterable, fastaccess, AsyncContextManager, RUN_METHODS, Container, AbstractSet, Hashable, override, Concatenate, AsyncGenerator, RESULTSEQUENCES, OrderedDict, is_typeddict, IntVar, pars, PART_ODE_METHODS, TypedDict, CONTROLPARAMETERS, SENDER_METHODS, Generic, OutletSequences, Type, seqs, Buffer, Tuple, Optional, get_original_bases, ContextManager, InletSequences, Collection, get_args, Sentinel, Iterator, Callable, evaluate_forward_ref, MutableMapping, StateSequences, runtime, NoExtraItems, deprecated, Doc, MappingView, NoDefault, TextIO, Pattern, CLASSES, OUTLET_METHODS, FULL_ODE_METHODS, IO, SupportsComplex, RECEIVER_METHODS, SupportsAbs, SupportsFloat, Union, reveal_type, REQUIREDSEQUENCES, Reversible, NoReturn, Sequence, SupportsInt, SOLVERSEQUENCES, ItemsView, subpars

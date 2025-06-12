@@ -5317,8 +5317,8 @@ class Calc_QDB_V1(modeltools.Method):
         \frac{WaDa}{(BSf+1) \cdot WMax}
         \\ \\
         Exz = (BoWa^* + WaDa) - WMax^* \\
-        BoWa^* = BSf0 \cdot BoWa \\
-        WMax^* = BSf0 \cdot WMax
+        BoWa^* = BoWa - (BSf0 \cdot WMax) \\
+        WMax^* = (1 - BSf0) \cdot WMax
 
     Examples:
 

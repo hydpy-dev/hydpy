@@ -1,0 +1,16 @@
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_weir_out.DOCNAME.complete| replace:: HydPy-SW1D-Weir-Out (submodel for calculating free weir flow at a channel outlet)
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+
+.. _sw1d_weir_out:
+
+sw1d_weir_out
+=============
+
+.. automodule:: hydpy.models.sw1d_weir_out
+    :members:
+    :show-inheritance:
+    :exclude-members: NoReturn, reveal_type, clear_overloads, SUBMODELINTERFACES, MutableMapping, FULL_ODE_METHODS, assert_type, Counter, OrderedDict, TypeAliasType, SenderSequences, AsyncGenerator, fastaccess_old, SupportsAbs, SupportsFloat, Text, CapsuleType, cast, ReadOnly, final, MutableSequence, SupportsBytes, Iterable, ReceiverSequences, seqs, Union, TypeVarTuple, SupportsRound, TypeAlias, ADD_METHODS, SENDER_METHODS, KeysView, Concatenate, Generic, ParamSpecKwargs, Doc, FrozenSet, MappingView, Sequence, Buffer, NoExtraItems, AbstractSet, OUTLET_METHODS, DefaultDict, TypeForm, ClassVar, is_typeddict, NotRequired, Type, Literal, SupportsInt, get_overloads, ByteString, Tuple, Final, subvars, BinaryIO, assert_never, TypeIs, IntVar, get_protocol_members, AsyncIterator, get_original_bases, ItemsView, Coroutine, Any, INLET_METHODS, NewType, evaluate_forward_ref, Match, Sized, RUN_METHODS, fastaccess_new, REQUIREDSEQUENCES, TypeVar, Protocol, ChainMap, Deque, Never, ValuesView, ContextManager, Collection, FIXEDPARAMETERS, AnyStr, subseqs, get_args, LiteralString, runtime_checkable, Unpack, Iterator, AsyncContextManager, AsyncIterable, SupportsComplex, Callable, get_type_hints, Annotated, overload, runtime, ForwardRef, Sentinel, SUBMODELS, PART_ODE_METHODS, Writer, Pattern, pars, subpars, RECEIVER_METHODS, RESULTSEQUENCES, get_origin, Container, ParamSpecArgs, is_protocol, get_annotations, Required, no_type_check_decorator, Self, TypeGuard, DERIVEDPARAMETERS, CLASSES, dataclass_transform, Set, InputSequences, SUBMETHODS, ParamSpec, no_type_check, Mapping, Format, fastaccess, IO, TextIO, override, Awaitable, AideSequences, List, LogSequences, SOLVERSEQUENCES, Optional, InletSequences, UPDATEDSEQUENCES, deprecated, INTERFACE_METHODS, TypedDict, NoDefault, MutableSet, Dict, Generator, Reader, SOLVERPARAMETERS, Reversible, SupportsIndex, Hashable, NamedTuple, TYPE_CHECKING, CONTROLPARAMETERS

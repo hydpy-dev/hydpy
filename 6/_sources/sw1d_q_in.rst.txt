@@ -1,0 +1,17 @@
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_q_in.DOCNAME.complete| replace:: HydPy-SW1D-Q-In (submodel for adding pre-determined discharge to a channel inlet)
+.. |sw1d_q_in| replace:: :mod:`~hydpy.models.sw1d_q_in`
+
+.. _sw1d_q_in:
+
+sw1d_q_in
+=========
+
+.. automodule:: hydpy.models.sw1d_q_in
+    :members:
+    :show-inheritance:
+    :exclude-members: ParamSpecArgs, Iterable, AsyncIterator, ContextManager, ADD_METHODS, NotRequired, KeysView, MappingView, SupportsFloat, Match, Required, FIXEDPARAMETERS, SupportsAbs, AsyncIterable, AbstractSet, deprecated, Mapping, Optional, ClassVar, fastaccess_new, dataclass_transform, SENDER_METHODS, Deque, get_args, Self, Sized, SOLVERPARAMETERS, ParamSpec, override, TypedDict, TypeGuard, SUBMODELINTERFACES, get_protocol_members, INTERFACE_METHODS, Reversible, TypeIs, Dict, REQUIREDSEQUENCES, subpars, subseqs, get_overloads, SenderSequences, Container, NoReturn, overload, ParamSpecKwargs, TypeAliasType, DefaultDict, CONTROLPARAMETERS, is_typeddict, final, get_type_hints, get_annotations, MutableMapping, ReceiverSequences, Pattern, InputSequences, Generator, TextIO, ByteString, TypeAlias, Type, RECEIVER_METHODS, List, Format, SupportsComplex, Generic, pars, fastaccess, cast, TypeForm, AsyncGenerator, ValuesView, clear_overloads, runtime, AnyStr, NewType, AideSequences, IO, Doc, Sequence, UPDATEDSEQUENCES, Buffer, no_type_check, Concatenate, Callable, SupportsBytes, Awaitable, fastaccess_old, RESULTSEQUENCES, AsyncContextManager, SOLVERSEQUENCES, assert_never, FULL_ODE_METHODS, SUBMODELS, CLASSES, runtime_checkable, SUBMETHODS, Coroutine, Text, seqs, IntVar, get_original_bases, Iterator, SupportsRound, NamedTuple, reveal_type, ChainMap, Unpack, DERIVEDPARAMETERS, TypeVarTuple, MutableSequence, Set, ReadOnly, Final, SupportsInt, Any, LiteralString, TYPE_CHECKING, OutletSequences, no_type_check_decorator, is_protocol, MutableSet, OrderedDict, Tuple, get_origin, CapsuleType, Protocol, ItemsView, OUTLET_METHODS, assert_type, RUN_METHODS, Counter, NoDefault, PART_ODE_METHODS, Literal, TypeVar, Annotated, Never, SupportsIndex, Collection, LogSequences, evaluate_forward_ref, BinaryIO, FrozenSet, Hashable, Union, INLET_METHODS, ForwardRef, subvars, NoExtraItems

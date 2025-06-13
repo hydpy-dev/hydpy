@@ -9,6 +9,7 @@ from __future__ import annotations
 import abc
 import collections
 import itertools
+import math
 import time
 import types
 import warnings
@@ -71,7 +72,7 @@ class TargetFunction(Protocol):
 
 
 class Adaptor(Protocol):
-    """Protocol class for defining adoptors required by |Replace| objects.
+    """Protocol class for defining adaptors required by |Replace| objects.
 
     Often, one calibration parameter (represented by one |Replace| object) depends on
     other calibration parameters (represented by other |Replace| objects) or other
@@ -192,7 +193,7 @@ class FactorAdaptor(Adaptor):
     >>> gmelt.adaptor = FactorAdaptor(gmelt, "cfmax")
 
     The `dill_assl` subcatchment, like the whole `Lahn` basin, does not contain any
-    glaciers.  Hence it defines (identical) |hland_control.CFMax| values for the zones
+    glaciers.  Hence, it defines (identical) |hland_control.CFMax| values for the zones
     of type |hland_constants.FIELD| and |hland_constants.FOREST| but must not specify
     any value for |hland_control.GMelt|:
 
@@ -299,7 +300,7 @@ class Rule(abc.ABC, Generic[TypeParameter]):
     >>> hp, pub, TestIO = prepare_full_example_2()
 
     We define a |Rule| object supposed to replace the values of parameter
-    |hland_control.FC| of application model |lland_dd|.  Note that argument `name` is
+    |hland_control.FC| of application model |hland_96|.  Note that argument `name` is
     the rule's name, whereas the argument `parameter` is the parameter's name:
 
     >>> from hydpy import Replace
@@ -695,6 +696,18 @@ following error occurred: Parameter types are inconsistent: \
             )
 
     @property
+    def lower_transformed(self) -> float:
+        """Reference to |Rule.lower| to be overridden by subclasses that implement some
+        value transformation for the sake of simplifying error surfaces."""
+        return self.lower
+
+    @property
+    def upper_transformed(self) -> float:
+        """Reference to |Rule.upper| to be overridden by subclasses that implement some
+        value transformation for the sake of simplifying error surfaces."""
+        return self.upper
+
+    @property
     def elements(self) -> hydpy.Elements:
         """The |Element| objects, which handle the relevant target |Parameter|
         instances."""
@@ -755,6 +768,16 @@ value `200.0` instead.
                     f"`{repr_(self.upper)}`, but the given value is `{repr_(value)}`.  "
                     f"Applying the trimmed value `{repr_(self._value)}` instead."
                 )
+
+    @property
+    def value_transformed(self) -> float:
+        """Reference to |Rule.value| to be overridden by subclasses that implement some
+        value transformation for the sake of simplifying error surfaces."""
+        return self.value
+
+    @value_transformed.setter
+    def value_transformed(self, value: float) -> None:
+        self.value = value
 
     @abc.abstractmethod
     def apply_value(self) -> None:
@@ -896,6 +919,81 @@ class Replace(Rule[parametertools.Parameter]):
                     self.adaptor(parameter)
                 else:
                     self._update_parameter(parameter, self.value)
+
+
+class LogReplace(Replace):
+    """|Replace| subclass, which applies log transformations to help calibration
+    algorithms by simplifying error surfaces.
+
+    >>> from hydpy.core.testtools import prepare_full_example_2
+    >>> hp, pub, TestIO = prepare_full_example_2()
+
+    We define a |LogReplace| instance that replaces the values of parameter
+    |hland_control.K4| of application model |hland_96|:
+
+    >>> from hydpy import LogReplace
+    >>> rule = LogReplace(
+    ...     name="k4",
+    ...     parameter="k4",
+    ...     lower=0.001,
+    ...     value=0.01,
+    ...     upper=0.1,
+    ...     model="hland_96",
+    ... )
+
+    The bounds and the current value are not log-transformed so that, from the user's
+    perspective, |LogReplace| rules behave like "normal" |Replace| rules:
+
+    >>> rule.lower
+    0.001
+    >>> rule.upper
+    0.1
+    >>> rule.value
+    0.01
+
+    The related properties |LogReplace.lower_transformed|,
+    |LogReplace.upper_transformed|, and |LogReplace.value_transformed|, which serve to
+    interact with calibration algorithms, return those values logarithmised:
+
+    >>> from hydpy import round_
+    >>> round_(rule.lower_transformed)
+    -6.907755
+    >>> round_(rule.value_transformed)
+    -4.60517
+    >>> round_(rule.upper_transformed)
+    -2.302585
+
+    Property |LogReplace.value_transformed| also provides a setter which allows
+    calibration algorithms to suggest new logarithmic values:
+
+    >>> rule.value_transformed = rule.upper_transformed
+    >>> round_(rule.value_transformed)
+    -2.302585
+
+    It "normalises" them by applying the exponential transformation:
+
+    >>> rule.value
+    0.1
+    """
+
+    @property
+    def value_transformed(self) -> float:
+        """The log-transformed counterpart to |Rule.value|."""
+        return math.log(self.value)
+
+    @value_transformed.setter
+    def value_transformed(self, value: float) -> None:
+        self.value = math.exp(value)
+
+    @property
+    def lower_transformed(self) -> float:
+        """The log-transformed counterpart to |Rule.lower|."""
+        return math.log(self.lower)
+
+    @property
+    def upper_transformed(self) -> float:
+        """The log-transformed counterpart to |Rule.upper|."""
+        return math.log(self.upper)
 
 
 class Add(Rule[parametertools.Parameter]):
@@ -1085,12 +1183,12 @@ hp.elements.stream_lahn_marb_lahn_leun.model.parameters.control.nmbsegments
 
 
 class CalibrationInterface(Generic[TypeRule1]):
-    """Interface for the coupling of *HydPy* to optimisation libraries like `NLopt`_.
+    """Interface for coupling HydPy to optimisation libraries like `NLopt`_.
 
     Essentially, class |CalibrationInterface| is supposed for the structured handling
     of multiple objects of the different |Rule| subclasses.  Hence, please read the
-    documentation on class |Rule| before continuing, on which we base the following
-    explanations.
+    documentation on class |Rule| before continuing, as we base the following
+    explanations on it.
 
     We work with the `Lahn` example project again:
 
@@ -1110,7 +1208,7 @@ class CalibrationInterface(Generic[TypeRule1]):
 
     Next, we use function |make_rules|, which creates one |Replace| rule related to
     parameter |hland_control.FC| and another one related to parameter
-    |hland_control.PercMax| in one step, and add them via method
+    |hland_control.PercMax| in a single step, and adds them via method
     |CalibrationInterface.add_rules|:
 
     >>> from hydpy import Replace
@@ -1168,6 +1266,21 @@ class CalibrationInterface(Generic[TypeRule1]):
     >>> len(ci)
     3
 
+    You can mix different types of rules.  |LogReplace|, for example, interacts with
+    the user based on "normal" parameter values but interacts with an optimisation
+    algorithm by exchanging log-transformed values:
+
+    >>> from hydpy import LogReplace
+    >>> ci.add_rules(LogReplace(name="k4",
+    ...                         parameter="k4",
+    ...                         value=0.01,
+    ...                         lower=0.005,
+    ...                         upper=0.05,
+    ...                         selections=["complete"],
+    ...                         model="hland_96"))
+    >>> len(ci)
+    4
+
     All rules are available via attribute and keyword access:
 
     >>> ci.fc
@@ -1212,21 +1325,36 @@ attribute nor a rule object named `FC`...
     |Rule| objects:
 
     >>> ci.names
-    ('fc', 'percmax', 'damp')
+    ('fc', 'percmax', 'damp', 'k4')
     >>> ci.keywords
-    (None, None, 'damp')
+    (None, None, 'damp', None)
     >>> ci.values
-    (100.0, 5.0, 0.2)
+    (100.0, 5.0, 0.2, 0.01)
     >>> ci.lowers
-    (50.0, 1.0, 0.0)
+    (50.0, 1.0, 0.0, 0.005)
     >>> ci.uppers
-    (200.0, 10.0, 0.5)
+    (200.0, 10.0, 0.5, 0.05)
+
+    The "number-related" properties all have counterparts that provide transformed
+    values if the types of the respective rules define a transformation and otherwise
+    the original values:
+
+    >>> from hydpy import print_vector
+    >>> print_vector(ci.values_transformed)
+    100.0, 5.0, 0.2, -4.60517
+    >>> print_vector(ci.lowers_transformed)
+    50.0, 1.0, 0.0, -5.298317
+    >>> print_vector(ci.uppers_transformed)
+    200.0, 10.0, 0.5, -2.995732
 
     All tuples reflect the current state of all rules:
 
     >>> ci.damp.value = 0.3
+    >>> ci.k4.value = 0.04
     >>> ci.values
-    (100.0, 5.0, 0.3)
+    (100.0, 5.0, 0.3, 0.04)
+    >>> print_vector(ci.values_transformed)
+    100.0, 5.0, 0.3, -3.218876
 
     For the following examples, we perform a simulation run and assign the values of
     the simulated time series to the observed series:
@@ -1239,8 +1367,8 @@ attribute nor a rule object named `FC`...
 
     As the agreement between the simulated and the "observed" time series is perfect
     for all four gauges, method |CalibrationInterface.calculate_likelihood| returns the
-    highest possible sum of four |nse| values and also stores it under the attribute
-    `result`:
+    highest possible sum of the four |nse| values and also stores it under the
+    attribute `result`:
 
     >>> from hydpy import round_
     >>> round_(ci.calculate_likelihood())
@@ -1250,7 +1378,7 @@ attribute nor a rule object named `FC`...
 
     When performing a manual calibration, it might be convenient to use method
     |CalibrationInterface.apply_values|.  To explain how it works, we first show the
-    values of the relevant parameters of some randomly selected model instances:
+    values of the relevant parameters for some randomly selected model instances:
 
     >>> stream = hp.elements.stream_lahn_marb_lahn_leun.model
     >>> stream.parameters.control
@@ -1261,6 +1389,8 @@ attribute nor a rule object named `FC`...
     fc(206.0)
     >>> land.parameters.control.percmax
     percmax(1.02978)
+    >>> land.parameters.control.k4
+    k4(0.0413)
 
     Method |CalibrationInterface.apply_values| of class |CalibrationInterface| calls
     method |Rule.apply_value| of all handled |Rule| objects, performs some preparations
@@ -1276,12 +1406,14 @@ attribute nor a rule object named `FC`...
     fc(100.0)
     >>> land.parameters.control.percmax
     percmax(5.0)
+    >>> land.parameters.control.k4
+    k4(0.04)
 
     Due to the changes in our parameter values, our simulation is not "perfect"
     anymore:
 
     >>> round_(ci.result)
-    1.638413
+    -0.854165
 
     Use method |CalibrationInterface.reset_parameters| to restore the initial states of
     all affected parameters:
@@ -1295,8 +1427,10 @@ attribute nor a rule object named `FC`...
     fc(206.0)
     >>> land.parameters.control.percmax
     percmax(1.02978)
+    >>> land.parameters.control.k4
+    k4(0.0413)
 
-    Now we get the same "perfect" efficiency again:
+    Now, we get the same "perfect" efficiency again:
 
     >>> hp.simulate()
     >>> round_(ci.calculate_likelihood())
@@ -1306,7 +1440,7 @@ attribute nor a rule object named `FC`...
     Note the `perform_simulation` argument of method
     |CalibrationInterface.apply_values|, which allows changing the model parameter
     values and updating the |HydPy| object only without triggering a simulation run
-    (and to calculate and return a new likelihood value):
+    (and calculating and returning a new likelihood value):
 
     >>> ci.apply_values(perform_simulation=False)
     >>> stream.parameters.control
@@ -1316,6 +1450,8 @@ attribute nor a rule object named `FC`...
     fc(100.0)
     >>> land.parameters.control.percmax
     percmax(5.0)
+    >>> land.parameters.control.k4
+    k4(0.04)
 
     Optimisers, like those implemented in `NLopt`_, often provide their new parameter
     estimates via vectors.  Method |CalibrationInterface.perform_calibrationstep|
@@ -1323,17 +1459,19 @@ attribute nor a rule object named `FC`...
     that, it performs the same steps as described for method
     |CalibrationInterface.apply_values|:
 
-    >>> round_(ci.perform_calibrationstep([100.0, 5.0, 0.3]))
-    1.638413
+    >>> ci.reset_parameters()
+    >>> import math
+    >>> round_(ci.perform_calibrationstep([100.0, 5.0, 0.3, math.log(0.04)]))
+    -0.854165
 
-    >>> stream.parameters.control
-    nmbsegments(lag=0.583)
-    coefficients(damp=0.3)
+    Note that we passed the last value log-transformed because optimisers should only
+    "see" the transformed (in this case, log-transformed) values.  If you want to check
+    (e.g. previously calibrated) non-transformed values, it is more convenient to set
+    the function parameter `transform` to |False|:
 
-    >>> land.parameters.control.fc
-    fc(100.0)
-    >>> land.parameters.control.percmax
-    percmax(5.0)
+    >>> ci.reset_parameters()
+    >>> round_(ci.perform_calibrationstep([100.0, 5.0, 0.3, 0.04], transformed=False))
+    -0.854165
 
     Method |CalibrationInterface.perform_calibrationstep| writes intermediate results
     into a log file, if available.  Prepare it beforehand via method
@@ -1354,9 +1492,9 @@ attribute nor a rule object named `FC`...
     ...         print(file_.read())
     # Just a doctest example.
     <BLANKLINE>
-    NSE	fc	percmax	damp
-    parameterstep	None	1d	None
-    1.638413	100.0	5.0	0.3
+    NSE	fc	percmax	damp	k4
+    parameterstep	None	1d	None	1d
+    -0.854165	100.0	5.0	0.3	0.04
     <BLANKLINE>
 
     To prevent (automatic) calibration runs from crashing due to IO problems, method
@@ -1378,8 +1516,8 @@ following problem occured: [Errno 2] No such file or directory: 'dirname1/filena
     ...     ci.update_logfile()
     ...     with open("dirname1/filename.log") as file_:
     ...         print(file_.read())
-    1.638413	100.0	5.0	0.3
-    1.638413	100.0	5.0	0.3
+    -0.854165	100.0	5.0	0.3	0.04
+    -0.854165	100.0	5.0	0.3	0.04
     <BLANKLINE>
 
     Call method |CalibrationInterface.finalise_logfile| to ensure the
@@ -1416,12 +1554,12 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     ...     ci.finalise_logfile()
     ...     with open("dirname2/filename.log") as file_:
     ...         print(file_.read())
-    1.638413	100.0	5.0	0.3
+    -0.854165	100.0	5.0	0.3	0.04
     <BLANKLINE>
 
     >>> ci._logfilepath = "example_calibration.log"
 
-    For automatic calibration, one needs a calibration algorithm like the following,
+    For automatic calibration, we require a calibration algorithm like the following,
     which checks the lower and upper boundaries and the initial values of all |Rule|
     objects:
 
@@ -1433,18 +1571,16 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     ...         if result > best_result:
     ...             best_result = result
     ...             best_parameters = values
-    ...     return best_parameters
 
-    Now we can assign method |CalibrationInterface.perform_calibrationstep| to this
-    oversimplified optimiser, which then returns the best examined calibration
-    parameter values:
+    Now, we can assign method |CalibrationInterface.perform_calibrationstep| and the
+    eventually transformed boundary and initial values to this oversimplified
+    optimiser:
 
     >>> with TestIO():
     ...     find_max(function=ci.perform_calibrationstep,
-    ...              lowers=ci.lowers,
-    ...              uppers=ci.uppers,
-    ...              inits=ci.values)
-    (200.0, 10.0, 0.5)
+    ...              lowers=ci.lowers_transformed,
+    ...              uppers=ci.uppers_transformed,
+    ...              inits=ci.values_transformed)
 
     The log file now contains one line for our old result and three lines for the
     results of our optimiser:
@@ -1454,12 +1590,12 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     ...         print(file_.read())
     # Just a doctest example.
     <BLANKLINE>
-    NSE	fc	percmax	damp
-    parameterstep	None	1d	None
-    1.638413	100.0	5.0	0.3
-    -0.722221	50.0	1.0	0.0
-    2.347116	200.0	10.0	0.5
-    1.638413	100.0	5.0	0.3
+    NSE	fc	percmax	damp	k4
+    parameterstep	None	1d	None	1d
+    -0.854165	100.0	5.0	0.3	0.04
+    -88.309474	50.0	1.0	0.0	0.005
+    -0.406115	200.0	10.0	0.5	0.05
+    -0.854165	100.0	5.0	0.3	0.04
     <BLANKLINE>
 
     Class |CalibrationInterface| also provides method
@@ -1475,10 +1611,12 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     10.0
     >>> ci.damp.value
     0.5
+    >>> ci.k4.value
+    0.05
     >>> round_(ci.result)
-    2.347116
+    -0.406115
     >>> round_(ci.apply_values())
-    2.347116
+    -0.406115
 
     On the contrary, if we set argument `maximisation` to |False|, method
     |CalibrationInterface.read_logfile| returns the worst result in our example:
@@ -1491,12 +1629,14 @@ following problem occured: [Errno 2] No such file or directory: 'dirname2/filena
     1.0
     >>> ci.damp.value
     0.0
+    >>> ci.k4.value
+    0.005
     >>> round_(ci.result)
-    -0.722221
+    -88.309474
     >>> round_(ci.apply_values())
-    -0.722221
+    -88.309474
 
-    To prevent errors due to different parameter step-sizes, method
+    To prevent errors due to different parameter step sizes, method
     |CalibrationInterface.read_logfile| raises the following error whenever it detects
     inconsistencies:
 
@@ -1517,8 +1657,8 @@ does not agree with the one documentated in log file `example_calibration.log` (
     Traceback (most recent call last):
     ...
     RuntimeError: The names of the rules handled by the actual calibration interface \
-(damp and fc) do not agree with the names in the header of logfile \
-`example_calibration.log` (damp, fc, and percmax).
+(damp, fc, and k4) do not agree with the names in the header of logfile \
+`example_calibration.log` (damp, fc, k4, and percmax).
 
     The last consistency check is optional.  Set argument `check` to |False| to force
     method |CalibrationInterface.read_logfile| to query all available data instead of
@@ -1533,6 +1673,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
     ...                      model="hland_96"))
     >>> ci.fc.value = 0.0
     >>> ci.damp.value = 0.0
+    >>> ci.k4.value = 0.001
     >>> with TestIO():
     ...     ci.read_logfile(
     ...         logfilepath="example_calibration.log",
@@ -1545,6 +1686,8 @@ does not agree with the one documentated in log file `example_calibration.log` (
     200.0
     >>> ci.damp.value
     0.5
+    >>> ci.k4.value
+    0.05
     """
 
     result: float | None
@@ -1590,7 +1733,7 @@ does not agree with the one documentated in log file `example_calibration.log` (
         ...                      model="hland_96"))
 
         Note that method |CalibrationInterface.add_rules| might change the number of
-        |Element| objects relevant for the |CalibrationInterface| object:
+        |Element| objects relevant to the |CalibrationInterface| object:
 
         >>> damp = Replace(name="damp",
         ...                parameter="coefficients",
@@ -1885,12 +2028,21 @@ object named `fc`.
 
     @property
     def values(self) -> tuple[float, ...]:
-        """The values of all handled |Rule| objects.
+        """The current values of all handled |Rule| objects.
 
         See the main documentation on class |CalibrationInterface| for further
         information.
         """
         return tuple(rule.value for rule in self)
+
+    @property
+    def values_transformed(self) -> tuple[float, ...]:
+        """The eventually transformed values of all handled |Rule| objects.
+
+        See the main documentation on class |CalibrationInterface| for further
+        information.
+        """
+        return tuple(rule.value_transformed for rule in self)
 
     @property
     def keywords(self) -> tuple[str | None, ...]:
@@ -1911,6 +2063,15 @@ object named `fc`.
         return tuple(rule.lower for rule in self)
 
     @property
+    def lowers_transformed(self) -> tuple[float, ...]:
+        """The eventually transformed lower boundaries of all handled |Rule| objects.
+
+        See the main documentation on class |CalibrationInterface| for further
+        information.
+        """
+        return tuple(rule.lower_transformed for rule in self)
+
+    @property
     def uppers(self) -> tuple[float, ...]:
         """The upper boundaries of all handled |Rule| objects.
 
@@ -1918,6 +2079,15 @@ object named `fc`.
         information.
         """
         return tuple(rule.upper for rule in self)
+
+    @property
+    def uppers_transformed(self) -> tuple[float, ...]:
+        """The eventually transformed upper boundaries of all handled |Rule| objects.
+
+        See the main documentation on class |CalibrationInterface| for further
+        information.
+        """
+        return tuple(rule.upper_transformed for rule in self)
 
     @property
     def selections(self) -> tuple[str, ...]:
@@ -1947,9 +2117,12 @@ object named `fc`.
                 parametertypes.append((rule.parametertype, None))
         return variabletools.sort_variables(set(parametertypes))
 
-    def _update_values(self, values: Iterable[float]) -> None:
+    def _update_values(self, values: Iterable[float], transformed: bool) -> None:
         for rule, value in zip(self, values):
-            rule.value = value
+            if transformed:
+                rule.value_transformed = value
+            else:
+                rule.value = value
 
     def _refresh_hp(self) -> None:
         for element in self._elements:
@@ -2000,7 +2173,11 @@ object named `fc`.
         return self.result
 
     def perform_calibrationstep(
-        self, values: Iterable[float], *args: Any, **kwargs: Any
+        self,
+        values: Iterable[float],
+        *args: Any,
+        transformed: bool = True,
+        **kwargs: Any,
     ) -> float:
         # pylint: disable=unused-argument
         # for optimisers that pass additional informative data
@@ -2011,7 +2188,7 @@ object named `fc`.
         See the main documentation on class |CalibrationInterface| for further
         information.
         """
-        self._update_values(values)
+        self._update_values(values, transformed)
         likelihood = self.apply_values()
         self.update_logfile()
         return likelihood

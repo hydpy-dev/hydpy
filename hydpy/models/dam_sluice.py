@@ -261,7 +261,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
     ADD_METHODS = ()
     PART_ODE_METHODS = (
         dam_model.Calc_AdjustedPrecipitation_V1,
-        dam_model.Pic_Inflow_V1,
+        dam_model.Pick_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
         dam_model.Calc_OuterWaterLevel_V1,
         dam_model.Calc_RemoteWaterLevel_V1,

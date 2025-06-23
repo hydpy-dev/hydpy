@@ -40,7 +40,7 @@ class Pick_LoggedWaterLevel_V1(modeltools.Method):
         log.loggedwaterlevel[0] = rec.waterlevel
 
 
-class Pic_LoggedWaterLevels_V1(modeltools.Method):
+class Pick_LoggedWaterLevels_V1(modeltools.Method):
     """Pic the logged water levels from two receiver nodes.
 
     Basic equation:
@@ -52,7 +52,7 @@ class Pic_LoggedWaterLevels_V1(modeltools.Method):
         >>> parameterstep()
         >>> receivers.waterlevels.shape = 2
         >>> receivers.waterlevels = 2.0, 4.0
-        >>> model.pic_loggedwaterlevels_v1()
+        >>> model.pick_loggedwaterlevels_v1()
         >>> logs.loggedwaterlevels
         loggedwaterlevels(2.0, 4.0)
 
@@ -514,7 +514,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_OriginalInput_V1,)
-    RECEIVER_METHODS = (Pick_LoggedWaterLevel_V1, Pic_LoggedWaterLevels_V1)
+    RECEIVER_METHODS = (Pick_LoggedWaterLevel_V1, Pick_LoggedWaterLevels_V1)
     RUN_METHODS = (
         Update_WaterLevels_V1,
         Calc_DeltaWaterLevel_V1,

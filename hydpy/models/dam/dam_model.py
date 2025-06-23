@@ -315,7 +315,7 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
         )
 
 
-class Pic_Inflow_V1(modeltools.Method):
+class Pick_Inflow_V1(modeltools.Method):
     r"""Update the inlet sequence |Inflow|.
 
     Basic equation:
@@ -327,7 +327,7 @@ class Pic_Inflow_V1(modeltools.Method):
         >>> parameterstep()
         >>> inlets.q.shape = 2
         >>> inlets.q = 2.0, 4.0
-        >>> model.pic_inflow_v1()
+        >>> model.pick_inflow_v1()
         >>> fluxes.inflow
         inflow(6.0)
     """
@@ -344,7 +344,7 @@ class Pic_Inflow_V1(modeltools.Method):
             flu.inflow += inl.q[idx]
 
 
-class Pic_Inflow_V2(modeltools.Method):
+class Pick_Inflow_V2(modeltools.Method):
     r"""Update the inlet sequence |Inflow|.
 
     Basic equation:
@@ -358,7 +358,7 @@ class Pic_Inflow_V2(modeltools.Method):
         >>> inlets.r = 1.0
         >>> inlets.q.shape = 2
         >>> inlets.q = 2.0, 4.0
-        >>> model.pic_inflow_v2()
+        >>> model.pick_inflow_v2()
         >>> fluxes.inflow
         inflow(7.5)
     """
@@ -375,7 +375,7 @@ class Pic_Inflow_V2(modeltools.Method):
             flu.inflow += inl.q[idx]
 
 
-class Pic_TotalRemoteDischarge_V1(modeltools.Method):
+class Pick_TotalRemoteDischarge_V1(modeltools.Method):
     """Update the receiver sequence |TotalRemoteDischarge|.
 
     Basic equation:
@@ -386,7 +386,7 @@ class Pic_TotalRemoteDischarge_V1(modeltools.Method):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> receivers.q = 2.0
-        >>> model.pic_totalremotedischarge_v1()
+        >>> model.pick_totalremotedischarge_v1()
         >>> fluxes.totalremotedischarge
         totalremotedischarge(2.0)
     """
@@ -453,7 +453,7 @@ class Pick_LoggedRemoteWaterLevel_V1(modeltools.Method):
         log.loggedremotewaterlevel[0] = rec.rwl
 
 
-class Pic_LoggedRequiredRemoteRelease_V1(modeltools.Method):
+class Pick_LoggedRequiredRemoteRelease_V1(modeltools.Method):
     """Update the receiver sequence |LoggedRequiredRemoteRelease|.
 
     Basic equation:
@@ -464,7 +464,7 @@ class Pic_LoggedRequiredRemoteRelease_V1(modeltools.Method):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> receivers.d = 2.0
-        >>> model.pic_loggedrequiredremoterelease_v1()
+        >>> model.pick_loggedrequiredremoterelease_v1()
         >>> logs.loggedrequiredremoterelease
         loggedrequiredremoterelease(2.0)
     """
@@ -479,7 +479,7 @@ class Pic_LoggedRequiredRemoteRelease_V1(modeltools.Method):
         log.loggedrequiredremoterelease[0] = rec.d
 
 
-class Pic_LoggedRequiredRemoteRelease_V2(modeltools.Method):
+class Pick_LoggedRequiredRemoteRelease_V2(modeltools.Method):
     """Update the receiver sequence |LoggedRequiredRemoteRelease|.
 
     Basic equation:
@@ -490,7 +490,7 @@ class Pic_LoggedRequiredRemoteRelease_V2(modeltools.Method):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> receivers.s = 2.0
-        >>> model.pic_loggedrequiredremoterelease_v2()
+        >>> model.pick_loggedrequiredremoterelease_v2()
         >>> logs.loggedrequiredremoterelease
         loggedrequiredremoterelease(2.0)
     """
@@ -505,7 +505,7 @@ class Pic_LoggedRequiredRemoteRelease_V2(modeltools.Method):
         log.loggedrequiredremoterelease[0] = rec.s
 
 
-class Pic_Exchange_V1(modeltools.Method):
+class Pick_Exchange_V1(modeltools.Method):
     r"""Update the inlet sequence |Exchange|.
 
     Basic equation:
@@ -517,7 +517,7 @@ class Pic_Exchange_V1(modeltools.Method):
         >>> parameterstep()
         >>> inlets.e.shape = 2
         >>> inlets.e = 2.0, 4.0
-        >>> model.pic_exchange_v1()
+        >>> model.pick_exchange_v1()
         >>> fluxes.exchange
         exchange(6.0)
     """
@@ -534,7 +534,7 @@ class Pic_Exchange_V1(modeltools.Method):
             flu.exchange += inl.e[idx]
 
 
-class Pic_LoggedAllowedRemoteRelief_V1(modeltools.Method):
+class Pick_LoggedAllowedRemoteRelief_V1(modeltools.Method):
     """Update the receiver sequence |LoggedAllowedRemoteRelief|.
 
     Basic equation:
@@ -545,7 +545,7 @@ class Pic_LoggedAllowedRemoteRelief_V1(modeltools.Method):
         >>> from hydpy.models.dam import *
         >>> parameterstep()
         >>> receivers.r = 2.0
-        >>> model.pic_loggedallowedremoterelief_v1()
+        >>> model.pick_loggedallowedremoterelief_v1()
         >>> logs.loggedallowedremoterelief
         loggedallowedremoterelief(2.0)
     """
@@ -4983,8 +4983,8 @@ class Model(modeltools.ELSModel):
         Calc_PotentialEvaporation_V1,
         Calc_AdjustedEvaporation_V1,
         Calc_ActualEvaporation_V1,
-        Pic_Inflow_V1,
-        Pic_Inflow_V2,
+        Pick_Inflow_V1,
+        Pick_Inflow_V2,
         Calc_NaturalRemoteDischarge_V1,
         Calc_RemoteDemand_V1,
         Calc_RemoteFailure_V1,
@@ -4994,21 +4994,21 @@ class Model(modeltools.ELSModel):
         Calc_TargetedRelease_V1,
     )
     RECEIVER_METHODS = (
-        Pic_TotalRemoteDischarge_V1,
+        Pick_TotalRemoteDischarge_V1,
         Update_LoggedTotalRemoteDischarge_V1,
         Pick_LoggedOuterWaterLevel_V1,
         Pick_LoggedRemoteWaterLevel_V1,
-        Pic_LoggedRequiredRemoteRelease_V1,
-        Pic_LoggedRequiredRemoteRelease_V2,
-        Pic_Exchange_V1,
+        Pick_LoggedRequiredRemoteRelease_V1,
+        Pick_LoggedRequiredRemoteRelease_V2,
+        Pick_Exchange_V1,
         Calc_RequiredRemoteRelease_V2,
-        Pic_LoggedAllowedRemoteRelief_V1,
+        Pick_LoggedAllowedRemoteRelief_V1,
         Calc_AllowedRemoteRelief_V1,
     )
     ADD_METHODS = (Fix_Min1_V1,)
     PART_ODE_METHODS = (
-        Pic_Inflow_V1,
-        Pic_Inflow_V2,
+        Pick_Inflow_V1,
+        Pick_Inflow_V2,
         Calc_WaterLevel_V1,
         Calc_OuterWaterLevel_V1,
         Calc_RemoteWaterLevel_V1,

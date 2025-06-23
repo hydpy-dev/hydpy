@@ -619,20 +619,20 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         dam_model.Calc_Precipitation_V1,
         dam_model.Calc_PotentialEvaporation_V1,
         dam_model.Calc_AdjustedEvaporation_V1,
-        dam_model.Pic_Inflow_V1,
+        dam_model.Pick_Inflow_V1,
         dam_model.Calc_RequiredRemoteRelease_V2,
         dam_model.Calc_AllowedRemoteRelief_V1,
         dam_model.Calc_RequiredRelease_V2,
         dam_model.Calc_TargetedRelease_V1,
     )
     RECEIVER_METHODS = (
-        dam_model.Pic_LoggedRequiredRemoteRelease_V2,
-        dam_model.Pic_LoggedAllowedRemoteRelief_V1,
+        dam_model.Pick_LoggedRequiredRemoteRelease_V2,
+        dam_model.Pick_LoggedAllowedRemoteRelief_V1,
     )
     ADD_METHODS = (dam_model.Fix_Min1_V1,)
     PART_ODE_METHODS = (
         dam_model.Calc_AdjustedPrecipitation_V1,
-        dam_model.Pic_Inflow_V1,
+        dam_model.Pick_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
         dam_model.Calc_ActualEvaporation_V1,
         dam_model.Calc_ActualRelease_V1,

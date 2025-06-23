@@ -28,6 +28,7 @@ relationship between stage and volume:
 
 >>> from hydpy import IntegrationTest, Element, pub
 >>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
+>>> from hydpy.models.dam_lretention import *
 >>> parameterstep("1d")
 >>> element = Element("element", inlets="input_", outlets="output")
 >>> element.model = model

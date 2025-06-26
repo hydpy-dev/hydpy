@@ -593,8 +593,10 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
         sidemodels=True,
     )
 
-    def __hydpy__collect_linksequences__(
-        self, group: str, sequences: list[sequencetools.LinkSequence]
+    def __hydpy__collect_sequences__(
+        self,
+        group: str,
+        sequences: list[sequencetools.InputSequence | sequencetools.LinkSequence],
     ) -> None:
         if group == "outlets":
             sequences.append(self.sequences.outlets.longq)

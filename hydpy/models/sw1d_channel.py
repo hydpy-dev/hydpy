@@ -1985,23 +1985,25 @@ as rm2:
                 r.storagemodelupstream_typeid = 1
                 su.routingmodelsdownstream.append_submodel(submodel=r)
 
-    def __hydpy__collect_linksequences__(
-        self, group: str, sequences: list[sequencetools.LinkSequence]
+    def __hydpy__collect_sequences__(
+        self,
+        group: str,
+        sequences: list[sequencetools.InputSequence | sequencetools.LinkSequence],
     ) -> None:
         if group == "inlets":
             if (routingmodel := self.routingmodels[0]) is not None:
-                routingmodel.__hydpy__collect_linksequences__("inlets", sequences)
+                routingmodel.__hydpy__collect_sequences__("inlets", sequences)
             if (storagemodel := self.storagemodels[0]) is not None:
-                storagemodel.__hydpy__collect_linksequences__("inlets", sequences)
+                storagemodel.__hydpy__collect_sequences__("inlets", sequences)
         elif group == "outlets":
             if (routingmodel := self.routingmodels[-1]) is not None:
-                routingmodel.__hydpy__collect_linksequences__("outlets", sequences)
+                routingmodel.__hydpy__collect_sequences__("outlets", sequences)
         elif group == "receivers":
             if (routingmodel := self.routingmodels[-1]) is not None:
-                routingmodel.__hydpy__collect_linksequences__("receivers", sequences)
+                routingmodel.__hydpy__collect_sequences__("receivers", sequences)
         elif group == "senders":
             if (storagemodel := self.storagemodels[0]) is not None:
-                storagemodel.__hydpy__collect_linksequences__("senders", sequences)
+                storagemodel.__hydpy__collect_sequences__("senders", sequences)
 
     def _connect_inlets(self, report_noconnect: bool = False) -> None:
         super()._connect_inlets(report_noconnect)

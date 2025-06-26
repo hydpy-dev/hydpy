@@ -73,8 +73,10 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel
         sidemodels=True,
     )
 
-    def __hydpy__collect_linksequences__(
-        self, group: str, sequences: list[sequencetools.LinkSequence]
+    def __hydpy__collect_sequences__(
+        self,
+        group: str,
+        sequences: list[sequencetools.InputSequence | sequencetools.LinkSequence],
     ) -> None:
         if group == "outlets":
             sequences.append(self.sequences.inlets.longq)

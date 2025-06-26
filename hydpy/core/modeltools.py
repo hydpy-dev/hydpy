@@ -1599,8 +1599,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         st = sequencetools
         available_nodes = getattr(self.element, group)
         applied_nodes: list[devicetools.Node] = []
-        sequences: list[sequencetools.LinkSequence] = []
-        self.__hydpy__collect_linksequences__(group, sequences)
+        sequences: list[sequencetools.InputSequence | sequencetools.LinkSequence] = []
+        self.__hydpy__collect_sequences__(group, sequences)
 
         for sequence in sequences:
             sequence.connect_to_nodes(
@@ -1619,12 +1619,14 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 f"{objecttools.enumeration(remaining_nodes)}."
             )
 
-    def __hydpy__collect_linksequences__(
-        self, group: str, sequences: list[sequencetools.LinkSequence]
+    def __hydpy__collect_sequences__(
+        self,
+        group: str,
+        sequences: list[sequencetools.InputSequence | sequencetools.LinkSequence],
     ) -> None:
         sequences.extend(self.sequences[group])  # type: ignore[arg-type]
         for submodel in self.find_submodels(include_subsubmodels=False).values():
-            submodel.__hydpy__collect_linksequences__(group, sequences)
+            submodel.__hydpy__collect_sequences__(group, sequences)
 
     @property
     def name(self) -> str:

@@ -27,6 +27,7 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = (sw1d_model.Reset_DischargeVolume_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

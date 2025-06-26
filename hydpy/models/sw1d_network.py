@@ -672,6 +672,7 @@ class Model(modeltools.SubstepModel):
     indirectly.)"""
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         sw1d_model.Calc_MaxTimeSteps_V1,

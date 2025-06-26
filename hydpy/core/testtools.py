@@ -1704,6 +1704,7 @@ result sequences of any of its predecessors: TKor and TZ
     excluded = (
         sequencetools.InputSequence,
         sequencetools.InletSequence,
+        sequencetools.ObserverSequence,
         sequencetools.ReceiverSequence,
         sequencetools.StateSequence,
         sequencetools.LogSequence,

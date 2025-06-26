@@ -3283,6 +3283,7 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (Calc_PE_PET_V1, Calc_FR_V1, Calc_PM_V1)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (Pick_HS_V1,)
     INTERFACE_METHODS = (
         Get_Temperature_V1,

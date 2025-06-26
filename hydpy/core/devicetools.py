@@ -78,10 +78,12 @@ import contextlib
 import copy
 import itertools
 import operator
+import typing
 import warnings
 import weakref
 
 # ...from site-packages
+import inflect
 import numpy
 
 # ...from HydPy
@@ -2274,12 +2276,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
             if model and not model.COMPOSITE:
                 model.connect()
 
-    def get_double(
-        self,
-        group: Literal[
-            "inlets", "receivers", "inputs", "outlets", "senders", "outputs"
-        ],
-    ) -> pointerutils.Double:
+    def get_double(self, group: LinkInputOutputSequenceGroup) -> pointerutils.Double:
         """Return the |Double| object appropriate for the given |Element| input or
         output group and the actual |Node.deploymode|.
 
@@ -2299,7 +2296,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
 
         >>> def test(deploymode):
         ...     node.deploymode = deploymode
-        ...     for group in ( "inlets", "receivers", "inputs"):
+        ...     for group in ( "inlets", "observers", "receivers", "inputs"):
         ...         end = None if group == "inputs" else ", "
         ...         print(group, node.get_double(group), sep=": ", end=end)
         ...     for group in ("outlets", "senders", "outputs"):
@@ -2310,24 +2307,22 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         |Double| object of sequence |Sim| to all |Element| input and output groups:
 
         >>> test("newsim")
-        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        inlets: 1.0, observers: 1.0, receivers: 1.0, inputs: 1.0
         outlets: 1.0, senders: 1.0, outputs: 1.0
 
         Setting |Node.deploymode| to `obs` means that a node receives simulated values
-        (from group `outlets` or `senders`) but provides observed values (to group
-        `inlets` or `receivers`):
+        but provides observed values:
 
         >>> test("obs")
-        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 1.0, senders: 1.0, outputs: 1.0
 
         With |Node.deploymode| set to `oldsim`, the node provides (previously)
-        simulated values (to group `inlets`, `receivers`, or `inputs`) but does not
-        receive any.  Method |Node.get_double| returns a dummy |Double| object
-        initialised to 0.0 in this case (for group `outlets`, `senders`, or `outputs`):
+        simulated values but does not receive any.  Method |Node.get_double| returns a
+        dummy |Double| object initialised to 0.0 in this case:
 
         >>> test("oldsim")
-        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        inlets: 1.0, observers: 1.0, receivers: 1.0, inputs: 1.0
         outlets: 0.0, senders: 0.0, outputs: 0.0
 
         For `obs_newsim`, the result is like for `obs` because, for missing data,
@@ -2335,42 +2330,40 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         sequence during simulation:
 
         >>> test("obs_newsim")
-        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 1.0, senders: 1.0, outputs: 1.0
 
         Similar holds for the `obs_oldsim` mode, but here |Node.get_double| must ensure
         newly calculated values do not overwrite the "old" ones:
 
         >>> test("obs_oldsim")
-        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 0.0, senders: 0.0, outputs: 0.0
 
         All "bidirectional" modes require symmetrical connections, as they long for
         passing the same information in the downstream and the upstream direction:
 
         >>> test("obs_bi")
-        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 2.0, senders: 2.0, outputs: 2.0
         >>> test("oldsim_bi")
-        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        inlets: 1.0, observers: 1.0, receivers: 1.0, inputs: 1.0
         outlets: 1.0, senders: 1.0, outputs: 1.0
         >>> test("obs_oldsim_bi")
-        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 2.0, senders: 2.0, outputs: 2.0
-
-        Other |Element| input or output groups are not supported:
-
-        >>> node.get_double("test")
-        Traceback (most recent call last):
-        ...
-        ValueError: Function `get_double` of class `Node` does not support the given \
-group name `test`.
         """
         # pylint: disable=consider-using-in
+        # pylint: disable=too-many-boolean-expressions
 
         dm = self.deploymode
 
-        if group in ("inlets", "receivers", "inputs"):
+        if (
+            group == "inlets"
+            or group == "observers"
+            or group == "receivers"
+            or group == "inputs"
+        ):
             if (
                 dm == "newsim"
                 or dm == "newsim_update"
@@ -2379,7 +2372,7 @@ group name `test`.
             ):
                 return self.sequences.fastaccess.sim
             if (
-                dm == "obs"  # pylint: disable=too-many-boolean-expressions
+                dm == "obs"
                 or dm == "obs_newsim"
                 or dm == "obs_newsim_update"
                 or dm == "obs_oldsim"
@@ -2389,7 +2382,7 @@ group name `test`.
                 return self.sequences.fastaccess.obs
             assert_never(dm)
 
-        if group in ("outlets", "senders", "outputs"):
+        if group == "outlets" or group == "senders" or group == "outputs":
             if (
                 dm == "newsim"  # pylint: disable=too-many-boolean-expressions
                 or dm == "newsim_update"
@@ -2405,10 +2398,7 @@ group name `test`.
                 return self.__blackhole
             assert_never(dm)
 
-        raise ValueError(
-            f"Function `get_double` of class `Node` does not support the given group "
-            f"name `{group}`."
-        )
+        assert_never(group)
 
     def reset(self, idx: int = 0) -> None:
         """Reset the actual value of the simulation sequence to zero.
@@ -2697,9 +2687,14 @@ class Element(Device):
 
      * |Element.inlets| and |Element.outlets| nodes handle, for example, the inflow to
        and the outflow from the respective element.
-     * |Element.receivers| and |Element.senders| nodes are thought for information flow
-       between arbitrary elements, for example, to inform a |dam| model about the
-       discharge at a gauge downstream.
+     * |Element.receivers|, |Element.observers|, and |Element.senders| nodes are
+       thought for information flow.  |Element.receivers| nodes allow for arbitrarily
+       directed connections, even to downstream locations (for example, to inform a
+       |dam| model about the discharge at a gauge downstream).  In contrast,
+       |Element.observers| nodes do not support such cyclic connections.  However,
+       |Element.observers| nodes offer the advantage of direct information exchange,
+       while |Element.receivers| nodes provide their information with a delay of one
+       simulation time step (to break possible cycles in the spatial simulation order).
      * |Element.inputs| nodes provide optional input information, for example,
        interpolated precipitation that could alternatively be read from files as well.
      * |Element.outputs| nodes query optional output information, for example, the
@@ -2724,6 +2719,7 @@ class Element(Device):
 
     >>> Element("test",
     ...         inlets="inl1",
+    ...         observers="obs1",
     ...         receivers=("rec2", "rec3"),
     ...         senders="sen1",
     ...         inputs="inp1",
@@ -2731,6 +2727,7 @@ class Element(Device):
     Element("test",
             inlets="inl1",
             outlets="outl1",
+            observers="obs1",
             receivers=["rec1", "rec2", "rec3"],
             senders="sen1",
             inputs="inp1",
@@ -2741,6 +2738,7 @@ class Element(Device):
     >>> test = Element("test")
     >>> test.inlets = "inl2"
     >>> test.outlets = None
+    >>> test.observers = "obs1"
     >>> test.receivers = ()
     >>> test.senders = "sen2", Node("sen3")
     >>> test.inputs = []
@@ -2749,156 +2747,90 @@ class Element(Device):
     Element("test",
             inlets=["inl1", "inl2"],
             outlets="outl1",
+            observers="obs1",
             receivers=["rec1", "rec2", "rec3"],
             senders=["sen1", "sen2", "sen3"],
             inputs="inp1",
             outputs=["outp1", "outp2"])
 
     The properties try to verify that all connections make sense.  For example, an
-    element should never handle an `inlet` node that it also handles as an `outlet`,
+    element should never handle an `inlet` node that is also handles as an `outlet`,
     `input`, or `output` node:
 
-    >>> test.inlets = "outl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given inlet node `outl1` is already defined \
-as a(n) outlet node, which is not allowed.
+    >>> def try_impossible_combinations(group, *sequences):
+    ...     for sequence in sequences:
+    ...         try:
+    ...             setattr(test, group, sequence)
+    ...         except ValueError as error:
+    ...             print(error)
+    ...         else:
+    ...             assert False
 
-    >>> test.inlets = "inp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given inlet node `inp1` is already defined as \
-a(n) input node, which is not allowed.
-
-    >>> test.inlets = "outp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given inlet node `outp1` is already defined \
-as a(n) output node, which is not allowed.
+    >>> try_impossible_combinations("inlets", "outl1", "sen1", "outp1")
+    For element `test`, the given inlet node `outl1` is already defined as an outlet \
+node, which is not allowed.
+    For element `test`, the given inlet node `sen1` is already defined as a sender \
+node, which is not allowed.
+    For element `test`, the given inlet node `outp1` is already defined as an output \
+node, which is not allowed.
 
     Similar holds for the `outlet` nodes:
 
-    >>> test.outlets = "inl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given outlet node `inl1` is already defined \
-as a(n) inlet node, which is not allowed.
-
-    >>> test.outlets = "inp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given outlet node `inp1` is already defined \
-as a(n) input node, which is not allowed.
-
-    >>> test.outlets = "outp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given outlet node `outp1` is already defined \
-as a(n) output node, which is not allowed.
+    >>> try_impossible_combinations("outlets", "inl1", "obs1", "inp1", "outp1")
+    For element `test`, the given outlet node `inl1` is already defined as an inlet \
+node, which is not allowed.
+    For element `test`, the given outlet node `obs1` is already defined as an \
+observer node, which is not allowed.
+    For element `test`, the given outlet node `inp1` is already defined as an input \
+node, which is not allowed.
+    For element `test`, the given outlet node `outp1` is already defined as an output \
+node, which is not allowed.
 
     The following restrictions hold for the `sender` nodes:
 
-    >>> test.senders = "rec1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given sender node `rec1` is already defined \
-as a(n) receiver node, which is not allowed.
+    >>> try_impossible_combinations("senders", "inl1", "obs1", "inp1", "outp1")
+    For element `test`, the given sender node `inl1` is already defined as an inlet \
+node, which is not allowed.
+    For element `test`, the given sender node `obs1` is already defined as an \
+observer node, which is not allowed.
+    For element `test`, the given sender node `inp1` is already defined as an input \
+node, which is not allowed.
+    For element `test`, the given sender node `outp1` is already defined as an output \
+node, which is not allowed.
 
-    >>> test.senders = "inp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given sender node `inp1` is already defined \
-as a(n) input node, which is not allowed.
+    The following restrictions hold for the `observer` nodes:
 
-    >>> test.senders = "outp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given sender node `outp1` is already defined \
-as a(n) output node, which is not allowed.
-
-    The following restrictions hold for the `receiver` nodes:
-
-    >>> test.receivers = "sen1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given receiver node `sen1` is already defined \
-as a(n) sender node, which is not allowed.
-
-    >>> test.receivers = "inp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given receiver node `inp1` is already defined \
-as a(n) input node, which is not allowed.
-
-    >>> test.receivers = "outp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given receiver node `outp1` is already \
-defined as a(n) output node, which is not allowed.
+    >>> try_impossible_combinations("observers", "outl1", "sen1", "outp1")
+    For element `test`, the given observer node `outl1` is already defined as an \
+outlet node, which is not allowed.
+    For element `test`, the given observer node `sen1` is already defined as a sender \
+node, which is not allowed.
+    For element `test`, the given observer node `outp1` is already defined as an \
+output node, which is not allowed.
 
     The following restrictions hold for the `input` nodes:
 
-    >>> test.inputs = "outp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given input node `outp1` is already defined \
-as a(n) output node, which is not allowed.
-
-    >>> test.inputs = "inl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given input node `inl1` is already defined as \
-a(n) inlet node, which is not allowed.
-
-    >>> test.inputs = "outl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given input node `outl1` is already defined \
-as a(n) outlet node, which is not allowed.
-
-    >>> test.inputs = "sen1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given input node `sen1` is already defined as \
-a(n) sender node, which is not allowed.
-
-    >>> test.inputs = "rec1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given input node `rec1` is already defined as \
-a(n) receiver node, which is not allowed.
+    >>> try_impossible_combinations("inputs", "outl1", "sen1", "outp1")
+    For element `test`, the given input node `outl1` is already defined as an outlet \
+node, which is not allowed.
+    For element `test`, the given input node `sen1` is already defined as a sender \
+node, which is not allowed.
+    For element `test`, the given input node `outp1` is already defined as an output \
+node, which is not allowed.
 
    The following restrictions hold for the `output` nodes:
 
-    >>> test.outputs = "inp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given output node `inp1` is already defined \
-as a(n) input node, which is not allowed.
-
-    >>> test.outputs = "inl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given output node `inl1` is already defined \
-as a(n) inlet node, which is not allowed.
-
-    >>> test.outputs = "outl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given output node `outl1` is already defined \
-as a(n) outlet node, which is not allowed.
-
-    >>> test.outputs = "sen1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given output node `sen1` is already defined \
-as a(n) sender node, which is not allowed.
-
-    >>> test.outputs = "rec1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given output node `rec1` is already defined \
-as a(n) receiver node, which is not allowed.
+    >>> try_impossible_combinations("outputs", "inl1", "obs1", "inp1", "outl1", "sen1")
+    For element `test`, the given output node `inl1` is already defined as an inlet \
+node, which is not allowed.
+    For element `test`, the given output node `obs1` is already defined as an \
+observer node, which is not allowed.
+    For element `test`, the given output node `inp1` is already defined as an input \
+node, which is not allowed.
+    For element `test`, the given output node `outl1` is already defined as an outlet \
+node, which is not allowed.
+    For element `test`, the given output node `sen1` is already defined as a sender \
+node, which is not allowed.
 
     Note that the discussed |Nodes| objects are immutable by default, disallowing to
     change them in other ways as described above:
@@ -2960,6 +2892,7 @@ already a collective `NileRiver` member.
 
     _inlets: Nodes
     _outlets: Nodes
+    _observers: Nodes
     _receivers: Nodes
     _senders: Nodes
     _inputs: Nodes
@@ -2972,6 +2905,7 @@ already a collective `NileRiver` member.
         *,
         inlets: NodesConstrArg = None,
         outlets: NodesConstrArg = None,
+        observers: NodesConstrArg = None,
         receivers: NodesConstrArg = None,
         senders: NodesConstrArg = None,
         inputs: NodesConstrArg = None,
@@ -2992,6 +2926,7 @@ already a collective `NileRiver` member.
         if hasattr(self, "new_instance"):
             self._inlets = Nodes(mutable=False)
             self._outlets = Nodes(mutable=False)
+            self._observers = Nodes(mutable=False)
             self._receivers = Nodes(mutable=False)
             self._senders = Nodes(mutable=False)
             self._inputs = Nodes(mutable=False)
@@ -2999,6 +2934,7 @@ already a collective `NileRiver` member.
             self.__connections = (
                 self.inlets,
                 self.outlets,
+                self.observers,
                 self.receivers,
                 self.senders,
                 self.inputs,
@@ -3011,6 +2947,8 @@ already a collective `NileRiver` member.
             self.inlets = inlets
         if outlets is not None:
             self.outlets = outlets
+        if observers is not None:
+            self.observers = observers
         if receivers is not None:
             self.receivers = receivers
         if senders is not None:
@@ -3029,13 +2967,21 @@ already a collective `NileRiver` member.
         targetelements: str,
         incompatiblenodes: tuple[str, ...],
     ) -> None:
+
+        # incompatibility due to circularity:
+        #     inlets / observers / inputs <-> outlets / senders / outputs
+        # incompatibility due to different updating:
+        #     outlets / senders <-> outputs
+        # other combinations are unlikely but technically possible
+
         elementgroup: Nodes = getattr(self, targetnodes)
         for node in Nodes(values):
             for incomp in incompatiblenodes:
                 if node in getattr(self, incomp):
+                    engine = inflect.engine()
                     raise ValueError(
-                        f"For element `{self}`, the given {targetnodes[1:-1]} "
-                        f"node `{node}` is already defined as a(n) {incomp[1:-1]} "
+                        f"For element `{self}`, the given {targetnodes[1:-1]} node "
+                        f"`{node}` is already defined as {engine.a(incomp[1:-1])} "
                         f"node, which is not allowed."
                     )
             elementgroup.add_device(node, force=True)
@@ -3052,7 +2998,7 @@ already a collective `NileRiver` member.
             values,
             targetnodes="_inlets",
             targetelements="_exits",
-            incompatiblenodes=("_outlets", "_inputs", "_outputs"),
+            incompatiblenodes=("_outlets", "_senders", "_outputs"),
         )
 
     inlets = propertytools.Property(fget=_get_inlets, fset=_set_inlets)
@@ -3067,14 +3013,31 @@ already a collective `NileRiver` member.
             values,
             targetnodes="_outlets",
             targetelements="_entries",
-            incompatiblenodes=("_inlets", "_inputs", "_outputs"),
+            incompatiblenodes=("_inlets", "_observers", "_inputs", "_outputs"),
         )
 
     outlets = propertytools.Property(fget=_get_outlets, fset=_set_outlets)
 
+    def _get_observers(self) -> Nodes:
+        """Group of non-downstream |Node| objects from which the handled |Model|
+        object queries its "remote" information values (e.g. inflow of a side-tributary
+        into a downstream river)."""
+        return self._observers
+
+    def _set_observers(self, values: NodesConstrArg) -> None:
+        self.__update_group(
+            values,
+            targetnodes="_observers",
+            targetelements="_exits",
+            incompatiblenodes=("_outlets", "_inputs", "_outputs", "_senders"),
+        )
+
+    observers = propertytools.Property(fget=_get_observers, fset=_set_observers)
+
     def _get_receivers(self) -> Nodes:
-        """Group of |Node| objects from which the handled |Model| object queries its
-        "remote" information values (e.g. discharge at a remote downstream)."""
+        """Group of arbitrarily placed |Node| objects from which the handled |Model|
+        object queries its "remote" information values (e.g. discharge at a downstream
+        gauge)."""
         return self._receivers
 
     def _set_receivers(self, values: NodesConstrArg) -> None:
@@ -3082,7 +3045,7 @@ already a collective `NileRiver` member.
             values,
             targetnodes="_receivers",
             targetelements="_exits",
-            incompatiblenodes=("_senders", "_inputs", "_outputs"),
+            incompatiblenodes=(),
         )
 
     receivers = propertytools.Property(fget=_get_receivers, fset=_set_receivers)
@@ -3097,7 +3060,7 @@ already a collective `NileRiver` member.
             values,
             targetnodes="_senders",
             targetelements="_entries",
-            incompatiblenodes=("_receivers", "_inputs", "_outputs"),
+            incompatiblenodes=("_inlets", "_observers", "_inputs", "_outputs"),
         )
 
     senders = propertytools.Property(fget=_get_senders, fset=_set_senders)
@@ -3113,13 +3076,7 @@ already a collective `NileRiver` member.
             values,
             targetnodes="_inputs",
             targetelements="_exits",
-            incompatiblenodes=(
-                "_inlets",
-                "_outlets",
-                "_senders",
-                "_receivers",
-                "_outputs",
-            ),
+            incompatiblenodes=("_outlets", "_senders", "_outputs"),
         )
 
     inputs = propertytools.Property(fget=_get_inputs, fset=_set_inputs)
@@ -3137,10 +3094,10 @@ already a collective `NileRiver` member.
             targetelements="_entries",
             incompatiblenodes=(
                 "_inlets",
+                "_observers",
+                "_inputs",
                 "_outlets",
                 "_senders",
-                "_receivers",
-                "_inputs",
             ),
         )
 
@@ -3773,14 +3730,7 @@ sequence named `xy`.
                 lines = [f'{prefix}Element("{self.name}",']
                 if (collective := self.collective) is not None:
                     lines.append(f'{blanks}collective="{collective}",')
-                for groupname in (
-                    "inlets",
-                    "outlets",
-                    "receivers",
-                    "senders",
-                    "inputs",
-                    "outputs",
-                ):
+                for groupname in typing.get_args(LinkInputOutputSequenceGroup):
                     group = getattr(self, groupname, None)
                     if group:
                         subprefix = f"{blanks}{groupname}="

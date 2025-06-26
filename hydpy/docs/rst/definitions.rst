@@ -288,12 +288,15 @@ serves to identify it.
 models <application_model>`.  Each `element` instance handles a single
 :ref:`main_model` (which might have several :ref:`submodels <submodel>`).  The
 `element's` task is mainly to connect its model to the network and enable data exchange
-with other models via :ref:`nodes <node>`.  A routing model, for example, receives its
+with other models via :ref:`nodes <node>`.  A routing model, for example, gets its
 inflow through its `element's` "inlet nodes" and passes it through its `element's`
 "outlet nodes" to the next `element` downstream, which might handle another routing
 model of the same or a different type or, for example, a lake model.  Pure information
-like the current water level within river reach required to control an upstream dam's
-water release is sent and received via "sender nodes" and "receiver nodes".
+like the current water level of a river reach required to control a dam's water release
+is sent and queried via "sender nodes" and "observer nodes" or "receiver nodes"
+("observer nodes" provide their information immediately but cannot lie downstream in
+the river network; "receiver nodes" can lie downstream and so allow for feedbacks but
+provide their information with a delay of one simulation time step).
 
 HydPy only provides a single `element` type (defined by class |Element|), which can
 handle all different model types.
@@ -473,13 +476,22 @@ enable, for example, routing models to get inflow from upstream models, while `o
 sequences` (derived from |OutletSequences| enable them to pass it in modified form to
 downstream models.
 
-`Receiver and sender sequences` are also `link sequences`. They allow the distribution
-of different kinds of information to arbitrary locations in the network.  For example,
-a downstream routing model could use a `sender sequence` (derived from
-|SenderSequence|) to pass its water level to a "remote node", and an upstream pumping
-station model could query this information from the "remote node" via a `receiver
-sequence` (derived from |ReceiverSequence|) to stop its pumping as soon the actual
-water level exceeds a critical threshold.
+`Observer, receiver and sender sequences` are also `link sequences`. Their primary use
+lies in the distribution of information, possibly across large spatial distances.  The
+distinction between `observer` and `receiver` sequences is subtle but sometimes
+crucial.  Only the `receiver` mechanism allows for arbitrarily directed connections,
+even if they introduce cyclic network structures.  This flexibility comes with the cost
+of transferring information with a delay of one simulation step.  So, for example, a
+downstream routing model could use a `sender sequence` (derived from |SenderSequence|)
+to pass its water level to a "remote node", and an upstream pumping station model could
+query this information in the next simulation step from the "remote node" via a
+`receiver sequence` (derived from |ReceiverSequence|) to stop its pumping as soon the
+actual water level exceeds a critical threshold.  In contrast, a typical use case for
+the `observer` mechanism is to control a detention basin based on the currently
+simulated inflows of tributaries that route their water into a river that needs
+protection.  In this case, the detention basin model could query the inflow information
+directly via an `observer sequence` (derived from |ObserverSequence|) and so react a
+little faster.
 
 `Aide sequences` (derived from |AideSequence|) only store temporary information and are
 of little importance to users.

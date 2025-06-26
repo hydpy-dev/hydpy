@@ -1111,6 +1111,7 @@ class Model:
 
     INLET_METHODS: ClassVar[tuple[type[Method], ...]]
     OUTLET_METHODS: ClassVar[tuple[type[Method], ...]]
+    OBSERVER_METHODS: ClassVar[tuple[type[Method], ...]]
     RECEIVER_METHODS: ClassVar[tuple[type[Method], ...]]
     SENDER_METHODS: ClassVar[tuple[type[Method], ...]]
     ADD_METHODS: ClassVar[tuple[Callable, ...]]
@@ -1515,6 +1516,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
             self._connect_outputs()
             group = "inlets"
             self._connect_inlets()
+            group = "observers"
+            self._connect_observers()
             group = "receivers"
             self._connect_receivers()
             group = "outlets"
@@ -1586,6 +1589,9 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def _connect_inlets(self, report_noconnect: bool = True) -> None:
         self._connect_subgroup("inlets", report_noconnect)
 
+    def _connect_observers(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("observers", report_noconnect)
+
     def _connect_receivers(self, report_noconnect: bool = True) -> None:
         self._connect_subgroup("receivers", report_noconnect)
 
@@ -1595,8 +1601,10 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def _connect_senders(self, report_noconnect: bool = True) -> None:
         self._connect_subgroup("senders", report_noconnect)
 
-    def _connect_subgroup(self, group: str, report_noconnect: bool) -> None:
-        st = sequencetools
+    def _connect_subgroup(
+        self, group: LinkInputSequenceGroup, report_noconnect: bool
+    ) -> None:
+
         available_nodes = getattr(self.element, group)
         applied_nodes: list[devicetools.Node] = []
         sequences: list[sequencetools.InputSequence | sequencetools.LinkSequence] = []
@@ -2540,7 +2548,12 @@ the available directories (calib_1 and calib_2).
             submodel.save_data(idx)
 
     def _update_pointers_in(
-        self, subseqs: sequencetools.InletSequences | sequencetools.ReceiverSequences
+        self,
+        subseqs: (
+            sequencetools.InletSequences
+            | sequencetools.ObserverSequences
+            | sequencetools.ReceiverSequences
+        ),
     ) -> None:
         if not self.threading:
             for seq in subseqs:
@@ -2593,8 +2606,21 @@ the available directories (calib_1 and calib_2).
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
         self._update_pointers_out(self.sequences.outlets)
 
+    def update_observers(self) -> None:
+        """Update all observer sequences and then call all methods defined as
+        "OBSERVER_METHODS" in the defined order.
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_observers()
+        self._update_pointers_in(self.sequences.observers)
+        for method in self.OBSERVER_METHODS:
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+
     def update_receivers(self, idx: int) -> None:
-        """Update all link sequences and then call all methods defined as
+        """Update all receiver sequences and then call all methods defined as
         "RECEIVER_METHODS" in the defined order.
 
         When working in Cython mode, the standard model import overrides this generic
@@ -2649,35 +2675,22 @@ the available directories (calib_1 and calib_2).
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 
-        >>> from hydpy.models import hland_96, ga_garto_submodel1
+        >>> from hydpy.models import hland_96
         >>> for method in hland_96.Model.get_methods():
-        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        ...     print(method.__name__)  # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
-        Pass_Q_V1
-
-        >>> for method in ga_garto_submodel1.Model.get_methods():
-        ...     print(method.__name__)   # doctest: +ELLIPSIS
-        Set_InitialSurfaceWater_V1
-        ...
-        Get_SoilWaterContent_V1
-        Return_RelativeMoisture_V1
-        ...
-        Withdraw_AllBins_V1
+        Get_SnowCover_V1
 
         One can skip all methods that belong to specific groups:
 
-        >>> for method in hland_96.Model.get_methods(skip=("OUTLET_METHODS",)):
-        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        >>> for method in hland_96.Model.get_methods(
+        ...     skip=("OUTLET_METHODS", "INTERFACE_METHODS")
+        ... ):
+        ...     print(method.__name__)  # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
         Calc_OutRC_RConcModel_V1
-
-        >>> for method in hland_96.Model.get_methods(("OUTLET_METHODS", "ADD_METHODS")):
-        ...     print(method.__name__)   # doctest: +ELLIPSIS
-        Calc_TC_V1
-        ...
-        Calc_QT_V1
 
         Note that function |Model.get_methods| returns the "raw" |Method| objects
         instead of the modified Python or Cython functions used for performing
@@ -2686,17 +2699,16 @@ the available directories (calib_1 and calib_2).
         methods = set()
         if hasattr(cls, "METHOD_GROUPS"):
             for groupname in cls.METHOD_GROUPS:
-                if groupname in skip:
-                    continue
-                if (groupname == "ADD_METHODS") and hasattr(cls, "INTERFACE_METHODS"):
-                    for method in cls.INTERFACE_METHODS:
+                if groupname not in skip:
+                    for method in getattr(cls, groupname, ()):
                         if method not in methods:
                             methods.add(method)
                             yield method
-                for method in getattr(cls, groupname, ()):
-                    if method not in methods:
-                        methods.add(method)
-                        yield method
+        if hasattr(cls, "INTERFACE_METHODS") and ("INTERFACE_METHODS" not in skip):
+            for method in cls.INTERFACE_METHODS:
+                if method not in methods:
+                    methods.add(method)
+                    yield method
 
     @overload
     def find_submodels(
@@ -3204,6 +3216,7 @@ the available directories (calib_1 and calib_2).
         st = sequencetools
         infos: tuple[tuple[type[Any], type[Any], set[Any]], ...] = (
             (st.InletSequences, st.InletSequence, set()),
+            (st.ObserverSequences, st.ObserverSequence, set()),
             (st.ReceiverSequences, st.ReceiverSequence, set()),
             (st.InputSequences, st.InputSequence, set()),
             (st.FluxSequences, st.FluxSequence, set()),
@@ -3309,6 +3322,7 @@ class RunModel(Model):
     METHOD_GROUPS = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
+        "OBSERVER_METHODS",
         "RUN_METHODS",
         "ADD_METHODS",
         "OUTLET_METHODS",
@@ -3369,6 +3383,7 @@ class RunModel(Model):
         self.reset_reuseflags()
         self.load_data(idx)
         self.update_inlets()
+        self.update_observers()
         self.run()
         self.new2old()
         self.update_outlets()
@@ -3663,6 +3678,7 @@ class ELSModel(SolverModel):
         self.reset_reuseflags()
         self.load_data(idx)
         self.update_inlets()
+        self.update_observers()
         self.solve()
         self.update_outlets()
         self.update_outputs()

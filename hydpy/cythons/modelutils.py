@@ -1491,6 +1491,7 @@ class PyxWriter:
             self.run(lines, self.model)
         self.update_inlets(lines)
         self.update_outlets(lines)
+        self.update_observers(lines)
         self.update_receivers(lines)
         self.update_senders(lines)
         self.update_outputs_model(lines)
@@ -1538,12 +1539,15 @@ class PyxWriter:
         if (
             seqs.inputs
             or seqs.inlets
+            or seqs.observers
             or seqs.receivers
             or self.model.SUBMODELINTERFACES
         ):
             pyx(2, "self.load_data(idx)")
         if self.model.INLET_METHODS or self.has_submodels:
             pyx(2, "self.update_inlets()")
+        if self.model.OBSERVER_METHODS or self.has_submodels:
+            pyx(2, "self.update_observers()")
         if isinstance(self.model, modeltools.SolverModel):
             pyx(2, "self.solve()")
         else:
@@ -1658,6 +1662,7 @@ class PyxWriter:
         >>> pyxwriter.model.sequences.inputs = None
         >>> pyxwriter.model.sequences.inlets = None
         >>> pyxwriter.model.sequences.outlets = None
+        >>> pyxwriter.model.sequences.observers = None
         >>> pyxwriter.model.sequences.receivers = None
         >>> pyxwriter.model.sequences.senders = None
         >>> lines.pyx.clear()
@@ -1674,6 +1679,7 @@ class PyxWriter:
             or seqs.states
             or seqs.inlets
             or seqs.outlets
+            or seqs.observers
             or seqs.receivers
             or seqs.senders
         ):
@@ -1683,6 +1689,7 @@ class PyxWriter:
             if (func == "load_data") and not (
                 seqs.inputs
                 or seqs.inlets
+                or seqs.observers
                 or seqs.receivers
                 or self.model.SUBMODELINTERFACES
             ):
@@ -1693,7 +1700,12 @@ class PyxWriter:
             pyx(2, "self.idx_sim = idx")
             for subseqs in seqs:
                 if func == "load_data":
-                    applyfuncs: tuple[str, ...] = ("inputs", "inlets", "receivers")
+                    applyfuncs: tuple[str, ...] = (
+                        "inputs",
+                        "inlets",
+                        "observers",
+                        "receivers",
+                    )
                 else:
                     applyfuncs = (
                         "inputs",
@@ -1702,6 +1714,7 @@ class PyxWriter:
                         "states",
                         "inlets",
                         "outlets",
+                        "observers",
                         "receivers",
                         "senders",
                     )
@@ -1786,13 +1799,23 @@ class PyxWriter:
 
     def update_inlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._update_inlets_receivers(lines=lines, group="inlets", idx_as_arg=False)
+        self._update_inlets_receivers_observers(
+            lines=lines, group="inlets", idx_as_arg=False
+        )
+
+    def update_observers(self, lines: PyxPxdLines) -> None:
+        """Lines of the model method with the same name."""
+        self._update_inlets_receivers_observers(
+            lines=lines, group="observers", idx_as_arg=False
+        )
 
     def update_receivers(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._update_inlets_receivers(lines=lines, group="receivers", idx_as_arg=True)
+        self._update_inlets_receivers_observers(
+            lines=lines, group="receivers", idx_as_arg=True
+        )
 
-    def _update_inlets_receivers(
+    def _update_inlets_receivers_observers(
         self, lines: PyxPxdLines, group: str, idx_as_arg: bool
     ) -> None:
 

@@ -441,6 +441,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         dam_model.Calc_PotentialEvaporation_V1,
         dam_model.Calc_AdjustedEvaporation_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = (dam_model.Fix_Min1_V1,)
     PART_ODE_METHODS = (

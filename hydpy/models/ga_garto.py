@@ -963,6 +963,7 @@ class Model(ga_model.BaseModel):
     __HYDPY_ROOTMODEL__ = False  # ToDo: merge `ga_garto` and `ga_garto_submodel1`
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         ga_model.Calc_SurfaceWaterSupply_V1,

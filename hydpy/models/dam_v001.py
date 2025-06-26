@@ -1093,6 +1093,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         dam_model.Calc_RequiredRelease_V1,
         dam_model.Calc_TargetedRelease_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (
         dam_model.Pick_TotalRemoteDischarge_V1,
         dam_model.Update_LoggedTotalRemoteDischarge_V1,

@@ -3068,6 +3068,7 @@ class Model(modeltools.SubstepModel):
         Pick_LateralFlow_V1,
         Pick_WaterLevelDownstream_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_MaxTimeSteps_V1,

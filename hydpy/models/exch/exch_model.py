@@ -514,6 +514,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_OriginalInput_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (Pick_LoggedWaterLevel_V1, Pick_LoggedWaterLevels_V1)
     RUN_METHODS = (
         Update_WaterLevels_V1,

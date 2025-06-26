@@ -1271,6 +1271,7 @@ class Model(modeltools.SegmentModel):
         musk_model.Adjust_Inflow_V1,
         musk_model.Update_Discharge_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         musk_model.Calc_ReferenceDischarge_V1,

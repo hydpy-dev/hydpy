@@ -54,6 +54,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V2):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (meteo_model.Get_GlobalRadiation_V2,)

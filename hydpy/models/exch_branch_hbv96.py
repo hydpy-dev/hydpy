@@ -99,6 +99,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (exch_model.Pick_OriginalInput_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (exch_model.Calc_AdjustedInput_V1, exch_model.Calc_Outputs_V1)
     ADD_METHODS = ()

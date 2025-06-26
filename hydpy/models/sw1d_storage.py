@@ -32,6 +32,7 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.StorageModel
         sw1d_model.Pick_LateralFlow_V1,
         sw1d_model.Calc_WaterDepth_WaterLevel_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

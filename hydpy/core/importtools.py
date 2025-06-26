@@ -160,6 +160,7 @@ def prepare_sequences(dict_: dict[str, Any]) -> sequencetools.Sequences:
     return cls_sequences(
         model=dict_.get("model"),
         cls_inlets=dict_.get("InletSequences"),
+        cls_observers=dict_.get("ObserverSequences"),
         cls_receivers=dict_.get("ReceiverSequences"),
         cls_inputs=dict_.get("InputSequences"),
         cls_factors=dict_.get("FactorSequences"),

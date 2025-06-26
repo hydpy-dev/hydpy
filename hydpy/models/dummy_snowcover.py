@@ -58,6 +58,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.SnowCoverModel_V1):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (dummy_model.Get_SnowCover_V1,)

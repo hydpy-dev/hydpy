@@ -1902,6 +1902,7 @@ class Model(modeltools.AdHocModel):
     aetmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = (
         Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1,

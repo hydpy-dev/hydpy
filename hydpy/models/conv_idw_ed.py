@@ -164,6 +164,7 @@ class Model(conv_model.BaseModel):
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = (conv_model.Return_Mean_V1, conv_model.Interpolate_InverseDistance_V1)
     RUN_METHODS = (

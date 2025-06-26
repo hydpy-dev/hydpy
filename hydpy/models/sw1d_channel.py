@@ -1595,6 +1595,7 @@ class Model(modeltools.SubstepModel, routinginterfaces.ChannelModel_V1):
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         sw1d_model.Calc_MaxTimeSteps_V1,

@@ -138,7 +138,13 @@ class Parallelisability:
             for e in relevant_elements:
                 candidates = set(
                     itertools.chain(
-                        e.inlets, e.outlets, e.receivers, e.senders, e.inputs, e.outputs
+                        e.inlets,
+                        e.outlets,
+                        e.observers,
+                        e.receivers,
+                        e.senders,
+                        e.inputs,
+                        e.outputs,
                     )
                 )
                 intersection = remaining_nodes.intersection(candidates)
@@ -231,7 +237,9 @@ class Queue(queue.LifoQueue[devicetools.NodeOrElement]):
         for e in elements:
             nmb_in = sum(
                 node.deploymode in forwards_newsim
-                for node in itertools.chain(e.inlets, e.receivers, e.inputs)
+                for node in itertools.chain(
+                    e.inlets, e.observers, e.receivers, e.inputs
+                )
             )
             if nmb_in:
                 dependencies[e] = nmb_in
@@ -409,7 +417,9 @@ class Worker(threading.Thread):
     def _update_all_model_series(self, model: modeltools.Model) -> None:
         for submodel in model.find_submodels(include_mainmodel=True).values():
             seqs = submodel.sequences
-            for seq in itertools.chain(seqs.inputs, seqs.inlets, seqs.receivers):
+            for seq in itertools.chain(
+                seqs.inputs, seqs.inlets, seqs.observers, seqs.receivers
+            ):
                 self._update_one_model_series(seq)
 
     def _update_one_model_series(self, sequence: sequencetools.ModelIOSequence) -> None:

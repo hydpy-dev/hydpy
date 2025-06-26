@@ -559,6 +559,7 @@ overflow2, and waterlevel2.
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (exch_model.Pick_LoggedWaterLevels_V1,)
     RUN_METHODS = (
         exch_model.Update_WaterLevels_V1,

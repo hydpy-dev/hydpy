@@ -209,6 +209,7 @@ class Model(modeltools.SegmentModel):
 
     SOLVERPARAMETERS = (NmbRuns,)
     INLET_METHODS = (musk_model.Pick_Inflow_V1, musk_model.Update_Discharge_V1)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (musk_model.Calc_Discharge_V1,)
     ADD_METHODS = ()

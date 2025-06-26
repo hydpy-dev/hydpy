@@ -52,6 +52,7 @@ class Model(evap_model.Sub_ETModel, petinterfaces.PETModel_V1):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         evap_model.Calc_ReferenceEvapotranspiration_V3,

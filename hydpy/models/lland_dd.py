@@ -2142,6 +2142,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     INTERFACE_METHODS = (
         lland_model.Get_Temperature_V1,

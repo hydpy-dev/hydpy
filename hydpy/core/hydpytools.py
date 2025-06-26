@@ -2367,6 +2367,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
                 str
                 | type[sequencetools.InputSequence]
                 | type[sequencetools.InletSequence]
+                | type[sequencetools.ObserverSequence]
                 | type[sequencetools.ReceiverSequence]
                 | type[sequencetools.OutputSequence]
                 | type[sequencetools.OutletSequence]
@@ -3034,6 +3035,7 @@ sequence `sm` of element `land_dill_assl`.
                 for sequence in itertools.chain(
                     seqs.inputs,
                     seqs.inlets,
+                    seqs.observers,
                     seqs.receivers,
                     seqs.outlets,
                     seqs.senders,
@@ -3350,8 +3352,8 @@ def create_directedgraph(
     digraph.add_nodes_from(elements)
     digraph.add_nodes_from(nodes)
     for element in elements:
-        for node in itertools.chain(element.inlets, element.inputs):
+        for node in itertools.chain(element.inlets, element.observers, element.inputs):
             digraph.add_edge(node, element)
-        for node in itertools.chain(element.outlets, element.outputs, element.senders):
+        for node in itertools.chain(element.outlets, element.senders, element.outputs):
             digraph.add_edge(element, node)
     return digraph

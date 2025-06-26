@@ -59,6 +59,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.WaterLevelModel_V1):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (exch_model.Pick_LoggedWaterLevel_V1,)
     RUN_METHODS = ()
     INTERFACE_METHODS = (exch_model.Get_WaterLevel_V1,)

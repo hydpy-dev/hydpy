@@ -185,6 +185,7 @@ _SEQ_SPEC2CAPT = collections.OrderedDict(
         ("logs", "Log sequences"),
         ("inlets", "Inlet sequences"),
         ("outlets", "Outlet sequences"),
+        ("observers", "Observer sequences"),
         ("receivers", "Receiver sequences"),
         ("senders", "Sender sequences"),
         ("aides", "Aide sequences"),
@@ -1203,6 +1204,10 @@ _name2descr = {
     "INLET_METHODS": (
         'The following "inlet update methods" are called in the given sequence at the '
         "beginning of each simulation step"
+    ),
+    "OBSERVER_METHODS": (
+        'The following "observer update methods" are called in the given sequence at '
+        "the beginning of each simulation step"
     ),
     "RUN_METHODS": (
         'The following "run methods" are called in the given sequence during each '

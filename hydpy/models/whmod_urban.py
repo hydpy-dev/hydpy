@@ -888,6 +888,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = (
         whmod_model.Calc_InterceptionEvaporation_InterceptedWater_AETModel_V1,

@@ -77,6 +77,7 @@ ModelSequencesSubypes: TypeAlias = Union[
     "InletSequences",
     "OutletSequences",
     "ReceiverSequences",
+    "ObserverSequences",
     "SenderSequences",
 ]
 ModelIOSequencesSubtypes: TypeAlias = Union[
@@ -88,15 +89,21 @@ ModelIOSequencesSubtypes: TypeAlias = Union[
     "OutletSequences",
     "ReceiverSequences",
     "SenderSequences",
+    "ObserverSequences",
 ]
 LinkSequencesSubtypes: TypeAlias = Union[
-    "InletSequences", "OutletSequences", "ReceiverSequences", "SenderSequences"
+    "InletSequences",
+    "OutletSequences",
+    "ReceiverSequences",
+    "ObserverSequences",
+    "SenderSequences",
 ]
 
 InOutSequence: TypeAlias = Union[
     "InputSequence",
     "InletSequence",
     "ReceiverSequence",
+    "ObserverSequence",
     "OutputSequence",
     "OutletSequence",
     "SenderSequence",
@@ -105,6 +112,7 @@ InOutSequenceTypes: TypeAlias = Union[
     type["InputSequence"],
     type["InletSequence"],
     type["ReceiverSequence"],
+    type["ObserverSequence"],
     type["OutputSequence"],
     type["OutletSequence"],
     type["SenderSequence"],
@@ -599,6 +607,7 @@ class Sequences:
 
     model: modeltools.Model
     inlets: InletSequences
+    observers: ObserverSequences
     receivers: ReceiverSequences
     inputs: InputSequences
     factors: FactorSequences
@@ -614,6 +623,7 @@ class Sequences:
         model: modeltools.Model,
         *,
         cls_inlets: type[InletSequences] | None = None,
+        cls_observers: type[ObserverSequences] | None = None,
         cls_receivers: type[ReceiverSequences] | None = None,
         cls_inputs: type[InputSequences] | None = None,
         cls_factors: type[FactorSequences] | None = None,
@@ -629,6 +639,9 @@ class Sequences:
         self.model = model
         self.inlets = self.__prepare_subseqs(
             InletSequences, cls_inlets, cymodel, cythonmodule
+        )
+        self.observers = self.__prepare_subseqs(
+            ObserverSequences, cls_observers, cymodel, cythonmodule
         )
         self.receivers = self.__prepare_subseqs(
             ReceiverSequences, cls_receivers, cymodel, cythonmodule
@@ -726,6 +739,8 @@ class Sequences:
             yield self.inlets
         if self.outlets:
             yield self.outlets
+        if self.observers:
+            yield self.observers
         if self.receivers:
             yield self.receivers
         if self.senders:
@@ -754,10 +769,12 @@ class Sequences:
 
     def load_data(self, idx: int) -> None:
         """Call method |ModelIOSequences.load_data| of the handled
-        |sequencetools.InputSequences|, |sequencetools.InletSequences|, and
-        |sequencetools.ReceiverSequences| object."""
+        |sequencetools.InputSequences|, |sequencetools.InletSequences|,
+        |sequencetools.ObserverSequences|, and |sequencetools.ReceiverSequences|.
+        objects."""
         self.inputs.load_data(idx)
         self.inlets.load_data(idx)
+        self.observers.load_data(idx)
         self.receivers.load_data(idx)
 
     def save_data(self, idx: int) -> None:
@@ -855,6 +872,8 @@ class Sequences:
     def __iter__(self) -> Iterator[ModelSequencesSubypes]:
         if self.inlets:
             yield self.inlets
+        if self.observers:
+            yield self.observers
         if self.receivers:
             yield self.receivers
         if self.inputs:
@@ -1144,6 +1163,10 @@ class InletSequences(LinkSequences["InletSequence"]):
 
 class OutletSequences(LinkSequences["OutletSequence"]):
     """Base class for handling "outlet" |LinkSequence| objects."""
+
+
+class ObserverSequences(LinkSequences["ObserverSequence"]):
+    """Base class for handling "observer" |LinkSequence| objects."""
 
 
 class ReceiverSequences(LinkSequences["ReceiverSequence"]):
@@ -2891,12 +2914,12 @@ class ModelIOSequence(ModelSequence, IOSequence):
         self.node2idx = {}
 
 
-class BaseInputSequenceLinkSequence(ModelIOSequence):
-    """Base class for |InputSequence| and |LinkSequence|."""
+class BaseLinkInputSequence(ModelIOSequence):
+    """Base class for |LinkSequence| and |InputSequence|."""
 
     def connect_to_nodes(
         self,
-        group: Literal["inlets", "receivers", "inputs", "outlets", "senders"],
+        group: LinkInputSequenceGroup,
         available_nodes: list[devicetools.Node],
         applied_nodes: list[devicetools.Node],
         report_noconnect: bool,
@@ -2947,7 +2970,7 @@ class BaseInputSequenceLinkSequence(ModelIOSequence):
                 self.node2idx[node] = idx
 
 
-class InputSequence(BaseInputSequenceLinkSequence):
+class InputSequence(BaseLinkInputSequence):
     """Base class for input sequences of |Model| objects.
 
     |InputSequence| objects provide their master model with input data, which is
@@ -3712,7 +3735,7 @@ class AideSequence(ModelSequence):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequence(BaseInputSequenceLinkSequence):
+class LinkSequence(BaseLinkInputSequence):
     """Base class for link sequences of |Model| objects.
 
     |LinkSequence| objects do not only handle values themselves but also point to the
@@ -3940,6 +3963,15 @@ class OutletSequence(LinkSequence):
     """The subgroup to which the outlet sequence belongs."""
     subseqs: OutletSequences
     """Alias for |OutletSequence.subvars|."""
+
+
+class ObserverSequence(LinkSequence):
+    """Base class for observer link sequences of |Model| objects."""
+
+    subvars: ObserverSequences
+    """The subgroup to which the observer sequence belongs."""
+    subseqs: ObserverSequences
+    """Alias for |ObserverSequence.subvars|."""
 
 
 class ReceiverSequence(LinkSequence):

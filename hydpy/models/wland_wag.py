@@ -1176,6 +1176,7 @@ class Model(
         wland_model.Calc_FR_V1,
         wland_model.Calc_PM_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (wland_model.Pick_HS_V1,)
     INTERFACE_METHODS = (
         wland_model.Get_Temperature_V1,

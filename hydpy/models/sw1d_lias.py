@@ -32,6 +32,7 @@ class Model(sw1d_model.Main_CrossSectionModel_V2, routinginterfaces.RoutingModel
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = (sw1d_model.Reset_DischargeVolume_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

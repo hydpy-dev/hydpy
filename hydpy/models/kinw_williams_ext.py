@@ -750,6 +750,7 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = (kinw_fluxes.QG,)
     INLET_METHODS = (kinw_model.Pick_Q_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (

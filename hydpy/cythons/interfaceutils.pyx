@@ -24,6 +24,9 @@ cdef class BaseInterface:
     cdef void update_inlets(self) noexcept nogil:
         pass
 
+    cdef void update_observers(self) noexcept nogil:
+        pass
+
     cdef void update_receivers(self, int idx) noexcept nogil:
         pass
 

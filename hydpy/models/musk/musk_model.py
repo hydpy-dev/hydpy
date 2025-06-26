@@ -866,6 +866,7 @@ class Model(modeltools.SegmentModel):
         musk_solver.ToleranceNegativeInflow,
     )
     INLET_METHODS = (Pick_Inflow_V1, Adjust_Inflow_V1, Update_Discharge_V1)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_Discharge_V1,

@@ -4993,6 +4993,7 @@ class Model(modeltools.ELSModel):
         Calc_RequiredRelease_V2,
         Calc_TargetedRelease_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (
         Pick_TotalRemoteDischarge_V1,
         Update_LoggedTotalRemoteDischarge_V1,

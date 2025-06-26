@@ -227,6 +227,14 @@ MethodGroup = Literal[
     "SENDER_METHODS",
 ]
 
+LinkInputOutputSequenceGroup = Literal[
+    "inlets", "outlets", "observers", "receivers", "senders", "inputs", "outputs"
+]
+
+LinkInputSequenceGroup = Literal[
+    "inlets", "outlets", "observers", "receivers", "senders", "inputs"
+]
+
 __all__ = [
     "AbstractContextManager",
     "Any",
@@ -254,6 +262,8 @@ __all__ = [
     "Iterable",
     "Iterator",
     "LineStyle",
+    "LinkInputOutputSequenceGroup",
+    "LinkInputSequenceGroup",
     "Literal",
     "l1",
     "Mapping",

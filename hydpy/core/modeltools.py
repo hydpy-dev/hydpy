@@ -1598,48 +1598,18 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
     def _connect_subgroup(self, group: str, report_noconnect: bool) -> None:
         st = sequencetools
         available_nodes = getattr(self.element, group)
-        applied_nodes = []
+        applied_nodes: list[devicetools.Node] = []
         sequences: list[sequencetools.LinkSequence] = []
         self.__hydpy__collect_linksequences__(group, sequences)
+
         for sequence in sequences:
-            sequence.node2idx.clear()
-            selected_nodes = []
-            for node in available_nodes:
-                if isinstance(var := node.variable, devicetools.FusedVariable):
-                    if sequence in var:
-                        selected_nodes.append(node)
-                else:
-                    name = var.lower() if isinstance(var, str) else var.name
-                    if name == sequence.name:
-                        selected_nodes.append(node)
-            if sequence.NDIM == 0:
-                if not selected_nodes:
-                    if (group == "inputs") or not report_noconnect:
-                        # see https://github.com/nedbat/coveragepy/issues/198:
-                        continue  # pragma: no cover
-                    raise RuntimeError(
-                        f"Sequence {objecttools.elementphrase(sequence)} cannot "
-                        f"be connected due to no available node handling variable "
-                        f"`{sequence.name.upper()}`."
-                    )
-                if len(selected_nodes) > 1:
-                    raise RuntimeError(
-                        f"Sequence `{sequence.name}` cannot be connected as it is "
-                        f"0-dimensional but multiple nodes are available which "
-                        f"are handling variable `{type(sequence).__name__}`."
-                    )
-                node = selected_nodes[0]
-                applied_nodes.append(node)
-                assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
-                sequence.set_pointer(node.get_double(group))
-                sequence.node2idx[node] = None
-            elif sequence.NDIM == 1:
-                sequence.shape = len(selected_nodes)
-                for idx, node in enumerate(selected_nodes):
-                    applied_nodes.append(node)
-                    assert isinstance(sequence, st.LinkSequence)
-                    sequence.set_pointer(node.get_double(group), idx)
-                    sequence.node2idx[node] = idx
+            sequence.connect_to_nodes(
+                group=group,
+                available_nodes=available_nodes,
+                applied_nodes=applied_nodes,
+                report_noconnect=report_noconnect,
+            )
+
         if report_noconnect and (len(applied_nodes) < len(available_nodes)):
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes

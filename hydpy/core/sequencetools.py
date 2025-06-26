@@ -18,6 +18,7 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy import config
+from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -30,7 +31,6 @@ else:
     from enum import StrEnum
 
 if TYPE_CHECKING:
-    from hydpy.core import devicetools
     from hydpy.core import modeltools
     from hydpy.core import timetools
     from hydpy.cythons import pointerutils
@@ -2891,7 +2891,63 @@ class ModelIOSequence(ModelSequence, IOSequence):
         self.node2idx = {}
 
 
-class InputSequence(ModelIOSequence):
+class BaseInputSequenceLinkSequence(ModelIOSequence):
+    """Base class for |InputSequence| and |LinkSequence|."""
+
+    def connect_to_nodes(
+        self,
+        group: Literal["inlets", "receivers", "inputs", "outlets", "senders"],
+        available_nodes: list[devicetools.Node],
+        applied_nodes: list[devicetools.Node],
+        report_noconnect: bool,
+    ) -> None:
+        """Establish pointer connections with the relevant nodes.
+
+        See the documentation on method |modeltools.Model.connect| for more information.
+        """
+
+        self.node2idx.clear()
+
+        selected_nodes = []
+        for node in available_nodes:
+            if isinstance(var := node.variable, devicetools.FusedVariable):
+                if self in var:
+                    selected_nodes.append(node)
+            else:
+                name = var.lower() if isinstance(var, str) else var.name
+                if name == self.name:
+                    selected_nodes.append(node)
+
+        if self.NDIM == 0:
+            if not selected_nodes:
+                if (group == "inputs") or not report_noconnect:
+                    return
+                raise RuntimeError(
+                    f"Sequence {objecttools.elementphrase(self)} cannot be connected "
+                    f"due to no available node handling variable "
+                    f"`{self.name.upper()}`."
+                )
+            if len(selected_nodes) > 1:
+                raise RuntimeError(
+                    f"Sequence `{self.name}` cannot be connected as it is "
+                    f"0-dimensional but multiple nodes are available which are "
+                    f"handling variable `{type(self).__name__}`."
+                )
+            node = selected_nodes[0]
+            applied_nodes.append(node)
+            assert isinstance(self, (InputSequence, LinkSequence))
+            self.set_pointer(node.get_double(group))
+            self.node2idx[node] = None
+        elif self.NDIM == 1:
+            self.shape = len(selected_nodes)
+            for idx, node in enumerate(selected_nodes):
+                applied_nodes.append(node)
+                assert isinstance(self, LinkSequence)
+                self.set_pointer(node.get_double(group), idx)
+                self.node2idx[node] = idx
+
+
+class InputSequence(BaseInputSequenceLinkSequence):
     """Base class for input sequences of |Model| objects.
 
     |InputSequence| objects provide their master model with input data, which is
@@ -3656,7 +3712,7 @@ class AideSequence(ModelSequence):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequence(ModelIOSequence):
+class LinkSequence(BaseInputSequenceLinkSequence):
     """Base class for link sequences of |Model| objects.
 
     |LinkSequence| objects do not only handle values themselves but also point to the

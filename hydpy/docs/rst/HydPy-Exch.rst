@@ -32,5 +32,6 @@ Available models:
 
    exch
    exch_branch_hbv96
-   exch_weir_hbv96
+   exch_interp
    exch_waterlevel
+   exch_weir_hbv96

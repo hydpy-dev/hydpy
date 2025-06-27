@@ -24,3 +24,15 @@ class DeltaWaterLevel(sequencetools.FactorSequence):
     """
 
     NDIM = 0
+
+
+class X(sequencetools.FactorSequence):
+    """Arbitrary kind of input data [?]."""
+
+    NDIM = 0
+
+
+class Y(sequencetools.FactorSequence):
+    """Arbitrary kind of result data [?]."""
+
+    NDIM = 0

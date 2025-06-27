@@ -2,6 +2,7 @@
 
 # import...
 # ...from site-packages
+import inflect
 import numpy
 
 # ...from HydPy
@@ -10,6 +11,10 @@ from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.auxs import interptools
+
+# ...from exch
+from hydpy.models.exch import exch_observers
 
 
 class CrestHeight(parametertools.Parameter):
@@ -260,3 +265,70 @@ sequence and connect it to the respective outlet nodes properly.
             return "\n".join(lines)
         except BaseException:
             return "ypoints(?)"
+
+
+class ObserverNodes(parametertools.Parameter):
+    """The number of the considered observer nodes [-].
+
+    Parameter |ObserverNodes| requires the names of all observer nodes that need
+    consideration:
+
+    >>> from hydpy.models.exch_interp import *
+    >>> parameterstep()
+    >>> observernodes(2)
+    Traceback (most recent call last):
+    ...
+    ValueError: Parameter `observernodes` of element `?` requires the names of all \
+relevant observation nodes, but the first given value is of type `int`.
+
+    >>> observernodes
+    observernodes(?)
+
+    When receiving this information, it automatically prepares the observer sequence
+    |exch_observers.X|:
+
+    >>> observernodes("node_1", "node_2")
+    >>> observers.x.shape
+    (2,)
+    >>> observers.x.observernodes
+    ('node_1', 'node_2')
+
+    >>> observernodes
+    observernodes("node_1", "node_2")
+    >>> observernodes.value
+    2
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+
+    def __call__(self, *observernodes: str) -> None:
+        for i, node in enumerate(observernodes):
+            if not isinstance(node, str):
+                p = inflect.engine()  # type: ignore[unreachable]
+                raise ValueError(
+                    f"Parameter {objecttools.elementphrase(self)} requires the names "
+                    f"of all relevant observation nodes, but the "
+                    f"{p.number_to_words(p.ordinal(i + 1))} given value is of type "
+                    f"`{type(node).__name__}`."
+                )
+        self.value = len(observernodes)
+        x = self.subpars.pars.model.sequences.observers.x
+        assert isinstance(x, exch_observers.X)
+        x.shape = self.value
+        x.observernodes = observernodes
+
+    def __repr__(self) -> str:
+        if self._valueready:
+            x = self.subpars.pars.model.sequences.observers.x
+            assert isinstance(x, exch_observers.X)
+            names = tuple(f'"{name}"' for name in x.observernodes)
+            return objecttools.assignrepr_tuple(names, self.name, 84)
+        return super().__repr__()
+
+
+class X2Y(interptools.SimpleInterpolator):
+    """An interpolation function describing the relationship between arbitrary
+    properties [-]."""
+
+    XLABEL = "X"
+    YLABEL = "Y"

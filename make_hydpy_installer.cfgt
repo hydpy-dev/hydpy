@@ -47,6 +47,8 @@ pypi_wheels =
 	colorama==[auto]
 	black==[auto]
 	cython==[auto]
+	inflect==[auto]
+	typeguard==[auto]
 
 local_wheels = dist/*.whl
 

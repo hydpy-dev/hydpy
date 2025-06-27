@@ -4,6 +4,7 @@ click
 coverage
 Cython
 docutils
+inflect
 lastversion
 matplotlib
 netcdf4

@@ -2845,14 +2845,14 @@ class ModelSequence(Sequence_):
         """The shape of the array of temporary values required for the relevant
         numerical solver.
 
-        The class |ELSModel|, being the base of the "dam" model, uses the "Explicit
-        Lobatto Sequence" for solving differential equations and therefore requires up
-        to eleven array fields for storing temporary values.  Hence, the
+        The class |ELSModel|, being the base of the "dam_llake" model, uses the
+        "Explicit Lobatto Sequence" for solving differential equations and therefore
+        requires up to eleven array fields for storing temporary values.  Hence, the
         |ModelSequence.numericshape| of the 0-dimensional sequence |dam_fluxes.Inflow|
         is eleven:
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("dam")
+        >>> model = prepare_model("dam_llake")
         >>> model.sequences.fluxes.inflow.numericshape
         (11,)
 
@@ -3271,8 +3271,10 @@ class DependentSequence(OutputSequence):
     """Base class for |FactorSequence| and |FluxSequence|."""
 
     def _finalise_connections(self) -> None:
+        from hydpy.core import modeltools  # pylint: disable=import-outside-toplevel
+
         super()._finalise_connections()
-        if self.NUMERIC:
+        if self.NUMERIC and isinstance(self.subseqs.seqs.model, modeltools.ELSModel):
             values = None if self.NDIM else numpy.zeros(self.numericshape)
             self.__hydpy__set_fastaccessattribute__("points", values)
             self.__hydpy__set_fastaccessattribute__("integrals", copy.copy(values))
@@ -3534,8 +3536,10 @@ not broadcast input array from shape (3,) into shape (2,)
         self.new2old()
 
     def _finalise_connections(self) -> None:
+        from hydpy.core import modeltools  # pylint: disable=import-outside-toplevel
+
         super()._finalise_connections()
-        if self.NUMERIC:
+        if self.NUMERIC and isinstance(self.subseqs.seqs.model, modeltools.ELSModel):
             value = None if self.NDIM else numpy.zeros(self.numericshape)
             self.__hydpy__set_fastaccessattribute__("points", value)
             self.__hydpy__set_fastaccessattribute__("results", copy.copy(value))
@@ -3578,10 +3582,14 @@ not broadcast input array from shape (3,) into shape (2,)
         return super()._get_shape()
 
     def _set_shape(self, shape: int | tuple[int, ...]):
+        from hydpy.core import modeltools  # pylint: disable=import-outside-toplevel
+
         super()._set_shape(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
-            if self.NUMERIC:
+            if self.NUMERIC and isinstance(
+                self.subseqs.seqs.model, modeltools.ELSModel
+            ):
                 self.__hydpy__set_fastaccessattribute__(
                     "points", numpy.zeros(self.numericshape)
                 )

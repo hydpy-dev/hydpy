@@ -1005,7 +1005,7 @@ class PyxWriter:
                 pxd(1, f"cdef public {INT} _{seq.name}_length")
                 for idx in range(seq.NDIM):
                     pxd(1, f"cdef public {INT} _{seq.name}_length_{idx}")
-                if seq.NUMERIC:
+                if seq.NUMERIC and isinstance(self.model, modeltools.ELSModel):
                     ctype_numeric = "double" + NDIM2STR[seq.NDIM + 1]
                     pxd(1, f"cdef public {ctype_numeric} _{seq.name}_points")
                     pxd(1, f"cdef public {ctype_numeric} _{seq.name}_results")

@@ -1,13 +1,19 @@
 # pylint: disable=missing-module-docstring
 
 # imports...
+# ...from standard library
+import abc
+
 # ...from HydPy
+import hydpy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
+from hydpy.interfaces import exchangeinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
+from hydpy.auxs import roottools
 from hydpy.models.dam import dam_control
 from hydpy.models.dam import dam_derived
 from hydpy.models.dam import dam_solver
@@ -313,6 +319,58 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
         flu.actualevaporation = flu.adjustedevaporation * smoothutils.smooth_logistic1(
             fac.waterlevel - con.thresholdevaporation, der.smoothparevaporation
         )
+
+
+class Calc_ActualEvaporation_WaterVolume_V1(modeltools.Method):
+    r"""Calculate the actual evaporation and update the stored water volume.
+
+    Basic equation:
+      .. math::
+        A = min(E, \, V\cdot 1e6 / s)
+        \\ \\
+        A = ActualEvaporation \\
+        E = AdjustedEvaporation \\
+        V = WaterVolume \\
+        s = Seconds
+
+    Examples:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> derived.seconds(1e6)
+        >>> states.watervolume = 3.0
+        >>> fluxes.adjustedevaporation = 2.0
+        >>> model.calc_actualevaporation_watervolume_v1()
+        >>> fluxes.actualevaporation
+        actualevaporation(2.0)
+        >>> states.watervolume
+        watervolume(1.0)
+
+        >>> model.calc_actualevaporation_watervolume_v1()
+        >>> fluxes.actualevaporation
+        actualevaporation(1.0)
+        >>> states.watervolume
+        watervolume(0.0)
+    """
+
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
+    REQUIREDSEQUENCES = (dam_fluxes.AdjustedEvaporation,)
+    UPDATEDSEQUENCES = (dam_states.WaterVolume,)
+    RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        v: float = der.seconds / 1e6 * flu.adjustedevaporation
+        if v < sta.watervolume:
+            flu.actualevaporation = flu.adjustedevaporation
+            sta.watervolume -= v
+        else:
+            flu.actualevaporation = 1e6 / der.seconds * sta.watervolume
+            sta.watervolume = 0.0
 
 
 class Pick_Inflow_V1(modeltools.Method):
@@ -4417,6 +4475,398 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
         )
 
 
+class Calc_AllowedWaterLevel_V1(modeltools.Method):
+    r"""Calculate the water level at the end of a simulation step that would follow
+    from applying the allowed water level drop [m].
+
+    Basic equation:
+       .. math::
+         W_{min} = f_{V2W}(V) - D
+         \\ \\
+         W_{min} = AllowedWaterLevel \\
+         f_{V2W} = WaterVolume2WaterLevel \\
+         D = AllowedWaterLevelDrop
+
+    Examples:
+
+        >>> from hydpy.models.dam import *
+        >>> simulationstep("2d")
+        >>> parameterstep("1d")
+        >>> allowedwaterleveldrop(inf)
+        >>> model.calc_allowedwaterlevel_v1()
+        >>> aides.allowedwaterlevel
+        allowedwaterlevel(-inf)
+
+        >>> from hydpy import PPoly
+        >>> watervolume2waterlevel(PPoly.from_data([0.0, 1.0, 2.0], [1.0, 2.0, 4.0]))
+        >>> allowedwaterleveldrop(1.0)
+        >>> states.watervolume = 1.5
+        >>> model.calc_allowedwaterlevel_v1()
+        >>> aides.allowedwaterlevel
+        allowedwaterlevel(1.0)
+    """
+
+    CONTROLPARAMETERS = (
+        dam_control.WaterVolume2WaterLevel,
+        dam_control.AllowedWaterLevelDrop,
+    )
+    REQUIREDSEQUENCES = (dam_states.WaterVolume,)
+    RESULTSEQUENCES = (dam_aides.AllowedWaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        if modelutils.isinf(con.allowedwaterleveldrop):
+            aid.allowedwaterlevel = -modelutils.inf
+        else:
+            con.watervolume2waterlevel.inputs[0] = sta.watervolume
+            con.watervolume2waterlevel.calculate_values()
+            w: float = con.watervolume2waterlevel.outputs[0]
+            aid.allowedwaterlevel = w - con.allowedwaterleveldrop
+
+
+class Calc_AllowedDischarge_V3(modeltools.Method):
+    r"""Calculate the maximum discharge not leading to exceedance of the
+    allowed water level drop.
+
+    Basic equations:
+       .. math::
+        f_{V2W}(V_{min}) = W_{min}
+        \\
+        V_{max} = V + s / 1e6 \cdot (I + P - E)
+        \\
+        Q = 1e6 / s \cdot (V_{max} - V_{min})
+
+        \\ \\
+        f_{V2W} = WaterVolume2WaterLevel \\
+        W_{min} = AllowedWaterLevel \\
+        V = WaterVolume \\
+        s = Seconds \\
+        I = Inflow \\
+        P = AdjustedPrecipitation \\
+        E = AdjustedEvaporation \\
+        Q = AllowedDischarge
+
+    Note that solving the potentially nonlinear equation
+    :math:`f_{V2W}(V_{min}) = W_{min}` relies on the Pegasus iteration method provided
+    by the |PegasusWaterVolume| submodel.
+
+    Examples:
+
+        Without a water level restriction, the allowed discharge is also unrestricted:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> aides.allowedwaterlevel(-inf)
+        >>> model.calc_alloweddischarge_v3()
+        >>> aides.alloweddischarge
+        alloweddischarge(inf)
+
+        A simplified case without additional fluxes:
+
+        >>> from hydpy import PPoly
+        >>> watervolume2waterlevel(PPoly.from_data([0.0, 2.0, 4.0], [1.0, 3.0, 7.0]))
+        >>> derived.seconds(1e6)
+        >>> states.watervolume = 3.0
+        >>> aides.allowedwaterlevel = 2.0
+        >>> fluxes.inflow = 0.0
+        >>> fluxes.adjustedprecipitation = 0.0
+        >>> fluxes.adjustedevaporation = 0.0
+        >>> model.calc_alloweddischarge_v3()
+        >>> aides.alloweddischarge
+        alloweddischarge(2.0)
+
+        The same case but with additional fluxes:
+
+        >>> fluxes.inflow = 1.0
+        >>> fluxes.adjustedprecipitation = 2.0
+        >>> fluxes.adjustedevaporation = 4.0
+        >>> model.calc_alloweddischarge_v3()
+        >>> aides.alloweddischarge
+        alloweddischarge(1.0)
+
+        The resulting allowed discharge is never negative:
+
+        >>> fluxes.adjustedevaporation = 6.0
+        >>> model.calc_alloweddischarge_v3()
+        >>> aides.alloweddischarge
+        alloweddischarge(0.0)
+
+        >>> fluxes.adjustedevaporation = 4.0
+        >>> aides.allowedwaterlevel = 7.0
+        >>> model.calc_alloweddischarge_v3()
+        >>> aides.alloweddischarge
+        alloweddischarge(0.0)
+    """
+
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
+    REQUIREDSEQUENCES = (
+        dam_states.WaterVolume,
+        dam_aides.AllowedWaterLevel,
+        dam_fluxes.Inflow,
+        dam_fluxes.AdjustedPrecipitation,
+        dam_fluxes.AdjustedEvaporation,
+    )
+    RESULTSEQUENCES = (dam_aides.AllowedDischarge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        if modelutils.isinf(aid.allowedwaterlevel):
+            aid.alloweddischarge = modelutils.inf
+        else:
+            v_min: float = model.pegasuswatervolume.find_x(
+                0.0, sta.watervolume, 0.0, sta.watervolume, 1e-10, 1e-10, 1000
+            )
+            v_max: float = sta.watervolume + der.seconds / 1e6 * (
+                flu.inflow + flu.adjustedprecipitation - flu.adjustedevaporation
+            )
+            aid.alloweddischarge = max(1e6 / der.seconds * (v_max - v_min), 0.0)
+
+
+class Calc_SafeRelease_V1(modeltools.Method):
+    """Calculate the safe release as the minimum of the dam-specific allowed release
+    and the values suggested by the safe release submodels.
+
+    Examples:
+
+        Without any safe release submodels involved, |Calc_SafeRelease_V1| just
+        determines the allowed release for the current time of the year:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2001-03-30", "2001-04-03", "1d"
+        >>> from hydpy.models.dam_detention import *
+        >>> parameterstep()
+        >>> allowedrelease(toy_03_31_12=2.0, toy_04_1_12=4.0)
+        >>> derived.toy.update()
+        >>> model.idx_sim = pub.timegrids.init["2001-03-31"]
+        >>> model.calc_saferelease_v1()
+        >>> fluxes.saferelease
+        saferelease(2.0)
+
+        >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
+        >>> model.calc_saferelease_v1()
+        >>> fluxes.saferelease
+        saferelease(4.0)
+
+        With available safe release submodels, it searches for the lowest of all
+        suggested release values:
+
+        >>> from hydpy import PPoly
+        >>> nmbsafereleasemodels(2)
+        >>> with model.add_safereleasemodel("exch_interp", position=0):
+        ...     observernodes("gauge_1")
+        ...     x2y(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+        ...     observers.x = 5.0
+        >>> with model.add_safereleasemodel("exch_interp", position=1):
+        ...     observernodes("gauge_2")
+        ...     x2y(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+        ...     observers.x = 6.0
+        >>> model.calc_saferelease_v1()
+        >>> fluxes.saferelease
+        saferelease(4.0)
+
+        >>> model.safereleasemodels[0].sequences.observers.x = 3.0
+        >>> model.calc_saferelease_v1()
+        >>> fluxes.saferelease
+        saferelease(3.0)
+    """
+
+    CONTROLPARAMETERS = (dam_control.NmbSafeReleaseModels, dam_control.AllowedRelease)
+    DERIVEDPARAMETERS = (dam_derived.TOY,)
+    RESULTSEQUENCES = (dam_fluxes.SafeRelease,)
+    SUBMODELINTERFACES = (exchangeinterfaces.ExchangeModel_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.saferelease = con.allowedrelease[der.toy[model.idx_sim]]
+        for i in range(con.nmbsafereleasemodels):
+            if model.safereleasemodels.typeids[i] == 1:
+                cast(
+                    exchangeinterfaces.ExchangeModel_V1,
+                    model.safereleasemodels.submodels[i],
+                ).determine_y()
+                q: float = cast(
+                    exchangeinterfaces.ExchangeModel_V1,
+                    model.safereleasemodels.submodels[i],
+                ).get_y()
+                flu.saferelease = min(q, flu.saferelease)
+
+
+class Calc_AimedRelease_WaterVolume_V1(modeltools.Method):
+    r"""Calculate the ideal controlled release and update the stored water volume.
+
+    Basic equation:
+       .. math::
+        A = min \Big( max \big( 1e6 / s \cdot (V - T), \, M \big), \, S, \, D \Big)
+        \\ \\
+        A = AimedRelease \\
+        s = Seconds \\
+        V = WaterVolume \\
+        T = TargetVolume \\
+        M = MinimumRelease \\
+        S = SafeRelease \\
+        D = AllowedDischarge
+
+    Examples:
+
+        As long as no restrictions apply, |Calc_AimedRelease_WaterVolume_V1| releases
+        enough water to reach the targeted volume in one simulation step:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2001-03-30", "2001-04-03", "1d"
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> targetvolume(toy_03_31_12=1.0, toy_04_01_12=3.0)
+        >>> minimumrelease(0.0)
+        >>> derived.seconds(1e6)
+        >>> derived.toy.update()
+        >>> fluxes.saferelease = inf
+        >>> aides.alloweddischarge = inf
+        >>> states.watervolume = 3.0
+        >>> model.idx_sim = pub.timegrids.init["2001-03-31"]
+        >>> model.calc_aimedrelease_watervolume_v1()
+        >>> fluxes.aimedrelease
+        aimedrelease(2.0)
+        >>> states.watervolume
+        watervolume(1.0)
+
+        Required minimum releases can cause the actual water volume to fall below the
+        targeted volume:
+
+        >>> minimumrelease(1.0)
+        >>> states.watervolume = 3.0
+        >>> model.idx_sim = pub.timegrids.init["2001-04-01"]
+        >>> model.calc_aimedrelease_watervolume_v1()
+        >>> fluxes.aimedrelease
+        aimedrelease(1.0)
+        >>> states.watervolume
+        watervolume(2.0)
+
+        The total available water volume restricts the actual release:
+
+        >>> states.watervolume = 0.5
+        >>> model.calc_aimedrelease_watervolume_v1()
+        >>> fluxes.aimedrelease
+        aimedrelease(0.5)
+        >>> states.watervolume
+        watervolume(0.0)
+
+        The suggested "safe release" always caps the aimed release (the limited storage
+        capacity becomes relevant when calculating the "unavoidable release):
+
+        >>> states.watervolume = 10.0
+        >>> fluxes.saferelease = 6.0
+        >>> model.calc_aimedrelease_watervolume_v1()
+        >>> fluxes.aimedrelease
+        aimedrelease(6.0)
+        >>> states.watervolume
+        watervolume(4.0)
+
+        The "allowed discharge" (which corresponds to the highest acceptable water
+        level drop) restricts the release in the same manner:
+
+        >>> states.watervolume = 10.0
+        >>> aides.alloweddischarge = 4.0
+        >>> model.calc_aimedrelease_watervolume_v1()
+        >>> fluxes.aimedrelease
+        aimedrelease(4.0)
+        >>> states.watervolume
+        watervolume(6.0)
+    """
+
+    CONTROLPARAMETERS = (dam_control.TargetVolume, dam_control.MinimumRelease)
+    DERIVEDPARAMETERS = (dam_derived.Seconds, dam_derived.TOY)
+    REQUIREDSEQUENCES = (dam_fluxes.SafeRelease, dam_aides.AllowedDischarge)
+    UPDATEDSEQUENCES = (dam_states.WaterVolume,)
+    RESULTSEQUENCES = (dam_fluxes.AimedRelease,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        targetvolume: float = con.targetvolume[der.toy[model.idx_sim]]
+        q: float = 1e6 / der.seconds * (sta.watervolume - targetvolume)
+        q = min(max(q, con.minimumrelease), flu.saferelease, aid.alloweddischarge)
+        v: float = der.seconds / 1e6 * q
+        if v < sta.watervolume:
+            flu.aimedrelease = q
+            sta.watervolume -= v
+        else:
+            flu.aimedrelease = 1e6 / der.seconds * sta.watervolume
+            sta.watervolume = 0.0
+
+
+class Calc_UnavoidableRelease_WaterVolume_V1(modeltools.Method):
+    r"""Calculate the water release that cannot be avoided due to limited storage
+    capacity and update the stored water volume.
+
+    Basic equation:
+       .. math::
+        U = 1e6 / s \cdot (V - M)
+        \\ \\
+        U = UnavoidableRelease \\
+        s = Seconds \\
+        V = WaterVolume \\
+        M = MaximumVolume
+
+    Examples:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> maximumvolume(3.0)
+        >>> derived.seconds(1e6)
+        >>> states.watervolume = 5.0
+        >>> model.calc_unavoidablerelease_watervolume_v1()
+        >>> fluxes.unavoidablerelease
+        unavoidablerelease(2.0)
+        >>> states.watervolume
+        watervolume(3.0)
+
+        >>> states.watervolume = 2.0
+        >>> model.calc_unavoidablerelease_watervolume_v1()
+        >>> fluxes.unavoidablerelease
+        unavoidablerelease(0.0)
+        >>> states.watervolume
+        watervolume(2.0)
+    """
+
+    CONTROLPARAMETERS = (dam_control.MaximumVolume,)
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
+    UPDATEDSEQUENCES = (dam_states.WaterVolume,)
+    RESULTSEQUENCES = (dam_fluxes.UnavoidableRelease,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        if sta.watervolume < con.maximumvolume:
+            flu.unavoidablerelease = 0.0
+        else:
+            flu.unavoidablerelease = (
+                1e6 / der.seconds * (sta.watervolume - con.maximumvolume)
+            )
+            sta.watervolume = con.maximumvolume
+
+
 class Calc_Outflow_V2(modeltools.Method):
     """Calculate the total outflow of the dam, taking the allowed water discharge into
     account.
@@ -4572,6 +5022,33 @@ class Calc_Outflow_V5(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.outflow = flu.freedischarge + flu.forceddischarge
+
+
+class Calc_Outflow_V6(modeltools.Method):
+    """Calculate the outflow as the sum of the aimed and the unavoidable release.
+
+    Basic equation:
+      :math:`Outflow = AimedRelease + UnavoidableRelease`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> fluxes.aimedrelease = 1.0
+        >>> fluxes.unavoidablerelease = 2.0
+        >>> model.calc_outflow_v6()
+        >>> fluxes.outflow
+        outflow(3.0)
+    """
+
+    REQUIREDSEQUENCES = (dam_fluxes.AimedRelease, dam_fluxes.UnavoidableRelease)
+    UPDATEDSEQUENCES = (dam_fluxes.Outflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.outflow = flu.aimedrelease + flu.unavoidablerelease
 
 
 class Update_WaterVolume_V1(modeltools.Method):
@@ -4762,6 +5239,32 @@ class Update_WaterVolume_V4(modeltools.Method):
             - flu.outflow
             + flu.exchange
         )
+
+
+class Update_WaterVolume_V5(modeltools.Method):
+    r"""Update the actual water volume based on inflow and precipitation.
+
+    Basic equation:
+       .. math::
+        V_{new} = V_{old} + s / 1e6 \cdot (I + P)
+        \\ \\
+        V = WaterVolume \\
+        s = Seconds \\
+        I = Inflow \\
+        P = AdjustedPrecipitation
+    """
+
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
+    REQUIREDSEQUENCES = (dam_fluxes.Inflow, dam_fluxes.AdjustedPrecipitation)
+    UPDATEDSEQUENCES = (dam_states.WaterVolume,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+
+        sta.watervolume += der.seconds / 1e6 * (flu.inflow + flu.adjustedprecipitation)
 
 
 class Pass_Outflow_V1(modeltools.Method):
@@ -4964,6 +5467,48 @@ class Update_LoggedOutflow_V1(modeltools.Method):
         log.loggedoutflow[0] = flu.outflow
 
 
+class Return_WaterLevelError_V1(modeltools.Method):
+    r"""Calculate and return the difference between the allowed water level and the
+    water level that corresponds to the given water volume.
+
+    Basic equation:
+       .. math::
+         f_{V2W}(v) - A
+         \\ \\
+         f_{V2W} = WaterVolume2WaterLevel \\
+         A = AllowedWaterLevel
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> from hydpy import PPoly, round_
+        >>> watervolume2waterlevel(PPoly.from_data([0.0, 1.0, 2.0], [1.0, 2.0, 4.0]))
+        >>> aides.allowedwaterlevel = 3.0
+        >>> round_(model.return_waterlevelerror_v1(0.5))
+        -1.5
+    """
+
+    CONTROLPARAMETERS = (dam_control.WaterVolume2WaterLevel,)
+    REQUIREDSEQUENCES = (dam_aides.AllowedWaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, watervolume: float) -> float:
+        con = model.parameters.control.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        con.watervolume2waterlevel.inputs[0] = watervolume
+        con.watervolume2waterlevel.calculate_values()
+        return con.watervolume2waterlevel.outputs[0] - aid.allowedwaterlevel
+
+
+class PegasusWaterVolume(roottools.Pegasus):
+    """Pegasus iterator for finding the water volume corresponding to the allowed water
+    level."""
+
+    METHODS = (Return_WaterLevelError_V1,)
+
+
 class Model(modeltools.ELSModel):
     """|dam.DOCNAME.complete|"""
 
@@ -5006,7 +5551,21 @@ class Model(modeltools.ELSModel):
         Pick_LoggedAllowedRemoteRelief_V1,
         Calc_AllowedRemoteRelief_V1,
     )
-    ADD_METHODS = (Fix_Min1_V1,)
+    # ToDo: Some of the following methods are actually RUN_METHODS.  Find a cleaner way
+    #       to define a base model that serves as the foundation of different
+    #       application models derived from RunModel and SolverModel.
+    ADD_METHODS = (
+        Fix_Min1_V1,
+        Calc_ActualEvaporation_WaterVolume_V1,
+        Calc_AllowedWaterLevel_V1,
+        Calc_AllowedDischarge_V3,
+        Calc_SafeRelease_V1,
+        Calc_AimedRelease_WaterVolume_V1,
+        Calc_UnavoidableRelease_WaterVolume_V1,
+        Calc_Outflow_V6,
+        Update_WaterVolume_V5,
+        Return_WaterLevelError_V1,
+    )
     PART_ODE_METHODS = (
         Pick_Inflow_V1,
         Pick_Inflow_V2,
@@ -5058,7 +5617,7 @@ class Model(modeltools.ELSModel):
         Pass_RequiredRemoteSupply_V1,
     )
     SUBMODELINTERFACES = ()
-    SUBMODELS = ()
+    SUBMODELS = (PegasusWaterVolume,)
 
     precipmodel = modeltools.SubmodelProperty(
         precipinterfaces.PrecipModel_V2, optional=True
@@ -5070,8 +5629,12 @@ class Model(modeltools.ELSModel):
     pemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     pemodel_typeid = modeltools.SubmodelTypeIDProperty()
 
+    safereleasemodels = modeltools.SubmodelsProperty(
+        exchangeinterfaces.ExchangeModel_V1
+    )
 
-class Main_PrecipModel_V2(modeltools.ELSModel):
+
+class Main_PrecipModel_V2(modeltools.Model, abc.ABC):
     """Base class for |dam.DOCNAME.long| models that use submodels that comply with the
     |PrecipModel_V2| interface."""
 
@@ -5112,7 +5675,7 @@ class Main_PrecipModel_V2(modeltools.ELSModel):
         precipmodel.prepare_subareas(control.surfacearea.value)
 
 
-class Main_PEModel_V1(modeltools.ELSModel):
+class Main_PEModel_V1(modeltools.Model, abc.ABC):
     """Base class for |dam.DOCNAME.long| models that use submodels that comply with the
     |PETModel_V1| interface."""
 
@@ -5151,3 +5714,36 @@ class Main_PEModel_V1(modeltools.ELSModel):
         control = self.parameters.control
         pemodel.prepare_nmbzones(1)
         pemodel.prepare_subareas(control.surfacearea.value)
+
+
+class MixinSimpleWaterBalance(modeltools.Model, abc.ABC):
+    """Mixin class for the HydPy-Dam models with the simplest  water balance
+    equation."""
+
+    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
+        r"""Determine the water balance error of the previous simulation run in million
+        m³.
+
+        Method |MixinSimpleWaterBalance.check_waterbalance| calculates the balance
+        error as follows:
+
+        :math:`Seconds \cdot 10^{-6} \cdot \sum_{t=t0}^{t1}
+        \big( AdjustedPrecipitation_t - ActualEvaporation_t + Inflow_t - Outflow_t \big)
+        + \big( WaterVolume_{t0}^k - WaterVolume_{t1}^k \big)`
+
+        The returned error should always be in scale with numerical precision so
+        that it does not affect the simulation results in any relevant manner.
+
+        Pick the required initial conditions before starting the simulation run via
+        property |Sequences.conditions|.  See the integration tests of the application
+        model |dam_lretention| for some examples.
+        """
+        fluxes = self.sequences.fluxes
+        first = initial_conditions["model"]["states"]
+        last = self.sequences.states
+        return (hydpy.pub.timegrids.stepsize.seconds / 1e6) * (
+            sum(fluxes.adjustedprecipitation.series)
+            - sum(fluxes.actualevaporation.series)
+            + sum(fluxes.inflow.series)
+            - sum(fluxes.outflow.series)
+        ) - (last.watervolume - first["watervolume"])

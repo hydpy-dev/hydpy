@@ -1068,7 +1068,9 @@ from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 
 
-class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
+class Model(
+    modeltools.ELSModel, dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1
+):
     """|dam_v001.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Dam-V1", description="dam model, version 1")

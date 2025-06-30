@@ -125,6 +125,12 @@ class NearDischargeMinimumTolerance(parametertools.SeasonalParameter):
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
 
 
+class MinimumRelease(parametertools.Parameter):
+    """Minimum water release [m³/s]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
 class RestrictTargetedRelease(parametertools.Parameter):
     """A flag indicating whether low flow variability has to be preserved
     or not [-]."""
@@ -322,6 +328,13 @@ class TargetRangeRelative(parametertools.Parameter):
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
 
+class MaximumVolume(parametertools.Parameter):
+    """Maximum storable volume of water where uncontrolled discharge can be prevented
+    [Mio. m³]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
 class VolumeTolerance(parametertools.Parameter):
     """Smoothing parameter for volume-related smoothing operations [Mio. m³]."""
 
@@ -344,3 +357,21 @@ class CrestLevelTolerance(parametertools.Parameter):
     """A tolerance value for the crest level of a weir [m]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class NmbSafeReleaseModels(parametertools.Parameter):
+    """The number of submodels that suggest release values that serve for flood
+    protection at remote locations [-].
+
+    >>> from hydpy.models.dam import *
+    >>> parameterstep()
+    >>> nmbsafereleasemodels(2)
+    >>> model.safereleasemodels.number
+    2
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+
+    def __call__(self, *args, **kwargs):
+        super().__call__(*args, **kwargs)
+        self.subpars.pars.model.safereleasemodels.number = self.value

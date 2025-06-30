@@ -11,7 +11,7 @@ HydPy-Dam
 The HydPy-Dam model family implements dams and similar natural and anthropogenic flow
 barriers.
 
-At the current state of development, all its application models rely on an adaptive
+At the current state of development, most of its application models rely on an adaptive
 explicit Runge-Kutta method. This integration method allows for performing simulations
 with adjustable numerical precision. However, it works best for continuous differential
 equations. Hence, most process equations of base model |dam| are either continuous by
@@ -45,20 +45,24 @@ Does the dam model…                                               v001 v002 v0
 …allow for discharge from a remote location for flood protection? no   no   no   no   yes
 ================================================================= ==== ==== ==== ==== ====
 
-These five application models are independent implementations, developed for the
+These five application models are independent implementations developed for the
 forecasting system of the German federal state of Saxony and run by the
 `Landeshochwasserzentrum (LHWZ)`_.  Later, we added the application models |dam_llake|,
 |dam_lretention|, and |dam_lreservoir| on behalf of the `German Federal Institute of
 Hydrology (BfG)`_.  Conceptionally, these *HydPy* models correspond to the `LARSIM`_
-models "SEEG" (controlled lake), "RUEC" (retention basin) and "TALS" (reservoir).  Most
+models "SEEG" (controlled lake), "RUEC" (retention basin) and "TALS" (reservoir).  More
 recently, we developed |dam_pump|, |dam_sluice|, and |dam_pump_sluice| for improving
 simulations in low-land areas, where the draining of land areas via pumps and sluices
-often plays a more relevant role than gravity-driven runoff.
+often plays a more relevant role than gravity-driven runoff.  The newest family member,
+|dam_detention|, is the first one with the capability to consider "remote information"
+to improve flood protection.
 
 |dam_v001| has been the starting point for the development of the other application
-models. Hence its documentation is very comprehensive, and it seems to be a good
+models. Hence, its documentation is very comprehensive, and it may be a good
 starting point for becomimg acquainted with any of the application models prepared so
-far.
+far.  Perhaps, with the exception of |dam_detention|, which works more like a
+"threshold model" than a "state-space model" and is so a little simpler and not solved
+via the mentioned Runge-Kutta method.
 
 Available models:
 
@@ -66,14 +70,15 @@ Available models:
    :maxdepth: 1
 
    dam
+   dam_detention
+   dam_llake
+   dam_lreservoir
+   dam_lretention
+   dam_pump
+   dam_pump_sluice
+   dam_sluice
    dam_v001
    dam_v002
    dam_v003
    dam_v004
    dam_v005
-   dam_llake
-   dam_lretention
-   dam_lreservoir
-   dam_pump
-   dam_sluice
-   dam_pump_sluice

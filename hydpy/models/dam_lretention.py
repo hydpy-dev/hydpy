@@ -23,7 +23,7 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-We reuse the |dam_llake| test set,, including identical input series and an identical
+We reuse the |dam_llake| test set, including identical input series and an identical
 relationship between stage and volume:
 
 >>> from hydpy import IntegrationTest, Element, pub

@@ -1,0 +1,43 @@
+.. |False| replace:: :const:`False`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |SummaryRow.summarise_criteria| replace:: :func:`~hydpy.auxs.statstools.SummaryRow.summarise_criteria`
+.. |SummaryRowSimple| replace:: :class:`~hydpy.auxs.statstools.SummaryRowSimple`
+.. |SummaryRowWeighted| replace:: :class:`~hydpy.auxs.statstools.SummaryRowWeighted`
+.. |SummaryRow| replace:: :class:`~hydpy.auxs.statstools.SummaryRow`
+.. |Timegrids.eval_| replace:: :attr:`~hydpy.core.timetools.Timegrids.eval_`
+.. |Timegrid| replace:: :class:`~hydpy.core.timetools.Timegrid`
+.. |aggregate_series| replace:: :func:`~hydpy.core.seriestools.aggregate_series`
+.. |bias_abs| replace:: :func:`~hydpy.auxs.statstools.bias_abs`
+.. |bias_rel| replace:: :func:`~hydpy.auxs.statstools.bias_rel`
+.. |calc_weights| replace:: :func:`~hydpy.auxs.statstools.calc_weights`
+.. |corr2| replace:: :func:`~hydpy.auxs.statstools.corr2`
+.. |corr| replace:: :func:`~hydpy.auxs.statstools.corr`
+.. |filter_series| replace:: :func:`~hydpy.auxs.statstools.filter_series`
+.. |hsepd_manual| replace:: :func:`~hydpy.auxs.statstools.hsepd_manual`
+.. |hsepd_pdf| replace:: :func:`~hydpy.auxs.statstools.hsepd_pdf`
+.. |hsepd| replace:: :func:`~hydpy.auxs.statstools.hsepd`
+.. |kge| replace:: :func:`~hydpy.auxs.statstools.kge`
+.. |list| replace:: :class:`list`
+.. |nan| replace:: :const:`~hydpy.exe.modelimports.nan`
+.. |nse_log| replace:: :func:`~hydpy.auxs.statstools.nse_log`
+.. |nse| replace:: :func:`~hydpy.auxs.statstools.nse`
+.. |numpy| replace:: :mod:`~numpy`
+.. |prepare_arrays| replace:: :func:`~hydpy.auxs.statstools.prepare_arrays`
+.. |print_evaluationtable| replace:: :func:`~hydpy.auxs.statstools.print_evaluationtable`
+.. |rmse| replace:: :func:`~hydpy.auxs.statstools.rmse`
+.. |statstools| replace:: :mod:`~hydpy.auxs.statstools`
+.. |std_ratio| replace:: :func:`~hydpy.auxs.statstools.std_ratio`
+.. |tuple| replace:: :class:`tuple`
+.. |var_ratio| replace:: :func:`~hydpy.auxs.statstools.var_ratio`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |pandas.Series| replace:: :class:`~pandas.Series`
+
+.. _statstools:
+
+statstools
+==========
+
+.. automodule:: hydpy.auxs.statstools
+    :members:
+    :show-inheritance:
+    :exclude-members: Counter, TypeAlias, Reversible, SENDER_METHODS, Required, SOLVERPARAMETERS, AsyncIterator, TextIO, Self, TypeVarTuple, IO, Mapping, REQUIREDSEQUENCES, runtime, Awaitable, Final, AnyStr, Any, Doc, Generator, overload, get_protocol_members, AsyncContextManager, Set, AsyncGenerator, subvars, RUN_METHODS, ValuesView, Tuple, get_original_bases, Sized, List, Type, CONTROLPARAMETERS, Protocol, NoDefault, ByteString, IntVar, DERIVEDPARAMETERS, AsyncIterable, Unpack, SupportsInt, SUBMODELINTERFACES, Buffer, TypeGuard, CLASSES, INTERFACE_METHODS, UPDATEDSEQUENCES, LiteralString, deprecated, ParamSpecKwargs, NewType, no_type_check, evaluate_forward_ref, MutableMapping, Generic, Sequence, TypeAliasType, SUBMODELS, runtime_checkable, SOLVERSEQUENCES, ParamSpec, subpars, SupportsIndex, Concatenate, is_protocol, TYPE_CHECKING, TypeVar, DefaultDict, fastaccess_old, Deque, get_args, Annotated, BinaryIO, Container, SupportsComplex, Sentinel, MutableSet, get_annotations, KeysView, Never, OUTLET_METHODS, FULL_ODE_METHODS, Iterator, Hashable, SupportsFloat, Pattern, Text, ChainMap, Writer, AbstractSet, reveal_type, FIXEDPARAMETERS, PART_ODE_METHODS, get_overloads, Iterable, CapsuleType, SUBMETHODS, ParamSpecArgs, Literal, ForwardRef, TypeIs, Collection, MappingView, ItemsView, Dict, override, fastaccess, FrozenSet, Callable, SupportsRound, NamedTuple, ClassVar, SupportsAbs, clear_overloads, Format, NotRequired, OrderedDict, ContextManager, assert_never, SupportsBytes, dataclass_transform, subseqs, cast, ADD_METHODS, NoReturn, ReadOnly, Reader, Optional, Coroutine, RESULTSEQUENCES, fastaccess_new, RECEIVER_METHODS, TypedDict, seqs, Union, INLET_METHODS, assert_type, get_origin, Match, get_type_hints, MutableSequence, final, is_typeddict, no_type_check_decorator, TypeForm, NoExtraItems, pars

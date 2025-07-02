@@ -49,6 +49,7 @@ pypi_wheels =
 	cython==[auto]
 	inflect==[auto]
 	typeguard==[auto]
+	more_itertools==[auto]
 
 local_wheels = dist/*.whl
 

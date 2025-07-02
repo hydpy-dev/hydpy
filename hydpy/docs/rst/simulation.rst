@@ -1,6 +1,7 @@
 
 .. _OpenDA: http://openda.org/
 .. _xmlschema: https://pypi.org/project/xmlschema/
+.. _`issue tracker`: https://github.com/hydpy-dev/hydpy/issues
 
 .. _simulation:
 
@@ -244,6 +245,46 @@ Finally, with all required preprocessing done, we can conduct the simulation:
 
 >>> hp.simulate()
 
+HydPy does not apply multi-threading by default.  You can modify the |Options.threads|
+option to increase simulation speed by processing model instances in parallel.  If your
+machine has, for example, four CPUs, you may want to set the number of additional
+threads also to four:
+
+>>> with pub.options.threads(4):
+...     hp.simulate()
+
+By doing so, HydPy actually works with five threads.  The already active main thread
+coordinates four workers, which perform the individual simulation runs of the involved
+models in four temporarily created new threads.
+
+Preparing for a multi-threaded simulation might take a little time for larger projects.
+Hence, HydPy caches some of the information gathered before the first multi-threaded
+run.  Still, you might gain additional speed-ups when doing repeated calculations for
+the same network (for example, during parameter calibration) by saving the
+|Parallelisability| and |threadingtools.Queue| objects returned by method
+|HydPy.prepare_multithreading| and passing them repeatedly to method
+|HydPy.simulate_multithreaded|:
+
+>>> parallelisability, queue = hp.prepare_multithreading()
+>>> with pub.options.threads(4):
+...     for _ in range(2):
+...         hp.simulate_multithreaded(parallelisability, queue)
+
+You can modify the returned |Parallelisability| and |threadingtools.Queue| instances to
+adjust them to the specific network at hand, which might increase performance even
+more, but this requires a deep understanding of HydPy.
+
+Note that HydPy's multi-threading mode does not result in any speed-ups when working in
+the pure Python mode (Python itself does not fully support multi-threading) and is not
+incompatible with reading time series data from or writing it to NetCDF files
+"just-in-time" during simulation runs (the underlying library is not thread-safe).
+Also, be aware that, even on the same machine and operating system, "normal" and
+multi-threaded simulations might lead to slightly different results due to different
+floating point rounding errors of the involved mathematical operations.  In our
+experience, these differences are negligible.  If you encounter cases where such
+differences are relevant for practical applications, please report them via our `issue
+tracker`_.
+
 The :ref:`quickstart` section already touches on plotting simulated and observed
 discharge:
 
@@ -474,7 +515,7 @@ parts `<!--` and `-->` define a usual XML comment. As such comments count as not
 |xml_validate| reports the following error when checking `single_run.xmlt`:
 
 >>> subprocess = run_subprocess("hyd.py xml_validate HydPy-H-Lahn/single_run.xmlt")  # doctest: +ELLIPSIS
-failed validating '' with XsdAtomicBuiltin(name='xs:dateTime'):
+failed decoding '' with XsdAtomicBuiltin(name='xs:dateTime'):
 <BLANKLINE>
 Reason: Invalid datetime string '' for <class 'elementpath.datatypes.datetime.DateTime10'>
 ...
@@ -502,7 +543,7 @@ Although technically successful, the replacement was flawed because, as |xml_val
 can tell us, `wrong` is not a boolean value, as would be required:
 
 >>> subprocess = run_subprocess("hyd.py xml_validate HydPy-H-Lahn/single_run.xml")  # doctest: +ELLIPSIS
-failed validating 'wrong' with XsdAtomicBuiltin(name='xs:boolean'):
+failed decoding 'wrong' with XsdAtomicBuiltin(name='xs:boolean'):
 <BLANKLINE>
 Reason: 'wrong' is not a boolean value
 ...

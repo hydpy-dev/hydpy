@@ -159,15 +159,23 @@ class Constants(dict[str, int]):
                 if value:
                     value.__doc__ = doc
 
-    @property
-    def sortednames(self) -> tuple[str, ...]:
-        """The lowercase constants' names, sorted by the constants' values.
+    def get_sortednames(
+        self, *, relevant: Sequence[int] | None = None
+    ) -> tuple[str, ...]:
+        """Get the lowercase constants' names, sorted by the constants' values.
 
         >>> from hydpy.core.parametertools import Constants
-        >>> Constants(GRASS=2, TREES=0, WATER=1).sortednames
+        >>> Constants(GRASS=2, TREES=0, WATER=1).get_sortednames()
         ('trees', 'water', 'grass')
+
+        You can pass the values of relevant constants to exclude the names of the
+        remaining constants:
+
+        >>> Constants(GRASS=2, TREES=0, WATER=1).get_sortednames(relevant=[0, 2])
+        ('trees', 'grass')
         """
-        return tuple(key.lower() for value, key in sorted(self.value2name.items()))
+        rel = set(self.values()) if relevant is None else set(relevant)
+        return tuple(n.lower() for v, n in sorted(self.value2name.items()) if v in rel)
 
 
 class Parameters:
@@ -285,7 +293,7 @@ For variable `latitude`, no value has been defined so far.
         moy(0, 0, 1, 1, 1)
         hours(24.0)
         days(1.0)
-        sct(12.0)
+        sct(12.0, 12.0, 12.0, 12.0, 12.0)
         utclongitude(15)
         latituderad(0.872665)
 
@@ -293,6 +301,8 @@ For variable `latitude`, no value has been defined so far.
 
             >>> del pub.timegrids
         """
+        for par in self.control:
+            par.update()
         for subpars in self.secondary_subpars:
             for par in subpars:
                 try:
@@ -1562,26 +1572,8 @@ parameter and a simulation time step size first.
         return values
 
     def update(self) -> None:
-        """To be overridden by all "secondary" parameters.
-
-        |Parameter| subclasses to be used as "primary" parameters (control
-        parameters) do not need to implement method |Parameter.update|.
-        For such classes, invoking the method results in the following
-        error message:
-
-        >>> from hydpy.core.parametertools import Parameter
-        >>> class Par(Parameter):
-        ...     pass
-        >>> Par(None).update()
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Parameter `par` of element `?` does not \
-implement method `update`.
-        """
-        raise RuntimeError(
-            f"Parameter {objecttools.elementphrase(self)} does not "
-            f"implement method `update`."
-        )
+        """To be overridden by those "primary" parameters which need special handling
+        and all "secondary" parameters."""
 
     @property
     def keywordarguments(self) -> KeywordArguments:
@@ -3294,7 +3286,7 @@ for axis 0 with size 1
             old_names = get("entrynames")
             old_min = get("entrymin")
             try:
-                cls.entrynames = constants.sortednames
+                cls.entrynames = constants.get_sortednames()
                 cls.entrymin = min(constants.values())
                 yield
             finally:
@@ -3701,7 +3693,7 @@ attribute nor a row or column related attribute named `wrong`.
             old_names = get("rownames")
             old_min = get("rowmin")
             try:
-                cls.rownames = constants.sortednames
+                cls.rownames = constants.get_sortednames()
                 cls.rowmin = min(constants.values())
                 yield
             finally:
@@ -3723,7 +3715,7 @@ attribute nor a row or column related attribute named `wrong`.
             old_names = get("columnnames")
             old_min = get("columnmin")
             try:
-                cls.columnnames = constants.sortednames
+                cls.columnnames = constants.get_sortednames()
                 cls.columnmin = min(constants.values())
                 yield
             finally:
@@ -3768,6 +3760,7 @@ attribute nor a row or column related attribute named `wrong`.
                         f"as a keyword, but the following keywords are not: "
                         f"`{objecttools.enumeration(miss)}`."
                     ) from None
+            self.trim()
 
     def __getattr__(self, key: str):
         if key in self.rownames:
@@ -4285,13 +4278,71 @@ class DaysParameter(Parameter):
         self.value = hydpy.pub.options.simulationstep.days
 
 
-class TOYParameter(Parameter):
+class IndexParameter(Parameter):
+    """Base class for parameters that do not allocate RAM for handling their data but
+    reference an index array provided by the instance of class|Indexer| available in
+    module |pub|."""
+
+    NDIM = 1
+    TIME = None
+
+    def compress_repr(self) -> str | None:
+        """Return a compressed parameter value representation that agrees with the
+        current setting of the |Options.ellipsis| option.
+
+        |IndexParameter| instances reference arrays that handle one value per s
+        imulation time step.  Therefore, the usual |Parameter| string representation
+        generation mechanism would often print too much information:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "27.02.2004", "4.03.2004", "1d"
+        >>> from hydpy.core.parametertools import TOYParameter
+        >>> toyparameter = TOYParameter(None)
+        >>> toyparameter.update()
+        >>> toyparameter
+        toyparameter(57, 58, 59, 60, 61, 62)
+
+        Hence, |IndexParameter| makes use of the |Options.ellipsis| option.  By
+        default, it shows only the first and the last value:
+
+        >>> with pub.options.ellipsis(-999):
+        ...     toyparameter
+        toyparameter(57, ..., 62)
+
+        You can increase the number of shown values up to the number of available
+        ones:
+
+        >>> with pub.options.ellipsis(2):
+        ...     toyparameter
+        toyparameter(57, 58, ..., 61, 62)
+
+        >>> with pub.options.ellipsis(3):
+        ...     toyparameter
+        toyparameter(57, 58, 59, 60, 61, 62)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+
+        with hydpy.pub.options.ellipsis(1, optional=True):
+            ellipsis_ = hydpy.pub.options.ellipsis
+            if (ellipsis_ == 0) or (2 * ellipsis_ >= self.shape[0]):
+                return None
+            return "".join(
+                (
+                    ", ".join(str(v) for v in self.values[:ellipsis_]),
+                    ", ..., ",
+                    ", ".join(str(v) for v in self.values[-ellipsis_:]),
+                )
+            )
+
+
+class TOYParameter(IndexParameter):
     """References the |Indexer.timeofyear| index array provided by the
     instance of class |Indexer| available in module |pub|. [-]."""
 
-    NDIM = 1
     TYPE = int
-    TIME = None
     SPAN = (0, None)
 
     def update(self) -> None:
@@ -4310,18 +4361,16 @@ class TOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        indexarray = hydpy.pub.indexer.timeofyear
-        self._set_shape(indexarray.shape)
-        self._set_value(indexarray)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.timeofyear)
+        self._shapeready, self._valueready = True, True
 
 
-class MOYParameter(Parameter):
+class MOYParameter(IndexParameter):
     """References the |Indexer.monthofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
 
-    NDIM = 1
     TYPE = int
-    TIME = None
     SPAN = (0, 11)
 
     def update(self) -> None:
@@ -4340,18 +4389,16 @@ class MOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        indexarray = hydpy.pub.indexer.monthofyear
-        self._set_shape(indexarray.shape)
-        self._set_value(indexarray)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.monthofyear)
+        self._shapeready, self._valueready = True, True
 
 
-class DOYParameter(Parameter):
+class DOYParameter(IndexParameter):
     """References the |Indexer.dayofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
 
-    NDIM = 1
     TYPE = int
-    TIME = None
     SPAN = (0, 365)
 
     def update(self) -> None:
@@ -4370,18 +4417,16 @@ class DOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        indexarray = hydpy.pub.indexer.dayofyear
-        self._set_shape(indexarray.shape)
-        self._set_value(indexarray)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.dayofyear)
+        self._shapeready, self._valueready = True, True
 
 
-class SCTParameter(Parameter):
+class SCTParameter(IndexParameter):
     """References the |Indexer.standardclocktime| array provided by the
     instance of class |Indexer| available in module |pub| [h]."""
 
-    NDIM = 1
     TYPE = float
-    TIME = None
     SPAN = (0.0, 86400.0)
 
     def update(self) -> None:
@@ -4400,12 +4445,12 @@ class SCTParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        array = hydpy.pub.indexer.standardclocktime
-        self._set_shape(array.shape)
-        self._set_value(array)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.standardclocktime)
+        self._shapeready, self._valueready = True, True
 
 
-class UTCLongitudeParameter(Parameter):
+class UTCLongitudeParameter(IndexParameter):
     """References the current "UTC longitude" defined by option
     |Options.utclongitude|."""
 

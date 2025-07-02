@@ -541,7 +541,7 @@ There is no indication of an error in the water balance:
 ________________________
 
 In this and the following subsection, we deal with more complex series of rainfall
-events spanning 24 hours: 
+events spanning 24 hours:
 
 >>> pub.timegrids = pub.timegrids.init
 
@@ -963,6 +963,7 @@ class Model(ga_model.BaseModel):
     __HYDPY_ROOTMODEL__ = False  # ToDo: merge `ga_garto` and `ga_garto_submodel1`
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         ga_model.Calc_SurfaceWaterSupply_V1,

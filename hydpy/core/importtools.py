@@ -102,6 +102,7 @@ def parameterstep(timestep: timetools.PeriodConstrArg | None = None) -> None:
                 if hasattr(model, name) and not (
                     name.startswith("_")
                     or name.endswith("model_is_mainmodel")
+                    or (name == "threading")
                     or isinstance(
                         getattr(model, name),
                         (modeltools.SubmodelProperty, modeltools.SubmodelsProperty),
@@ -159,6 +160,7 @@ def prepare_sequences(dict_: dict[str, Any]) -> sequencetools.Sequences:
     return cls_sequences(
         model=dict_.get("model"),
         cls_inlets=dict_.get("InletSequences"),
+        cls_observers=dict_.get("ObserverSequences"),
         cls_receivers=dict_.get("ReceiverSequences"),
         cls_inputs=dict_.get("InputSequences"),
         cls_factors=dict_.get("FactorSequences"),
@@ -321,6 +323,7 @@ def prepare_model(module: types.ModuleType | str) -> modeltools.Model:
             if hasattr(model, name) and not (
                 name.startswith("_")
                 or name.endswith("model_is_mainmodel")
+                or (name == "threading")
                 or isinstance(
                     getattr(model, name),
                     (modeltools.SubmodelProperty, modeltools.SubmodelsProperty),
@@ -404,7 +407,7 @@ def prepare_submodel(
     instance."""
 
     def _prepare_submodel(
-        wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]
+        wrapped: PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra],
     ) -> SubmodelAdder[TD, TM_contra, TI_contra]:
         return SubmodelAdder[TD, TM_contra, TI_contra](
             wrapped=cast(Any, wrapped),
@@ -686,16 +689,16 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 
     @overload
     def get_wrapped(
-        self: SubmodelAdder[Literal[0], TM_contra, TI_contra]
+        self: SubmodelAdder[Literal[0], TM_contra, TI_contra],
     ) -> PrepSub0D[TM_contra, TI_contra]: ...
 
     @overload
     def get_wrapped(
-        self: SubmodelAdder[Literal[1], TM_contra, TI_contra]
+        self: SubmodelAdder[Literal[1], TM_contra, TI_contra],
     ) -> PrepSub1D[TM_contra, TI_contra]: ...
 
     def get_wrapped(
-        self: SubmodelAdder[TD, TM_contra, TI_contra]
+        self: SubmodelAdder[TD, TM_contra, TI_contra],
     ) -> PrepSub0D[TM_contra, TI_contra] | PrepSub1D[TM_contra, TI_contra]:
         """Return the wrapped, model-specific method for automatically preparing some
         control parameters."""
@@ -849,7 +852,7 @@ following error occurred: The given `lland_knauf` instance is not considered sha
                 else:
                     try:
                         del self._namespace[name]
-                    except ValueError:  # pragma: no cover
+                    except (KeyError, ValueError):  # pragma: no cover
                         # Maybe the best we can do for optimised scopes because we
                         # "cannot remove local variables from FrameLocalsProxy"
                         self._namespace[name] = None
@@ -963,7 +966,7 @@ def define_targetparameter(
     instance."""
 
     def _select_parameter(
-        wrapped: Callable[Concatenate[TM_contra, P], None]
+        wrapped: Callable[Concatenate[TM_contra, P], None],
     ) -> TargetParameterUpdater[TM_contra, P]:
         return TargetParameterUpdater[TM_contra, P](wrapped, parameter)
 
@@ -1030,11 +1033,11 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     already available parameter values in the |TargetParameterUpdater.values_test|
     dictionary.
     """
-    values_orig: dict[modeltools.Model, tuple[tuple[P.args, P.kwargs], Any]]
+    values_orig: dict[modeltools.Model, tuple[tuple[Any, Any], Any]]
     """Deep copies of the input data (separated by positional and keyword arguments) 
     and the resulting values of the target parameters of the respective model 
     instances."""
-    values_test: dict[modeltools.Model, tuple[tuple[P.args, P.kwargs], Any]]
+    values_test: dict[modeltools.Model, tuple[tuple[Any, Any], Any]]
     """Deep copies of the input data (separated by positional and keyword arguments) 
     and the already available values of the target parameters of the respective model 
     instances."""
@@ -1064,17 +1067,19 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
 
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> None:
         assert (model := self._model) is not None
+        args = copy.deepcopy(args)
+        kwargs = copy.deepcopy(kwargs)
         model.preparemethod2arguments[self._wrapped.__name__] = args, kwargs
         control = model.parameters.control
         if self.testmode:
             if (name := self.targetparameter.name) in control.names:
                 par = control[name]
-                self.values_test[model] = copy.deepcopy(((args, kwargs), par.value))
+                self.values_test[model] = ((args, kwargs), copy.deepcopy(par.value))
         else:
             if (name := self.targetparameter.name) in control.names:
                 self._wrapped(model, *args, **kwargs)
                 par = control[name]
-                self.values_orig[model] = copy.deepcopy(((args, kwargs), par.value))
+                self.values_orig[model] = ((args, kwargs), copy.deepcopy(par.value))
 
 
 def simulationstep(timestep: timetools.PeriodConstrArg) -> None:

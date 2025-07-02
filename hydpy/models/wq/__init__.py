@@ -1,4 +1,5 @@
-"""The |wq.DOCNAME.long| base model provides features to implement small function-like
+"""
+The |wq.DOCNAME.long| base model provides features to implement small function-like
 submodels for calculating discharge based on information like the current water level.
 """
 

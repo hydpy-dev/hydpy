@@ -4,12 +4,13 @@ click
 coverage
 Cython
 docutils
+inflect
 lastversion
 matplotlib
 netcdf4
 networkx
 nox
-numpy < 2.2
+numpy
 pandas
 plotly
 pylint

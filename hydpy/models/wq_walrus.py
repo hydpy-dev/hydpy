@@ -43,6 +43,7 @@ class Model(modeltools.AdHocModel, wq_model.Base_DischargeModel_V2):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (wq_model.Calculate_Discharge_V1,)

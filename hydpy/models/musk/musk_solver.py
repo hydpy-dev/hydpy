@@ -1,6 +1,10 @@
 # pylint: disable=missing-module-docstring
 
 # import...
+
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.models.musk import musk_control
@@ -66,3 +70,13 @@ class ToleranceDischarge(parametertools.SolverParameter):
         tolerancedischarge(0.002)
         """
         return self.INIT * self.subpars.pars.control.catchmentarea.value
+
+
+class ToleranceNegativeInflow(parametertools.SolverParameter):
+    """Threshold for setting negative inflow values to zero or |numpy.nan| [m³/s]."""
+
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, -numpy.inf)
+    INIT = -numpy.inf

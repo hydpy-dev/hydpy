@@ -157,10 +157,17 @@ def run_doctests() -> int:  # pylint: disable=inconsistent-return-statements
     >>> assert "file_doctests=[]" in str(main.mock_calls)
     >>> assert "python_mode=True" in str(main.mock_calls)
     >>> assert "cython_mode=True" in str(main.mock_calls)
+    >>> assert "threads=0" in str(main.mock_calls)
     """
     try:
         callback = cast(Callable[..., NoReturn], hydpy.tests.run_doctests.main.callback)
-        callback(hydpy_path=None, file_doctests=[], python_mode=True, cython_mode=True)
+        callback(
+            hydpy_path=None,
+            file_doctests=[],
+            python_mode=True,
+            cython_mode=True,
+            threads=0,
+        )
     except SystemExit as exc:
         return code if isinstance(code := exc.code, int) else 999
 

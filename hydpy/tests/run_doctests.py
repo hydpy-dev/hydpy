@@ -76,11 +76,19 @@ class DocTests(NamedTuple):
     default=True,
     help="Execute all tests in Cython-mode.",
 )
+@click.option(
+    "-t",
+    "--threads",
+    type=int,
+    default=0,
+    help="Number of threads to be used during simulations.",
+)
 def main(  # pylint: disable=too-many-branches
     hydpy_path: str | None,
     file_doctests: list[str],
     python_mode: bool,
     cython_mode: bool,
+    threads: int,
 ) -> NoReturn:
     """Perform all tests (first in Python mode, then in Cython mode)."""
 
@@ -148,25 +156,9 @@ def main(  # pylint: disable=too-many-branches
                 else:
                     del pub.projectname
                     del pub.timegrids
-                    options = pub.options
-                    options.checkprojectstructure = False
-                    del options.checkseries
-                    options.ellipsis = 0
-                    del pub.options.parameterstep
-                    options.printprogress = False
-                    options.reprdigits = 6
-                    del pub.options.simulationstep
-                    del options.timestampleft
-                    del options.trimvariables
-                    options.usecython = mode == "Cython"
-                    del options.usedefaultvalues
-                    del options.utclongitude
-                    del options.utcoffset
-                    del options.warnmissingcontrolfile
-                    del options.warnmissingobsfile
-                    del options.warnmissingsimfile
-                    options.warnsimulationstep = False
-                    options.warntrim = False
+                    pub.options.prepare_testing(
+                        usecython=mode == "Cython", threads=threads
+                    )
                     testtools.IntegrationTest.plotting_options = (
                         testtools.PlottingOptions()
                     )

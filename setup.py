@@ -22,7 +22,7 @@ extension_modules = [
 
 setuptools.setup(
     name="HydPy",
-    version="6.2dev0",
+    version="6.2dev5",
     description="A framework for the development and application of hydrological "
     "models.",
     long_description=long_description,
@@ -58,7 +58,7 @@ setuptools.setup(
         "black",
         "click",
         "cython",
-        "strenum;python_version<'3.11'",
+        "inflect",
         "matplotlib",
         "netcdf4",
         "networkx",
@@ -67,6 +67,7 @@ setuptools.setup(
         "plotly",
         "scipy",
         "setuptools",
+        "strenum;python_version<'3.11'",
         "typing_extensions",
         "wrapt",
         "xmlschema",

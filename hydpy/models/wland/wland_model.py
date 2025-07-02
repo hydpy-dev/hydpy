@@ -66,13 +66,8 @@ class Pick_HS_V1(modeltools.Method):
         sequence |DHS|:
 
         >>> bl(3.0)
-        >>> with model.add_waterlevelmodel_v1("exch_waterlevel"):
-        ...     pass
-        >>> from hydpy import Element, Node
-        >>> wl = Node("wl", variable="WaterLevel")
-        >>> wl.sequences.sim = 5.0
-        >>> e = Element("e", receivers=wl, outlets="q")
-        >>> e.model = model
+        >>> with model.add_waterlevelmodel_v1("exch_waterlevel") as exch:
+        ...     exch.sequences.logs.loggedwaterlevel(5.0)
         >>> model.pick_hs_v1()
         >>> states.hs
         hs(2000.0)
@@ -3130,10 +3125,19 @@ class Calc_R_V1(modeltools.Method):
 
 
 class Pass_R_V1(modeltools.Method):
-    r"""Update the outlet link sequence.
+    """Update the outlet link sequence.
 
     Basic equation:
        :math:`Q = R`
+
+    Example:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> fluxes.r = 2.0
+        >>> model.pass_r_v1()
+        >>> outlets.q
+        q(2.0)
     """
 
     REQUIREDSEQUENCES = (wland_fluxes.R,)
@@ -3143,7 +3147,7 @@ class Pass_R_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.r
+        out.q = flu.r
 
 
 class Get_Temperature_V1(modeltools.Method):
@@ -3279,6 +3283,7 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (Calc_PE_PET_V1, Calc_FR_V1, Calc_PM_V1)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (Pick_HS_V1,)
     INTERFACE_METHODS = (
         Get_Temperature_V1,
@@ -3466,8 +3471,13 @@ class Main_PETModel_V1(modeltools.ELSModel):
         ...     nmbhru
         ...     hruarea
         ...     evapotranspirationfactor(field=1.0, trees=2.0, water=1.5)
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")
         nmbhru(3)
         hruarea(5.0, 3.0, 2.0)
+        prepare_nmbzones: 3
+        prepare_zonetypes: [13 19 23]
+        prepare_subareas: [5. 3. 2.]
 
         >>> etf = model.petmodel.parameters.control.evapotranspirationfactor
         >>> etf
@@ -3545,6 +3555,8 @@ class Main_PETModel_V2(modeltools.ELSModel):
         ...     groundalbedo(conifer=0.05, decidious=0.1, field=0.15, mixed=0.2,
         ...                  orchard=0.25, pasture=0.3, sealed=0.35, soil=0.4,
         ...                  trees=0.45, water=0.5, wetland=0.55, wine=0.6)
+        ...     for method, arguments in model.preparemethod2arguments.items():
+        ...         print(method, arguments[0][0], sep=": ")  # doctest: +ELLIPSIS
         nmbhru(12)
         hrutype(SEALED, FIELD, WINE, ORCHARD, SOIL, PASTURE, WETLAND, TREES,
                 CONIFER, DECIDIOUS, MIXED, WATER)
@@ -3564,6 +3576,21 @@ class Main_PETModel_V2(modeltools.ELSModel):
         ((12,), {})
         ((array([0.06, 0.2 , 0.34, 0.48, 0.62, 0.76, 0.9 , 1.04, 1.18, 1.32, 1.46,
                1.64]),), {})
+        prepare_nmbzones: 12
+        prepare_zonetypes: [12 13 14 15 16 17 18 19 20 21 22 23]
+        prepare_subareas: [0.06 0.2  0.34 0.48 0.62 0.76 0.9  1.04 1.18 1.32 1.46 1.64]
+        prepare_leafareaindex: [[1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
+        ...
+        prepare_water: [False False False False False False False False False False \
+False  True]
+        prepare_interception: [ True  True  True  True  True  True  True  True  True  \
+True  True False]
+        prepare_soil: [False  True  True  True  True  True  True  True  True  True  \
+True False]
+        prepare_plant: [False  True  True  True False  True  True  True  True  True  \
+True False]
+        prepare_tree: [False False False False False False False False  True  True  \
+True False]
 
         >>> assert model is model.petmodel.tempmodel
         >>> assert model is model.petmodel.precipmodel

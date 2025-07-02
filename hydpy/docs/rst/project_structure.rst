@@ -81,7 +81,7 @@ node:
 >>> Element("e1", inlets="n")
 Traceback (most recent call last):
 ...
-ValueError: For element `e1`, the given inlet node `n` is already defined as a(n) outlet node, which is not allowed.
+ValueError: For element `e1`, the given inlet node `n` is already defined as an outlet node, which is not allowed.
 
 Besides these standards, the :ref:`reference manual <reference_manual>` covers many
 features which help to organise HydPy projects (see, for example, the :ref:`keyword`

@@ -389,6 +389,7 @@ class Model(gland_model.Main_PETModel_V1, gland_model.Main_RConcModel_V1):
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         gland_model.Calc_E_V1,

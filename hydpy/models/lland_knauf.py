@@ -130,6 +130,7 @@ First, we set the values of those parameters also required by the application mo
 >>> rbeta(False)
 >>> dmax(r_dmax=0.55)
 >>> dmin(r_dmin=10.0)
+>>> bsf0(0.0)
 >>> bsf(0.3)
 >>> volbmax(inf)
 >>> gsbmax(1.0)
@@ -1178,6 +1179,7 @@ As |meteo_psun_sun_glob_io|, |meteo_glob_morsim| complies with
 
 >>> model.aetmodel.add_radiationmodel_v1(submodel_meteo_glob_morsim)
 
+>>> land.prepare_allseries(False)
 >>> test = IntegrationTest(land)
 
 .. _lland_knauf_acker_summer_hourly:
@@ -1981,6 +1983,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     INTERFACE_METHODS = (
         lland_model.Get_Temperature_V1,

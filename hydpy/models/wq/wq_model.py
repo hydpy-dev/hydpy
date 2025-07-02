@@ -9,6 +9,7 @@ from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
+from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
 from hydpy.interfaces import dischargeinterfaces
 
@@ -1201,6 +1202,11 @@ class Calc_Celerity_V1(modeltools.Method):
         >>> model.calc_celerity_v1()
         >>> factors.celerity
         celerity(3.0)
+
+        >>> factors.surfacewidth = 0.0
+        >>> model.calc_celerity_v1()
+        >>> factors.celerity
+        celerity(nan)
     """
 
     REQUIREDSEQUENCES = (wq_factors.DischargeDerivative, wq_factors.SurfaceWidth)
@@ -1210,7 +1216,10 @@ class Calc_Celerity_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         fac = model.sequences.factors.fastaccess
 
-        fac.celerity = fac.dischargederivative / fac.surfacewidth
+        if fac.surfacewidth > 0.0:
+            fac.celerity = fac.dischargederivative / fac.surfacewidth
+        else:
+            fac.celerity = modelutils.nan
 
 
 class Set_WaterDepth_V1(modeltools.Method):
@@ -1747,6 +1756,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

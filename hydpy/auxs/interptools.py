@@ -377,6 +377,9 @@ interpolator has been defined so far.
         """The current input values."""
         return self.algorithm.output_derivatives
 
+    def update(self) -> None:
+        """Do nothing (this method only ensures compatibility with |Parameter|)."""
+
     def verify(self) -> None:
         """Raise a |RuntimeError| if the current |InterpAlgorithm| object shows
         inconsistencies."""
@@ -817,6 +820,9 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
                 self.verify()
             else:
                 self.__seasonalinterpolator = None
+
+    def update(self) -> None:
+        """Do nothing (this method only ensures compatibility with |Parameter|)."""
 
     def verify(self) -> None:
         """Raise a |RuntimeError| and remove all handled interpolators if they are

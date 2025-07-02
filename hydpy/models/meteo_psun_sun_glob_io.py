@@ -65,6 +65,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V4):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

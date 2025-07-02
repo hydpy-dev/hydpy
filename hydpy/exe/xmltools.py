@@ -485,8 +485,8 @@ HydPyConfigMultipleRuns.xsd}config'
         Traceback (most recent call last):
         ...
         xmlschema.validators.exceptions.XMLSchemaDecodeError: While trying to \
-validate XML file `...single_run.xml`, the following error occurred: failed \
-validating '1996-01-32T00:00:00' with XsdAtomicBuiltin(name='xs:dateTime')...
+validate XML file `...single_run.xml`, the following error occurred: failed decoding \
+'1996-01-32T00:00:00' with XsdAtomicBuiltin(name='xs:dateTime')...
         ...
         Reason: day is out of range for month
         ...
@@ -567,6 +567,8 @@ correctly refer to one of the available XML schema files \
             >>> from hydpy import pub
             >>> del pub.timegrids
             >>> del pub.options.simulationstep
+            >>> threads = pub.options.threads
+            >>> usecython = pub.options.usecython
 
         >>> from hydpy.exe.xmltools import XMLInterface
         >>> from hydpy import pub
@@ -577,6 +579,7 @@ correctly refer to one of the available XML schema files \
         >>> pub.options.printprogress = True
         >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
+        >>> pub.options.threads = 4
         >>> pub.options.timestampleft = False
         >>> pub.options.warnsimulationstep = 0
         >>> interface.update_options()
@@ -589,6 +592,7 @@ correctly refer to one of the available XML schema files \
             printprogress -> FALSE
             reprdigits -> 6
             simulationstep -> Period()
+            threads -> 0
             timestampleft -> TRUE
             trimvariables -> TRUE
             usecython -> TRUE
@@ -601,9 +605,16 @@ correctly refer to one of the available XML schema files \
             warnsimulationstep -> FALSE
             warntrim -> TRUE
         )
+
         >>> pub.options.checkprojectstructure = False
         >>> pub.options.printprogress = False
+        >>> pub.options.threads = 0
         >>> pub.options.reprdigits = 6
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+            >>> pub.options.prepare_testing(usecython=usecython, threads=threads)
         """
         options = hydpy.pub.options
         for option in self.find("options", optional=False):
@@ -1104,7 +1115,7 @@ class XMLConditions(XMLBase):
             for element in self.master.elements:
                 element.model.load_conditions()
         finally:
-            cm.currentdir = None  # type: ignore[assignment]
+            cm.currentdir = None
 
     def save_conditions(self, currentdir: str | None = None) -> None:
         """Save the condition files of the |Model| objects of all |Element| objects
@@ -1152,7 +1163,7 @@ class XMLConditions(XMLBase):
                 if objecttools.value2bool(zip__, zip__):
                     cm.zip_currentdir()
         finally:
-            cm.currentdir = None  # type: ignore[assignment]
+            cm.currentdir = None
 
 
 class XMLSeries(XMLBase):

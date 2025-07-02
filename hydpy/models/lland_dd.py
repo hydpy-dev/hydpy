@@ -115,6 +115,7 @@ implemented methods on the shown results:
 >>> rbeta(False)
 >>> dmax(1.0)
 >>> dmin(0.1)
+>>> bsf0(0.0)
 >>> bsf(0.4)
 >>> volbmax(inf)
 >>> gsbmax(1.0)
@@ -2141,6 +2142,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     INTERFACE_METHODS = (
         lland_model.Get_Temperature_V1,

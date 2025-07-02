@@ -141,6 +141,24 @@ class ActualRemoteRelease(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, True
 
 
+class SafeRelease(sequencetools.FluxSequence):
+    """Water release that is considered safe in terms of flood protection [m³/s]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class AimedRelease(sequencetools.FluxSequence):
+    """Ideal controlled water release [m³/s]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class UnavoidableRelease(sequencetools.FluxSequence):
+    """Water release that cannot be avoided due to limited storage capacity [m³/s]."""
+
+    NDIM, NUMERIC = 0, True
+
+
 class FloodDischarge(sequencetools.FluxSequence):
     """Water release associated with flood events [m³/s]."""
 

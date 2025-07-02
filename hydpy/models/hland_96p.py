@@ -1058,6 +1058,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         hland_model.Calc_TC_V1,

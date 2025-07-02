@@ -134,6 +134,7 @@ class Model(wq_model.TrapezeModel, routinginterfaces.CrossSectionModel_V2):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

@@ -313,6 +313,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         evap_model.Determine_InterceptionEvaporation_V1,

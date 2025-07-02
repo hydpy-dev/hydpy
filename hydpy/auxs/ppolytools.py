@@ -258,8 +258,8 @@ polynomial function by passing at leas one `Poly` object.
     @classmethod
     def from_data(
         cls,
-        xs: VectorFloat,
-        ys: VectorFloat,
+        xs: VectorInputFloat,
+        ys: VectorInputFloat,
         method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> PPoly:
         """Prepare a |PPoly| object based on x-y data.

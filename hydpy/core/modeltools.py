@@ -933,8 +933,9 @@ class SubmodelTypeIDProperty:
             setattr(cymodel, self._name, value)
 
 
-class IndexProperty:
-    """Base class for index descriptors like |Idx_Sim|."""
+class SharedProperty(Generic[T]):
+    """Base class for descriptors that handle model properties which need
+    synchronisation between the Python and the Cython world."""
 
     name: str
 
@@ -942,83 +943,71 @@ class IndexProperty:
         self.name = name.lower()
 
     @overload
-    def __get__(self, obj: Model, objtype: type[Model]) -> int: ...
+    def __get__(self, obj: Model, objtype: type[Model]) -> T: ...
 
     @overload
     def __get__(self, obj: None, objtype: type[Model]) -> Self: ...
 
-    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | int:
+    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | T:
         if obj is None:
             return self
         if obj.cymodel:
             return getattr(obj.cymodel, self.name)
         return vars(obj).get(self.name, 0)
 
-    def __set__(self, obj: Model, value: int) -> None:
+    def __set__(self, obj: Model, value: T) -> None:
         if obj.cymodel:
             setattr(obj.cymodel, self.name, value)
         else:
             vars(obj)[self.name] = value
 
 
-class Idx_Sim(IndexProperty):
-    """The simulation step index.
-
-    Some model methods require knowing the index of the current simulation step (with
-    respect to the initialisation period), which one usually updates by passing it to
-    |Model.simulate|.  However, you can change it manually via the |modeltools.Idx_Sim|
-    descriptor, which is often beneficial during testing:
-
-    >>> from hydpy.models.hland_96 import *
-    >>> parameterstep("1d")
-    >>> model.idx_sim
-    0
-    >>> model.idx_sim = 1
-    >>> model.idx_sim
-    1
-
-    Like other objects of |IndexProperty| subclasses, |Idx_Sim| objects are aware of
-    their name:
-
-    >>> Model.idx_sim.name
-    'idx_sim'
-    """
+class Idx_Sim(SharedProperty[int]):
+    """The simulation step index."""
 
     def __init__(self) -> None:
         self.__doc__ = "The simulation step index."
 
 
-class Idx_HRU(IndexProperty):
-    """The hydrological response unit index.
-
-    The documentation on class |Idx_Sim| explains the general purpose and handling of
-    |IndexProperty| instances.
-    """
+class Idx_HRU(SharedProperty[int]):
+    """The hydrological response unit index."""
 
     def __init__(self) -> None:
         self.__doc__ = "The hydrological response unit index."
 
 
-class Idx_Segment(IndexProperty):
-    """The segment index.
-
-    The documentation on class |Idx_Sim| explains the general purpose and handling of
-    |IndexProperty| instances.
-    """
+class Idx_Segment(SharedProperty[int]):
+    """The segment index."""
 
     def __init__(self) -> None:
         self.__doc__ = "The segment index."
 
 
-class Idx_Run(IndexProperty):
-    """The run index.
-
-    The documentation on class |Idx_Sim| explains the general purpose and handling of
-    |IndexProperty| instances.
-    """
+class Idx_Run(SharedProperty[int]):
+    """The run index."""
 
     def __init__(self) -> None:
         self.__doc__ = "The run index."
+
+
+class Threading(SharedProperty[bool]):
+    """Is multi-threading for this model (and its submodels) currently enabled?
+
+    Change this flag only for testing purposes.
+    """
+
+    def __init__(self) -> None:
+        self.__doc__ = "Is multi-threading for this model currently enabled?"
+
+    def __set__(self, obj: Model, value: bool) -> None:
+        super().__set__(obj, value)
+        for input_ in obj.sequences.inputs:
+            if input_.NDIM == 0:
+                input_.__hydpy__set_fastaccessattribute__(
+                    "inputflag", input_.node2idx and not value
+                )
+        for submodel in obj.find_submodels(include_subsubmodels=False).values():
+            setattr(submodel, self.name, value)
 
 
 class DocName(NamedTuple):
@@ -1115,12 +1104,14 @@ class Model:
     sequences: sequencetools.Sequences
     masks: masktools.Masks
     idx_sim = Idx_Sim()
+    threading = Threading()
 
     __hydpy_element__: devicetools.Element | None
     __HYDPY_NAME__: ClassVar[str]
 
     INLET_METHODS: ClassVar[tuple[type[Method], ...]]
     OUTLET_METHODS: ClassVar[tuple[type[Method], ...]]
+    OBSERVER_METHODS: ClassVar[tuple[type[Method], ...]]
     RECEIVER_METHODS: ClassVar[tuple[type[Method], ...]]
     SENDER_METHODS: ClassVar[tuple[type[Method], ...]]
     ADD_METHODS: ClassVar[tuple[Callable, ...]]
@@ -1267,24 +1258,19 @@ following error occurred: Model `musk_classic` is not connected to an `Element` 
 
         >>> element1 = Element("element1", inlets=(in1, in2), outlets=out1)
         >>> element1.model = prepare_model("musk_classic")
+        >>> element1.model.parameters.control.nmbsegments(0)
 
         Now all connections work as expected:
 
         >>> in1.sequences.sim = 1.0
         >>> in2.sequences.sim = 2.0
         >>> out1.sequences.sim = 3.0
+        >>> element1.model.update_inlets()
         >>> element1.model.sequences.inlets.q
         q(1.0, 2.0)
+        >>> element1.model.update_outlets()
         >>> element1.model.sequences.outlets.q
         q(3.0)
-        >>> element1.model.sequences.inlets.q *= 2.0
-        >>> element1.model.sequences.outlets.q *= 2.0
-        >>> in1.sequences.sim
-        sim(2.0)
-        >>> in2.sequences.sim
-        sim(4.0)
-        >>> out1.sequences.sim
-        sim(6.0)
 
         To show some possible errors and related error messages, we define three
         additional nodes, two handling variables different from discharge (`Q`):
@@ -1511,6 +1497,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         >>> dam2.model.update_outputs()
         >>> dam3.model.sequences.factors.waterlevel = 3.0
         >>> dam3.model.update_outputs()
+        >>> dam1.model.update_receivers(0)
         >>> dam1.model.sequences.receivers.owl
         owl(2.0)
         >>> dam1.model.sequences.receivers.rwl
@@ -1529,6 +1516,8 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
             self._connect_outputs()
             group = "inlets"
             self._connect_inlets()
+            group = "observers"
+            self._connect_observers()
             group = "receivers"
             self._connect_receivers()
             group = "outlets"
@@ -1567,6 +1556,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                     ):
                         if sequence in node.variable:
                             _set_pointer(sequence, node)
+                            sequence.node2idx[node] = None
                             connected = True
                             break
                 if not connected:
@@ -1589,6 +1579,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                         f"named `{name}`."
                     )
                 _set_pointer(sequence_, node)
+                sequence_.node2idx[node] = None
 
     def _determine_name(self, var: str | sequencetools.InOutSequenceTypes) -> str:
         if isinstance(var, str):
@@ -1596,62 +1587,37 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         return var.__name__.lower()
 
     def _connect_inlets(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("inlets", report_noconnect, 0)
+        self._connect_subgroup("inlets", report_noconnect)
+
+    def _connect_observers(self, report_noconnect: bool = True) -> None:
+        self._connect_subgroup("observers", report_noconnect)
 
     def _connect_receivers(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("receivers", report_noconnect, -1)
+        self._connect_subgroup("receivers", report_noconnect)
 
     def _connect_outlets(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("outlets", report_noconnect, -1)
+        self._connect_subgroup("outlets", report_noconnect)
 
     def _connect_senders(self, report_noconnect: bool = True) -> None:
-        self._connect_subgroup("senders", report_noconnect, 0)
+        self._connect_subgroup("senders", report_noconnect)
 
     def _connect_subgroup(
-        self, group: str, report_noconnect: bool, position: Literal[0, -1] | None = None
+        self, group: LinkInputSequenceGroup, report_noconnect: bool
     ) -> None:
-        st = sequencetools
+
         available_nodes = getattr(self.element, group)
-        applied_nodes = []
-        for submodel in self.find_submodels(
-            include_mainmodel=True, position=position
-        ).values():
-            sequences = submodel.sequences[group]
-            for sequence in sequences:
-                selected_nodes = []
-                for node in available_nodes:
-                    if isinstance(var := node.variable, devicetools.FusedVariable):
-                        if sequence in var:
-                            selected_nodes.append(node)
-                    else:
-                        name = var.lower() if isinstance(var, str) else var.name
-                        if name == sequence.name:
-                            selected_nodes.append(node)
-                if sequence.NDIM == 0:
-                    if not selected_nodes:
-                        if (group == "inputs") or not report_noconnect:
-                            # see https://github.com/nedbat/coveragepy/issues/198:
-                            continue  # pragma: no cover
-                        raise RuntimeError(
-                            f"Sequence {objecttools.elementphrase(sequence)} cannot "
-                            f"be connected due to no available node handling variable "
-                            f"`{sequence.name.upper()}`."
-                        )
-                    if len(selected_nodes) > 1:
-                        raise RuntimeError(
-                            f"Sequence `{sequence.name}` cannot be connected as it is "
-                            f"0-dimensional but multiple nodes are available which "
-                            f"are handling variable `{type(sequence).__name__}`."
-                        )
-                    applied_nodes.append(selected_nodes[0])
-                    assert isinstance(sequence, (st.InputSequence, st.LinkSequence))
-                    sequence.set_pointer(selected_nodes[0].get_double(group))
-                elif sequence.NDIM == 1:
-                    sequence.shape = len(selected_nodes)
-                    for idx, node in enumerate(selected_nodes):
-                        applied_nodes.append(node)
-                        assert isinstance(sequence, st.LinkSequence)
-                        sequence.set_pointer(node.get_double(group), idx)
+        applied_nodes: list[devicetools.Node] = []
+        sequences: list[sequencetools.InputSequence | sequencetools.LinkSequence] = []
+        self.__hydpy__collect_sequences__(group, sequences)
+
+        for sequence in sequences:
+            sequence.connect_to_nodes(
+                group=group,
+                available_nodes=available_nodes,
+                applied_nodes=applied_nodes,
+                report_noconnect=report_noconnect,
+            )
+
         if report_noconnect and (len(applied_nodes) < len(available_nodes)):
             remaining_nodes = [
                 node.name for node in available_nodes if node not in applied_nodes
@@ -1660,6 +1626,15 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
                 f"The following nodes have not been connected to any sequences: "
                 f"{objecttools.enumeration(remaining_nodes)}."
             )
+
+    def __hydpy__collect_sequences__(
+        self,
+        group: str,
+        sequences: list[sequencetools.InputSequence | sequencetools.LinkSequence],
+    ) -> None:
+        sequences.extend(self.sequences[group])  # type: ignore[arg-type]
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.__hydpy__collect_sequences__(group, sequences)
 
     @property
     def name(self) -> str:
@@ -1693,6 +1668,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self.prepare_factorseries(allocate_ram=allocate_ram, write_jit=jit)
         self.prepare_fluxseries(allocate_ram=allocate_ram, write_jit=jit)
         self.prepare_stateseries(allocate_ram=allocate_ram, write_jit=jit)
+        self.prepare_linkseries(allocate_ram=allocate_ram, write_jit=jit)
 
     def prepare_inputseries(
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
@@ -1716,7 +1692,7 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
         """Call method |IOSequence.prepare_series| of all directly handled
-        |FluxSequence|."""
+        |FluxSequence| objects."""
         self.sequences.fluxes.prepare_series(
             allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
         )
@@ -1725,18 +1701,30 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
     ) -> None:
         """Call method |IOSequence.prepare_series| of all directly handled
-        |StateSequence| objects and."""
+        |StateSequence| objects."""
         self.sequences.states.prepare_series(
             allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
         )
 
+    def prepare_linkseries(
+        self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
+    ) -> None:
+        """Call method |IOSequence.prepare_series| of all directly handled
+        |LinkSequence| objects."""
+        for subseqs in self.sequences.linksubsequences:
+            subseqs.prepare_series(
+                allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+            )
+
     def load_allseries(self) -> None:
         """Call method |Model.load_inputseries|, |Model.load_factorseries|,
-        |Model.load_fluxseries|, and |Model.load_stateseries|."""
+        |Model.load_fluxseries|, |Model.load_stateseries|, and
+        |Model.load_linkseries|."""
         self.load_inputseries()
         self.load_factorseries()
         self.load_fluxseries()
         self.load_stateseries()
+        self.load_linkseries()
 
     def load_inputseries(self) -> None:
         """Call method |IOSequence.load_series| of all directly handled |InputSequence|
@@ -1758,13 +1746,21 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         objects."""
         self.sequences.states.load_series()
 
+    def load_linkseries(self) -> None:
+        """Call method |IOSequence.load_series| of all directly handled |LinkSequence|
+        objects."""
+        for subseqs in self.sequences.linksubsequences:
+            subseqs.load_series()
+
     def save_allseries(self) -> None:
         """Call method |Model.save_inputseries|, |Model.save_factorseries|,
-        |Model.save_fluxseries|, and |Model.save_stateseries|."""
+        |Model.save_fluxseries|, |Model.save_stateseries|, and
+        |Model.save_linkseries|."""
         self.save_inputseries()
         self.save_factorseries()
         self.save_fluxseries()
         self.save_stateseries()
+        self.save_linkseries()
 
     def save_inputseries(self) -> None:
         """Call method |IOSequence.save_series| of all directly handled |InputSequence|
@@ -1785,6 +1781,12 @@ connections with 0-dimensional output sequences are supported, but sequence `pc`
         """Call method |IOSequence.save_series| of all directly handled |StateSequence|
         objects."""
         self.sequences.states.save_series()
+
+    def save_linkseries(self) -> None:
+        """Call method |IOSequence.save_series| of all directly handled |LinkSequence|
+        objects."""
+        for subseqs in self.sequences.linksubsequences:
+            subseqs.save_series()
 
     def get_controlfileheader(
         self,
@@ -2465,6 +2467,48 @@ the available directories (calib_1 and calib_2).
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step."""
 
+    def simulate_period(self, i0: int, i1: int) -> None:
+        """Perform a simulation run over a complete simulation period.
+
+        The required arguments correspond to the first and last simulation step index.
+
+        Method |Model.simulate_period| calls method |Model.simulate| repeatedly for the
+        whole considered simulation period and is thought for the multi-threading mode.
+        Hence, we repeat the example of method |Model.simulate| but set the
+        |Model.threading| flag to |True|:
+
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> model = hp.elements.land_dill_assl.model
+        >>> model.threading = True
+
+        Method |Model.simulate_period| also calls method |Model.save_data| so that the
+        simulated outflow is readily available via the link sequence |hland_outlets.Q|:
+
+        >>> model.simulate_period(0, 4)
+        >>> from hydpy import print_vector
+        >>> print_vector(model.sequences.outlets.q.series[:4])
+        11.757526, 8.865079, 7.101815, 5.994195
+
+        Be aware that models never exchange data with their connected nodes when in
+        multi-threading mode:
+
+        >>> hp.nodes.dill_assl.sequences.sim
+        sim(0.0)
+
+        .. testsetup::
+
+            >>> from hydpy import Element, Node, pub
+            >>> del pub.timegrids
+            >>> Node.clear_all()
+            >>> Element.clear_all()
+        """
+        for i in range(i0, i1):
+            self.simulate(i)
+            self.update_senders(i)
+            self.update_receivers(i)
+            self.save_data(i)
+
     def reset_reuseflags(self) -> None:
         """Reset all |ReusableMethod.REUSEMARKER| attributes of the current model
         instance and its submodels (usually at the beginning of a simulation step).
@@ -2503,105 +2547,105 @@ the available directories (calib_1 and calib_2).
         for submodel in self.find_submodels(include_subsubmodels=False).values():
             submodel.save_data(idx)
 
-    def update_inlets(self) -> None:
-        """Call all methods defined as "INLET_METHODS" in the defined order.
+    def _update_pointers_in(
+        self,
+        subseqs: (
+            sequencetools.InletSequences
+            | sequencetools.ObserverSequences
+            | sequencetools.ReceiverSequences
+        ),
+    ) -> None:
+        if not self.threading:
+            for seq in subseqs:
+                pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
+                if (pointer is not None) and (seq.NDIM == 0):
+                    setattr(seq.fastaccess, seq.name, pointer[0])
+                else:
+                    values = getattr(seq.fastaccess, seq.name, None)
+                    if values is not None:
+                        for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                            values[i] = pointer[i]
 
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(2)
-        >>> class Test(AdHocModel):
-        ...     INLET_METHODS = print_1, print_2
-        >>> Test().update_inlets()
-        1
-        2
+    def _update_pointers_out(
+        self, subseqs: sequencetools.OutletSequences | sequencetools.SenderSequences
+    ) -> None:
+        if not self.threading:
+            for seq in subseqs:
+                pointer = seq.__hydpy__get_fastaccessattribute__("pointer")
+                if (pointer is not None) and (seq.NDIM == 0):
+                    pointer[0] += getattr(seq.fastaccess, seq.name)
+                else:
+                    values = getattr(seq.fastaccess, seq.name, None)
+                    if values is not None:
+                        for i in range(getattr(seq.fastaccess, f"len_{seq.name}")):
+                            pointer[i][0] += values[i]
+
+    def update_inlets(self) -> None:
+        """Update all link sequences and then call all methods defined as
+        "INLET_METHODS" in the defined order.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_inlets()
+        self._update_pointers_in(self.sequences.inlets)
         for method in self.INLET_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_outlets(self) -> None:
-        """Call all methods defined as "OUTLET_METHODS" in the defined order.
-
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(2)
-        >>> class Test(AdHocModel):
-        ...     OUTLET_METHODS = print_1, print_2
-        >>> Test().update_outlets()
-        1
-        2
+        """Call all methods defined as "OUTLET_METHODS" in the defined order and then
+        update all outlet nodes.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_outlets()
         for method in self.OUTLET_METHODS:
+            method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+        self._update_pointers_out(self.sequences.outlets)
+
+    def update_observers(self) -> None:
+        """Update all observer sequences and then call all methods defined as
+        "OBSERVER_METHODS" in the defined order.
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_observers()
+        self._update_pointers_in(self.sequences.observers)
+        for method in self.OBSERVER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_receivers(self, idx: int) -> None:
-        """Call all methods defined as "RECEIVER_METHODS" in the defined order.
-
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...        print(test.idx_sim+1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(test.idx_sim+2)
-        >>> class Test(AdHocModel):
-        ...     RECEIVER_METHODS = print_1, print_2
-        >>> test = Test()
-        >>> test.update_receivers(1)
-        2
-        3
+        """Update all receiver sequences and then call all methods defined as
+        "RECEIVER_METHODS" in the defined order.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_receivers(idx)
+        self._update_pointers_in(self.sequences.receivers)
         for method in self.RECEIVER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
     def update_senders(self, idx: int) -> None:
-        """Call all methods defined as "SENDER_METHODS" in the defined order.
-
-        >>> from hydpy.core.modeltools import AdHocModel, Method
-        >>> class print_1(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...        print(test.idx_sim+1)
-        >>> class print_2(Method):
-        ...     @staticmethod
-        ...     def __call__(self):
-        ...         print(test.idx_sim+2)
-        >>> class Test(AdHocModel):
-        ...     SENDER_METHODS = print_1, print_2
-        >>> test = Test()
-        >>> test.update_senders(1)
-        2
-        3
+        """Call all methods defined as "SENDER_METHODS" in the defined order and then
+        update all sender nodes.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
         self.idx_sim = idx
+        for submodel in self.find_submodels(include_subsubmodels=False).values():
+            submodel.update_senders(idx)
         for method in self.SENDER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
+        self._update_pointers_out(self.sequences.senders)
 
     def new2old(self) -> None:
         """Call method |StateSequences.new2old| of subattribute `sequences.states`.
@@ -2621,42 +2665,32 @@ the available directories (calib_1 and calib_2).
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
-        self.sequences.update_outputs()
+        if not self.threading:
+            self.sequences.update_outputs()
+            for submodel in self.find_submodels(include_subsubmodels=False).values():
+                submodel.update_outputs()
 
     @classmethod
     def get_methods(cls, skip: tuple[MethodGroup, ...] = ()) -> Iterator[type[Method]]:
         """Convenience method for iterating through all methods selected by a |Model|
         subclass.
 
-        >>> from hydpy.models import hland_96, ga_garto_submodel1
+        >>> from hydpy.models import hland_96
         >>> for method in hland_96.Model.get_methods():
-        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        ...     print(method.__name__)  # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
-        Pass_Q_V1
-
-        >>> for method in ga_garto_submodel1.Model.get_methods():
-        ...     print(method.__name__)   # doctest: +ELLIPSIS
-        Set_InitialSurfaceWater_V1
-        ...
-        Get_SoilWaterContent_V1
-        Return_RelativeMoisture_V1
-        ...
-        Withdraw_AllBins_V1
+        Get_SnowCover_V1
 
         One can skip all methods that belong to specific groups:
 
-        >>> for method in hland_96.Model.get_methods(skip=("OUTLET_METHODS",)):
-        ...     print(method.__name__)   # doctest: +ELLIPSIS
+        >>> for method in hland_96.Model.get_methods(
+        ...     skip=("OUTLET_METHODS", "INTERFACE_METHODS")
+        ... ):
+        ...     print(method.__name__)  # doctest: +ELLIPSIS
         Calc_TC_V1
         ...
         Calc_OutRC_RConcModel_V1
-
-        >>> for method in hland_96.Model.get_methods(("OUTLET_METHODS", "ADD_METHODS")):
-        ...     print(method.__name__)   # doctest: +ELLIPSIS
-        Calc_TC_V1
-        ...
-        Calc_QT_V1
 
         Note that function |Model.get_methods| returns the "raw" |Method| objects
         instead of the modified Python or Cython functions used for performing
@@ -2665,17 +2699,16 @@ the available directories (calib_1 and calib_2).
         methods = set()
         if hasattr(cls, "METHOD_GROUPS"):
             for groupname in cls.METHOD_GROUPS:
-                if groupname in skip:
-                    continue
-                if (groupname == "ADD_METHODS") and hasattr(cls, "INTERFACE_METHODS"):
-                    for method in cls.INTERFACE_METHODS:
+                if groupname not in skip:
+                    for method in getattr(cls, groupname, ()):
                         if method not in methods:
                             methods.add(method)
                             yield method
-                for method in getattr(cls, groupname, ()):
-                    if method not in methods:
-                        methods.add(method)
-                        yield method
+        if hasattr(cls, "INTERFACE_METHODS") and ("INTERFACE_METHODS" not in skip):
+            for method in cls.INTERFACE_METHODS:
+                if method not in methods:
+                    methods.add(method)
+                    yield method
 
     @overload
     def find_submodels(
@@ -2688,7 +2721,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model]: ...
 
     @overload
@@ -2702,7 +2734,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model | None]: ...
 
     @overload
@@ -2742,7 +2773,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model]: ...
 
     @overload
@@ -2756,7 +2786,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: Literal[False] = ...,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model | None]: ...
 
     @overload
@@ -2795,7 +2824,6 @@ the available directories (calib_1 and calib_2).
         include_feedbacks: bool = False,
         aggregate_vectors: bool = False,
         repeat_sharedmodels: bool = False,
-        position: Literal[0, -1] | None = None,
     ) -> dict[str, Model] | dict[str, Model | None]:
         """Find the (sub)submodel instances of the current main model instance.
 
@@ -2971,30 +2999,11 @@ the available directories (calib_1 and calib_2).
          'model.routingmodelsupstream_0': sw1d_q_in,
          'model.storagemodeldownstream': sw1d_storage,
          'model.storagemodelupstream': sw1d_storage}
-
-        When dealing with submodel arrays handled by |SubmodelsProperty| instances, one
-        might be interested in only querying the first or the last model, which is
-        supported by the `position` parameter:
-
-        >>> pprint(channel.find_submodels(position=0))
-        {'model.routingmodels_0': sw1d_q_in, 'model.storagemodels_0': sw1d_storage}
-        >>> pprint(channel.find_submodels(position=-1))
-        {'model.routingmodels_2': sw1d_weir_out, 'model.storagemodels_1': sw1d_storage}
-        >>> pprint(channel.find_submodels(position=1))
-        Traceback (most recent call last):
-        ...
-        ValueError: The `position` argument requires the integer value `0´ or `-1`, \
-but the value `1` of type `int` is given.
         """
 
         if include_subsubmodels and include_sidemodels:
             raise ValueError(
                 "Including sub-submodels and side-models leads to ambiguous results."
-            )
-        if position not in (None, 0, -1):
-            raise ValueError(
-                "The `position` argument requires the integer value `0´ or `-1`, but "
-                f"the {objecttools.value_of_type(position)} is given."
             )
 
         def _find_submodels(name: str, model: Model) -> None:
@@ -3020,15 +3029,11 @@ but the value `1` of type `int` is given.
                     if aggregate_vectors:
                         name2submodel_new[f"{submodelsname}_*"] = None
                     elif submodels := subsprop.__hydpy_mainmodel2submodels__[model]:
-                        i_last = len(submodels) - 1
-                        if position is not None:
-                            submodels = [submodels[position]]
                         for i, submodel in enumerate(submodels):
                             # implement when required:
                             assert not isinstance(submodel, SharableSubmodelInterface)
                             if include_optional or (submodel is not None):
-                                j = i_last if position == -1 else i
-                                name2submodel_new[f"{submodelsname}_{j}"] = submodel
+                                name2submodel_new[f"{submodelsname}_{i}"] = submodel
 
             name2submodel.update(name2submodel_new)
             if include_subsubmodels:
@@ -3211,6 +3216,7 @@ but the value `1` of type `int` is given.
         st = sequencetools
         infos: tuple[tuple[type[Any], type[Any], set[Any]], ...] = (
             (st.InletSequences, st.InletSequence, set()),
+            (st.ObserverSequences, st.ObserverSequence, set()),
             (st.ReceiverSequences, st.ReceiverSequence, set()),
             (st.InputSequences, st.InputSequence, set()),
             (st.FluxSequences, st.FluxSequence, set()),
@@ -3316,6 +3322,7 @@ class RunModel(Model):
     METHOD_GROUPS = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
+        "OBSERVER_METHODS",
         "RUN_METHODS",
         "ADD_METHODS",
         "OUTLET_METHODS",
@@ -3329,15 +3336,14 @@ class RunModel(Model):
     def simulate(self, idx: int) -> None:
         """Perform a simulation run over a single simulation time step.
 
-        The required argument `idx` corresponds to property `idx_sim`
-        (see the main documentation on class |Model|).
+        The required argument `idx` corresponds to property `idx_sim` (see the main
+        documentation on class |Model|).
 
-        You can integrate method |Model.simulate| into your workflows for
-        tailor-made simulation runs.  Method |Model.simulate| is complete
-        enough to allow for consecutive calls.  However, note that it
-        does neither call |Model.save_data|, |Model.update_receivers|,
-        nor |Model.update_senders|.  Also, one would have to reset the
-        related node sequences, as done in the following example:
+        You can integrate method |Model.simulate| into your workflows for tailor-made
+        simulation runs.  Method |Model.simulate| is complete enough to allow for
+        consecutive calls.  However, note that it does neither call |Model.save_data|,
+        |Model.update_receivers|, nor |Model.update_senders|.  Also, as done in the
+        following example, one would have to reset the related node sequences:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -3353,11 +3359,10 @@ class RunModel(Model):
         >>> hp.nodes.dill_assl.sequences.sim.series
         InfoArray([nan, nan, nan, nan])
 
-        The results above are identical to those of method |HydPy.simulate|
-        of class |HydPy|, which is the standard method to perform simulation
-        runs (except that method |HydPy.simulate| of class |HydPy| also
-        performs the steps neglected by method |Model.simulate| of class
-        |Model| mentioned above):
+        The results above are identical to those of method |HydPy.simulate| of class
+        |HydPy|, which is the standard method to perform simulation runs (except that
+        method |HydPy.simulate| of class |HydPy| also performs the steps neglected by
+        method |Model.simulate| of class |Model| mentioned above):
 
         >>> from hydpy import round_
         >>> hp.reset_conditions()
@@ -3365,18 +3370,20 @@ class RunModel(Model):
         >>> round_(hp.nodes.dill_assl.sequences.sim.series)
         11.757526, 8.865079, 7.101815, 5.994195
 
-        When working in Cython mode, the standard model import overrides
-        this generic Python version with a model-specific Cython version.
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
 
         .. testsetup::
 
-            >>> from hydpy import Node, Element
+            >>> from hydpy import Element, Node, pub
+            >>> del pub.timegrids
             >>> Node.clear_all()
             >>> Element.clear_all()
         """
         self.reset_reuseflags()
         self.load_data(idx)
         self.update_inlets()
+        self.update_observers()
         self.run()
         self.new2old()
         self.update_outlets()
@@ -3671,6 +3678,7 @@ class ELSModel(SolverModel):
         self.reset_reuseflags()
         self.load_data(idx)
         self.update_inlets()
+        self.update_observers()
         self.solve()
         self.update_outlets()
         self.update_outputs()

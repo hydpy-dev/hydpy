@@ -49,6 +49,16 @@ class Pick_QZ_V1(modeltools.Method):
 
     Basic equation:
       :math:`QZ = \sum Q_{inlets}`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> inlets.q.shape = 2
+        >>> inlets.q = 2.0, 4.0
+        >>> model.pick_qz_v1()
+        >>> fluxes.qz
+        qz(6.0)
     """
 
     REQUIREDSEQUENCES = (lland_inlets.Q,)
@@ -60,7 +70,7 @@ class Pick_QZ_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu.qz = 0.0
         for idx in range(inl.len_q):
-            flu.qz += inl.q[idx][0]
+            flu.qz += inl.q[idx]
 
 
 class Calc_QZH_V1(modeltools.Method):
@@ -5289,38 +5299,40 @@ class Calc_QIB2_V1(modeltools.Method):
 
 
 class Calc_QDB_V1(modeltools.Method):
-    """Calculate direct runoff released from the soil.
+    r"""Calculate direct runoff released from the soil.
 
     Basic equations:
       .. math::
-        QDB = \\begin{cases}
-        max\\bigl(Exz, 0\\bigl)
-        &|\\
-        SfA \\leq 0
-        \\\\
-        max\\bigl(Exz + WMax \\cdot SfA^{BSf+1}, 0\\bigl)
-        &|\\
+        QDB = \begin{cases}
+        max\bigl(Exz, \, 0\bigl)
+        &|\
+        SfA \leq 0
+        \\
+        max\bigl(Exz + WMax^* \cdot SfA^{BSf+1}, \, 0\bigl)
+        &|\
         SfA > 0
-        \\end{cases}
-
-      :math:`SFA = \\left(1 - \\frac{BoWa}{WMax}\\right)^\\frac{1}{BSf+1} -
-      \\frac{WaDa}{(BSf+1) \\cdot WMax}`
-
-      :math:`Exz = (BoWa + WaDa) - WMax`
+        \end{cases}
+        \\ \\
+        SFA = \left(1 - \frac{BoWa^*}{WMax^*}\right)^\frac{1}{BSf+1} -
+        \frac{WaDa}{(BSf+1) \cdot WMax}
+        \\ \\
+        Exz = (BoWa^* + WaDa) - WMax^* \\
+        BoWa^* = BoWa - (BSf0 \cdot WMax) \\
+        WMax^* = (1 - BSf0) \cdot WMax
 
     Examples:
 
-        For water areas (|FLUSS| and |SEE|), sealed areas (|VERS|), and
-        areas without any soil storage capacity, all water is completely
-        routed as direct runoff |QDB| (see the first four HRUs).  No
-        principal distinction is made between the remaining land use
-        classes (arable land |ACKER| has been selected for the last five
-        HRUs arbitrarily):
+        For water areas (|FLUSS| and |SEE|), sealed areas (|VERS|), and areas without
+        any soil storage capacity, all water is completely routed as direct runoff
+        |QDB| (see the first four HRUs).  No principal distinction is made between the
+        remaining land use classes (arable land |ACKER| has been selected for the last
+        five HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(9)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER)
+        >>> bsf0(0.0)
         >>> bsf(0.4)
         >>> wmax(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
         >>> fluxes.wada = 10.0
@@ -5330,17 +5342,29 @@ class Calc_QDB_V1(modeltools.Method):
         >>> fluxes.qdb
         qdb(10.0, 10.0, 10.0, 10.0, 0.142039, 0.144959, 1.993649, 10.0, 10.1)
 
-        With the common |BSf| value of 0.4, the discharge coefficient
-        increases more or less exponentially with soil moisture.
-        For soil moisture values slightly below zero or above usable
-        field capacity, plausible amounts of generated direct runoff
-        are ensured.
+        With a standard |BSf| value of 0.4, the discharge coefficient increases more or
+        less exponentially with soil moisture.  For soil moisture values slightly below
+        zero or above usable field capacity, plausible amounts of generated direct
+        runoff are ensured.
+
+        You can use parameter |BSf0| to define the relative soil moisture below which
+        direct runoff generation should be suppressed:
+
+        >>> lnk(ACKER)
+        >>> bsf0(0.5)
+        >>> wmax(100.0)
+        >>> states.bowa = 40.0, 45.0, 50.0, 55.0, 60.0, 70.0, 80.0, 90.0, 100.0
+        >>> model.calc_qdb_v1()
+        >>> fluxes.qdb
+        qdb(0.0, 0.005963, 0.294382, 0.605281, 0.943351, 1.729619, 2.752723,
+            4.319298, 10.0)
     """
 
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
         lland_control.WMax,
+        lland_control.BSf0,
         lland_control.BSf,
     )
     REQUIREDSEQUENCES = (lland_fluxes.WaDa, lland_states.BoWa)
@@ -5357,16 +5381,15 @@ class Calc_QDB_V1(modeltools.Method):
             elif (con.lnk[k] in (VERS, FLUSS, SEE)) or (con.wmax[k] <= 0.0):
                 flu.qdb[k] = flu.wada[k]
             else:
-                if sta.bowa[k] < con.wmax[k]:
-                    d_sfa = (1.0 - sta.bowa[k] / con.wmax[k]) ** (
-                        1.0 / (con.bsf[k] + 1.0)
-                    ) - (flu.wada[k] / ((con.bsf[k] + 1.0) * con.wmax[k]))
-                else:
-                    d_sfa = 0.0
-                d_exz = sta.bowa[k] + flu.wada[k] - con.wmax[k]
-                flu.qdb[k] = d_exz
-                if d_sfa > 0.0:
-                    flu.qdb[k] += d_sfa ** (con.bsf[k] + 1.0) * con.wmax[k]
+                bowa: float = sta.bowa[k] - (con.bsf0[k] * con.wmax[k])
+                wmax: float = (1.0 - con.bsf0[k]) * con.wmax[k]
+                flu.qdb[k] = bowa + flu.wada[k] - wmax
+                if bowa < wmax:
+                    sfa: float = (1.0 - bowa / wmax) ** (1.0 / (con.bsf[k] + 1.0)) - (
+                        flu.wada[k] / ((con.bsf[k] + 1.0) * wmax)
+                    )
+                    if sfa > 0.0:
+                        flu.qdb[k] += sfa ** (con.bsf[k] + 1.0) * wmax
                 flu.qdb[k] = max(flu.qdb[k], 0.0)
 
 
@@ -6967,6 +6990,15 @@ class Pass_QA_V1(modeltools.Method):
 
     Basic equation:
        :math:`Q_{outlets} = QA`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> fluxes.qa = 2.0
+        >>> model.pass_qa_v1()
+        >>> outlets.q
+        q(2.0)
     """
 
     REQUIREDSEQUENCES = (lland_fluxes.QA,)
@@ -6976,7 +7008,7 @@ class Pass_QA_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.qa
+        out.q = flu.qa
 
 
 class Get_Temperature_V1(modeltools.Method):
@@ -7212,6 +7244,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_QZ_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     INTERFACE_METHODS = (
         Get_Temperature_V1,
@@ -7531,11 +7564,11 @@ glets=1.1)
         prepare_leafareaindex: [[1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
         ...
         prepare_maxsoilwater: [50. 50. 50. 50. 50. 50. 50. 50. 50.]
-        prepare_water: [False False False  True  True  True  True  True  True]
+        prepare_water: [False False False False  True  True  True False False]
         prepare_interception: [ True  True  True  True False False False  True  True]
         prepare_soil: [ True  True  True False False False False  True  True]
         prepare_plant: [ True  True  True False False False False False False]
-        prepare_conifer: [False  True  True False False False False False False]
+        prepare_conifer: [False False  True False False False False False False]
         prepare_tree: [False  True  True False False False False False False]
 
         >>> model.aetmodel.parameters.control.leafareaindex.acker_jan

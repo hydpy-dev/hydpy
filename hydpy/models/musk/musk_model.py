@@ -30,7 +30,50 @@ class Pick_Inflow_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.inflow = 0.0
         for idx in range(inl.len_q):
-            flu.inflow += inl.q[idx][0]
+            flu.inflow += inl.q[idx]
+
+
+class Adjust_Inflow_V1(modeltools.Method):
+    """Protect against negative inflow.
+
+    Examples:
+
+        Models like |musk_mct| cannot handle negative inflow.  Hence,
+        |Adjust_Inflow_V1| sets all such values to zero:
+
+        >>> from hydpy.models.musk import *
+        >>> parameterstep()
+        >>> fluxes.inflow = -0.1
+        >>> model.adjust_inflow_v1()
+        >>> fluxes.inflow
+        inflow(0.0)
+
+        This behaviour serves well in situations where numerical issues like rounding
+        errors cause slightly negative inflow values but bears the risk of severely
+        violating the water balance in case the upstream models produce strong negative
+        inflow values on purpose.  You can modify the solver parameter
+        |ToleranceNegativeInflow|, below which negative inflows are set to |numpy.nan|
+        instead of zero, to ensure such problems get noticed:
+
+        >>> fluxes.inflow = -0.1
+        >>> solver.tolerancenegativeinflow(-0.01)
+        >>> model.adjust_inflow_v1()
+        >>> fluxes.inflow
+        inflow(nan)
+    """
+
+    SOLVERPARAMETERS = (musk_solver.ToleranceNegativeInflow,)
+    UPDATEDSEQUENCES = (musk_fluxes.Inflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        sol = model.parameters.solver.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        if flu.inflow < 0.0:
+            if flu.inflow < sol.tolerancenegativeinflow:
+                flu.inflow = modelutils.nan
+            else:
+                flu.inflow = 0.0
 
 
 class Update_Discharge_V1(modeltools.Method):
@@ -184,6 +227,17 @@ class Calc_ReferenceDischarge_V1(modeltools.Method):
         >>> model.calc_referencedischarge_v1()
         >>> fluxes.referencedischarge
         referencedischarge(4.5)
+
+        The given basic equation can result in negative reference discharge estimates
+        during severe low-flow conditions.  |Calc_ReferenceDischarge_V1| resets those
+        to zero:
+
+        >>> model.idx_run = 0
+        >>> states.discharge.old = 0.6, 0.1
+        >>> states.discharge.new = 0.2, nan
+        >>> model.calc_referencedischarge_v1()
+        >>> fluxes.referencedischarge
+        referencedischarge(0.0)
     """
 
     REQUIREDSEQUENCES = (musk_states.Discharge,)
@@ -199,7 +253,7 @@ class Calc_ReferenceDischarge_V1(modeltools.Method):
             est: float = old.discharge[i + 1] + new.discharge[i] - old.discharge[i]
         else:
             est = new.discharge[i + 1]
-        flu.referencedischarge[i] = (new.discharge[i] + est) / 2.0
+        flu.referencedischarge[i] = max((new.discharge[i] + est) / 2.0, 0.0)
 
 
 class Return_Discharge_CrossSectionModel_V1(modeltools.Method):
@@ -329,6 +383,7 @@ class Calc_ReferenceWaterDepth_V1(modeltools.Method):
     def __call__(model: modeltools.SegmentModel) -> None:
         sol = model.parameters.solver.fastaccess
         fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
         i = model.idx_segment
         wl: float = fac.referencewaterdepth[i]
         if modelutils.isnan(wl) or modelutils.isinf(wl):
@@ -338,8 +393,9 @@ class Calc_ReferenceWaterDepth_V1(modeltools.Method):
             mn, mx = 0.0, 0.01
         else:
             mn, mx = 0.9 * wl, 1.1 * wl
+        tol_q: float = min(sol.tolerancedischarge, flu.referencedischarge[i] / 10.0)
         fac.referencewaterdepth[i] = model.pegasusreferencewaterdepth.find_x(
-            mn, mx, 0.0, 1000.0, sol.tolerancewaterdepth, sol.tolerancedischarge, 100
+            mn, mx, 0.0, 1000.0, sol.tolerancewaterdepth, tol_q, 100
         )
 
 
@@ -474,22 +530,28 @@ class Calc_CourantNumber_V1(modeltools.Method):
         >>> derived.segmentlength(4.0)
         >>> factors.celerity = 2.0
         >>> factors.correctingfactor = 0.0, 0.5, 1.0, 2.0, inf
+        >>> fluxes.referencedischarge = 0.0, 1.0, 1.0, 1.0, 1.0
         >>> model.run_segments(model.calc_courantnumber_v1)
         >>> states.courantnumber
         courantnumber(0.0, 1.0, 0.5, 0.25, 0.0)
     """
 
     DERIVEDPARAMETERS = (musk_derived.Seconds, musk_derived.SegmentLength)
-    REQUIREDSEQUENCES = (musk_factors.Celerity, musk_factors.CorrectingFactor)
+    REQUIREDSEQUENCES = (
+        musk_factors.Celerity,
+        musk_factors.CorrectingFactor,
+        musk_fluxes.ReferenceDischarge,
+    )
     RESULTSEQUENCES = (musk_states.CourantNumber,)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         i = model.idx_segment
-        if fac.correctingfactor[i] == 0.0:
+        if flu.referencedischarge[i] == 0.0:
             sta.courantnumber[i] = 0.0
         else:
             sta.courantnumber[i] = (fac.celerity[i] / fac.correctingfactor[i]) * (
@@ -517,7 +579,7 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
         >>> factors.surfacewidth = 5.0
         >>> factors.celerity = 2.0
         >>> factors.correctingfactor = 0.0, 0.5, 1.0, 2.0, inf
-        >>> fluxes.referencedischarge = 10.0
+        >>> fluxes.referencedischarge = 0.0, 10.0, 10.0, 10.0, 10.0
         >>> model.run_segments(model.calc_reynoldsnumber_v1)
         >>> states.reynoldsnumber
         reynoldsnumber(0.0, 0.05, 0.025, 0.0125, 0.0)
@@ -541,17 +603,16 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         i = model.idx_segment
-        denom: float = (
-            fac.correctingfactor[i]
-            * fac.surfacewidth[i]
-            * con.bottomslope
-            * fac.celerity[i]
-            * (1000.0 * der.segmentlength)
-        )
-        if denom == 0.0:
+        if flu.referencedischarge[i] == 0.0:
             sta.reynoldsnumber[i] = 0.0
         else:
-            sta.reynoldsnumber[i] = flu.referencedischarge[i] / denom
+            sta.reynoldsnumber[i] = flu.referencedischarge[i] / (
+                fac.correctingfactor[i]
+                * fac.surfacewidth[i]
+                * con.bottomslope
+                * fac.celerity[i]
+                * (1000.0 * der.segmentlength)
+            )
 
 
 class Calc_Coefficient1_Coefficient2_Coefficient3_V1(modeltools.Method):
@@ -580,13 +641,13 @@ class Calc_Coefficient1_Coefficient2_Coefficient3_V1(modeltools.Method):
 
         >>> from hydpy.models.musk import *
         >>> parameterstep()
-        >>> nmbsegments(5)
+        >>> nmbsegments(4)
         >>> bottomslope(0.01)
         >>> derived.seconds(1000.0)
         >>> derived.segmentlength(4.0)
         >>> factors.celerity = 2.0
         >>> factors.surfacewidth = 5.0
-        >>> factors.correctingfactor = 0.0, 0.5, 1.0, 2.0, inf
+        >>> factors.correctingfactor = 0.5, 1.0, 2.0, inf
         >>> fluxes.referencedischarge = 10.0
         >>> model.run_segments(model.calc_courantnumber_v1)
         >>> model.run_segments(model.calc_reynoldsnumber_v1)
@@ -602,20 +663,20 @@ class Calc_Coefficient1_Coefficient2_Coefficient3_V1(modeltools.Method):
 
         >>> model.run_segments(model.calc_coefficient1_coefficient2_coefficient3_v1)
         >>> factors.coefficient1
-        coefficient1(-1.0, 0.026764, -0.309329, -0.582591, -1.0)
+        coefficient1(0.026764, -0.309329, -0.582591, -1.0)
         >>> factors.coefficient2
-        coefficient2(1.0, 0.948905, 0.96563, 0.979228, 1.0)
+        coefficient2(0.948905, 0.96563, 0.979228, 1.0)
         >>> factors.coefficient3
-        coefficient3(1.0, 0.024331, 0.343699, 0.603363, 1.0)
+        coefficient3(0.024331, 0.343699, 0.603363, 1.0)
         >>> from hydpy import print_vector
         >>> print_vector(
         ...     factors.coefficient1 + factors.coefficient2 + factors.coefficient3)
-        1.0, 1.0, 1.0, 1.0, 1.0
+        1.0, 1.0, 1.0, 1.0
 
-        Note that the "old" Courant numbers of the first and the last segment are zero.
+        Note that the "old" Courant numbers of the last segment are zero.
 
         >>> print_vector(states.courantnumber.old)
-        0.0, 1.0, 0.5, 0.25, 0.0
+        1.0, 0.5, 0.25, 0.0
 
         To prevent zero divisions, |Calc_Coefficient1_Coefficient2_Coefficient3_V1|
         assumes the ratio between the new and the old Courant number to be one in such
@@ -783,7 +844,7 @@ class Pass_Outflow_V1(modeltools.Method):
     def __call__(model: modeltools.SegmentModel) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.outflow
+        out.q = flu.outflow
 
 
 class PegasusReferenceWaterDepth(roottools.Pegasus):
@@ -802,8 +863,10 @@ class Model(modeltools.SegmentModel):
         musk_solver.NmbRuns,
         musk_solver.ToleranceWaterDepth,
         musk_solver.ToleranceDischarge,
+        musk_solver.ToleranceNegativeInflow,
     )
-    INLET_METHODS = (Pick_Inflow_V1, Update_Discharge_V1)
+    INLET_METHODS = (Pick_Inflow_V1, Adjust_Inflow_V1, Update_Discharge_V1)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_Discharge_V1,

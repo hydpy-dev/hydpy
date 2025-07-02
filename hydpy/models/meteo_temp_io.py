@@ -54,6 +54,7 @@ class Model(meteo_model.Sub_BaseModel, tempinterfaces.TempModel_V2):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         meteo_model.Calc_Temperature_V1,

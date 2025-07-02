@@ -135,6 +135,11 @@ class ANN(interptools.InterpAlgorithm):
 
     .. image:: ANN_plot.png
 
+   .. testsetup::
+
+        >>> import gc
+        >>> _ = gc.collect()
+
     Some models might require the derivative of certain outputs with respect to
     individual inputs.  One example is application model the |dam_llake|, which uses
     class |ANN| to model the relationship between water storage and stage of a lake.

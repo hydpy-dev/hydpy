@@ -18,6 +18,7 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy import config
+from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -30,7 +31,6 @@ else:
     from enum import StrEnum
 
 if TYPE_CHECKING:
-    from hydpy.core import devicetools
     from hydpy.core import modeltools
     from hydpy.core import timetools
     from hydpy.cythons import pointerutils
@@ -77,16 +77,33 @@ ModelSequencesSubypes: TypeAlias = Union[
     "InletSequences",
     "OutletSequences",
     "ReceiverSequences",
+    "ObserverSequences",
     "SenderSequences",
 ]
 ModelIOSequencesSubtypes: TypeAlias = Union[
-    "InputSequences", "FactorSequences", "FluxSequences", "StateSequences"
+    "InputSequences",
+    "FactorSequences",
+    "FluxSequences",
+    "StateSequences",
+    "InletSequences",
+    "OutletSequences",
+    "ReceiverSequences",
+    "SenderSequences",
+    "ObserverSequences",
+]
+LinkSequencesSubtypes: TypeAlias = Union[
+    "InletSequences",
+    "OutletSequences",
+    "ReceiverSequences",
+    "ObserverSequences",
+    "SenderSequences",
 ]
 
 InOutSequence: TypeAlias = Union[
     "InputSequence",
     "InletSequence",
     "ReceiverSequence",
+    "ObserverSequence",
     "OutputSequence",
     "OutletSequence",
     "SenderSequence",
@@ -95,6 +112,7 @@ InOutSequenceTypes: TypeAlias = Union[
     type["InputSequence"],
     type["InletSequence"],
     type["ReceiverSequence"],
+    type["ObserverSequence"],
     type["OutputSequence"],
     type["OutletSequence"],
     type["SenderSequence"],
@@ -213,34 +231,34 @@ class FastAccessOutputSequence(FastAccessIOSequence):
                 self._get_attribute(name, "outputpointer")[0] = getattr(self, name)
 
 
-class FastAccessLinkSequence(variabletools.FastAccess):
+class FastAccessLinkSequence(FastAccessIOSequence):
     """|FastAccessIOSequence| subclass specialised for link sequences."""
 
-    def alloc(self, name: str, length: int) -> None:
+    def alloc_pointer(self, name: str, shape: int | tuple[int, ...]) -> None:
         """Allocate enough memory for the given vector length of the |LinkSequence|
-        object with the given name.
+        object's pointer with the given name.
 
-        Cython extension classes need to define |FastAccessLinkSequence.alloc| if the
-        model handles at least one 1-dimensional |LinkSequence| subclass.
+        Cython extension classes must define |FastAccessLinkSequence.alloc_pointer| if
+        the model handles at least one 1-dimensional |LinkSequence| subclass.
         """
-        getattr(self, name).shape = length
+        getattr(self, f"_{name}_pointer").shape = shape
 
-    def dealloc(self, name: str) -> None:
-        """Free the previously allocated memory of the |LinkSequence| object with the
-        given name.
+    def dealloc_pointer(self, name: str) -> None:
+        """Free the previously allocated memory of the |LinkSequence| object's pointer
+        with the given name.
 
-        Cython extension classes need to define |FastAccessLinkSequence.dealloc| if the
-        model handles at least one 1-dimensional |LinkSequence| subclass.
+        Cython extension classes must define |FastAccessLinkSequence.dealloc_pointer|
+        if the model handles at least one 1-dimensional |LinkSequence| subclass.
         """
 
     def set_pointer0d(self, name: str, value: pointerutils.Double) -> None:
         """Define a pointer referencing the given |Double| object for the 0-dimensional
         |LinkSequence| object with the given name.
 
-        Cython extension classes need to define |FastAccessLinkSequence.set_pointer0d|
-        if the model handles at least one 0-dimensional |LinkSequence| subclasses.
+        Cython extension classes must define |FastAccessLinkSequence.set_pointer0d| if
+        the model handles at least one 0-dimensional |LinkSequence| subclasses.
         """
-        setattr(self, name, pointerutils.PDouble(value))
+        setattr(self, f"_{name}_pointer", pointerutils.PDouble(value))
 
     def set_pointer1d(self, name: str, value: pointerutils.Double, idx: int) -> None:
         """Define a pointer referencing the given |Double| object for the 1-dimensional
@@ -248,24 +266,19 @@ class FastAccessLinkSequence(variabletools.FastAccess):
 
         The given index defines the vector position of the defined pointer.
 
-        Cython extension classes need to define |FastAccessLinkSequence.set_pointer1d|
-        if the model handles at least one 1-dimensional |LinkSequence| subclasses.
+        Cython extension classes must define |FastAccessLinkSequence.set_pointer1d| if
+        the model handles at least one 1-dimensional |LinkSequence| subclasses.
         """
-        ppdouble: pointerutils.PPDouble = getattr(self, name)
+        ppdouble: pointerutils.PPDouble = getattr(self, f"_{name}_pointer")
         ppdouble.set_pointer(value, idx)
 
-    def get_value(self, name: str) -> float | NDArrayFloat:
+    def get_pointervalue(self, name: str) -> float | NDArrayFloat:
         """Return the actual value(s) referenced by the pointer(s) of the
         |LinkSequence| object with the given name."""
-        value = getattr(self, name)[:]
+        value = getattr(self, f"_{name}_pointer")[:]
         if self._get_attribute(name, "ndim"):
             return numpy.asarray(value, dtype=config.NP_FLOAT)
         return float(value)
-
-    def set_value(self, name: str, value: Mayberable1[float]) -> None:
-        """Set the actual value(s) referenced by the pointer(s) of the
-        |LinkSequence| object with the given name."""
-        getattr(self, name)[:] = value
 
 
 class FastAccessNodeSequence(FastAccessIOSequence):
@@ -547,33 +560,41 @@ class Sequences:
 
     After applying |Sequences.prepare_series|, you can use the methods
     |Sequences.load_series| and |Sequences.save_series| to read or write the time
-    series of the relevant |InputSequence|, |FactorSequence|, |FluxSequence|, and
-    |StateSequence| object, as the following technical test suggests.  The
-    documentation on class |IOSequence| explains the underlying functionalities of in
-    more detail.
+    series of the relevant |InputSequence|, |FactorSequence|, |FluxSequence|,
+    |StateSequence|, and |LinkSequence| objects, as the following technical test
+    suggests.  The documentation on class |IOSequence| explains the underlying
+    functionalities of in more detail.
 
     >>> from unittest.mock import patch
     >>> template = "hydpy.core.sequencetools.%s.load_series"
-    >>> with patch(template % "InputSequences") as inputs, \
-patch(template % "FactorSequences") as factors, \
-patch(template % "FluxSequences") as fluxes, \
-patch(template % "StateSequences") as states:
+    >>> with (
+    ...     patch(template % "InputSequences") as inputs,
+    ...     patch(template % "FactorSequences") as factors,
+    ...     patch(template % "FluxSequences") as fluxes,
+    ...     patch(template % "StateSequences") as states,
+    ...     patch(template % "OutletSequences") as outlets,
+    ... ):
     ...     sequences.load_series()
     ...     inputs.assert_called_with()
     ...     factors.assert_called_with()
     ...     fluxes.assert_called_with()
     ...     states.assert_called_with()
+    ...     outlets.assert_called_with()
 
     >>> template = "hydpy.core.sequencetools.%s.save_series"
-    >>> with patch(template % "InputSequences") as inputs, \
-patch(template % "FactorSequences") as factors, \
-patch(template % "FluxSequences") as fluxes, \
-patch(template % "StateSequences") as states:
+    >>> with (
+    ...     patch(template % "InputSequences") as inputs,
+    ...     patch(template % "FactorSequences") as factors,
+    ...     patch(template % "FluxSequences") as fluxes,
+    ...     patch(template % "StateSequences") as states,
+    ...     patch(template % "OutletSequences") as outlets,
+    ... ):
     ...     sequences.save_series()
     ...     inputs.assert_called_with()
     ...     factors.assert_called_with()
     ...     fluxes.assert_called_with()
     ...     states.assert_called_with()
+    ...     outlets.assert_called_with()
 
     .. testsetup::
 
@@ -586,6 +607,7 @@ patch(template % "StateSequences") as states:
 
     model: modeltools.Model
     inlets: InletSequences
+    observers: ObserverSequences
     receivers: ReceiverSequences
     inputs: InputSequences
     factors: FactorSequences
@@ -601,6 +623,7 @@ patch(template % "StateSequences") as states:
         model: modeltools.Model,
         *,
         cls_inlets: type[InletSequences] | None = None,
+        cls_observers: type[ObserverSequences] | None = None,
         cls_receivers: type[ReceiverSequences] | None = None,
         cls_inputs: type[InputSequences] | None = None,
         cls_factors: type[FactorSequences] | None = None,
@@ -616,6 +639,9 @@ patch(template % "StateSequences") as states:
         self.model = model
         self.inlets = self.__prepare_subseqs(
             InletSequences, cls_inlets, cymodel, cythonmodule
+        )
+        self.observers = self.__prepare_subseqs(
+            ObserverSequences, cls_observers, cymodel, cythonmodule
         )
         self.receivers = self.__prepare_subseqs(
             ReceiverSequences, cls_receivers, cymodel, cythonmodule
@@ -663,8 +689,8 @@ patch(template % "StateSequences") as states:
         """Yield all relevant |IOSequences| objects handled by the current |Sequences|
         object.
 
-        The currently available IO-subgroups are `inputs`, `factors`, `fluxes`, and
-        `states`.
+        For |hland_96|, the available IO-subgroups are `inputs`, `factors`, `fluxes`,
+        `states`, and `outlets`:
 
         >>> from hydpy import prepare_model
         >>> model = prepare_model("hland_96")
@@ -674,16 +700,11 @@ patch(template % "StateSequences") as states:
         factors
         fluxes
         states
+        outlets
 
-        However, not all models implement sequences for all these subgroups.  Therefore,
-        the |Sequences.iosubsequences| property only yields those subgroups which are
-        non-empty:
-
-        >>> model = prepare_model("musk_classic")
-        >>> for subseqs in model.sequences.iosubsequences:
-        ...     print(subseqs.name)
-        fluxes
-        states
+        Not all models implement sequences for all possible subgroups.  The
+        |Sequences.iosubsequences| property only yields those subgroups which are
+        non-empty.
         """
         if self.inputs:
             yield self.inputs
@@ -693,6 +714,37 @@ patch(template % "StateSequences") as states:
             yield self.fluxes
         if self.states:
             yield self.states
+        yield from self.linksubsequences
+
+    @property
+    def linksubsequences(self) -> Iterator[LinkSequencesSubtypes]:
+        """Yield all relevant |LinkSequences| objects handled by the current
+        |Sequences| object.
+
+        For |musk_classic|, the available link sequence subgroups are `inlets` and
+        `outlets`:
+
+        >>> from hydpy import prepare_model
+        >>> model = prepare_model("musk_classic")
+        >>> for subseqs in model.sequences.linksubsequences:
+        ...     print(subseqs.name)
+        inlets
+        outlets
+
+        Not all models implement sequences for all possible subgroups.  Therefore, the
+        |Sequences.linksubsequences| property only yields those subgroups which are
+        non-empty.
+        """
+        if self.inlets:
+            yield self.inlets
+        if self.outlets:
+            yield self.outlets
+        if self.observers:
+            yield self.observers
+        if self.receivers:
+            yield self.receivers
+        if self.senders:
+            yield self.senders
 
     def prepare_series(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """Call method |IOSequences.prepare_series| of attribute |Sequences.inputs|
@@ -717,17 +769,19 @@ patch(template % "StateSequences") as states:
 
     def load_data(self, idx: int) -> None:
         """Call method |ModelIOSequences.load_data| of the handled
-        |sequencetools.InputSequences| object."""
+        |sequencetools.InputSequences|, |sequencetools.InletSequences|,
+        |sequencetools.ObserverSequences|, and |sequencetools.ReceiverSequences|.
+        objects."""
         self.inputs.load_data(idx)
+        self.inlets.load_data(idx)
+        self.observers.load_data(idx)
+        self.receivers.load_data(idx)
 
     def save_data(self, idx: int) -> None:
-        """Call method |ModelIOSequences.save_data| of the handled
-        |sequencetools.InputSequences|, |sequencetools.FactorSequences|,
-        |sequencetools.FluxSequences|, and |sequencetools.StateSequences| objects."""
-        self.inputs.save_data(idx)
-        self.factors.save_data(idx)
-        self.fluxes.save_data(idx)
-        self.states.save_data(idx)
+        """Call method |ModelIOSequences.save_data| of all handled
+        |sequencetools.ModelIOSequences| objects."""
+        for subseqs in self.iosubsequences:
+            subseqs.save_data(idx)
 
     def update_outputs(self) -> None:
         """Call the method |OutputSequences.update_outputs| of the subattributes
@@ -818,6 +872,8 @@ patch(template % "StateSequences") as states:
     def __iter__(self) -> Iterator[ModelSequencesSubypes]:
         if self.inlets:
             yield self.inlets
+        if self.observers:
+            yield self.observers
         if self.receivers:
             yield self.receivers
         if self.inputs:
@@ -1095,7 +1151,7 @@ class AideSequences(ModelSequences["AideSequence", variabletools.FastAccess]):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequences(ModelSequences[TypeLinkSequence_co, FastAccessLinkSequence]):
+class LinkSequences(ModelIOSequences[TypeLinkSequence_co, FastAccessLinkSequence]):
     """Base class for handling |LinkSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = FastAccessLinkSequence
@@ -1107,6 +1163,10 @@ class InletSequences(LinkSequences["InletSequence"]):
 
 class OutletSequences(LinkSequences["OutletSequence"]):
     """Base class for handling "outlet" |LinkSequence| objects."""
+
+
+class ObserverSequences(LinkSequences["ObserverSequence"]):
+    """Base class for handling "observer" |LinkSequence| objects."""
 
 
 class ReceiverSequences(LinkSequences["ReceiverSequence"]):
@@ -1183,15 +1243,17 @@ class Sequence_(variabletools.Variable):
 
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
-        self._set_fastaccessattribute("ndim", self.NDIM)
-        self._set_fastaccessattribute("length", 0)
+        self.__hydpy__set_fastaccessattribute__("ndim", self.NDIM)
+        self.__hydpy__set_fastaccessattribute__("length", 0)
         for idx in range(self.NDIM):
-            self._set_fastaccessattribute(f"length_{idx}", 0)
+            self.__hydpy__set_fastaccessattribute__(f"length_{idx}", 0)
 
-    def _get_fastaccessattribute(self, suffix: str, default: object = None) -> Any:
+    def __hydpy__get_fastaccessattribute__(
+        self, suffix: str, default: object = None
+    ) -> Any:
         return getattr(self.fastaccess, f"_{self.name}_{suffix}", default)
 
-    def _set_fastaccessattribute(self, suffix: str, value: Any) -> None:
+    def __hydpy__set_fastaccessattribute__(self, suffix: str, value: Any) -> None:
         setattr(self.fastaccess, f"_{self.name}_{suffix}", value)
 
     def _finalise_connections(self) -> None:
@@ -1380,7 +1442,7 @@ class IOSequence(Sequence_):
     directory to the `iotesting` directory temporarily (by using class |TestIO|)
     because the relevant NetCDF files are now read and written on the fly:
 
-    >>> with TestIO():
+    >>> with TestIO(), pub.options.threads(0):
     ...     hp.simulate()
 
     After the simulation run, the read (|hland_inputs.T|) and calculated
@@ -1536,9 +1598,9 @@ during a simulation run is not supported but tried for sequence `t` of element \
     """Object for accessing the IO sequence's data with little overhead."""
 
     def _finalise_connections(self) -> None:
-        self._set_fastaccessattribute("ramflag", False)
-        self._set_fastaccessattribute("diskflag_reading", False)
-        self._set_fastaccessattribute("diskflag_writing", False)
+        self.__hydpy__set_fastaccessattribute__("ramflag", False)
+        self.__hydpy__set_fastaccessattribute__("diskflag_reading", False)
+        self.__hydpy__set_fastaccessattribute__("diskflag_writing", False)
         super()._finalise_connections()
 
     @propertytools.DefaultPropertySeriesFileType
@@ -1798,13 +1860,13 @@ correctly.
         length = 1
         for idx in range(self.NDIM):
             length *= self.shape[idx]
-            self._set_fastaccessattribute(f"length_{idx}", self.shape[idx])
-        self._set_fastaccessattribute("length", length)
+            self.__hydpy__set_fastaccessattribute__(f"length_{idx}", self.shape[idx])
+        self.__hydpy__set_fastaccessattribute__("length", length)
 
     def connect_netcdf(self, ncarray: NDArrayFloat) -> None:
         """Connect the current |IOSequence| object to the given buffer array for
         reading from or writing to a NetCDF file on the fly during a simulation run."""
-        self._set_fastaccessattribute("ncarray", ncarray)
+        self.__hydpy__set_fastaccessattribute__("ncarray", ncarray)
 
     def prepare_series(
         self,
@@ -1878,12 +1940,14 @@ during a simulation run is not supported but tried for sequence `t` of element \
                 )
             if ramflag and not allocate_ram:
                 del self.series
-            self._set_fastaccessattribute("ramflag", allocate_ram)
+            self.__hydpy__set_fastaccessattribute__("ramflag", allocate_ram)
         if read_jit is not None:
-            inflag = self._get_fastaccessattribute("inputflag", False)
-            self._set_fastaccessattribute("diskflag_reading", read_jit and not inflag)
+            inflag = self.__hydpy__get_fastaccessattribute__("inputflag", False)
+            self.__hydpy__set_fastaccessattribute__(
+                "diskflag_reading", read_jit and not inflag
+            )
         if write_jit is not None:
-            self._set_fastaccessattribute("diskflag_writing", write_jit)
+            self.__hydpy__set_fastaccessattribute__("diskflag_writing", write_jit)
         self.update_fastaccess()
 
     @property
@@ -1893,7 +1957,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
         See the main documentation on class |IOSequence| for further information.
         """
-        return self._get_fastaccessattribute("ramflag")
+        return self.__hydpy__get_fastaccessattribute__("ramflag")
 
     @property
     def diskflag_reading(self) -> bool:
@@ -1902,7 +1966,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
         See the main documentation on class |IOSequence| for further information.
         """
-        return self._get_fastaccessattribute("diskflag_reading")
+        return self.__hydpy__get_fastaccessattribute__("diskflag_reading")
 
     @property
     def diskflag_writing(self) -> bool:
@@ -1911,7 +1975,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
         See the main documentation on class |IOSequence| for further information.
         """
-        return self._get_fastaccessattribute("diskflag_writing")
+        return self.__hydpy__get_fastaccessattribute__("diskflag_writing")
 
     @property
     def diskflag(self) -> bool:
@@ -1995,7 +2059,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
     def __set_array(self, values):
         values = numpy.array(values, dtype=config.NP_FLOAT)
-        self._set_fastaccessattribute("array", values)
+        self.__hydpy__set_fastaccessattribute__("array", values)
 
     def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
@@ -2030,7 +2094,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         |Timegrids.init| |Timegrid| of the global |Timegrids| object available in
         module |pub|)."""
         if self.ramflag:
-            array = numpy.asarray(self._get_fastaccessattribute("array"))
+            array = numpy.asarray(self.__hydpy__get_fastaccessattribute__("array"))
             return InfoArray(array, aggregation="unmodified")
         raise exceptiontools.AttributeNotReady(
             f"Sequence {objecttools.devicephrase(self)} is not requested to make any "
@@ -2051,8 +2115,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
     def _del_series(self) -> None:
         if self.ramflag:
-            self._set_fastaccessattribute("array", None)
-            self._set_fastaccessattribute("ramflag", False)
+            self.__hydpy__set_fastaccessattribute__("array", None)
+            self.__hydpy__set_fastaccessattribute__("ramflag", False)
 
     series = property(_get_series, _set_series, _del_series)
 
@@ -2781,14 +2845,14 @@ class ModelSequence(Sequence_):
         """The shape of the array of temporary values required for the relevant
         numerical solver.
 
-        The class |ELSModel|, being the base of the "dam" model, uses the "Explicit
-        Lobatto Sequence" for solving differential equations and therefore requires up
-        to eleven array fields for storing temporary values.  Hence, the
+        The class |ELSModel|, being the base of the "dam_llake" model, uses the
+        "Explicit Lobatto Sequence" for solving differential equations and therefore
+        requires up to eleven array fields for storing temporary values.  Hence, the
         |ModelSequence.numericshape| of the 0-dimensional sequence |dam_fluxes.Inflow|
         is eleven:
 
         >>> from hydpy import prepare_model
-        >>> model = prepare_model("dam")
+        >>> model = prepare_model("dam_llake")
         >>> model.sequences.fluxes.inflow.numericshape
         (11,)
 
@@ -2839,9 +2903,74 @@ class ModelIOSequence(ModelSequence, IOSequence):
     """The subgroup to which the model IO sequence belongs."""
     subseqs: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
     """Alias for |ModelIOSequence.subvars|."""
+    node2idx: dict[devicetools.Node, int | None]
+    """The connected |Node| instances and, for 1-dimensional link sequences, the 
+    corresponding column's indices."""
+
+    def __init__(
+        self, subvars: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
+    ) -> None:
+        super().__init__(subvars)
+        self.node2idx = {}
 
 
-class InputSequence(ModelIOSequence):
+class BaseLinkInputSequence(ModelIOSequence):
+    """Base class for |LinkSequence| and |InputSequence|."""
+
+    def connect_to_nodes(
+        self,
+        group: LinkInputSequenceGroup,
+        available_nodes: list[devicetools.Node],
+        applied_nodes: list[devicetools.Node],
+        report_noconnect: bool,
+    ) -> None:
+        """Establish pointer connections with the relevant nodes.
+
+        See the documentation on method |modeltools.Model.connect| for more information.
+        """
+
+        self.node2idx.clear()
+
+        selected_nodes = []
+        for node in available_nodes:
+            if isinstance(var := node.variable, devicetools.FusedVariable):
+                if self in var:
+                    selected_nodes.append(node)
+            else:
+                name = var.lower() if isinstance(var, str) else var.name
+                if name == self.name:
+                    selected_nodes.append(node)
+
+        if self.NDIM == 0:
+            if not selected_nodes:
+                if (group == "inputs") or not report_noconnect:
+                    return
+                raise RuntimeError(
+                    f"Sequence {objecttools.elementphrase(self)} cannot be connected "
+                    f"due to no available node handling variable "
+                    f"`{self.name.upper()}`."
+                )
+            if len(selected_nodes) > 1:
+                raise RuntimeError(
+                    f"Sequence `{self.name}` cannot be connected as it is "
+                    f"0-dimensional but multiple nodes are available which are "
+                    f"handling variable `{type(self).__name__}`."
+                )
+            node = selected_nodes[0]
+            applied_nodes.append(node)
+            assert isinstance(self, (InputSequence, LinkSequence))
+            self.set_pointer(node.get_double(group))
+            self.node2idx[node] = None
+        elif self.NDIM == 1:
+            self.shape = len(selected_nodes)
+            for idx, node in enumerate(selected_nodes):
+                applied_nodes.append(node)
+                assert isinstance(self, LinkSequence)
+                self.set_pointer(node.get_double(group), idx)
+                self.node2idx[node] = idx
+
+
+class InputSequence(BaseLinkInputSequence):
     """Base class for input sequences of |Model| objects.
 
     |InputSequence| objects provide their master model with input data, which is
@@ -2940,7 +3069,7 @@ class InputSequence(ModelIOSequence):
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
         if self.NDIM == 0:
-            self._set_fastaccessattribute("inputflag", False)
+            self.__hydpy__set_fastaccessattribute__("inputflag", False)
 
     @property
     def descr_sequence(self) -> str:
@@ -2979,9 +3108,9 @@ class InputSequence(ModelIOSequence):
         """
         pdouble = pointerutils.PDouble(double)
         self.fastaccess.set_pointerinput(self.name, pdouble)
-        self._set_fastaccessattribute("inputflag", True)
-        self._set_fastaccessattribute("diskflag_reading", False)
-        self._set_fastaccessattribute("diskflag_writing", False)
+        self.__hydpy__set_fastaccessattribute__("inputflag", True)
+        self.__hydpy__set_fastaccessattribute__("diskflag_reading", False)
+        self.__hydpy__set_fastaccessattribute__("diskflag_writing", False)
 
     @property
     def inputflag(self) -> bool:
@@ -2991,7 +3120,7 @@ class InputSequence(ModelIOSequence):
 
         See the main documentation on class |InputSequence| for further information.
         """
-        return self._get_fastaccessattribute("inputflag")
+        return self.__hydpy__get_fastaccessattribute__("inputflag")
 
 
 class OutputSequence(ModelIOSequence):
@@ -3049,7 +3178,7 @@ class OutputSequence(ModelIOSequence):
     >>> model.sequences.states.lz.outputflag
     False
 
-    >>> hp.update_devices(nodes=[node_q0, node_q1, node_perc, node_uz],
+    >>> hp.update_devices(nodes=[node_q, node_q0, node_q1, node_perc, node_uz],
     ...                   elements=land_dill_assl)
     >>> with TestIO():
     ...     hp.load_conditions()
@@ -3116,7 +3245,7 @@ class OutputSequence(ModelIOSequence):
     def __hydpy__connect_variable2subgroup__(self) -> None:
         super().__hydpy__connect_variable2subgroup__()
         if self.NDIM == 0:
-            self._set_fastaccessattribute("outputflag", False)
+            self.__hydpy__set_fastaccessattribute__("outputflag", False)
 
     def set_pointer(self, double: pointerutils.Double) -> None:
         """Prepare a pointer referencing the given |Double| object.
@@ -3126,7 +3255,7 @@ class OutputSequence(ModelIOSequence):
         """
         pdouble = pointerutils.PDouble(double)
         self.fastaccess.set_pointeroutput(self.name, pdouble)
-        self._set_fastaccessattribute("outputflag", True)
+        self.__hydpy__set_fastaccessattribute__("outputflag", True)
 
     @property
     def outputflag(self) -> bool:
@@ -3135,21 +3264,23 @@ class OutputSequence(ModelIOSequence):
 
         See the main documentation on class |OutputSequence| for further information.
         """
-        return self._get_fastaccessattribute("outputflag")
+        return self.__hydpy__get_fastaccessattribute__("outputflag")
 
 
 class DependentSequence(OutputSequence):
     """Base class for |FactorSequence| and |FluxSequence|."""
 
     def _finalise_connections(self) -> None:
+        from hydpy.core import modeltools  # pylint: disable=import-outside-toplevel
+
         super()._finalise_connections()
-        if self.NUMERIC:
+        if self.NUMERIC and isinstance(self.subseqs.seqs.model, modeltools.ELSModel):
             values = None if self.NDIM else numpy.zeros(self.numericshape)
-            self._set_fastaccessattribute("points", values)
-            self._set_fastaccessattribute("integrals", copy.copy(values))
-            self._set_fastaccessattribute("results", copy.copy(values))
+            self.__hydpy__set_fastaccessattribute__("points", values)
+            self.__hydpy__set_fastaccessattribute__("integrals", copy.copy(values))
+            self.__hydpy__set_fastaccessattribute__("results", copy.copy(values))
             value = None if self.NDIM else 0.0
-            self._set_fastaccessattribute("sum", value)
+            self.__hydpy__set_fastaccessattribute__("sum", value)
 
     def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
@@ -3186,10 +3317,16 @@ class DependentSequence(OutputSequence):
     def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         super()._set_shape(shape)
         if self.NDIM and self.NUMERIC:
-            self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
-            self._set_fastaccessattribute("integrals", numpy.zeros(self.numericshape))
-            self._set_fastaccessattribute("results", numpy.zeros(self.numericshape))
-            self._set_fastaccessattribute("sum", numpy.zeros(self.shape))
+            self.__hydpy__set_fastaccessattribute__(
+                "points", numpy.zeros(self.numericshape)
+            )
+            self.__hydpy__set_fastaccessattribute__(
+                "integrals", numpy.zeros(self.numericshape)
+            )
+            self.__hydpy__set_fastaccessattribute__(
+                "results", numpy.zeros(self.numericshape)
+            )
+            self.__hydpy__set_fastaccessattribute__("sum", numpy.zeros(self.shape))
 
     shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
@@ -3399,11 +3536,13 @@ not broadcast input array from shape (3,) into shape (2,)
         self.new2old()
 
     def _finalise_connections(self) -> None:
+        from hydpy.core import modeltools  # pylint: disable=import-outside-toplevel
+
         super()._finalise_connections()
-        if self.NUMERIC:
+        if self.NUMERIC and isinstance(self.subseqs.seqs.model, modeltools.ELSModel):
             value = None if self.NDIM else numpy.zeros(self.numericshape)
-            self._set_fastaccessattribute("points", value)
-            self._set_fastaccessattribute("results", copy.copy(value))
+            self.__hydpy__set_fastaccessattribute__("points", value)
+            self.__hydpy__set_fastaccessattribute__("results", copy.copy(value))
         self.fastaccess_old = self.subseqs.fastaccess_old
         self.fastaccess_new = self.subseqs.fastaccess_new
         if self.NDIM:
@@ -3443,12 +3582,20 @@ not broadcast input array from shape (3,) into shape (2,)
         return super()._get_shape()
 
     def _set_shape(self, shape: int | tuple[int, ...]):
+        from hydpy.core import modeltools  # pylint: disable=import-outside-toplevel
+
         super()._set_shape(shape)
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
-            if self.NUMERIC:
-                self._set_fastaccessattribute("points", numpy.zeros(self.numericshape))
-                self._set_fastaccessattribute("results", numpy.zeros(self.numericshape))
+            if self.NUMERIC and isinstance(
+                self.subseqs.seqs.model, modeltools.ELSModel
+            ):
+                self.__hydpy__set_fastaccessattribute__(
+                    "points", numpy.zeros(self.numericshape)
+                )
+                self.__hydpy__set_fastaccessattribute__(
+                    "results", numpy.zeros(self.numericshape)
+                )
 
     shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
@@ -3596,10 +3743,10 @@ class AideSequence(ModelSequence):
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequence(ModelSequence):
+class LinkSequence(BaseLinkInputSequence):
     """Base class for link sequences of |Model| objects.
 
-    |LinkSequence| objects do not handle values themselves.  Instead, they point to the
+    |LinkSequence| objects do not only handle values themselves but also point to the
     values handled by |NodeSequence| objects, using the functionalities provided by the
     Cython module |pointerutils|.  Multiple |LinkSequence| objects of different
     application models can query and modify the same |NodeSequence| values, allowing
@@ -3608,20 +3755,74 @@ class LinkSequence(ModelSequence):
     A note for developers: |LinkSequence| subclasses must be either 0-dimensional or
     1-dimensional.
 
-    Users might encounter the following exception that is a safety measure to prevent
-    segmentation faults, as the error message suggests:
+    We demonstrate the pointer functionalities by using the `HydPy-H-Lahn` example
+    project by invoking function |prepare_full_example_2|:
 
-    >>> from hydpy.core.sequencetools import LinkSequence
-    >>> seq = LinkSequence(None)
-    >>> seq
-    linksequence(?)
-    >>> seq.value
-    Traceback (most recent call last):
-    ...
-    hydpy.core.exceptiontools.AttributeNotReady: While trying to query the value(s) \
-of link sequence `linksequence` of element `?`, the following error occurred: Proper \
-connections are missing (which could result in segmentation faults when using it, so \
-please be careful).
+    >>> from hydpy.core.testtools import prepare_full_example_2
+    >>> hp, pub, TestIO = prepare_full_example_2()
+
+    We focus on the |musk_classic| application model `stream_lahn_marb_lahn_leun`
+    routing inflow from node `lahn_marb` to node `lahn_leun`:
+
+    >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
+
+    The first example shows that the 0-dimensional outlet sequence |musk_outlets.Q|
+    points to the |Sim| sequence of node `lahn_leun`:
+
+    >>> hp.nodes.lahn_leun.sequences.sim
+    sim(0.0)
+    >>> model.sequences.states.discharge
+    discharge(10.0, 10.0)
+    >>> model.update_outlets()
+    >>> hp.nodes.lahn_leun.sequences.sim
+    sim(10.0)
+
+    The second example shows that the 1-dimensional inlet sequence |musk_inlets.Q|
+    points to the |Sim| sequence of node `lahn_marb`:
+
+    >>> model.sequences.inlets.q
+    q(nan)
+    >>> hp.nodes.lahn_marb.sequences.sim = 1.0
+    >>> model.update_inlets()
+    >>> model.sequences.inlets.q
+    q(1.0)
+
+    In the example above, the 1-dimensional inlet sequence |musk_inlets.Q| only points
+    to a single |NodeSequence| value.  We now prepare a |exch_branch_hbv96| application
+    model instance to show what happens when connecting a 1-dimensional |LinkSequence|
+    object (|exch_outlets.Branched|) with three |NodeSequence| objects (see the
+    documentation of application model |exch_branch_hbv96| for more details):
+
+    >>> from hydpy import Element, Nodes, prepare_model
+    >>> model = prepare_model("exch_branch_hbv96")
+    >>> nodes = Nodes("input1", "input2", "output1", "output2", "output3")
+    >>> branch = Element("branch",
+    ...                  inlets=["input1", "input2"],
+    ...                  outlets=["output1", "output2", "output3"])
+    >>> model.parameters.control.xpoints(0.0, 2.0, 4.0, 6.0)
+    >>> model.parameters.control.ypoints(
+    ...     output1=[0.0, 1.0, 2.0, 3.0],
+    ...     output2=[0.0, 1.0, 0.0, 0.0],
+    ...     output3=[0.0, 0.0, 2.0, 6.0])
+    >>> branch.model = model
+
+    Each field of the values of a 1-dimensional |LinkSequence| object points to
+    another |NodeSequence| object:
+
+    >>> model.sequences.outlets.branched = 1.0, 2.0, 3.0
+    >>> model.update_outlets()
+    >>> nodes.output1.sequences.sim
+    sim(1.0)
+    >>> nodes.output2.sequences.sim
+    sim(2.0)
+    >>> nodes.output3.sequences.sim
+    sim(3.0)
+
+    .. testsetup::
+
+        >>> from hydpy import Node, Element
+        >>> Node.clear_all()
+        >>> Element.clear_all()
     """
 
     subvars: LinkSequences[LinkSequence]
@@ -3633,7 +3834,7 @@ please be careful).
 
     _CLS_FASTACCESS_PYTHON = FastAccessLinkSequence
 
-    __isready: bool = False
+    _isready: bool = False
 
     def set_pointer(self, double: pointerutils.Double, idx: int = 0) -> None:
         """Prepare a pointer referencing the given |Double| object.
@@ -3648,174 +3849,52 @@ please be careful).
             self.fastaccess.set_pointer0d(self.name, double)
         elif self.NDIM == 1:
             self.fastaccess.set_pointer1d(self.name, double, idx)
-        self.__isready = True
+        self._isready = True
 
     def _finalise_connections(self) -> None:
+        super()._finalise_connections()
         value = pointerutils.PPDouble() if self.NDIM else None
         try:
-            setattr(self.fastaccess, self.name, value)
+            self.__hydpy__set_fastaccessattribute__("pointer", value)
             setattr(self.fastaccess, f"len_{self.name}", 0)
         except AttributeError:
             pass
 
-    def _get_value(self):
-        """The actual value(s) the |LinkSequence| object is pointing at.
-
-        Changing a |LinkSequence.value| of a |LinkSequence| object seems very much like
-        changing a |LinkSequence.value| of any other |Variable| object.  However, be
-        aware that you are changing a value handled by a |NodeSequence| object.  We
-        demonstrate this by using the `HydPy-H-Lahn` example project through invoking
-        function |prepare_full_example_2|:
-
-        >>> from hydpy.core.testtools import prepare_full_example_2
-        >>> hp, pub, TestIO = prepare_full_example_2()
-
-        We focus on the |musk_classic| application model `stream_lahn_marb_lahn_leun`
-        routing inflow from node `lahn_marb` to node `lahn_leun`:
-
-        >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
-
-        The first example shows that the 0-dimensional outlet sequence |musk_outlets.Q|
-        points to the |Sim| sequence of node `lahn_leun`:
-
-        >>> model.sequences.outlets.q
-        q(0.0)
-        >>> hp.nodes.lahn_leun.sequences.sim = 1.0
-        >>> model.sequences.outlets.q
-        q(1.0)
-        >>> model.sequences.outlets.q(2.0)
-        >>> hp.nodes.lahn_leun.sequences.sim
-        sim(2.0)
-
-        The second example shows that the 1-dimensional inlet sequence |musk_inlets.Q|
-        points to the |Sim| sequence of node `lahn_marb`:
-
-        >>> model.sequences.inlets.q
-        q(0.0)
-        >>> hp.nodes.lahn_marb.sequences.sim = 1.0
-        >>> model.sequences.inlets.q
-        q(1.0)
-        >>> model.sequences.inlets.q(2.0)
-        >>> hp.nodes.lahn_marb.sequences.sim
-        sim(2.0)
-
-        Direct querying the values of both link sequences shows that the value of the
-        0-dimensional outlet sequence is scalar, of course, and that the value of the
-        1-dimensional inlet sequence is one entry of a vector:
-
-        >>> from hydpy import print_vector, round_
-        >>> round_(model.sequences.outlets.q.value)
-        2.0
-        >>> print_vector(model.sequences.inlets.q.values)
-        2.0
-
-        Assigning incorrect data leads to the usual error messages:
-
-        >>> model.sequences.outlets.q.value = 1.0, 2.0
-        Traceback (most recent call last):
-        ...
-        ValueError: While trying to assign the value(s) (1.0, 2.0) to link sequence \
-`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: 2 values \
-are assigned to the scalar variable `q` of element `stream_lahn_marb_lahn_leun`.
-        >>> model.sequences.inlets.q.values = 1.0, 2.0
-        Traceback (most recent call last):
-        ...
-        ValueError: While trying to assign the value(s) (1.0, 2.0) to link sequence \
-`q` of element `stream_lahn_marb_lahn_leun`, the following error occurred: While \
-trying to convert the value(s) `(1.0, 2.0)` to a numpy ndarray with shape `(1,)` and \
-type `float`, the following error occurred: could not broadcast input array from \
-shape (2,) into shape (1,)
-
-        In the example above, the 1-dimensional inlet sequence |musk_inlets.Q| only
-        points a single |NodeSequence| value.  We now prepare a |exch_branch_hbv96|
-        application model instance to show what happens when connecting a 1-dimensional
-        |LinkSequence| object (|exch_outlets.Branched|) with three |NodeSequence|
-        objects (see the documentation of application model |exch_branch_hbv96| for
-        more details):
-
-        >>> from hydpy import Element, Nodes, prepare_model
-        >>> model = prepare_model("exch_branch_hbv96")
-        >>> nodes = Nodes("input1", "input2", "output1", "output2", "output3")
-        >>> branch = Element("branch",
-        ...                  inlets=["input1", "input2"],
-        ...                  outlets=["output1", "output2", "output3"])
-        >>> model.parameters.control.xpoints(
-        ...     0.0, 2.0, 4.0, 6.0)
-        >>> model.parameters.control.ypoints(
-        ...     output1=[0.0, 1.0, 2.0, 3.0],
-        ...     output2=[0.0, 1.0, 0.0, 0.0],
-        ...     output3=[0.0, 0.0, 2.0, 6.0])
-        >>> branch.model = model
-
-        Our third example demonstrates that each field of the values of a 1-dimensional
-        |LinkSequence| objects points to another |NodeSequence| object:
-
-        >>> nodes.output1.sequences.sim = 1.0
-        >>> nodes.output2.sequences.sim = 2.0
-        >>> nodes.output3.sequences.sim = 3.0
-        >>> model.sequences.outlets.branched
-        branched(1.0, 2.0, 3.0)
-        >>> model.sequences.outlets.branched = 4.0, 5.0, 6.0
-        >>> nodes.output1.sequences.sim
-        sim(4.0)
-        >>> nodes.output2.sequences.sim
-        sim(5.0)
-        >>> nodes.output3.sequences.sim
-        sim(6.0)
-
-        .. testsetup::
-
-            >>> from hydpy import Node, Element
-            >>> Node.clear_all()
-            >>> Element.clear_all()
-        """
-        try:
-            if not self.__isready:
-                raise exceptiontools.AttributeNotReady(
-                    "Proper connections are missing (which could result in "
-                    "segmentation faults when using it, so please be careful)."
-                )
-            return self.fastaccess.get_value(self.name)
-        except BaseException:
-            objecttools.augment_excmessage(
-                f"While trying to query the value(s) of link sequence "
-                f"{objecttools.elementphrase(self)}"
-            )
-
-    def _set_value(self, value):
-        try:
-            self.fastaccess.set_value(self.name, self._prepare_setvalue(value))
-        except BaseException:
-            objecttools.augment_excmessage(
-                f"While trying to assign the value(s) {value} to link sequence "
-                f"{objecttools.elementphrase(self)}"
-            )
-
-    value = property(fget=_get_value, fset=_set_value)
-
     def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
-        Property |LinkSequence.shape| of class |LinkSequence| works similarly as the
+        Property |LinkSequence.shape| of class |LinkSequence| works similarly to the
         general |Variable.shape| property of class |Variable|. Still, you need to be
         extra careful due to the pointer mechanism underlying class |LinkSequence|.
         Change the shape of a link sequence for good reasons only.  Please read the
-        documentation on property |LinkSequence.value| first and then see the following
+        main documentation on class |LinkSequence| first and then see the following
         examples, which are, again, based on the `HydPy-H-Lahn` example project and
         application model |musk_classic|:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> model = hp.elements.stream_lahn_marb_lahn_leun.model
+        >>> element = hp.elements.stream_lahn_marb_lahn_leun
+        >>> model = element.model
 
         The default mechanisms of *HydPy* prepare both 0-dimensional and 1-dimensional
-        link sequences with a proper shape (which, for inlet sequence |
-        musk_inlets.Q|, depends on the number of connected |Node| objects):
+        link sequences with a proper shape (which, for inlet sequence |musk_inlets.Q|,
+        depends on the number of connected |Node| objects):
 
         >>> model.sequences.outlets.q.shape
         ()
         >>> model.sequences.inlets.q.shape
         (1,)
+
+        You can use the property |LinkSequence.pointervalue| to investigate whether the
+        link to node sequence connections are as you expect it:
+
+        >>> from hydpy import round_
+        >>> element.inlets.lahn_marb.sequences.sim = 1.0
+        >>> element.outlets.lahn_leun.sequences.sim = 2.0
+        >>> round_(model.sequences.inlets.q.pointervalue)
+        1.0
+        >>> round_(model.sequences.outlets.q.pointervalue)
+        2.0
 
         Attempting to set the only possible shape of 0-dimensional link sequences or
         any different shape results in the standard behaviour:
@@ -3831,42 +3910,19 @@ be `()`, but `(1,)` is given.
 
         Changing the shape of 1-dimensional link sequences is supported but destroys
         the connection to the |NodeSequence| values of the respective nodes.
-        Therefore, he following exception prevents segmentation faults until proper
+        Therefore, the following exception prevents segmentation faults until proper
         connections are available:
 
-        >>> model.sequences.inlets.q.shape = (2,)
-        >>> model.sequences.inlets.q.shape
-        (2,)
-        >>> model.sequences.inlets.q.shape = 1
+        >>> model.sequences.inlets.q.shape = (1,)
+        >>> model.update_inlets()
         >>> model.sequences.inlets.q.shape
         (1,)
-        >>> model.sequences.inlets.q
+        >>> model.sequences.inlets.q.shape = 2
+        >>> model.sequences.inlets.q.pointervalue
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to query the value(s) of link sequence `q` of \
-element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of \
-the actual `PPDouble` instance at index `0` requested, but not prepared yet via \
-`set_pointer`.
-
-        >>> model.sequences.inlets.q(1.0)
-        Traceback (most recent call last):
-        ...
-        RuntimeError: While trying to assign the value(s) 1.0 to link sequence `q` of \
-element `stream_lahn_marb_lahn_leun`, the following error occurred: The pointer of \
-the actual `PPDouble` instance at index `0` requested, but not prepared yet via \
-`set_pointer`.
-
-        Querying the shape of a link sequence should rarely result in errors.  However,
-        if we enforce it by deleting the `fastaccess` attribute, we get an error
-        message:
-
-        >>> del model.sequences.inlets.q.fastaccess
-        >>> model.sequences.inlets.q.shape
-        Traceback (most recent call last):
-        ...
-        AttributeError: While trying to query the shape of link sequence`q` of \
-element `stream_lahn_marb_lahn_leun`, the following error occurred: 'Q' object has no \
-attribute 'fastaccess'
+        RuntimeError: The pointer of the actual `PPDouble` instance at index `0` \
+requested, but not prepared yet via `set_pointer`.
 
         .. testsetup::
 
@@ -3874,29 +3930,16 @@ attribute 'fastaccess'
             >>> Node.clear_all()
             >>> Element.clear_all()
         """
-        try:
-            if self.NDIM == 0:
-                return ()
-            try:
-                return getattr(self.fastaccess, self.name).shape
-            except AttributeError:
-                return (self._get_fastaccessattribute("length_0"),)
-        except BaseException:
-            objecttools.augment_excmessage(
-                f"While trying to query the shape of link sequence"
-                f"{objecttools.elementphrase(self)}"
-            )
+        return super()._get_shape()
 
     def _set_shape(self, shape: int | tuple[int, ...]):
         try:
-            if (self.NDIM == 0) and shape:
-                self._raise_wrongshape(shape)
-            elif self.NDIM == 1:
-                if isinstance(shape, Iterable):
-                    shape = list(shape)[0]
-                self.fastaccess.dealloc(self.name)
-                self.fastaccess.alloc(self.name, shape)
-                setattr(self.fastaccess, "len_" + self.name, self.shape[0])
+            old_shape = exceptiontools.getattr_(self, "shape", None)
+            super()._set_shape(shape)
+            if (shape != old_shape) and (self.NDIM == 1):
+                self.fastaccess.dealloc_pointer(self.name)
+                self.fastaccess.alloc_pointer(self.name, shape)
+                setattr(self.fastaccess, "len_" + self.name, shape)
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to set the shape of link sequence"
@@ -3905,10 +3948,11 @@ attribute 'fastaccess'
 
     shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
-    def __repr__(self):
-        if self.__isready:
-            return super().__repr__()
-        return f"{self.name}(?)"
+    @property
+    def pointervalue(self) -> float | NDArrayFloat:
+        """The actual value(s) referenced by the pointer(s) of the |LinkSequence|
+        object."""
+        return self.fastaccess.get_pointervalue(self.name)
 
 
 class InletSequence(LinkSequence):
@@ -3927,6 +3971,15 @@ class OutletSequence(LinkSequence):
     """The subgroup to which the outlet sequence belongs."""
     subseqs: OutletSequences
     """Alias for |OutletSequence.subvars|."""
+
+
+class ObserverSequence(LinkSequence):
+    """Base class for observer link sequences of |Model| objects."""
+
+    subvars: ObserverSequences
+    """The subgroup to which the observer sequence belongs."""
+    subseqs: ObserverSequences
+    """Alias for |ObserverSequence.subvars|."""
 
 
 class ReceiverSequence(LinkSequence):
@@ -4312,8 +4365,8 @@ node `dill_assl` contains 1 nan value.
         try:
             super().load_series()
         except OSError:
-            self._set_fastaccessattribute("ramflag", False)
-            self._set_fastaccessattribute("diskflag_reading", False)
+            self.__hydpy__set_fastaccessattribute__("ramflag", False)
+            self.__hydpy__set_fastaccessattribute__("diskflag_reading", False)
             if hydpy.pub.options.warnmissingobsfile:
                 warnings.warn(
                     f"The `memory flag` of sequence {objecttools.nodephrase(self)} had "

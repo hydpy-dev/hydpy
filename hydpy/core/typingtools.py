@@ -161,9 +161,11 @@ DeployMode = Literal[
     "oldsim_bi",
     "obs_bi",
     "obs_oldsim_bi",
+    "newsim_update",
+    "obs_newsim_update",
 ]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
-StepSize = Literal["daily", "d", "monthly", "m"]
+StepSize = Literal["daily", "d", "monthly", "m", "yearly", "y"]
 
 
 class CyParametersProtocol(Protocol):
@@ -225,6 +227,14 @@ MethodGroup = Literal[
     "SENDER_METHODS",
 ]
 
+LinkInputOutputSequenceGroup = Literal[
+    "inlets", "outlets", "observers", "receivers", "senders", "inputs", "outputs"
+]
+
+LinkInputSequenceGroup = Literal[
+    "inlets", "outlets", "observers", "receivers", "senders", "inputs"
+]
+
 __all__ = [
     "AbstractContextManager",
     "Any",
@@ -252,6 +262,8 @@ __all__ = [
     "Iterable",
     "Iterator",
     "LineStyle",
+    "LinkInputOutputSequenceGroup",
+    "LinkInputSequenceGroup",
     "Literal",
     "l1",
     "Mapping",

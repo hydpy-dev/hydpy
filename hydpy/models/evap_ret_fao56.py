@@ -218,6 +218,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         evap_model.Process_RadiationModel_V1,

@@ -185,6 +185,7 @@ _SEQ_SPEC2CAPT = collections.OrderedDict(
         ("logs", "Log sequences"),
         ("inlets", "Inlet sequences"),
         ("outlets", "Outlet sequences"),
+        ("observers", "Observer sequences"),
         ("receivers", "Receiver sequences"),
         ("senders", "Sender sequences"),
         ("aides", "Aide sequences"),
@@ -1204,6 +1205,10 @@ _name2descr = {
         'The following "inlet update methods" are called in the given sequence at the '
         "beginning of each simulation step"
     ),
+    "OBSERVER_METHODS": (
+        'The following "observer update methods" are called in the given sequence at '
+        "the beginning of each simulation step"
+    ),
     "RUN_METHODS": (
         'The following "run methods" are called in the given sequence during each '
         "simulation step"
@@ -1607,7 +1612,7 @@ class SubmodelGraph:
         arma_rimorido
         conv_idw
         ...
-        sw1d_channel
+        whmod_urban
         wland_gd
         wland_wag
 

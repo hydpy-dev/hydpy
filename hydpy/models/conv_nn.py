@@ -99,6 +99,7 @@ class Model(conv_model.BaseModel):
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (conv_model.Pick_Inputs_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (conv_model.Calc_Outputs_V1,)
     ADD_METHODS = ()

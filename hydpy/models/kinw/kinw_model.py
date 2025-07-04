@@ -56,6 +56,36 @@ class Pick_Q_V1(modeltools.Method):
             flu.qz += inl.q[idx]
 
 
+class Pick_Inflow_V1(modeltools.Method):
+    r"""Sum up the current inflow from all inlet nodes.
+
+    Basic equation:
+      :math:`Inflow = \sum Q`
+
+    Example:
+
+        >>> from hydpy.models.kinw import *
+        >>> parameterstep()
+        >>> inlets.q.shape = 2
+        >>> inlets.q = 2.0, 4.0
+        >>> model.pick_inflow_v1()
+        >>> fluxes.inflow
+        inflow(6.0)
+    """
+
+    REQUIREDSEQUENCES = (kinw_inlets.Q,)
+    RESULTSEQUENCES = (kinw_fluxes.Inflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        inl = model.sequences.inlets.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.inflow = 0.0
+        for idx in range(inl.len_q):
+            flu.inflow += inl.q[idx]
+
+
 class Calc_QZA_V1(modeltools.Method):
     """Calculate the current inflow into the channel.
 
@@ -2771,7 +2801,7 @@ class Model(modeltools.ELSModel):
         kinw_solver.RelDTMax,
     )
     SOLVERSEQUENCES = ()
-    INLET_METHODS = (Pick_Q_V1,)
+    INLET_METHODS = (Pick_Q_V1, Pick_Inflow_V1)
     OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = (Return_QF_V1, Return_H_V1)

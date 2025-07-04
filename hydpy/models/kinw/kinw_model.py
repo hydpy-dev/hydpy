@@ -2376,6 +2376,104 @@ class Calc_QA_V1(modeltools.Method):
             flu.qa = flu.qz
 
 
+class Return_VolumeError_V1(modeltools.Method):
+    """Calculate and return the difference between"""
+
+    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
+    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
+    REQUIREDSEQUENCES = (
+        kinw_fluxes.Inflow,
+        kinw_fluxes.InternalFlow,
+        kinw_states.WaterDepth,
+    )
+
+    @staticmethod
+    def __call__(model: modeltools.Model, waterdepth: float) -> float:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        if model.idx_segment == 0:
+            in01: float = flu.inflow
+        else:
+            in01 = flu.internalflow[model.idx_segment - 1]
+
+        model.wqmodel.use_waterdepth(sta.waterdepth[model.idx_segment])
+        v0: float = (
+            model.wqmodel.get_wettedarea() * con.length / con.nmbsegments / 1e3
+            + in01 * der.seconds / 1e6
+        )
+
+        model.wqmodel.use_waterdepth(waterdepth)
+        v1a: float = model.wqmodel.get_wettedarea() * con.length / con.nmbsegments / 1e3
+        out01: float = model.wqmodel.get_discharge()
+        v1b: float = v0 - out01 * der.seconds / 1e6
+
+        return v1b - v1a
+
+
+class PegasusImpliciteEuler(roottools.Pegasus):
+    """Pegasus iterator for finding the water level in accordance with the implicite
+    Euler method."""
+
+    METHODS = (Return_VolumeError_V1,)
+
+
+class Update_WaterDepth_V1(modeltools.Method):
+    """"""
+
+    UPDATEDSEQUENCES = (kinw_states.WaterDepth,)
+    SUBMODELS = (PegasusImpliciteEuler,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        sta = model.sequences.states.fastaccess
+
+        sta.waterdepth[model.idx_segment] = model.pegasusimpliciteeuler.find_x(
+            0.0, 10.0, 0.0, 1000.0, 0.0, 1e-10, 1000
+        )
+
+
+class Calc_InternalFlow_V1(modeltools.Method):
+    """"""
+
+    CONTROLPARAMETERS = (kinw_control.NmbSegments,)
+    REQUIREDSEQUENCES = (kinw_states.WaterDepth,)
+    RESULTSEQUENCES = (kinw_fluxes.InternalFlow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        model.wqmodel.use_waterdepth(sta.waterdepth[model.idx_segment])
+        if model.idx_segment + 1 < con.nmbsegments:
+            flu.internalflow[model.idx_segment] = model.wqmodel.get_discharge()
+
+
+class Calc_Outflow_V1(modeltools.Method):
+    """"""
+
+    CONTROLPARAMETERS = (kinw_control.NmbSegments,)
+    REQUIREDSEQUENCES = (kinw_fluxes.Inflow, kinw_states.WaterDepth)
+    RESULTSEQUENCES = (kinw_fluxes.Outflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        if con.nmbsegments == 0:
+            flu.outflow = flu.inflow
+        else:
+            model.wqmodel.use_waterdepth(sta.waterdepth[con.nmbsegments - 1])
+            flu.outflow = model.wqmodel.get_discharge()
+
+
+
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node.
 
@@ -2397,6 +2495,29 @@ class Pass_Q_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.q = flu.qa
+
+
+class Pass_Outflow_V1(modeltools.Method):
+    """Pass the outflow to the outlet node.
+
+    Example:
+
+        >>> from hydpy.models.kinw import *
+        >>> parameterstep()
+        >>> fluxes.outlflow = 2.0
+        >>> model.pass_q_v1()
+        >>> outlets.q
+        q(2.0)
+    """
+
+    REQUIREDSEQUENCES = (kinw_fluxes.Outflow,)
+    RESULTSEQUENCES = (kinw_outlets.Q,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+        out.q = flu.outflow
 
 
 class Return_QF_V1(modeltools.Method):
@@ -2804,7 +2925,12 @@ class Model(modeltools.ELSModel):
     INLET_METHODS = (Pick_Q_V1, Pick_Inflow_V1)
     OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
-    ADD_METHODS = (Return_QF_V1, Return_H_V1)
+    ADD_METHODS = (
+        Return_QF_V1,
+        Return_H_V1,
+        Return_VolumeError_V1,
+        Calc_InternalFlow_V1,
+    )
     PART_ODE_METHODS = (
         Calc_RHM_V1,
         Calc_RHMDH_V1,
@@ -2838,10 +2964,10 @@ class Model(modeltools.ELSModel):
         Calc_DH_V1,
     )
     FULL_ODE_METHODS = (Update_H_V1, Update_VG_V1)
-    OUTLET_METHODS = (Pass_Q_V1,)
+    OUTLET_METHODS = (Pass_Q_V1, Calc_Outflow_V1, Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
-    SUBMODELS = (PegasusH,)
+    SUBMODELS = (PegasusH, PegasusImpliciteEuler)
 
 
 class BaseModelProfile(modeltools.ELSModel):

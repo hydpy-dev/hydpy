@@ -15,3 +15,11 @@ class VG(sequencetools.StateSequence):
     """Wasservolumen (water volume) [million m³]."""
 
     NDIM, NUMERIC, SPAN = 1, True, (None, None)
+
+
+class WaterDepth(sequencetools.StateSequence):
+    """Water depth [m]."""
+
+    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+
+    __HYDPY__DELTA_SEGMENTS__ = 0

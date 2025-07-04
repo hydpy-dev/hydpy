@@ -5,6 +5,7 @@
 import itertools
 
 # ...from HydPy
+from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -14,6 +15,12 @@ from hydpy.auxs import interptools
 
 class Laen(parametertools.Parameter):
     """Flusslänge (channel length) [km]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class Length(parametertools.Parameter):
+    """Channel length [km]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -46,6 +53,60 @@ class GTS(parametertools.Parameter):
         for seq in itertools.chain(seqs.fluxes, seqs.states, seqs.aides):
             if seq.NDIM:
                 seq.shape = self.value
+
+
+class NmbSegments(parametertools.Parameter):
+    """Number of channel segments [-].
+
+    |NmbSegments| prepares the shape of some 1-dimensional sequences automatically:
+
+    >>> from hydpy.models.kinw import *
+    >>> parameterstep()
+    >>> nmbsegments(2)
+    >>> nmbsegments
+    nmbsegments(2)
+    >>> states.watervolume.shape
+    (2,)
+    >>> factors.waterdepth.shape
+    (2,)
+    >>> fluxes.internalflow.shape
+    (1,)
+
+    |NmbSegments| preserves existing values if the number of segments does not change:
+
+    >>> states.watervolume = 1.0, 2.0
+    >>> nmbsegments(2)
+    >>> states.watervolume
+    watervolume(1.0, 2.0)
+
+    Setting its value to zero is allowed:
+
+    >>> nmbsegments(0)
+    >>> states.watervolume.shape
+    (0,)
+    >>> fluxes.internalflow.shape
+    (0,)
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+
+    def __call__(self, *args, **kwargs) -> None:
+
+        super().__call__(*args, **kwargs)
+
+        nmb = self.value
+        model = self.subpars.pars.model
+        model.nmb_segments = nmb
+        seqs = model.sequences
+        for subseqs in (seqs.factors, seqs.fluxes, seqs.states):
+            for seq in subseqs:
+                delta = getattr(seq, "__HYDPY__DELTA_SEGMENTS__", None)
+                if delta is not None:
+                    assert isinstance(delta, int)
+                    old = exceptiontools.getattr_(seq, "shape", None)
+                    new = (max(nmb + delta, 0),)
+                    if old != new:
+                        seq.shape = new
 
 
 class HM(parametertools.Parameter):

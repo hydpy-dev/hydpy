@@ -5,6 +5,16 @@
 from hydpy.core import parametertools
 
 
+class NmbRuns(parametertools.SolverParameter):
+    """The number of (repeated) runs of the |RunModel.RUN_METHODS| per simulation step
+    [-]."""
+
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    INIT = 1
+
+
 class AbsErrorMax(parametertools.SolverParameter):
     """Absolute numerical error tolerance [m³/s]."""
 
@@ -43,3 +53,25 @@ class RelDTMax(parametertools.SolverParameter):
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 1.0
+
+
+class WaterVolumeTolerance(parametertools.SolverParameter):
+    """Targeted accuracy in terms of the relative water volume for the Pegasus search
+    of the final water depth [-]."""
+
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
+    INIT = 1e-10
+
+
+class WaterDepthTolerance(parametertools.SolverParameter):
+    """Targeted accuracy in terms of the absolute water depth for the Pegasus search of
+    the final water depth [m]."""
+
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
+    INIT = 1e-10

@@ -11,11 +11,13 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.cythons import smoothutils
+from hydpy.interfaces import routinginterfaces
 from hydpy.models.kinw import kinw_control
 from hydpy.models.kinw import kinw_derived
 from hydpy.models.kinw import kinw_fixed
 from hydpy.models.kinw import kinw_solver
 from hydpy.models.kinw import kinw_fluxes
+from hydpy.models.kinw import kinw_factors
 from hydpy.models.kinw import kinw_states
 from hydpy.models.kinw import kinw_aides
 from hydpy.models.kinw import kinw_inlets
@@ -54,6 +56,36 @@ class Pick_Q_V1(modeltools.Method):
         flu.qz = 0.0
         for idx in range(inl.len_q):
             flu.qz += inl.q[idx]
+
+
+class Pick_Inflow_V1(modeltools.Method):
+    r"""Sum up the current inflow from all inlet nodes.
+
+    Basic equation:
+      :math:`Inflow = \sum Q`
+
+    Example:
+
+        >>> from hydpy.models.kinw import *
+        >>> parameterstep()
+        >>> inlets.q.shape = 2
+        >>> inlets.q = 2.0, 4.0
+        >>> model.pick_inflow_v1()
+        >>> fluxes.inflow
+        inflow(6.0)
+    """
+
+    REQUIREDSEQUENCES = (kinw_inlets.Q,)
+    RESULTSEQUENCES = (kinw_fluxes.Inflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        inl = model.sequences.inlets.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.inflow = 0.0
+        for idx in range(inl.len_q):
+            flu.inflow += inl.q[idx]
 
 
 class Calc_QZA_V1(modeltools.Method):
@@ -2346,6 +2378,518 @@ class Calc_QA_V1(modeltools.Method):
             flu.qa = flu.qz
 
 
+class Update_WaterVolume_V1(modeltools.Method):
+    r"""Update the old water volume with the current inflow.
+
+    Examples:
+
+        Method |Update_WaterVolume_V1| uses the value of sequence |kinw_fluxes.Inflow|
+        for the first segment and the respective values of sequences
+        |kinw_fluxes.InternalFlow| for the remaining segments:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> nmbsegments(3)
+        >>> derived.seconds(1e6)
+        >>> states.watervolume.old = 2.0, 3.0, 4.0
+        >>> fluxes.inflow = 1.0
+        >>> fluxes.internalflow = 2.0, 3.0
+        >>> model.run_segments(model.update_watervolume_v1)
+        >>> from hydpy import print_vector
+        >>> print_vector(states.watervolume.old)
+        3.0, 5.0, 7.0
+
+        Negative inflow values are acceptable, even if they result in negative amounts
+        of stored water:
+
+        >>> fluxes.inflow = -4.0
+        >>> fluxes.internalflow = -6.0, -6.0
+        >>> model.run_segments(model.update_watervolume_v1)
+        >>> print_vector(states.watervolume.old)
+        -1.0, -1.0, 1.0
+    """
+
+    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
+    REQUIREDSEQUENCES = (kinw_fluxes.Inflow, kinw_fluxes.InternalFlow)
+    UPDATEDSEQUENCES = (kinw_states.WaterVolume,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        old = model.sequences.states.fastaccess_old
+        flu = model.sequences.fluxes.fastaccess
+
+        i = model.idx_segment
+        q: float = flu.inflow if (i == 0) else flu.internalflow[i - 1]
+        old.watervolume[i] += q * der.seconds / 1e6
+
+
+class Return_InitialWaterVolume_V1(modeltools.Method):
+    r"""Calculate and return the initial water volume that agrees with the given
+    final water depth following the implicit Euler method.
+
+    Basic equation:
+      .. math::
+        A \cdot l / n \cdot 10^{-3} + Q \cdot s \cdot 10^{-6}
+        \\ \\
+        d = waterdepth \\
+        A = f_{get\_wettedarea}(d) \\
+        l = Length \\
+        n = NmbSegments \\
+        Q = f_{get\_discharge}(d) \\
+        s = Seconds
+
+    Examples:
+
+        The calculated initial volume is the sum of the water volume at the end of the
+        simulation step and the outflow during the simulation step:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> length(100.0)
+        >>> nmbsegments(10)
+        >>> derived.seconds(60 * 60 * 24)
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(1.0)
+        ...     bottomwidths(20.0)
+        ...     sideslopes(0.0)
+        ...     bottomslope(0.001)
+        ...     stricklercoefficients(30.0)
+        >>> from hydpy import round_
+        >>> round_(model.return_initialwatervolume_v1(2.0))
+        5.008867
+
+        If a segment has zero length, it can, of course, store no water.  Hence, the
+        returned value then only comprises the volume of the outflow of the current
+        simulation step:
+
+        >>> length(0.0)
+        >>> round_(model.return_initialwatervolume_v1(2.0))
+        4.608867
+
+        Method |Return_InitialWaterVolume_V1| handles cases where the number of
+        segments is zero as if the channel's length is zero (even if it is
+        inconsistently set to a larger value):
+
+        >>> length(100.0)
+        >>> nmbsegments(0)
+        >>> round_(model.return_initialwatervolume_v1(2.0))
+        4.608867
+    """
+
+    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
+    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, waterdepth: float) -> float:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+
+        model.wqmodel.use_waterdepth(waterdepth)
+        sublength: float = con.length / con.nmbsegments if con.nmbsegments > 0 else 0.0
+        return (
+            model.wqmodel.get_wettedarea() * sublength / 1e3
+            + model.wqmodel.get_discharge() * der.seconds / 1e6
+        )
+
+
+class Return_VolumeError_V1(modeltools.Method):
+    r"""Calculate and return the difference between the initial water volume that stems
+    from the last simulation step plus the current inflow and the water volume that
+    agrees with the given final water depth following the implicit Euler method.
+
+    Basic equation:
+      .. math::
+        V_1 - V_2
+        \\ \\
+        V_1 = WaterVolume \\
+        V_2 = f_{Return\_InitialWaterVolume\_V1}(waterdepth)
+
+    Examples:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> length(100.0)
+        >>> nmbsegments(10)
+        >>> derived.seconds(60 * 60 * 24)
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(1.0)
+        ...     bottomwidths(20.0)
+        ...     sideslopes(0.0)
+        ...     bottomslope(0.001)
+        ...     stricklercoefficients(30.0)
+        >>> states.watervolume(4.0)
+        >>> from hydpy import round_
+        >>> round_(model.return_volumeerror_v1(2.0))
+        -1.008867
+
+        For a given water depth of zero, |Return_VolumeError_V1| simply returns the
+        old value of |WaterVolume| to safe computation efforts:
+
+        >>> round_(model.return_volumeerror_v1(0.0))
+        4.0
+
+        The following example shows that this simplification is correct:
+
+        >>> round_(model.return_volumeerror_v1(1e-6))
+        4.0
+    """
+
+    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
+    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
+    REQUIREDSEQUENCES = (kinw_states.WaterVolume,)
+    SUBMETHODS = (Return_InitialWaterVolume_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, waterdepth: float) -> float:
+        old = model.sequences.states.fastaccess_old
+
+        v: float = old.watervolume[model.idx_segment]
+        if waterdepth == 0.0:
+            return v
+        return v - model.return_initialwatervolume_v1(waterdepth)
+
+
+class PegasusImplicitEuler(roottools.Pegasus):
+    """Pegasus iterator for determining the water level at the end of a simulation
+    step."""
+
+    METHODS = (Return_VolumeError_V1,)
+
+
+class Calc_WaterDepth_V1(modeltools.Method):
+    r"""Determine the new water depth based on the implicit Euler method.
+
+    Examples:
+
+        Compared to other (explicit) routing methods, the iterative approach of method
+        |Calc_WaterDepth_V1| to determine the final water depth for each river segment
+        iteratively leads to high efficiency and (theoretically) absolute stability for
+        short channel segments (namely, stiff problems with a high Courant number).
+        However, be aware that the accuracy of this iteration affects the overall
+        simulation.  We begin demonstrating this with a single trapezoid and default
+        numerical values:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> length(100.0)
+        >>> nmbsegments(1)
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(1.0)
+        ...     bottomwidths(20.0)
+        ...     sideslopes(0.0)
+        ...     bottomslope(0.001)
+        ...     stricklercoefficients(30.0)
+        >>> derived.seconds(60 * 60 * 24)
+        >>> derived.nmbdiscontinuities.update()
+        >>> derived.finaldepth2initialvolume.update()
+        >>> solver.watervolumetolerance.update()
+        >>> solver.waterdepthtolerance.update()
+        >>> model.idx_segment = 0
+
+        The following test function prints the resulting water depth for several
+        initial volumes and also prints the water volume-related error tolerance
+        (internally calculated as
+        :math:`WaterVolumeTolerance \cdot InitialWaterVolume`) and the actual error:
+
+        >>> from hydpy import print_vector
+        >>> def check_search_algorithm():
+        ...     print("volume", "depth", "tolerance", "error")
+        ...     for target_volume in (0.0, 0.1, 1.0, 2.0, 5.0, 10.0, 100.0):
+        ...         states.watervolume.old = target_volume
+        ...         model.calc_waterdepth_v1()
+        ...         depth = factors.waterdepth.values[0]
+        ...         volume = model.return_initialwatervolume_v1(depth)
+        ...         tolerance = solver.watervolumetolerance * target_volume
+        ...         error = target_volume - volume
+        ...         print_vector([target_volume, depth, tolerance, error])
+
+        All required and achieved accuracies are below the printed precisions:
+
+        >>> check_search_algorithm()
+        volume depth tolerance error
+        0.0, 0.0, 0.0, 0.0
+        0.1, 0.045296, 0.0, 0.0
+        1.0, 0.356485, 0.0, 0.0
+        2.0, 0.632911, 0.0, 0.0
+        5.0, 1.312357, 0.0, 0.0
+        10.0, 2.244486, 0.0, 0.0
+        100.0, 13.729876, 0.0, 0.0
+
+        If one wishes to improve accuracy or speed up the computation, it is preferable
+        to decrease or increase |WaterVolumeTolerance|.  Here, we increase it and
+        observe that higher numerical errors result:
+
+        >>> solver.watervolumetolerance(1e-4)
+        >>> check_search_algorithm()
+        volume depth tolerance error
+        0.0, 0.0, 0.0, 0.0
+        0.1, 0.045296, 0.00001, 0.0
+        1.0, 0.356498, 0.0001, -0.000042
+        2.0, 0.632912, 0.0002, -0.000004
+        5.0, 1.312356, 0.0005, 0.000004
+        10.0, 2.244563, 0.001, -0.000447
+        100.0, 13.729886, 0.01, -0.000091
+
+        Alternatively, one can modify the solver parameter |WaterDepthTolerance|, whose
+        value is used without any modification:
+
+        >>> solver.watervolumetolerance(0.0)
+        >>> solver.waterdepthtolerance(1e-2)
+        >>> check_search_algorithm()
+        volume depth tolerance error
+        0.0, 0.0, 0.0, 0.0
+        0.1, 0.045296, 0.0, 0.0
+        1.0, 0.356498, 0.0, -0.000042
+        2.0, 0.632912, 0.0, -0.000004
+        5.0, 1.312356, 0.0, 0.000004
+        10.0, 2.244563, 0.0, -0.000447
+        100.0, 13.729876, 0.0, 0.0
+
+        Now, we define a profile geometry consisting of 3 stacked trapezes:
+
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(3)
+        ...     bottomlevels(1.0, 3.0, 5.0)
+        ...     bottomwidths(20.0)
+        ...     sideslopes(0.0, 0.0, 0.0)
+        ...     bottomslope(0.001)
+        ...     stricklercoefficients(30.0)
+        >>> derived.nmbdiscontinuities.update()
+        >>> derived.finaldepth2initialvolume.update()
+        >>> solver.watervolumetolerance.update()
+        >>> solver.waterdepthtolerance.update()
+
+        Method |Calc_WaterDepth_V1| uses the relevant bottom depths of these trapezes
+        as boundaries for the Pegasus method so that the corresponding discontinuities
+        cannot slow down its convergence:
+
+        >>> check_search_algorithm()
+        volume depth tolerance error
+        0.0, 0.0, 0.0, 0.0
+        0.1, 0.045296, 0.0, 0.0
+        1.0, 0.356503, 0.0, -0.000059
+        2.0, 0.632918, 0.0, -0.000027
+        5.0, 1.312357, 0.0, 0.0
+        10.0, 2.170538, 0.0, 0.0
+        100.0, 7.624652, 0.0, -0.000004
+
+        In the last example, the default tolerance values result in practically likely
+        irrelevant but still recognisable inaccuracies.  The following example shows
+        that decreasing the water depth-related tolerance reduces these errors:
+
+        >>> solver.waterdepthtolerance(0.0)
+        >>> check_search_algorithm()
+        volume depth tolerance error
+        0.0, 0.0, 0.0, 0.0
+        0.1, 0.045296, 0.0, 0.0
+        1.0, 0.356485, 0.0, 0.0
+        2.0, 0.632911, 0.0, 0.0
+        5.0, 1.312357, 0.0, 0.0
+        10.0, 2.170538, 0.0, 0.0
+        100.0, 7.624652, 0.0, 0.0
+    """
+
+    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
+    DERIVEDPARAMETERS = (
+        kinw_derived.Seconds,
+        kinw_derived.NmbDiscontinuities,
+        kinw_derived.FinalDepth2InitialVolume,
+    )
+    SOLVERPARAMETERS = (
+        kinw_solver.WaterVolumeTolerance,
+        kinw_solver.WaterDepthTolerance,
+    )
+    REQUIREDSEQUENCES = (kinw_states.WaterVolume,)
+    RESULTSEQUENCES = (kinw_factors.WaterDepth,)
+    SUBMODELS = (PegasusImplicitEuler,)
+    SUBMETHODS = (Return_VolumeError_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        sol = model.parameters.solver.fastaccess
+        old = model.sequences.states.fastaccess_old
+        fac = model.sequences.factors.fastaccess
+
+        i = model.idx_segment
+        d0: float = 0.0
+        if der.nmbdiscontinuities == 0:
+            d1: float = 10.0
+        else:
+            for j in range(der.nmbdiscontinuities):
+                d1 = der.finaldepth2initialvolume[j, 0]
+                if old.watervolume[i] <= der.finaldepth2initialvolume[j, 1]:
+                    break
+                d0 = d1
+            else:
+                d1 = d0 + 10.0
+
+        tol: float = old.watervolume[i] * sol.watervolumetolerance
+
+        fac.waterdepth[i] = model.pegasusimpliciteuler.find_x(
+            d0, d1, 0.0, 1000.0, sol.waterdepthtolerance, tol, 1000
+        )
+
+
+class Update_WaterVolume_V2(modeltools.Method):
+    r"""Calculate the new water volume that agrees with the previously calculated final
+    water depth.
+
+    Basic equation:
+      .. math::
+        V = A \cdot l / n \cdot 10^{-3}
+        \\ \\
+        V = WaterVolume \\
+        A = f_{get\_wettedarea}(D) \\
+        l = Length \\
+        n = NmbSegments
+
+    Examples:
+
+        Note that, usually, the W-Q submodel must have been processed with the correct
+        final water depth beforehand so that it can provide the related wetted area:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> length(100.0)
+        >>> nmbsegments(1)
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(1.0)
+        ...     sideslopes(0.0)
+        >>> model.wqmodel.sequences.factors.wettedarea = 2.0
+        >>> model.idx_segment = 0
+        >>> model.update_watervolume_v2()
+        >>> states.watervolume
+        watervolume(0.2)
+
+        For zero water depths or channel lengths, |Update_WaterVolume_V2| sets the
+        final water volume to zero (independent of the submodel's currentl wetted
+        area):
+
+        >>> model.wqmodel.sequences.factors.wettedarea = -999.0
+        >>> factors.waterdepth = 0.0
+        >>> model.update_watervolume_v2()
+        >>> states.watervolume
+        watervolume(0.0)
+        >>> factors.waterdepth = 1.0
+        >>> length(0.0)
+        >>> model.update_watervolume_v2()
+        >>> states.watervolume
+        watervolume(0.0)
+    """
+
+    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
+    REQUIREDSEQUENCES = (kinw_factors.WaterDepth,)
+    UPDATEDSEQUENCES = (kinw_states.WaterVolume,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        new = model.sequences.states.fastaccess_new
+        fac = model.sequences.factors.fastaccess
+
+        i = model.idx_segment
+        if (fac.waterdepth[i] == 0.0) or (con.length == 0.0):
+            new.watervolume[i] = 0.0
+        else:
+            new.watervolume[i] = (
+                model.wqmodel.get_wettedarea() * con.length / con.nmbsegments / 1e3
+            )
+
+
+class Calc_InternalFlow_Outflow_V1(modeltools.Method):
+    r"""Calculate the flow out of the channel segments.
+
+    Basic equation:
+      .. math::
+        IO = (V_{old} - V_{new}) / s \cdot 1e6
+        \\ \\
+        IO = InternalFlow \ or Outflow \\
+        V = WaterVolume \\
+        s = Seconds
+
+    Example:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> nmbsegments(3)
+        >>> derived.seconds(1e6)
+        >>> states.watervolume.old = 5.0, 2.0, 4.0
+        >>> states.watervolume.new = 1.0, 4.0, 2.0
+        >>> model.run_segments(model.calc_internalflow_outflow_v1)
+        >>> fluxes.outflow
+        outflow(2.0)
+        >>> fluxes.internalflow
+        internalflow(4.0, -2.0)
+    """
+
+    CONTROLPARAMETERS = (kinw_control.NmbSegments,)
+    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
+    REQUIREDSEQUENCES = (kinw_states.WaterVolume,)
+    RESULTSEQUENCES = (kinw_fluxes.InternalFlow, kinw_fluxes.Outflow)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+
+        i = model.idx_segment
+        q: float = (old.watervolume[i] - new.watervolume[i]) / der.seconds * 1e6
+        if i + 1 < con.nmbsegments:
+            flu.internalflow[i] = q
+        else:
+            flu.outflow = q
+
+
+class Calc_Outflow_V1(modeltools.Method):
+    """Take the inflow as the outflow for channels zero-segment channels.
+
+    Basic equation:
+      .. math::
+        Outflow = Inflow
+
+    Examples:
+
+        Method |Calc_Outflow_V1| serves as a stopgap to ensure that the inflow is
+        correctly passed to the outflow if a model does not contain any segments:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> fluxes.inflow = 1.0
+        >>> fluxes.outflow = 0.0
+
+        >>> nmbsegments(1)
+        >>> model.calc_outflow_v1()
+        >>> fluxes.outflow
+        outflow(0.0)
+
+        >>> nmbsegments(0)
+        >>> model.calc_outflow_v1()
+        >>> fluxes.outflow
+        outflow(1.0)
+    """
+
+    CONTROLPARAMETERS = (kinw_control.NmbSegments,)
+    REQUIREDSEQUENCES = (kinw_fluxes.Inflow,)
+    RESULTSEQUENCES = (kinw_fluxes.Outflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        if con.nmbsegments == 0:
+            flu.outflow = flu.inflow
+
+
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node.
 
@@ -2366,7 +2910,32 @@ class Pass_Q_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
+
         out.q = flu.qa
+
+
+class Pass_Outflow_V1(modeltools.Method):
+    """Pass the outflow to the outlet node.
+
+    Example:
+
+        >>> from hydpy.models.kinw import *
+        >>> parameterstep()
+        >>> fluxes.outflow = 2.0
+        >>> model.pass_outflow_v1()
+        >>> outlets.q
+        q(2.0)
+    """
+
+    REQUIREDSEQUENCES = (kinw_fluxes.Outflow,)
+    RESULTSEQUENCES = (kinw_outlets.Q,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+
+        out.q = flu.outflow
 
 
 class Return_QF_V1(modeltools.Method):
@@ -2758,7 +3327,7 @@ class PegasusH(roottools.Pegasus):
     METHODS = (Return_QF_V1,)
 
 
-class Model(modeltools.ELSModel):
+class Model(modeltools.ELSModel, modeltools.SegmentModel):
     """|kinw.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="KinW")
@@ -2769,12 +3338,25 @@ class Model(modeltools.ELSModel):
         kinw_solver.RelErrorMax,
         kinw_solver.RelDTMin,
         kinw_solver.RelDTMax,
+        kinw_solver.WaterVolumeTolerance,
+        kinw_solver.WaterDepthTolerance,
+        kinw_solver.NmbRuns,
     )
     SOLVERSEQUENCES = ()
-    INLET_METHODS = (Pick_Q_V1,)
+    INLET_METHODS = (Pick_Q_V1, Pick_Inflow_V1)
     OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
-    ADD_METHODS = (Return_QF_V1, Return_H_V1)
+    ADD_METHODS = (
+        Return_QF_V1,
+        Return_H_V1,
+        Update_WaterVolume_V1,
+        Return_InitialWaterVolume_V1,
+        Return_VolumeError_V1,
+        Calc_WaterDepth_V1,
+        Update_WaterVolume_V2,
+        Calc_InternalFlow_Outflow_V1,
+    )
+    RUN_METHODS = ()
     PART_ODE_METHODS = (
         Calc_RHM_V1,
         Calc_RHMDH_V1,
@@ -2808,10 +3390,14 @@ class Model(modeltools.ELSModel):
         Calc_DH_V1,
     )
     FULL_ODE_METHODS = (Update_H_V1, Update_VG_V1)
-    OUTLET_METHODS = (Pass_Q_V1,)
+    OUTLET_METHODS = (Pass_Q_V1, Calc_Outflow_V1, Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
-    SUBMODELS = (PegasusH,)
+    SUBMODELS = (PegasusH, PegasusImplicitEuler)
+
+    wqmodel = modeltools.SubmodelProperty(routinginterfaces.CrossSectionModel_V1)
+    wqmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    wqmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
 
 class BaseModelProfile(modeltools.ELSModel):

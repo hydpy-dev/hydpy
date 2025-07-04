@@ -5,6 +5,16 @@
 from hydpy.core import parametertools
 
 
+class NmbRuns(parametertools.SolverParameter):
+    """The number of (repeated) runs of the |RunModel.RUN_METHODS| per simulation step
+    [-]."""
+
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    INIT = 1
+
+
 class AbsErrorMax(parametertools.SolverParameter):
     """Absolute numerical error tolerance [m³/s]."""
 

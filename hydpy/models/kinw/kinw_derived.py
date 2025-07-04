@@ -12,6 +12,10 @@ class Sek(parametertools.SecondsParameter):
     simulation time step) [s]."""
 
 
+class Seconds(parametertools.SecondsParameter):
+    """The length of the actual simulation step size in seconds [s]."""
+
+
 class HV(parametertools.LeftRightParameter):
     """Höhe Vorländer (height of both forelands) [m]."""
 

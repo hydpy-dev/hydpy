@@ -1860,6 +1860,26 @@ class TrapezeModel(modeltools.AdHocModel):
 
         return pyplot.gcf()
 
+    def get_depths_of_discontinuity(self) -> tuple[float, ...]:
+        """Get the depths of all trapeze bottoms (except zero).
+
+        >>> from hydpy.models.wq_trapeze_strickler import *
+        >>> parameterstep()
+
+        >>> nmbtrapezes(1)
+        >>> bottomlevels(1.0)
+        >>> model.get_depths_of_discontinuity()
+        ()
+
+        >>> nmbtrapezes(3)
+        >>> bottomlevels(1.0, 3.0, 4.0)
+        >>> from hydpy import print_vector
+        >>> print_vector(model.get_depths_of_discontinuity())
+        2.0, 3.0
+        """
+        bottomlevels = self.parameters.control.bottomlevels.values
+        return tuple(bottomlevels[1:] - bottomlevels[0])
+
 
 class Base_DischargeModel_V2(dischargeinterfaces.DischargeModel_V2):
     """Base class for |wq.DOCNAME.long| models that comply with the |DischargeModel_V2|

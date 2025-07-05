@@ -19,6 +19,10 @@ class CrossSectionModel_V1(modeltools.SubmodelInterface):
     def prepare_bottomslope(self, bottomslope: int) -> None:
         """Set the bottom's slope (in the longitudinal direction) [-]."""
 
+    def get_depths_of_discontinuity(self) -> tuple[float, ...]:
+        """Get all water depths that define points of discontinuity (except zero)."""
+        assert False
+
     @modeltools.abstractmodelmethod
     def use_waterdepth(self, waterdepth: float, /) -> None:
         """Set the water depth in m and use it to calculate all other properties."""
@@ -50,6 +54,10 @@ class CrossSectionModel_V2(modeltools.SubmodelInterface):
 
     typeid: ClassVar[Literal[2]] = 2
     """Type identifier for |CrossSectionModel_V2| submodels."""
+
+    def get_depths_of_discontinuity(self) -> tuple[float, ...]:
+        """Get all water depths that define points of discontinuity (except zero)."""
+        assert False
 
     @modeltools.abstractmodelmethod
     def use_waterdepth(self, waterdepth: float, /) -> None:

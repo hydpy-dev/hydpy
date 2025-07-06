@@ -2446,6 +2446,63 @@ class Return_InitialWaterVolume_V1(modeltools.Method):
         )
 
 
+class Return_VolumeError_V1(modeltools.Method):
+    r"""Calculate and return the difference between the initial water volume that stems
+    from the last simulation step plus the current inflow and the water volume that
+    agrees with the given final water depth following the implicit Euler method.
+
+    Basic equation:
+      .. math::
+        V_1 - V_2
+        \\ \\
+        V_1 = InitialWaterVolume \\
+        V_2 = f_{Return\_InitialWaterVolume\_V1}(waterdepth)
+
+    Examples:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> length(100.0)
+        >>> nmbsegments(10)
+        >>> derived.seconds(60 * 60 * 24)
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(1.0)
+        ...     bottomwidths(20.0)
+        ...     sideslopes(0.0)
+        ...     bottomslope(0.001)
+        ...     stricklercoefficients(30.0)
+        >>> aides.initialwatervolume = 4.0
+        >>> from hydpy import round_
+        >>> round_(model.return_volumeerror_v1(2.0))
+        -1.008867
+
+        For a given water depth of zero, |Return_VolumeError_V1| simply returns the
+        value of |InitialWaterVolume| to safe computation efforts:
+
+        >>> round_(model.return_volumeerror_v1(0.0))
+        4.0
+
+        The following example shows that this simplification is correct:
+
+        >>> round_(model.return_volumeerror_v1(1e-6))
+        4.0
+    """
+
+    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
+    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
+    REQUIREDSEQUENCES = (kinw_aides.InitialWaterVolume,)
+    SUBMETHODS = (Return_InitialWaterVolume_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, waterdepth: float) -> float:
+        aid = model.sequences.aides.fastaccess
+
+        if waterdepth == 0.0:
+            return aid.initialwatervolume
+        return aid.initialwatervolume - model.return_initialwatervolume_v1(waterdepth)
+
+
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node.
 
@@ -2878,6 +2935,7 @@ class Model(modeltools.ELSModel):
         Return_QF_V1,
         Return_H_V1,
         Return_InitialWaterVolume_V1,
+        Return_VolumeError_V1,
     )
     PART_ODE_METHODS = (
         Calc_RHM_V1,

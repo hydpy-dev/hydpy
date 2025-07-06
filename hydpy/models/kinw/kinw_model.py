@@ -2393,7 +2393,7 @@ class Return_InitialWaterVolume_V1(modeltools.Method):
 
     Examples:
 
-        The calculated initial volume is the sum of water volume at the end of the
+        The calculated initial volume is the sum of the water volume at the end of the
         simulation step and the outflow during the simulation step:
 
         >>> from hydpy.models.kinw_impl_euler import *

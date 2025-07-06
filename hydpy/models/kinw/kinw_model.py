@@ -2376,6 +2376,76 @@ class Calc_QA_V1(modeltools.Method):
             flu.qa = flu.qz
 
 
+class Return_InitialWaterVolume_V1(modeltools.Method):
+    r"""Calculate and return the initial water volume that agrees with the given
+    final water depth following the implicit Euler method.
+
+    Basic equation:
+      .. math::
+        A \cdot l / n \cdot 10^{-3} + Q \cdot s \cdot 10^{-6}
+        \\ \\
+        d = waterdepth \\
+        A = f_{get\_wettedarea}(d) \\
+        l = Length \\
+        n = NmbSegments \\
+        Q = f_{get\_discharge}(d) \\
+        s = Seconds
+
+    Examples:
+
+        The initial volume consists of the final volume of the last simulation step and
+        the inflow volume of the current simulation step:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> length(100.0)
+        >>> nmbsegments(10)
+        >>> derived.seconds(60 * 60 * 24)
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(1.0)
+        ...     bottomwidths(20.0)
+        ...     sideslopes(0.0)
+        ...     bottomslope(0.001)
+        ...     stricklercoefficients(30.0)
+        >>> from hydpy import round_
+        >>> round_(model.return_initialwatervolume_v1(2.0))
+        5.008867
+
+        If a segment has zero length, it can, of course, store no water.  Hence, the
+        returned value then only comprises the volume of the inflow of the current
+        simulation step:
+
+        >>> length(0.0)
+        >>> round_(model.return_initialwatervolume_v1(2.0))
+        4.608867
+
+        Method |Return_InitialWaterVolume_V1| handles cases where the number of
+        segments is zero as if the channel's length is zero (even if it is
+        inconsistently set to a larger value):
+
+        >>> length(100.0)
+        >>> nmbsegments(0)
+        >>> round_(model.return_initialwatervolume_v1(2.0))
+        4.608867
+    """
+
+    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
+    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, waterdepth: float) -> float:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+
+        model.wqmodel.use_waterdepth(waterdepth)
+        sublength = con.length / con.nmbsegments if con.nmbsegments > 0 else 0.0
+        return (
+                model.wqmodel.get_wettedarea() * sublength / 1e3
+                + model.wqmodel.get_discharge() * der.seconds / 1e6
+        )
+
+
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node.
 

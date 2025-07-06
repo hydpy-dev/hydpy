@@ -257,21 +257,11 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
         >>> derived.finaldepth2initialvolume
         finaldepth2initialvolume([[2.0, 5.008867],
                                   [4.0, 19.01208]])
-
-        For channels without any segments (when parameter |FinalDepth2InitialVolume| is
-        not required and the segment length is not defined), all values become
-        |numpy.nan|:
-
-        >>> nmbsegments(0)
-        >>> derived.nmbdiscontinuities.update()
-        >>> derived.finaldepth2initialvolume.update()
-        >>> derived.finaldepth2initialvolume
-        finaldepth2initialvolume(nan)
         """
         self.shape = (self.subpars.nmbdiscontinuities.value, 2)
         self.values = numpy.nan
         parameters = self.subpars.pars
-        if (self.shape[0] > 0) and (parameters.control.nmbsegments.value > 0):
+        if self.shape[0] > 0:
             model = parameters.model
             for i, d in enumerate(model.wqmodel.get_depths_of_discontinuity()):
                 self.values[i, :] = d, model.return_initialwatervolume(d)

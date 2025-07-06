@@ -2804,7 +2804,11 @@ class Model(modeltools.ELSModel):
     INLET_METHODS = (Pick_Q_V1, Pick_Inflow_V1)
     OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
-    ADD_METHODS = (Return_QF_V1, Return_H_V1)
+    ADD_METHODS = (
+        Return_QF_V1,
+        Return_H_V1,
+        Return_InitialWaterVolume_V1,
+    )
     PART_ODE_METHODS = (
         Calc_RHM_V1,
         Calc_RHMDH_V1,

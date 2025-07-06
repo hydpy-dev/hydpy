@@ -1,6 +1,9 @@
 # pylint: disable=missing-module-docstring
 
 # import...
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.auxs import smoothtools
@@ -199,3 +202,76 @@ class HRP(parametertools.Parameter):
         """
         metapar = self.subpars.pars.control.hr.value
         self(smoothtools.calc_smoothpar_logistic2(metapar))
+
+
+class NmbDiscontinuities(parametertools.Parameter):
+    """Number of points of discontinuity in the rating curve [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+
+    def update(self):
+        """Take the number of discontinuities from the available cross-section
+        submodel.
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(2)
+        ...     bottomlevels(1.0, 3.0)
+        ...     bottomslope(0.01)
+        ...     sideslopes(2.0, 4.0)
+        >>> derived.nmbdiscontinuities.update()
+        >>> derived.nmbdiscontinuities
+        nmbdiscontinuities(1)
+        """
+        wqmodel = self.subpars.pars.model.wqmodel
+        self(len(wqmodel.get_depths_of_discontinuity()))
+
+
+class FinalDepth2InitialVolume(parametertools.Parameter):
+    """A pair of the final water depth and the corresponding initial water volume
+    according to the implicit Euler method for each point of discontinuity in the
+    rating curve [m and million m³]."""
+
+    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+
+    def update(self):
+        """Use the methods |CrossSectionModel_V1.get_depths_of_discontinuity| and
+        |Return_InitialWaterVolume_V1| to determine the final water depths and the
+        corresponding initial water volumes.
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> length(100.0)
+        >>> nmbsegments(10)
+        >>> derived.seconds(60 * 60 * 24)
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(3)
+        ...     bottomlevels(1.0, 3.0, 5.0)
+        ...     bottomwidths(20.0)
+        ...     sideslopes(0.0, 0.0, 0.0)
+        ...     bottomslope(0.001)
+        ...     stricklercoefficients(30.0)
+        >>> derived.nmbdiscontinuities.update()
+        >>> derived.finaldepth2initialvolume.update()
+        >>> derived.finaldepth2initialvolume
+        finaldepth2initialvolume([[2.0, 5.008867],
+                                  [4.0, 19.01208]])
+
+        For channels without any segments (when parameter |FinalDepth2InitialVolume| is
+        not required and the segment length is not defined), all values become
+        |numpy.nan|:
+
+        >>> nmbsegments(0)
+        >>> derived.nmbdiscontinuities.update()
+        >>> derived.finaldepth2initialvolume.update()
+        >>> derived.finaldepth2initialvolume
+        finaldepth2initialvolume(nan)
+        """
+        self.shape = (self.subpars.nmbdiscontinuities.value, 2)
+        self.values = numpy.nan
+        parameters = self.subpars.pars
+        if (self.shape[0] > 0) and (parameters.control.nmbsegments.value > 0):
+            model = parameters.model
+            for i, d in enumerate(model.wqmodel.get_depths_of_discontinuity()):
+                self.values[i, :] = d, model.return_initialwatervolume(d)

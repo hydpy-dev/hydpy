@@ -2510,6 +2510,98 @@ class PegasusImplicitEuler(roottools.Pegasus):
     METHODS = (Return_VolumeError_V1,)
 
 
+class Calc_InitialWaterVolume_V1(modeltools.Method):
+    r"""Calculate the water volume that agrees with the water level stemming from the
+    last simulation step plus the current inflow.
+
+    Basic equation:
+      .. math::
+        V = A \cdot l / n \cdot 10^{-3} + Q \cdot s \cdot 10^{-6}
+        \\ \\
+        V = InitialWaterVolume \\
+        D = WaterDepth \\
+        A = f_{get\_wettedarea}(D) \\
+        l = Length \\
+        n = NmbSegments \\
+        Q = Inflow \ or \ InternalFlow \\
+        s = Seconds
+
+    Examples:
+
+        The math of method |Calc_InitialWaterVolume_V1| is quite similar to the one of
+        method |Return_InitialWaterVolume_V1|.  However, while
+        |Return_InitialWaterVolume_V1| calculates the initial water volume that
+        corresponds to a final water depth plus the corresponding outflow,
+        |Calc_InitialWaterVolume_V1| calculates the initial water volume that
+        corresponds to the initial water depth plus the already known inflow:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> length(100.0)
+        >>> nmbsegments(3)
+        >>> derived.seconds(60 * 60 * 24)
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(1.0)
+        ...     bottomwidths(20.0)
+        ...     sideslopes(0.0)
+        ...     bottomslope(0.001)
+        ...     stricklercoefficients(30.0)
+        >>> states.waterdepth = 2.0, 0.0, 1e-8
+        >>> fluxes.inflow = 1.0
+        >>> fluxes.internalflow = 2.0, 2.0
+        >>> model.idx_segment = 0
+        >>> model.calc_initialwatervolume_v1()
+        >>> aides.initialwatervolume
+        initialwatervolume(1.419733)
+
+        The behaviour of method |Calc_InitialWaterVolume_V1| for channels with zero
+        length or without any segments is the same as described for method
+        |Return_InitialWaterVolume_V1|:
+
+        >>> model.idx_segment = 1
+        >>> model.calc_initialwatervolume_v1()
+        >>> aides.initialwatervolume
+        initialwatervolume(0.1728)
+        >>> model.idx_segment = 2
+        >>> model.calc_initialwatervolume_v1()
+        >>> aides.initialwatervolume
+        initialwatervolume(0.1728)
+    """
+
+    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
+    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
+    REQUIREDSEQUENCES = (
+        kinw_states.WaterDepth,
+        kinw_fluxes.Inflow,
+        kinw_fluxes.InternalFlow,
+    )
+    RESULTSEQUENCES = (kinw_aides.InitialWaterVolume,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        d: float = sta.waterdepth[model.idx_segment]
+        if d == 0.0:
+            v: float = 0.0
+        else:
+            sublength = con.length / con.nmbsegments if con.nmbsegments > 0 else 0.0
+            model.wqmodel.use_waterdepth(d)
+            v = model.wqmodel.get_wettedarea() * sublength / 1e3
+
+        if model.idx_segment == 0:
+            q: float = flu.inflow
+        else:
+            q = flu.internalflow[model.idx_segment - 1]
+
+        aid.initialwatervolume = v + q * der.seconds / 1e6
+
+
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node.
 
@@ -2943,6 +3035,7 @@ class Model(modeltools.ELSModel):
         Return_H_V1,
         Return_InitialWaterVolume_V1,
         Return_VolumeError_V1,
+        Calc_InitialWaterVolume_V1,
     )
     PART_ODE_METHODS = (
         Calc_RHM_V1,

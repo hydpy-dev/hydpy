@@ -2393,8 +2393,8 @@ class Return_InitialWaterVolume_V1(modeltools.Method):
 
     Examples:
 
-        The initial volume consists of the final volume of the last simulation step and
-        the inflow volume of the current simulation step:
+        The calculated initial volume is the sum of water volume at the end of the
+        simulation step and the outflow during the simulation step:
 
         >>> from hydpy.models.kinw_impl_euler import *
         >>> parameterstep()
@@ -2413,7 +2413,7 @@ class Return_InitialWaterVolume_V1(modeltools.Method):
         5.008867
 
         If a segment has zero length, it can, of course, store no water.  Hence, the
-        returned value then only comprises the volume of the inflow of the current
+        returned value then only comprises the volume of the outflow of the current
         simulation step:
 
         >>> length(0.0)
@@ -2441,8 +2441,8 @@ class Return_InitialWaterVolume_V1(modeltools.Method):
         model.wqmodel.use_waterdepth(waterdepth)
         sublength = con.length / con.nmbsegments if con.nmbsegments > 0 else 0.0
         return (
-                model.wqmodel.get_wettedarea() * sublength / 1e3
-                + model.wqmodel.get_discharge() * der.seconds / 1e6
+            model.wqmodel.get_wettedarea() * sublength / 1e3
+            + model.wqmodel.get_discharge() * der.seconds / 1e6
         )
 
 

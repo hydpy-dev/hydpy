@@ -2503,6 +2503,13 @@ class Return_VolumeError_V1(modeltools.Method):
         return aid.initialwatervolume - model.return_initialwatervolume_v1(waterdepth)
 
 
+class PegasusImplicitEuler(roottools.Pegasus):
+    """Pegasus iterator for determining the water level at the end of a simulation
+    step."""
+
+    METHODS = (Return_VolumeError_V1,)
+
+
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node.
 
@@ -2973,7 +2980,7 @@ class Model(modeltools.ELSModel):
     OUTLET_METHODS = (Pass_Q_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
-    SUBMODELS = (PegasusH,)
+    SUBMODELS = (PegasusH, PegasusImplicitEuler)
 
 
 class BaseModelProfile(modeltools.ELSModel):

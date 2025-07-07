@@ -3199,6 +3199,8 @@ class Model(modeltools.ELSModel):
         kinw_solver.RelErrorMax,
         kinw_solver.RelDTMin,
         kinw_solver.RelDTMax,
+        kinw_solver.WaterVolumeTolerance,
+        kinw_solver.WaterDepthTolerance,
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (Pick_Q_V1, Pick_Inflow_V1)

@@ -304,10 +304,3 @@ class QRVRDH(sequencetools.AideSequence):
     """Ableitung von |QRVR| (derivative of |QRVR|) [m³/m]."""
 
     NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
-
-
-class InitialWaterVolume(sequencetools.AideSequence):
-    """The water volume at the beginning of an implicit Euler integration step
-    [million m³]."""
-
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)

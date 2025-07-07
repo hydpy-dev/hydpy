@@ -16,6 +16,7 @@ from hydpy.models.kinw import kinw_derived
 from hydpy.models.kinw import kinw_fixed
 from hydpy.models.kinw import kinw_solver
 from hydpy.models.kinw import kinw_fluxes
+from hydpy.models.kinw import kinw_factors
 from hydpy.models.kinw import kinw_states
 from hydpy.models.kinw import kinw_aides
 from hydpy.models.kinw import kinw_inlets

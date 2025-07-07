@@ -11,6 +11,7 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.cythons import smoothutils
+from hydpy.interfaces import routinginterfaces
 from hydpy.models.kinw import kinw_control
 from hydpy.models.kinw import kinw_derived
 from hydpy.models.kinw import kinw_fixed
@@ -2486,7 +2487,7 @@ class Return_InitialWaterVolume_V1(modeltools.Method):
         der = model.parameters.derived.fastaccess
 
         model.wqmodel.use_waterdepth(waterdepth)
-        sublength = con.length / con.nmbsegments if con.nmbsegments > 0 else 0.0
+        sublength: float = con.length / con.nmbsegments if con.nmbsegments > 0 else 0.0
         return (
             model.wqmodel.get_wettedarea() * sublength / 1e3
             + model.wqmodel.get_discharge() * der.seconds / 1e6
@@ -3326,7 +3327,7 @@ class PegasusH(roottools.Pegasus):
     METHODS = (Return_QF_V1,)
 
 
-class Model(modeltools.ELSModel):
+class Model(modeltools.ELSModel, modeltools.SegmentModel):
     """|kinw.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="KinW")
@@ -3339,6 +3340,7 @@ class Model(modeltools.ELSModel):
         kinw_solver.RelDTMax,
         kinw_solver.WaterVolumeTolerance,
         kinw_solver.WaterDepthTolerance,
+        kinw_solver.NmbRuns,
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (Pick_Q_V1, Pick_Inflow_V1)
@@ -3354,6 +3356,7 @@ class Model(modeltools.ELSModel):
         Update_WaterVolume_V2,
         Calc_InternalFlow_Outflow_V1,
     )
+    RUN_METHODS = ()
     PART_ODE_METHODS = (
         Calc_RHM_V1,
         Calc_RHMDH_V1,
@@ -3391,6 +3394,10 @@ class Model(modeltools.ELSModel):
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = (PegasusH, PegasusImplicitEuler)
+
+    wqmodel = modeltools.SubmodelProperty(routinginterfaces.CrossSectionModel_V1)
+    wqmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
+    wqmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
 
 class BaseModelProfile(modeltools.ELSModel):

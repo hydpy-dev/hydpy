@@ -2114,6 +2114,8 @@ class PyxWriter:
             from1, to1 = to1, from1
         yield from cls._declare_idxs(subseqs)
         for seq in subseqs:
+            if not seq.NUMERIC:
+                continue
             from2 = from1 % seq.name
             to2 = to1 % seq.name
             if seq.NDIM == 0:

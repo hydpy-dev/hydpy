@@ -2456,7 +2456,7 @@ class Return_VolumeError_V1(modeltools.Method):
       .. math::
         V_1 - V_2
         \\ \\
-        V_1 = InitialWaterVolume \\
+        V_1 = WaterVolume \\
         V_2 = f_{Return\_InitialWaterVolume\_V1}(waterdepth)
 
     Examples:
@@ -2473,7 +2473,7 @@ class Return_VolumeError_V1(modeltools.Method):
         ...     sideslopes(0.0)
         ...     bottomslope(0.001)
         ...     stricklercoefficients(30.0)
-        >>> aides.initialwatervolume = 4.0
+        >>> states.watervolume(4.0)
         >>> from hydpy import round_
         >>> round_(model.return_volumeerror_v1(2.0))
         -1.008867
@@ -2492,16 +2492,17 @@ class Return_VolumeError_V1(modeltools.Method):
 
     CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
     DERIVEDPARAMETERS = (kinw_derived.Seconds,)
-    REQUIREDSEQUENCES = (kinw_aides.InitialWaterVolume,)
+    REQUIREDSEQUENCES = (kinw_states.WaterVolume,)
     SUBMETHODS = (Return_InitialWaterVolume_V1,)
 
     @staticmethod
     def __call__(model: modeltools.Model, waterdepth: float) -> float:
-        aid = model.sequences.aides.fastaccess
+        old = model.sequences.states.fastaccess_old
 
+        v: float = old.watervolume[model.idx_segment]
         if waterdepth == 0.0:
-            return aid.initialwatervolume
-        return aid.initialwatervolume - model.return_initialwatervolume_v1(waterdepth)
+            return v
+        return v - model.return_initialwatervolume_v1(waterdepth)
 
 
 class PegasusImplicitEuler(roottools.Pegasus):

@@ -2848,6 +2848,47 @@ class Calc_InternalFlow_Outflow_V1(modeltools.Method):
             flu.outflow = q
 
 
+class Calc_Outflow_V1(modeltools.Method):
+    """Take the inflow as the outflow for channels zero-segment channels.
+
+    Basic equation:
+      .. math::
+        Outflow = Inflow
+
+    Examples:
+
+        Method |Calc_Outflow_V1| serves as a stopgap to ensure that the inflow is
+        correctly passed to the outflow if a model does not contain any segments:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> fluxes.inflow = 1.0
+        >>> fluxes.outflow = 0.0
+        
+        >>> nmbsegments(1)
+        >>> model.calc_outflow_v1()
+        >>> fluxes.outflow
+
+        outflow(0.0)
+        >>> nmbsegments(0)
+        >>> model.calc_outflow_v1()
+        >>> fluxes.outflow
+        outflow(1.0)
+    """
+
+    CONTROLPARAMETERS = (kinw_control.NmbSegments,)
+    REQUIREDSEQUENCES = (kinw_fluxes.Inflow,)
+    RESULTSEQUENCES = (kinw_fluxes.Outflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        if con.nmbsegments == 0:
+            flu.outflow = flu.inflow
+
+
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node.
 
@@ -3321,7 +3362,7 @@ class Model(modeltools.ELSModel):
         Calc_DH_V1,
     )
     FULL_ODE_METHODS = (Update_H_V1, Update_VG_V1)
-    OUTLET_METHODS = (Pass_Q_V1,)
+    OUTLET_METHODS = (Pass_Q_V1, Calc_Outflow_V1, Pass_Outflow_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = (PegasusH, PegasusImplicitEuler)

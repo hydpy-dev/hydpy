@@ -2377,6 +2377,52 @@ class Calc_QA_V1(modeltools.Method):
             flu.qa = flu.qz
 
 
+class Update_WaterVolume_V1(modeltools.Method):
+    r"""Update the old water volume with the current inflow.
+
+    Examples:
+
+        Method |Update_WaterVolume_V1| uses the value of sequence |kinw_fluxes.Inflow|
+        for the first segment and the respective values of sequences
+        |kinw_fluxes.InternalFlow| for the remaining segments:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> nmbsegments(3)
+        >>> derived.seconds(1e6)
+        >>> states.watervolume.old = 2.0, 3.0, 4.0
+        >>> fluxes.inflow = 1.0
+        >>> fluxes.internalflow = 2.0, 3.0
+        >>> model.run_segments(model.update_watervolume_v1)
+        >>> from hydpy import print_vector
+        >>> print_vector(states.watervolume.old)
+        3.0, 5.0, 7.0
+
+        Negative inflow values are acceptable, even if they result in negative amounts
+        of stored water:
+
+        >>> fluxes.inflow = -4.0
+        >>> fluxes.internalflow = -6.0, -6.0
+        >>> model.run_segments(model.update_watervolume_v1)
+        >>> print_vector(states.watervolume.old)
+        -1.0, -1.0, 1.0
+    """
+
+    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
+    REQUIREDSEQUENCES = (kinw_fluxes.Inflow, kinw_fluxes.InternalFlow)
+    UPDATEDSEQUENCES = (kinw_states.WaterVolume,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        der = model.parameters.derived.fastaccess
+        old = model.sequences.states.fastaccess_old
+        flu = model.sequences.fluxes.fastaccess
+
+        i = model.idx_segment
+        q: float = flu.inflow if (i == 0) else flu.internalflow[i - 1]
+        old.watervolume[i] += q * der.seconds / 1e6
+
+
 class Return_InitialWaterVolume_V1(modeltools.Method):
     r"""Calculate and return the initial water volume that agrees with the given
     final water depth following the implicit Euler method.

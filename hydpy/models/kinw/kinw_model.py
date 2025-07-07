@@ -2558,99 +2558,7 @@ class PegasusImplicitEuler(roottools.Pegasus):
     METHODS = (Return_VolumeError_V1,)
 
 
-class Calc_InitialWaterVolume_V1(modeltools.Method):
-    r"""Calculate the water volume that agrees with the water level stemming from the
-    last simulation step plus the current inflow.
-
-    Basic equation:
-      .. math::
-        V = A \cdot l / n \cdot 10^{-3} + Q \cdot s \cdot 10^{-6}
-        \\ \\
-        V = InitialWaterVolume \\
-        D = WaterDepth \\
-        A = f_{get\_wettedarea}(D) \\
-        l = Length \\
-        n = NmbSegments \\
-        Q = Inflow \ or \ InternalFlow \\
-        s = Seconds
-
-    Examples:
-
-        The math of method |Calc_InitialWaterVolume_V1| is quite similar to the one of
-        method |Return_InitialWaterVolume_V1|.  However, while
-        |Return_InitialWaterVolume_V1| calculates the initial water volume that
-        corresponds to a final water depth plus the corresponding outflow,
-        |Calc_InitialWaterVolume_V1| calculates the initial water volume that
-        corresponds to the initial water depth plus the already known inflow:
-
-        >>> from hydpy.models.kinw_impl_euler import *
-        >>> parameterstep()
-        >>> length(100.0)
-        >>> nmbsegments(3)
-        >>> derived.seconds(60 * 60 * 24)
-        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
-        ...     nmbtrapezes(1)
-        ...     bottomlevels(1.0)
-        ...     bottomwidths(20.0)
-        ...     sideslopes(0.0)
-        ...     bottomslope(0.001)
-        ...     stricklercoefficients(30.0)
-        >>> states.waterdepth = 2.0, 0.0, 1e-8
-        >>> fluxes.inflow = 1.0
-        >>> fluxes.internalflow = 2.0, 2.0
-        >>> model.idx_segment = 0
-        >>> model.calc_initialwatervolume_v1()
-        >>> aides.initialwatervolume
-        initialwatervolume(1.419733)
-
-        The behaviour of method |Calc_InitialWaterVolume_V1| for channels with zero
-        length or without any segments is the same as described for method
-        |Return_InitialWaterVolume_V1|:
-
-        >>> model.idx_segment = 1
-        >>> model.calc_initialwatervolume_v1()
-        >>> aides.initialwatervolume
-        initialwatervolume(0.1728)
-        >>> model.idx_segment = 2
-        >>> model.calc_initialwatervolume_v1()
-        >>> aides.initialwatervolume
-        initialwatervolume(0.1728)
-    """
-
-    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
-    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
-    REQUIREDSEQUENCES = (
-        kinw_states.WaterDepth,
-        kinw_fluxes.Inflow,
-        kinw_fluxes.InternalFlow,
-    )
-    RESULTSEQUENCES = (kinw_aides.InitialWaterVolume,)
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
-        der = model.parameters.derived.fastaccess
-        sta = model.sequences.states.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
-
-        d: float = sta.waterdepth[model.idx_segment]
-        if d == 0.0:
-            v: float = 0.0
-        else:
-            sublength = con.length / con.nmbsegments if con.nmbsegments > 0 else 0.0
-            model.wqmodel.use_waterdepth(d)
-            v = model.wqmodel.get_wettedarea() * sublength / 1e3
-
-        if model.idx_segment == 0:
-            q: float = flu.inflow
-        else:
-            q = flu.internalflow[model.idx_segment - 1]
-
-        aid.initialwatervolume = v + q * der.seconds / 1e6
-
-
-class Update_WaterDepth_V1(modeltools.Method):
+class Calc_WaterDepth_V1(modeltools.Method):
     r"""Determine the new water depth based on the implicit Euler method.
 
     Examples:
@@ -2690,9 +2598,9 @@ class Update_WaterDepth_V1(modeltools.Method):
         >>> def check_search_algorithm():
         ...     print("volume", "depth", "tolerance", "error")
         ...     for target_volume in (0.0, 0.1, 1.0, 2.0, 5.0, 10.0, 100.0):
-        ...         aides.initialwatervolume = target_volume
-        ...         model.update_waterdepth_v1()
-        ...         depth = states.waterdepth.values[0]
+        ...         states.watervolume.old = target_volume
+        ...         model.calc_waterdepth_v1()
+        ...         depth = factors.waterdepth.values[0]
         ...         volume = model.return_initialwatervolume_v1(depth)
         ...         tolerance = solver.watervolumetolerance * target_volume
         ...         error = target_volume - volume
@@ -2784,7 +2692,9 @@ class Update_WaterDepth_V1(modeltools.Method):
         100.0, 7.624652, 0.0, 0.0
     """
 
+    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
     DERIVEDPARAMETERS = (
+        kinw_derived.Seconds,
         kinw_derived.NmbDiscontinuities,
         kinw_derived.FinalDepth2InitialVolume,
     )
@@ -2792,35 +2702,35 @@ class Update_WaterDepth_V1(modeltools.Method):
         kinw_solver.WaterVolumeTolerance,
         kinw_solver.WaterDepthTolerance,
     )
-    UPDATEDSEQUENCES = (kinw_states.WaterDepth,)
+    REQUIREDSEQUENCES = (kinw_states.WaterVolume,)
+    RESULTSEQUENCES = (kinw_factors.WaterDepth,)
     SUBMODELS = (PegasusImplicitEuler,)
     SUBMETHODS = (Return_VolumeError_V1,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sol = model.parameters.solver.fastaccess
-        sta = model.sequences.states.fastaccess
-        flu = model.sequences.fluxes.fastaccess
-        aid = model.sequences.aides.fastaccess
+        old = model.sequences.states.fastaccess_old
+        fac = model.sequences.factors.fastaccess
 
+        i = model.idx_segment
         d0: float = 0.0
         if der.nmbdiscontinuities == 0:
             d1: float = 10.0
         else:
-            for i in range(der.nmbdiscontinuities):
-                d1 = der.finaldepth2initialvolume[i, 0]
-                if aid.initialwatervolume <= der.finaldepth2initialvolume[i, 1]:
+            for j in range(der.nmbdiscontinuities):
+                d1 = der.finaldepth2initialvolume[j, 0]
+                if old.watervolume[i] <= der.finaldepth2initialvolume[j, 1]:
                     break
                 d0 = d1
             else:
                 d1 = d0 + 10.0
 
-        tol_v: float = aid.initialwatervolume * sol.watervolumetolerance
+        tol: float = old.watervolume[i] * sol.watervolumetolerance
 
-        sta.waterdepth[model.idx_segment] = model.pegasusimpliciteuler.find_x(
-            d0, d1, 0.0, 1000.0, sol.waterdepthtolerance, tol_v, 1000
+        fac.waterdepth[i] = model.pegasusimpliciteuler.find_x(
+            d0, d1, 0.0, 1000.0, sol.waterdepthtolerance, tol, 1000
         )
 
 
@@ -3259,8 +3169,9 @@ class Model(modeltools.ELSModel):
         Return_H_V1,
         Return_InitialWaterVolume_V1,
         Return_VolumeError_V1,
-        Calc_InitialWaterVolume_V1,
-        Update_WaterDepth_V1,
+        # Calc_InitialWaterVolume_V1,
+        Calc_WaterDepth_V1,
+        Calc_InternalFlow_Outflow_V1,
     )
     PART_ODE_METHODS = (
         Calc_RHM_V1,

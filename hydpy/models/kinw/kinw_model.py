@@ -2602,6 +2602,180 @@ class Calc_InitialWaterVolume_V1(modeltools.Method):
         aid.initialwatervolume = v + q * der.seconds / 1e6
 
 
+class Update_WaterDepth_V1(modeltools.Method):
+    r"""Determine the new water depth based on the implicit Euler method.
+
+    Examples:
+
+        Compared to other (explicit) routing methods, the iterative approach of method
+        |Update_WaterDepth_V1| to determine the final water depth for each river
+        segment iteratively leads to high efficiency and (theoretically) absolute
+        stability for short channel segments (namely, stiff problems with a high
+        Courant number).  However, be aware that the accuracy of this iteration affects
+        the overall simulation.  We begin demonstrating this with a single trapezoid
+        and default numerical values:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> length(100.0)
+        >>> nmbsegments(1)
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(1.0)
+        ...     bottomwidths(20.0)
+        ...     sideslopes(0.0)
+        ...     bottomslope(0.001)
+        ...     stricklercoefficients(30.0)
+        >>> derived.seconds(60 * 60 * 24)
+        >>> derived.nmbdiscontinuities.update()
+        >>> derived.finaldepth2initialvolume.update()
+        >>> solver.watervolumetolerance.update()
+        >>> solver.waterdepthtolerance.update()
+        >>> model.idx_segment = 0
+
+        The following test function prints the resulting water depth for several
+        initial volumes and also prints the water volume-related error tolerance
+        (internally calculated as
+        :math:`WaterVolumeTolerance \cdot InitialWaterVolume`) and the actual error:
+
+        >>> from hydpy import print_vector
+        >>> def check_search_algorithm():
+        ...     print("volume", "depth", "tolerance", "error")
+        ...     for target_volume in (0.0, 0.1, 1.0, 2.0, 5.0, 10.0, 100.0):
+        ...         aides.initialwatervolume = target_volume
+        ...         model.update_waterdepth_v1()
+        ...         depth = states.waterdepth.values[0]
+        ...         volume = model.return_initialwatervolume_v1(depth)
+        ...         tolerance = solver.watervolumetolerance * target_volume
+        ...         error = target_volume - volume
+        ...         print_vector([target_volume, depth, tolerance, error])
+
+        All required and achieved accuracies are below the printed precisions:
+
+        >>> check_search_algorithm()
+        volume depth tolerance error
+        0.0, 0.0, 0.0, 0.0
+        0.1, 0.045296, 0.0, 0.0
+        1.0, 0.356485, 0.0, 0.0
+        2.0, 0.632911, 0.0, 0.0
+        5.0, 1.312357, 0.0, 0.0
+        10.0, 2.244486, 0.0, 0.0
+        100.0, 13.729876, 0.0, 0.0
+
+        If one wishes to improve accuracy or speed up the computation, it is preferable
+        to decrease or increase |WaterVolumeTolerance|.  Here, we increase it and
+        observe that higher numerical errors result:
+
+        >>> solver.watervolumetolerance(1e-4)
+        >>> check_search_algorithm()
+        volume depth tolerance error
+        0.0, 0.0, 0.0, 0.0
+        0.1, 0.045296, 0.00001, 0.0
+        1.0, 0.356498, 0.0001, -0.000042
+        2.0, 0.632912, 0.0002, -0.000004
+        5.0, 1.312356, 0.0005, 0.000004
+        10.0, 2.244563, 0.001, -0.000447
+        100.0, 13.729886, 0.01, -0.000091
+
+        Alternatively, one can modify the solver parameter |WaterDepthTolerance|, whose
+        value is used without any modification:
+
+        >>> solver.watervolumetolerance(0.0)
+        >>> solver.waterdepthtolerance(1e-2)
+        >>> check_search_algorithm()
+        volume depth tolerance error
+        0.0, 0.0, 0.0, 0.0
+        0.1, 0.045296, 0.0, 0.0
+        1.0, 0.356498, 0.0, -0.000042
+        2.0, 0.632912, 0.0, -0.000004
+        5.0, 1.312356, 0.0, 0.000004
+        10.0, 2.244563, 0.0, -0.000447
+        100.0, 13.729876, 0.0, 0.0
+
+        Now, we define a profile geometry consisting of 3 stacked trapezes:
+
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(3)
+        ...     bottomlevels(1.0, 3.0, 5.0)
+        ...     bottomwidths(20.0)
+        ...     sideslopes(0.0, 0.0, 0.0)
+        ...     bottomslope(0.001)
+        ...     stricklercoefficients(30.0)
+        >>> derived.nmbdiscontinuities.update()
+        >>> derived.finaldepth2initialvolume.update()
+        >>> solver.watervolumetolerance.update()
+        >>> solver.waterdepthtolerance.update()
+
+        Method |Update_WaterDepth_V1| uses the relevant bottom depths of these trapezes
+        as boundaries for the Pegasus method so that the corresponding discontinuities
+        cannot slow down its convergence:
+
+        >>> check_search_algorithm()
+        volume depth tolerance error
+        0.0, 0.0, 0.0, 0.0
+        0.1, 0.045296, 0.0, 0.0
+        1.0, 0.356503, 0.0, -0.000059
+        2.0, 0.632918, 0.0, -0.000027
+        5.0, 1.312357, 0.0, 0.0
+        10.0, 2.170538, 0.0, 0.0
+        100.0, 7.624652, 0.0, -0.000004
+
+        In the last example, the default tolerance values result in practically likely
+        irrelevant but still recognisable inaccuracies.  The following example shows
+        that decreasing the water depth-related tolerance reduces these errors:
+
+        >>> solver.waterdepthtolerance(0.0)
+        >>> check_search_algorithm()
+        volume depth tolerance error
+        0.0, 0.0, 0.0, 0.0
+        0.1, 0.045296, 0.0, 0.0
+        1.0, 0.356485, 0.0, 0.0
+        2.0, 0.632911, 0.0, 0.0
+        5.0, 1.312357, 0.0, 0.0
+        10.0, 2.170538, 0.0, 0.0
+        100.0, 7.624652, 0.0, 0.0
+    """
+
+    DERIVEDPARAMETERS = (
+        kinw_derived.NmbDiscontinuities,
+        kinw_derived.FinalDepth2InitialVolume,
+    )
+    SOLVERPARAMETERS = (
+        kinw_solver.WaterVolumeTolerance,
+        kinw_solver.WaterDepthTolerance,
+    )
+    UPDATEDSEQUENCES = (kinw_states.WaterDepth,)
+    SUBMODELS = (PegasusImplicitEuler,)
+    SUBMETHODS = (Return_VolumeError_V1,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        sol = model.parameters.solver.fastaccess
+        sta = model.sequences.states.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        d0: float = 0.0
+        if der.nmbdiscontinuities == 0:
+            d1: float = 10.0
+        else:
+            for i in range(der.nmbdiscontinuities):
+                d1 = der.finaldepth2initialvolume[i, 0]
+                if aid.initialwatervolume <= der.finaldepth2initialvolume[i, 1]:
+                    break
+                d0 = d1
+            else:
+                d1 = d0 + 10.0
+
+        tol_v: float = aid.initialwatervolume * sol.watervolumetolerance
+
+        sta.waterdepth[model.idx_segment] = model.pegasusimpliciteuler.find_x(
+            d0, d1, 0.0, 1000.0, sol.waterdepthtolerance, tol_v, 1000
+        )
+
+
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node.
 
@@ -3036,6 +3210,7 @@ class Model(modeltools.ELSModel):
         Return_InitialWaterVolume_V1,
         Return_VolumeError_V1,
         Calc_InitialWaterVolume_V1,
+        Update_WaterDepth_V1,
     )
     PART_ODE_METHODS = (
         Calc_RHM_V1,

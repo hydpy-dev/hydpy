@@ -2801,6 +2801,53 @@ class Update_WaterVolume_V2(modeltools.Method):
             )
 
 
+class Calc_InternalFlow_Outflow_V1(modeltools.Method):
+    """Calculate the flow out of the channel segments.
+
+    Basic equation:
+      .. math::
+        IO = (V_{old} - V_{new}) / s \cdot 1e6
+        \\ \\
+        IO = InternalFlow \ or Outflow \\
+        V = WaterVolume \\
+        s = Seconds
+
+    Example:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> nmbsegments(3)
+        >>> derived.seconds(1e6)
+        >>> states.watervolume.old = 5.0, 2.0, 4.0
+        >>> states.watervolume.new = 1.0, 4.0, 2.0
+        >>> model.run_segments(model.calc_internalflow_outflow_v1)
+        >>> fluxes.outflow
+        outflow(2.0)
+        >>> fluxes.internalflow
+        internalflow(4.0, -2.0)
+    """
+
+    CONTROLPARAMETERS = (kinw_control.NmbSegments,)
+    DERIVEDPARAMETERS = (kinw_derived.Seconds,)
+    REQUIREDSEQUENCES = (kinw_states.WaterVolume,)
+    RESULTSEQUENCES = (kinw_fluxes.InternalFlow, kinw_fluxes.Outflow)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        old = model.sequences.states.fastaccess_old
+        new = model.sequences.states.fastaccess_new
+
+        i = model.idx_segment
+        q: float = (old.watervolume[i] - new.watervolume[i]) / der.seconds * 1e6
+        if i + 1 < con.nmbsegments:
+            flu.internalflow[i] = q
+        else:
+            flu.outflow = q
+
+
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node.
 

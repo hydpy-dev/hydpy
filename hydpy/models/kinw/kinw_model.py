@@ -2864,7 +2864,7 @@ class Calc_Outflow_V1(modeltools.Method):
         >>> parameterstep()
         >>> fluxes.inflow = 1.0
         >>> fluxes.outflow = 0.0
-        
+
         >>> nmbsegments(1)
         >>> model.calc_outflow_v1()
         >>> fluxes.outflow
@@ -2909,7 +2909,32 @@ class Pass_Q_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
+
         out.q = flu.qa
+
+
+class Pass_Outflow_V1(modeltools.Method):
+    """Pass the outflow to the outlet node.
+
+    Example:
+
+        >>> from hydpy.models.kinw import *
+        >>> parameterstep()
+        >>> fluxes.outflow = 2.0
+        >>> model.pass_outflow_v1()
+        >>> outlets.q
+        q(2.0)
+    """
+
+    REQUIREDSEQUENCES = (kinw_fluxes.Outflow,)
+    RESULTSEQUENCES = (kinw_outlets.Q,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        flu = model.sequences.fluxes.fastaccess
+        out = model.sequences.outlets.fastaccess
+
+        out.q = flu.outflow
 
 
 class Return_QF_V1(modeltools.Method):

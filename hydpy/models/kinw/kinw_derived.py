@@ -224,8 +224,8 @@ class NmbDiscontinuities(parametertools.Parameter):
         >>> derived.nmbdiscontinuities
         nmbdiscontinuities(1)
         """
-        wqmodel = self.subpars.pars.model.wqmodel
-        self(len(wqmodel.get_depths_of_discontinuity()))
+        if (model := self.subpars.pars.model).__HYDPY_ROOTMODEL__:
+            self(len(model.wqmodel.get_depths_of_discontinuity()))
 
 
 class FinalDepth2InitialVolume(parametertools.Parameter):
@@ -258,10 +258,10 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
         finaldepth2initialvolume([[2.0, 5.008867],
                                   [4.0, 19.01208]])
         """
-        self.shape = (self.subpars.nmbdiscontinuities.value, 2)
-        self.values = numpy.nan
         parameters = self.subpars.pars
-        if self.shape[0] > 0:
-            model = parameters.model
-            for i, d in enumerate(model.wqmodel.get_depths_of_discontinuity()):
-                self.values[i, :] = d, model.return_initialwatervolume(d)
+        if (model := parameters.model).__HYDPY_ROOTMODEL__:
+            self.shape = (self.subpars.nmbdiscontinuities.value, 2)
+            self.values = numpy.nan
+            if self.shape[0] > 0:
+                for i, d in enumerate(model.wqmodel.get_depths_of_discontinuity()):
+                    self.values[i, :] = d, model.return_initialwatervolume(d)

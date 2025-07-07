@@ -2868,8 +2868,8 @@ class Calc_Outflow_V1(modeltools.Method):
         >>> nmbsegments(1)
         >>> model.calc_outflow_v1()
         >>> fluxes.outflow
-
         outflow(0.0)
+
         >>> nmbsegments(0)
         >>> model.calc_outflow_v1()
         >>> fluxes.outflow

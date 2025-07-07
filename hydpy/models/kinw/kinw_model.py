@@ -2734,6 +2734,73 @@ class Calc_WaterDepth_V1(modeltools.Method):
         )
 
 
+class Update_WaterVolume_V2(modeltools.Method):
+    r"""Calculate the new water volume that agrees with the previously calculated final
+    water depth.
+
+    Basic equation:
+      .. math::
+        V = A \cdot l / n \cdot 10^{-3}
+        \\ \\
+        V = WaterVolume \\
+        A = f_{get\_wettedarea}(D) \\
+        l = Length \\
+        n = NmbSegments
+
+    Examples:
+
+        Note that, usually, the W-Q submodel must have been processed with the correct
+        final water depth beforehand so that it can provide the related wetted area:
+
+        >>> from hydpy.models.kinw_impl_euler import *
+        >>> parameterstep()
+        >>> length(100.0)
+        >>> nmbsegments(1)
+        >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
+        ...     nmbtrapezes(1)
+        ...     bottomlevels(1.0)
+        ...     sideslopes(0.0)
+        >>> model.wqmodel.sequences.factors.wettedarea = 2.0
+        >>> model.idx_segment = 0
+        >>> model.update_watervolume_v2()
+        >>> states.watervolume
+        watervolume(0.2)
+
+        For zero water depths or channel lengths, |Update_WaterVolume_V2| sets the
+        final water volume to zero (independent of the submodel's currentl wetted
+        area):
+
+        >>> model.wqmodel.sequences.factors.wettedarea = -999.0
+        >>> factors.waterdepth = 0.0
+        >>> model.update_watervolume_v2()
+        >>> states.watervolume
+        watervolume(0.0)
+        >>> factors.waterdepth = 1.0
+        >>> length(0.0)
+        >>> model.update_watervolume_v2()
+        >>> states.watervolume
+        watervolume(0.0)
+    """
+
+    CONTROLPARAMETERS = (kinw_control.Length, kinw_control.NmbSegments)
+    REQUIREDSEQUENCES = (kinw_factors.WaterDepth,)
+    UPDATEDSEQUENCES = (kinw_states.WaterVolume,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        new = model.sequences.states.fastaccess_new
+        fac = model.sequences.factors.fastaccess
+
+        i = model.idx_segment
+        if (fac.waterdepth[i] == 0.0) or (con.length == 0.0):
+            new.watervolume[i] = 0.0
+        else:
+            new.watervolume[i] = (
+                model.wqmodel.get_wettedarea() * con.length / con.nmbsegments / 1e3
+            )
+
+
 class Pass_Q_V1(modeltools.Method):
     """Pass the outflow to the outlet node.
 
@@ -3167,10 +3234,11 @@ class Model(modeltools.ELSModel):
     ADD_METHODS = (
         Return_QF_V1,
         Return_H_V1,
+        Update_WaterVolume_V1,
         Return_InitialWaterVolume_V1,
         Return_VolumeError_V1,
-        # Calc_InitialWaterVolume_V1,
         Calc_WaterDepth_V1,
+        Update_WaterVolume_V2,
         Calc_InternalFlow_Outflow_V1,
     )
     PART_ODE_METHODS = (

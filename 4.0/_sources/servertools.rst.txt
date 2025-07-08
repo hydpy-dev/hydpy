@@ -1,0 +1,63 @@
+.. |ChangeItem| replace:: :class:`~hydpy.core.itemtools.ChangeItem`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |GetItem| replace:: :class:`~hydpy.core.itemtools.GetItem`
+.. |HydPyServer.GET_close_server| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_close_server`
+.. |HydPyServer.GET_conditionitemtypes| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_conditionitemtypes`
+.. |HydPyServer.GET_conditionitemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_conditionitemvalues`
+.. |HydPyServer.GET_execute| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_execute`
+.. |HydPyServer.GET_getitemtypes| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_getitemtypes`
+.. |HydPyServer.GET_getitemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_getitemvalues`
+.. |HydPyServer.GET_itemtypes| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_itemtypes`
+.. |HydPyServer.GET_load_conditionvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_load_conditionvalues`
+.. |HydPyServer.GET_parameteritemtypes| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_parameteritemtypes`
+.. |HydPyServer.GET_parameteritemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_parameteritemvalues`
+.. |HydPyServer.GET_save_conditionvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_save_conditionvalues`
+.. |HydPyServer.GET_save_getitemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_save_getitemvalues`
+.. |HydPyServer.GET_save_modifiedconditionitemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_save_modifiedconditionitemvalues`
+.. |HydPyServer.GET_save_parameteritemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_save_parameteritemvalues`
+.. |HydPyServer.GET_save_timegrid| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_save_timegrid`
+.. |HydPyServer.GET_savedgetitemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_savedgetitemvalues`
+.. |HydPyServer.GET_savedmodifiedconditionitemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_savedmodifiedconditionitemvalues`
+.. |HydPyServer.GET_savedparameteritemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_savedparameteritemvalues`
+.. |HydPyServer.GET_savedtimegrid| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_savedtimegrid`
+.. |HydPyServer.GET_simulate| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_simulate`
+.. |HydPyServer.GET_timegrid| replace:: :func:`~hydpy.exe.servertools.HydPyServer.GET_timegrid`
+.. |HydPyServer.POST_changeitemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.POST_changeitemvalues`
+.. |HydPyServer.POST_conditionitemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.POST_conditionitemvalues`
+.. |HydPyServer.POST_evaluate| replace:: :func:`~hydpy.exe.servertools.HydPyServer.POST_evaluate`
+.. |HydPyServer.POST_execute| replace:: :func:`~hydpy.exe.servertools.HydPyServer.POST_execute`
+.. |HydPyServer.POST_parameteritemvalues| replace:: :func:`~hydpy.exe.servertools.HydPyServer.POST_parameteritemvalues`
+.. |HydPyServer.POST_timegrid| replace:: :func:`~hydpy.exe.servertools.HydPyServer.POST_timegrid`
+.. |HydPyServer.do_GET| replace:: :func:`~hydpy.exe.servertools.HydPyServer.do_GET`
+.. |HydPyServer| replace:: :class:`~hydpy.exe.servertools.HydPyServer`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |IOSequence| replace:: :class:`~hydpy.core.sequencetools.IOSequence`
+.. |LogSequence| replace:: :class:`~hydpy.core.sequencetools.LogSequence`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Sequence_| replace:: :class:`~hydpy.core.sequencetools.Sequence_`
+.. |ServerState| replace:: :class:`~hydpy.exe.servertools.ServerState`
+.. |StateSequence| replace:: :class:`~hydpy.core.sequencetools.StateSequence`
+.. |Timegrid| replace:: :class:`~hydpy.core.timetools.Timegrid`
+.. |Variable| replace:: :class:`~hydpy.core.variabletools.Variable`
+.. |hyd| replace:: :mod:`~hydpy.exe.hyd`
+.. |mimetypes| replace:: :mod:`~mimetypes`
+.. |prepare_full_example_1| replace:: :func:`~hydpy.examples.prepare_full_example_1`
+.. |scipy| replace:: :mod:`~scipy`
+.. |servertools| replace:: :mod:`~hydpy.exe.servertools`
+.. |start_server| replace:: :func:`~hydpy.exe.servertools.start_server`
+.. |xmltools| replace:: :mod:`~hydpy.auxs.xmltools`
+.. |hland_control.Alpha| replace:: :class:`~hydpy.models.hland.hland_control.Alpha`
+.. |hland_control.FC| replace:: :class:`~hydpy.models.hland.hland_control.FC`
+.. |hland_states.SM| replace:: :class:`~hydpy.models.hland.hland_states.SM`
+.. |mimetypes.init| replace:: :func:`~mimetypes.init`
+
+.. _servertools:
+
+servertools
+===========
+
+.. automodule:: hydpy.exe.servertools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

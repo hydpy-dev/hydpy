@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.arma.arma_derived &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.arma.arma_derived</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.arma.arma_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.arma</span> <span class="kn">import</span> <span class="n">arma_control</span>
+
+
+<div class="viewcode-block" id="Nmb">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.Nmb">[docs]</a>
+<span class="k">class</span> <span class="nc">Nmb</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of response functions [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">arma_control</span><span class="o">.</span><span class="n">Responses</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="Nmb.update">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.Nmb.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the number of response functions.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.arma import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmb.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmb</span>
+<span class="sd">        nmb(2)</span>
+
+<span class="sd">        Note that updating parameter `nmb` sets the shape of the flux</span>
+<span class="sd">        sequences |QPIn|, |QPOut|, |QMA|, and |QAR| automatically.</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.qpin</span>
+<span class="sd">        qpin(nan, nan)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qpout</span>
+<span class="sd">        qpout(nan, nan)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qma</span>
+<span class="sd">        qma(nan, nan)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qar</span>
+<span class="sd">        qar(nan, nan)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span>
+        <span class="n">responses</span> <span class="o">=</span> <span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">responses</span>
+        <span class="n">fluxes</span> <span class="o">=</span> <span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
+        <span class="n">fluxes</span><span class="o">.</span><span class="n">qpin</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">fluxes</span><span class="o">.</span><span class="n">qpout</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">fluxes</span><span class="o">.</span><span class="n">qma</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">fluxes</span><span class="o">.</span><span class="n">qar</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MaxQ">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.MaxQ">[docs]</a>
+<span class="k">class</span> <span class="nc">MaxQ</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum discharge values of the respective ARMA models [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">arma_control</span><span class="o">.</span><span class="n">Responses</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="MaxQ.update">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.MaxQ.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the maximum discharge values.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.arma import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))</span>
+<span class="sd">        &gt;&gt;&gt; derived.maxq.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.maxq</span>
+<span class="sd">        maxq(0.0, 3.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">responses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">responses</span><span class="o">.</span><span class="n">thresholds</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="DiffQ">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.DiffQ">[docs]</a>
+<span class="k">class</span> <span class="nc">DiffQ</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Differences between the values of |MaxQ| [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">arma_control</span><span class="o">.</span><span class="n">Responses</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="DiffQ.update">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.DiffQ.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the &quot;max Q deltas&quot;.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.arma import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))</span>
+<span class="sd">        &gt;&gt;&gt; derived.diffq.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.diffq</span>
+<span class="sd">        diffq(3.0)</span>
+<span class="sd">         &gt;&gt;&gt; responses(((1., 2.), (1.,)))</span>
+<span class="sd">        &gt;&gt;&gt; derived.diffq.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.diffq</span>
+<span class="sd">        diffq([])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">responses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">responses</span><span class="o">.</span><span class="n">thresholds</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AR_Order">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.AR_Order">[docs]</a>
+<span class="k">class</span> <span class="nc">AR_Order</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of AR coefficients of the different responses [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">arma_control</span><span class="o">.</span><span class="n">Responses</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="AR_Order.update">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.AR_Order.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the total number of AR coefficients.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.arma import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))</span>
+<span class="sd">        &gt;&gt;&gt; derived.ar_order.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.ar_order</span>
+<span class="sd">        ar_order(2, 1)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">responses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">responses</span><span class="o">.</span><span class="n">ar_orders</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MA_Order">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.MA_Order">[docs]</a>
+<span class="k">class</span> <span class="nc">MA_Order</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of MA coefficients of the different responses [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">arma_control</span><span class="o">.</span><span class="n">Responses</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="MA_Order.update">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.MA_Order.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the total number of MA coefficients.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.arma import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))</span>
+<span class="sd">        &gt;&gt;&gt; derived.ma_order.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.ma_order</span>
+<span class="sd">        ma_order(1, 3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">responses</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">responses</span><span class="o">.</span><span class="n">ma_orders</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AR_Coefs">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.AR_Coefs">[docs]</a>
+<span class="k">class</span> <span class="nc">AR_Coefs</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;AR coefficients of the different responses [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">arma_control</span><span class="o">.</span><span class="n">Responses</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="AR_Coefs.update">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.AR_Coefs.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine all AR coefficients.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.arma import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))</span>
+<span class="sd">        &gt;&gt;&gt; derived.ar_coefs.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.ar_coefs</span>
+<span class="sd">        ar_coefs([[1.0, 2.0],</span>
+<span class="sd">                  [1.0, nan]])</span>
+
+<span class="sd">        Note that updating parameter `ar_coefs` sets the shape of the log</span>
+<span class="sd">        sequence |LogOut| automatically.</span>
+
+<span class="sd">        &gt;&gt;&gt; logs.logout</span>
+<span class="sd">        logout([[nan, nan],</span>
+<span class="sd">                [nan, nan]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">responses</span><span class="o">.</span><span class="n">ar_coefs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">coefs</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">coefs</span>
+        <span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">logout</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MA_Coefs">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.MA_Coefs">[docs]</a>
+<span class="k">class</span> <span class="nc">MA_Coefs</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;MA coefficients of the different responses [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">arma_control</span><span class="o">.</span><span class="n">Responses</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="MA_Coefs.update">
+<a class="viewcode-back" href="../../../../arma.html#hydpy.models.arma.arma_derived.MA_Coefs.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine all MA coefficients.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.arma import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; responses(((1., 2.), (1.,)), th_3=((1.,), (1., 2., 3.)))</span>
+<span class="sd">        &gt;&gt;&gt; derived.ma_coefs.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.ma_coefs</span>
+<span class="sd">        ma_coefs([[1.0, nan, nan],</span>
+<span class="sd">                  [1.0, 2.0, 3.0]])</span>
+
+<span class="sd">        Note that updating parameter `ar_coefs` sets the shape of the log</span>
+<span class="sd">        sequence |LogIn| automatically.</span>
+
+<span class="sd">        &gt;&gt;&gt; logs.login</span>
+<span class="sd">        login([[nan, nan, nan],</span>
+<span class="sd">               [nan, nan, nan]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span>
+        <span class="n">coefs</span> <span class="o">=</span> <span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">responses</span><span class="o">.</span><span class="n">ma_coefs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">coefs</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">coefs</span>
+        <span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">login</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.arma.arma_derived</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

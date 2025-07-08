@@ -1,0 +1,25 @@
+.. |AETModel_V1| replace:: :class:`~hydpy.interfaces.aetinterfaces.AETModel_V1`
+.. |CONIFER| replace:: :const:`~hydpy.models.whmod.whmod_constants.CONIFER`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |GRASS| replace:: :const:`~hydpy.models.whmod.whmod_constants.GRASS`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.whmod_rural.Model.check_waterbalance`
+.. |NONE| replace:: :const:`~hydpy.models.whmod.whmod_constants.NONE`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |SEALED| replace:: :const:`~hydpy.models.whmod.whmod_constants.SEALED`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |WATER| replace:: :const:`~hydpy.models.whmod.whmod_constants.WATER`
+.. |evap_aet_minhas| replace:: :mod:`~hydpy.models.evap_aet_minhas`
+.. |evap_pet_mlc| replace:: :mod:`~hydpy.models.evap_pet_mlc`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |whmod_rural.DOCNAME.complete| replace:: HydPy-WHMod-Rural (WHMod for rural regions)
+.. |whmod_rural| replace:: :mod:`~hydpy.models.whmod_rural`
+
+.. _whmod_rural:
+
+whmod_rural
+===========
+
+.. automodule:: hydpy.models.whmod_rural
+    :members:
+    :show-inheritance:
+    :exclude-members: Mapping, ParamSpec, Generator, Never, overload, LogSequences, override, ADD_METHODS, Format, TypeAliasType, Concatenate, CONTROLPARAMETERS, reveal_type, RUN_METHODS, AsyncContextManager, no_type_check, AnyStr, Pattern, SOLVERPARAMETERS, ParamSpecArgs, ClassVar, AsyncGenerator, get_original_bases, SUBMETHODS, IntVar, subseqs, Reader, MutableSet, AsyncIterator, NewType, Literal, AbstractSet, dataclass_transform, Counter, MutableSequence, SUBMODELS, Dict, ObserverSequences, Self, TypedDict, AsyncIterable, evaluate_forward_ref, Annotated, NoExtraItems, SupportsComplex, CLASSES, TypeVar, Required, Sentinel, get_annotations, INLET_METHODS, Deque, NoReturn, UPDATEDSEQUENCES, ValuesView, Sequence, deprecated, OrderedDict, runtime, SupportsInt, IO, Iterable, Collection, Generic, NamedTuple, SENDER_METHODS, Any, Sized, CapsuleType, cast, Protocol, SenderSequences, Coroutine, Final, ParamSpecKwargs, NotRequired, ItemsView, pars, get_origin, Awaitable, seqs, get_overloads, SupportsFloat, Writer, RESULTSEQUENCES, Tuple, Container, OutletSequences, FULL_ODE_METHODS, ChainMap, INTERFACE_METHODS, final, ReadOnly, PART_ODE_METHODS, SupportsIndex, ForwardRef, SUBMODELINTERFACES, SOLVERSEQUENCES, SupportsRound, get_args, subvars, Doc, RECEIVER_METHODS, MutableMapping, TypeAlias, OUTLET_METHODS, Optional, Iterator, is_protocol, fastaccess_new, NoDefault, is_typeddict, List, DERIVEDPARAMETERS, TYPE_CHECKING, InletSequences, FrozenSet, assert_never, Match, TypeForm, FIXEDPARAMETERS, ReceiverSequences, Union, Set, Type, runtime_checkable, Callable, Text, REQUIREDSEQUENCES, no_type_check_decorator, fastaccess, TextIO, Reversible, LiteralString, Buffer, AideSequences, SupportsAbs, BinaryIO, TypeVarTuple, KeysView, TypeGuard, MappingView, get_type_hints, ContextManager, assert_type, TypeIs, get_protocol_members, DefaultDict, Unpack, subpars, fastaccess_old, Hashable, ByteString, clear_overloads, SupportsBytes

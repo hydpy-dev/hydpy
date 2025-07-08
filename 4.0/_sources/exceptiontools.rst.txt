@@ -1,0 +1,23 @@
+.. |AssertionError| replace:: :class:`AssertionError`
+.. |AttributeError| replace:: :class:`AttributeError`
+.. |AttributeNotReady| replace:: :class:`~hydpy.core.exceptiontools.AttributeNotReady`
+.. |False| replace:: :const:`False`
+.. |OptionalImport| replace:: :class:`~hydpy.core.exceptiontools.OptionalImport`
+.. |OptionalModuleNotAvailable| replace:: :class:`~hydpy.core.exceptiontools.OptionalModuleNotAvailable`
+.. |True| replace:: :const:`True`
+.. |attrready| replace:: :func:`~hydpy.core.exceptiontools.attrready`
+.. |getattr_| replace:: :func:`~hydpy.core.exceptiontools.getattr_`
+.. |getattr| replace:: :func:`getattr`
+.. |hasattr_| replace:: :func:`~hydpy.core.exceptiontools.hasattr_`
+.. |hasattr| replace:: :func:`hasattr`
+.. |inspect| replace:: :mod:`~inspect`
+
+.. _exceptiontools:
+
+exceptiontools
+==============
+
+.. automodule:: hydpy.core.exceptiontools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

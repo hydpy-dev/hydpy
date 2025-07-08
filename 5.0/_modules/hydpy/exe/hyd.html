@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.exe.hyd &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.exe.hyd</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.exe.hyd</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;The script for executing HydPy workflows.</span>
+
+<span class="sd">.. _`Python Launcher for Windows`: \</span>
+<span class="sd">https://docs.python.org/3/using/windows.html#launcher</span>
+
+<span class="sd">.. _`here`: https://bitbucket.org/vinay.sajip/pylauncher/downloads</span>
+
+<span class="sd">This script is thought to be called from a command line.  After</span>
+<span class="sd">successful installation of HydPy, you should be able to invoke it from</span>
+<span class="sd">anywhere on your computer.  You can test this by just typing `hyd.py` into</span>
+<span class="sd">your command line:</span>
+
+<span class="sd">&gt;&gt;&gt; import subprocess</span>
+<span class="sd">&gt;&gt;&gt; from hydpy import run_subprocess</span>
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(&quot;hyd.py&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">Invoking hyd.py without arguments resulted in the following error:</span>
+<span class="sd">The first positional argument defining the function to be called is missing.</span>
+<span class="sd">&lt;BLANKLINE&gt;</span>
+<span class="sd">See the following stack traceback for debugging:</span>
+<span class="sd">...</span>
+
+<span class="sd">If this test example does not work on your machine, you should first make sure</span>
+<span class="sd">there is a `hyd.py` file in the `Scripts` folder of your Python distribution,</span>
+<span class="sd">and that the environment variable `Path` is pointing to this folder.</span>
+<span class="sd">Windows users should also make sure to have the `Python Launcher for Windows`_</span>
+<span class="sd">installed.  The Python standard distribution contains this launcher, but</span>
+<span class="sd">other distributions like Anaconda do not.  You can find the suitable</span>
+<span class="sd">installer `here`_.  As a stopgap, you could directly call Python and pass</span>
+<span class="sd">the complete path of the `hyd.py` file available in your *HydPy* site-packages</span>
+<span class="sd">folder as an argument:</span>
+
+<span class="sd">&gt;&gt;&gt; import sys</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.exe import hyd</span>
+<span class="sd">&gt;&gt;&gt; command = f&quot;{sys.executable} {hyd.__file__}&quot;</span>
+<span class="sd">&gt;&gt;&gt; from hydpy import repr_</span>
+<span class="sd">&gt;&gt;&gt; repr_(command)    # doctest: +ELLIPSIS</span>
+<span class="sd">&#39;...python... .../hydpy/exe/hyd.py&#39;</span>
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(command)    # doctest: +ELLIPSIS</span>
+<span class="sd">Invoking hyd.py without arguments resulted in the following error:</span>
+<span class="sd">The first positional argument defining the function to be called is missing.</span>
+<span class="sd">...</span>
+
+<span class="sd">You are free to redirect output to a log file:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import TestIO</span>
+<span class="sd">&gt;&gt;&gt; TestIO.clear()</span>
+<span class="sd">&gt;&gt;&gt; with TestIO():</span>
+<span class="sd">...     result = run_subprocess(&quot;hyd.py logfile=my_log_file.txt&quot;)</span>
+<span class="sd">&gt;&gt;&gt; with TestIO():</span>
+<span class="sd">...     with open(&quot;my_log_file.txt&quot;) as logfile:</span>
+<span class="sd">...         print(logfile.read())    # doctest: +ELLIPSIS</span>
+<span class="sd">Invoking hyd.py with argument `logfile=my_log_file.txt` resulted in the \</span>
+<span class="sd">following error:</span>
+<span class="sd">The first positional argument defining the function to be called is missing.</span>
+<span class="sd">...</span>
+
+<span class="sd">When passing `default` as keyword argument `logfile`, function</span>
+<span class="sd">|prepare_logfile| generates a default name containing the current</span>
+<span class="sd">date and time:</span>
+
+<span class="sd">&gt;&gt;&gt; import os</span>
+<span class="sd">&gt;&gt;&gt; with TestIO():</span>
+<span class="sd">...     result = run_subprocess(&quot;hyd.py logfile=default&quot;)</span>
+<span class="sd">&gt;&gt;&gt; with TestIO():</span>
+<span class="sd">...     for filename in os.listdir(&quot;.&quot;):</span>
+<span class="sd">...         if filename.endswith(&quot;.log&quot;):</span>
+<span class="sd">...             print(filename)    # doctest: +ELLIPSIS</span>
+<span class="sd">hydpy_...log</span>
+
+
+<span class="sd">Without any further arguments, `hyd.py` does not know which function to call:</span>
+
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(&quot;hyd.py&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">Invoking hyd.py without arguments resulted in the following error:</span>
+<span class="sd">The first positional argument defining the function to be called is missing.</span>
+<span class="sd">...</span>
+
+<span class="sd">The first additional argument must be an available &quot;script function&quot;:</span>
+
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(&quot;hyd.py &quot;</span>
+<span class="sd">...                         &quot;wrong_argument&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">Invoking hyd.py with argument `wrong_argument` resulted in the \</span>
+<span class="sd">following error:</span>
+<span class="sd">There is no `wrong_argument` function callable by `hyd.py`.  Choose one of \</span>
+<span class="sd">the following instead: await_server, exec_commands, exec_script, \</span>
+<span class="sd">run_doctests, run_simulation, start_server, start_shell, and xml_replace.</span>
+<span class="sd">...</span>
+
+<span class="sd">Further argument requirements depend on the selected &quot;script function&quot;:</span>
+
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(&quot;hyd.py &quot;</span>
+<span class="sd">...                         &quot;exec_commands&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">Invoking hyd.py with argument `exec_commands` resulted in the \</span>
+<span class="sd">following error:</span>
+<span class="sd">Function `exec_commands` requires `1` positional arguments (commands), \</span>
+<span class="sd">but `0` are given.</span>
+<span class="sd">...</span>
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(&quot;hyd.py &quot;</span>
+<span class="sd">...                         &quot;exec_commands &quot;</span>
+<span class="sd">...                         &quot;first_name &quot;</span>
+<span class="sd">...                         &quot;second_name&quot;)    # doctest: +ELLIPSIS</span>
+<span class="sd">Invoking hyd.py with arguments `exec_commands, first_name, second_name` \</span>
+<span class="sd">resulted in the following error:</span>
+<span class="sd">Function `exec_commands` allows `1` positional arguments (commands), \</span>
+<span class="sd">but `2` are given \</span>
+<span class="sd">(first_name and second_name).</span>
+<span class="sd">...</span>
+
+<span class="sd">Optional keyword arguments are supported: (on Linux, we have to escape</span>
+<span class="sd">the characters &quot;(&quot;, &quot;)&quot;, &quot;;&quot;, and &quot;&#39;&quot; in the following)</span>
+
+<span class="sd">&gt;&gt;&gt; import platform</span>
+<span class="sd">&gt;&gt;&gt; esc = &quot;&quot; if &quot;windows&quot; in platform.platform().lower() else &quot;\\\\&quot;</span>
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(f&quot;hyd.py &quot;</span>
+<span class="sd">...                         f&quot;exec_commands &quot;</span>
+<span class="sd">...                         f&quot;print{esc}(x+y{esc}) &quot;</span>
+<span class="sd">...                         f&quot;x={esc}&#39;2{esc}&#39; &quot;</span>
+<span class="sd">...                         f&quot;y={esc}&#39;=1+1{esc}&#39;&quot;)</span>
+<span class="sd">Start to execute the commands [&#39;print(x+y)&#39;] for testing purposes.</span>
+<span class="sd">2=1+1</span>
+
+<span class="sd">Error messages raised by the &quot;script function&quot; itself also find their</span>
+<span class="sd">way into the console or log file:</span>
+
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(    # doctest: +ELLIPSIS</span>
+<span class="sd">...    f&quot;hyd.py exec_commands &quot;</span>
+<span class="sd">...    f&quot;raise_RuntimeError{esc}({esc}&#39;it_fails{esc}&#39;{esc})&quot;)</span>
+<span class="sd">Start to execute the commands [&quot;raise_RuntimeError(&#39;it_fails&#39;)&quot;] for \</span>
+<span class="sd">testing purposes.</span>
+<span class="sd">Invoking hyd.py with arguments `exec_commands, raise_RuntimeError(&#39;it_fails&#39;)` \</span>
+<span class="sd">resulted in the following error:</span>
+<span class="sd">it fails</span>
+<span class="sd">...</span>
+
+<span class="sd">The same is true for warning messages:</span>
+
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(f&quot;hyd.py &quot;    # doctest: +ELLIPSIS</span>
+<span class="sd">...                         f&quot;exec_commands &quot;</span>
+<span class="sd">...                         f&quot;import_warnings{esc};&quot;</span>
+<span class="sd">...                         f&quot;warnings.warn{esc}({esc}&#39;it_stumbles{esc}&#39;{esc})&quot;)</span>
+<span class="sd">Start to execute the commands [&#39;import_warnings&#39;, \</span>
+<span class="sd">&quot;warnings.warn(&#39;it_stumbles&#39;)&quot;] for testing purposes...</span>
+<span class="sd">...UserWarning: it stumbles</span>
+
+<span class="sd">And the same is true for printed messages:</span>
+
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(f&quot;hyd.py &quot;</span>
+<span class="sd">...                         f&quot;exec_commands &quot;</span>
+<span class="sd">...                         f&quot;print{esc}({esc}&#39;it_works{esc}&#39;{esc})&quot;)</span>
+<span class="sd">Start to execute the commands [&quot;print(&#39;it_works&#39;)&quot;] \</span>
+<span class="sd">for testing purposes.</span>
+<span class="sd">it works</span>
+
+<span class="sd">To report the importance level of individual log messages, use the</span>
+<span class="sd">optional `logstyle` keyword argument:</span>
+
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(     # doctest: +ELLIPSIS</span>
+<span class="sd">...     f&quot;hyd.py exec_commands &quot;</span>
+<span class="sd">...     f&quot;print{esc}({esc}&#39;it_works{esc}&#39;{esc}){esc};&quot;</span>
+<span class="sd">...     f&quot;import_warnings{esc};&quot;</span>
+<span class="sd">...     f&quot;warnings.warn{esc}({esc}&#39;it_stumbles{esc}&#39;{esc}){esc};&quot;</span>
+<span class="sd">...     f&quot;raise_RuntimeError{esc}({esc}&#39;it_fails{esc}&#39;{esc}) &quot;</span>
+<span class="sd">...     f&quot;logstyle=prefixed&quot;)</span>
+<span class="sd">info: Start to execute the commands [&quot;print(&#39;it_works&#39;)&quot;, &#39;import_warnings&#39;, \</span>
+<span class="sd">&quot;warnings.warn(&#39;it_stumbles&#39;)&quot;, &quot;raise_RuntimeError(&#39;it_fails&#39;)&quot;] for \</span>
+<span class="sd">testing purposes.</span>
+<span class="sd">info: it works</span>
+<span class="sd">warning: ...UserWarning: it stumbles</span>
+<span class="sd">error: Invoking hyd.py with arguments `exec_commands, \</span>
+<span class="sd">print(&#39;it_works&#39;);import_warnings;warnings.warn(&#39;it_stumbles&#39;);\</span>
+<span class="sd">raise_RuntimeError(&#39;it_fails&#39;), logstyle=prefixed` resulted in \</span>
+<span class="sd">the following error:</span>
+<span class="sd">error: it fails</span>
+<span class="sd">...</span>
+
+<span class="sd">So far, only `prefixed` and the default style `plain` are implemented:</span>
+
+<span class="sd">&gt;&gt;&gt; result = run_subprocess(f&quot;hyd.py &quot;    # doctest: +ELLIPSIS</span>
+<span class="sd">...                         f&quot;exec_commands &quot;</span>
+<span class="sd">...                         f&quot;None &quot;</span>
+<span class="sd">...                         f&quot;logstyle=missing&quot;)</span>
+<span class="sd">Invoking hyd.py with arguments `exec_commands, None, logstyle=missing` \</span>
+<span class="sd">resulted in the following error:</span>
+<span class="sd">The given log file style missing is not available.  Please choose one \</span>
+<span class="sd">of the following: plain and prefixed.</span>
+<span class="sd">...</span>
+
+<span class="sd">See the documentation on module |xmltools| for an actually successful</span>
+<span class="sd">example using the &quot;script function&quot; |run_simulation|.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard-library</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="c1"># ...from hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.exe</span> <span class="kn">import</span> <span class="n">commandtools</span>
+
+
+<div class="viewcode-block" id="execute">
+<a class="viewcode-back" href="../../../hyd.html#hydpy.exe.hyd.execute">[docs]</a>
+<span class="k">def</span> <span class="nf">execute</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Call |execute_scriptfunction| of module |commandtools| in case |hyd|</span>
+<span class="sd">    is the main script.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.exe import hyd</span>
+<span class="sd">    &gt;&gt;&gt; from unittest import mock</span>
+<span class="sd">    &gt;&gt;&gt; with mock.patch(&quot;hydpy.exe.commandtools.execute_scriptfunction&quot;) as fun:</span>
+<span class="sd">    ...     with mock.patch(&quot;sys.exit&quot;) as exit_:</span>
+<span class="sd">    ...         with mock.patch.object(hyd, &quot;__name__&quot;, &quot;__not_main__&quot;):</span>
+<span class="sd">    ...             hyd.execute()</span>
+<span class="sd">    ...             exit_.called</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; for return_value in (None, 0, 2):</span>
+<span class="sd">    ...     with mock.patch(</span>
+<span class="sd">    ...             &quot;hydpy.exe.commandtools.execute_scriptfunction&quot;,</span>
+<span class="sd">    ...             return_value=return_value) as fun:</span>
+<span class="sd">    ...         with mock.patch(&quot;sys.exit&quot;) as exit_:</span>
+<span class="sd">    ...             with mock.patch.object(hyd, &quot;__name__&quot;, &quot;__main__&quot;):</span>
+<span class="sd">    ...                 hyd.execute()</span>
+<span class="sd">    ...                 exit_.call_args</span>
+<span class="sd">    call(False)</span>
+<span class="sd">    call(False)</span>
+<span class="sd">    call(True)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">commandtools</span><span class="o">.</span><span class="n">execute_scriptfunction</span><span class="p">()))</span></div>
+
+
+
+<span class="n">execute</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.exe.hyd</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

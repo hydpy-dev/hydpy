@@ -5,7 +5,6 @@
 import itertools
 
 # ...from HydPy
-from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *

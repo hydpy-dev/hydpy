@@ -4,11 +4,14 @@
 # ...from HydPy
 from hydpy.core import sequencetools
 
+# ...from wq
+from hydpy.models.wq import wq_variables
 
-class Discharges(sequencetools.FluxSequence):
+
+class Discharges(wq_variables.MixinShape, sequencetools.FluxSequence):
     """The discharge of each trapeze range [m³/s]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    NUMERIC, SPAN = False, (None, None)
 
 
 class Discharge(sequencetools.FluxSequence):

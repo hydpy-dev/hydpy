@@ -9,12 +9,13 @@ from hydpy.auxs import smoothtools
 
 # ...from lland
 from hydpy.models.wq import wq_control
+from hydpy.models.wq import wq_variables
 
 
-class BottomDepths(parametertools.Parameter):
+class BottomDepths(wq_variables.MixinShape, parametertools.Parameter):
     """The cumulated depth of a trapeze and its lower neighbours [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomLevels,)
 
@@ -34,13 +35,13 @@ class BottomDepths(parametertools.Parameter):
         self.values = bottomlevels - bottomlevels[0]
 
 
-class TrapezeHeights(parametertools.Parameter):
+class TrapezeHeights(wq_variables.MixinShape, parametertools.Parameter):
     """The individual height of each trapeze [m].
 
     The highest trapeze has no upper neighbour and is thus infinitely high.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomLevels,)
 
@@ -60,14 +61,14 @@ class TrapezeHeights(parametertools.Parameter):
         self.values[:-1] = numpy.diff(self.subpars.pars.control.bottomlevels.values)
 
 
-class SlopeWidths(parametertools.Parameter):
+class SlopeWidths(wq_variables.MixinShape, parametertools.Parameter):
     """The tatal width of both side slopes of each trapeze.
 
     The highest trapeze has no upper neighbour and is thus infinitely high and
     potentially infinitely wide.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.SideSlopes,)
     DERIVEDPARAMETERS = (TrapezeHeights,)
@@ -91,13 +92,13 @@ class SlopeWidths(parametertools.Parameter):
         self.values[:-1] = 2.0 * sideslopes[:-1] * trapezeheights[:-1]
 
 
-class TrapezeAreas(parametertools.Parameter):
+class TrapezeAreas(wq_variables.MixinShape, parametertools.Parameter):
     """The individual area of each trapeze [m].
 
     The highest trapeze has no upper neighbour and is thus infinitely large.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomWidths,)
     DERIVEDPARAMETERS = (TrapezeHeights, SlopeWidths)
@@ -126,12 +127,12 @@ class TrapezeAreas(parametertools.Parameter):
         self.values[1:] += w[:-1] * ht[1:]
 
 
-class PerimeterDerivatives(parametertools.Parameter):
+class PerimeterDerivatives(wq_variables.MixinShape, parametertools.Parameter):
     """Change of the perimeter of each trapeze relative to a water level increase
     within the trapeze's range [-].
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.SideSlopes,)
 

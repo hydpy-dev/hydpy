@@ -164,6 +164,8 @@ excluded_members = {
 excluded_members.update(typing.__all__)
 excluded_members.update(typing_extensions.__all__)
 
+_VAR_SPEC2CAPT = collections.OrderedDict((("variables", "Variable tools"),))
+
 _PAR_SPEC2CAPT = collections.OrderedDict(
     (
         ("parameters", "Parameter tools"),
@@ -287,6 +289,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     _extend_methoddocstrings(module)
     _gain_and_insert_additional_information_into_docstrings(module, methods)
     for title, spec2capt in (
+        ("Variable Features", _VAR_SPEC2CAPT),
         ("Parameter Features", _PAR_SPEC2CAPT),
         ("Sequence Features", _SEQ_SPEC2CAPT),
         ("Auxiliary Features", _AUX_SPEC2CAPT),

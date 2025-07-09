@@ -239,6 +239,9 @@ class BaseInterpolator(_Labeled):
         variabletools.Variable.__hydpy__subclasscounter__ = subclasscounter
         cls.__hydpy__subclasscounter__ = subclasscounter
 
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        pass
+
 
 class SimpleInterpolator(BaseInterpolator):
     """Parameter base class for handling interpolation problems.

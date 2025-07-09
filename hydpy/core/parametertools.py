@@ -1784,6 +1784,55 @@ parameter and a simulation time step size first.
         return f"{self.name}({objecttools.repr_(value)})"
 
 
+class NmbParameter(Parameter):
+    """Base class for defining "number parameters" that define the shape of other
+    variables.
+
+    We take the parameter |kinw_control.NmbSegments| of application model
+    |kinw_impl_euler| as an example, which automatically prepares the shape of some
+    1-dimensional sequences:
+
+    >>> from hydpy.models.kinw_impl_euler import *
+    >>> parameterstep()
+    >>> nmbsegments(2)
+    >>> nmbsegments
+    nmbsegments(2)
+    >>> states.watervolume.shape
+    (2,)
+    >>> fluxes.internalflow.shape
+    (1,)
+
+    As can be inferred from the different shapes of the involved variables, they must
+    not take the original shape but can modify it.  Likewise, they should but must not
+    preserve existing values if the shape remains unchanged:
+
+    >>> states.watervolume = 1.0, 2.0
+    >>> nmbsegments(2)
+    >>> states.watervolume
+    watervolume(1.0, 2.0)
+
+    In the case of parameter |kinw_control.NmbSegments|, zero values are allowed:
+
+    >>> nmbsegments(0)
+    >>> states.watervolume.shape
+    (0,)
+    >>> fluxes.internalflow.shape
+    (0,)
+    """
+
+    NDIM = 0
+    TYPE = int
+    TIME = None
+
+    def __call__(self, *args, **kwargs) -> None:
+        super().__call__(*args, **kwargs)
+        parameters = self.subpars.pars
+        for vars_ in (parameters, parameters.model.sequences):
+            for subvars in vars_:
+                for var in subvars:
+                    var.__hydpy__let_par_set_shape__(self)
+
+
 class _MixinModifiableParameter(Parameter):
     @classmethod
     def _reset_after_modification(cls, name: str, value: object | None) -> None:

@@ -55,7 +55,7 @@ class GTS(parametertools.Parameter):
                 seq.shape = self.value
 
 
-class NmbSegments(parametertools.Parameter):
+class NmbSegments(parametertools.NmbParameter):
     """Number of channel segments [-].
 
     |NmbSegments| prepares the shape of some 1-dimensional sequences automatically:
@@ -88,25 +88,11 @@ class NmbSegments(parametertools.Parameter):
     (0,)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
-
         super().__call__(*args, **kwargs)
-
-        nmb = self.value
-        model = self.subpars.pars.model
-        model.nmb_segments = nmb
-        seqs = model.sequences
-        for subseqs in (seqs.factors, seqs.fluxes, seqs.states):
-            for seq in subseqs:
-                delta = getattr(seq, "__HYDPY__DELTA_SEGMENTS__", None)
-                if delta is not None:
-                    assert isinstance(delta, int)
-                    old = exceptiontools.getattr_(seq, "shape", None)
-                    new = (max(nmb + delta, 0),)
-                    if old != new:
-                        seq.shape = new
+        self.subpars.pars.model.nmb_segments = self.value
 
 
 class HM(parametertools.Parameter):

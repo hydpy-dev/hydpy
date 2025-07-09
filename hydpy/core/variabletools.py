@@ -1512,6 +1512,13 @@ as `var` can only be `()`, but `(2,)` is given.
             f"but `{shape}` is given."
         )
 
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        pass
+
+    def __hydpy__change_shape_if_necessary__(self, new: tuple[int, ...], /) -> None:
+        if new != exceptiontools.getattr_(self, "shape", None):
+            self.shape = new
+
     @property
     def numberofvalues(self) -> int:
         """The total number of values handled by the variable according to the current

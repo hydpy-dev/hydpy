@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from hydpy.core import modeltools
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
+    from hydpy.core import variabletools
 
 _builtinnames = set(dir(builtins))
 
@@ -737,6 +738,8 @@ class _Repr:
         self._preserve_strings = False
 
     def __call__(self, value: object, decimals: int | None = None) -> str:
+        from hydpy.core import variabletools
+
         if decimals is None:
             decimals = hydpy.pub.options.reprdigits
         if isinstance(value, str):
@@ -744,6 +747,8 @@ class _Repr:
             if self._preserve_strings:
                 return f'"{string}"'
             return string
+        if isinstance(value, variabletools.Variable):
+            value = value.value
         if isinstance(value, numpy.ndarray) and not value.ndim:
             value = value.item()
         if isinstance(value, numbers.Real) and (

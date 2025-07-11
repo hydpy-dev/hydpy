@@ -18,6 +18,7 @@ from hydpy.models.wq import wq_control
 from hydpy.models.wq import wq_derived
 from hydpy.models.wq import wq_factors
 from hydpy.models.wq import wq_fluxes
+from hydpy.models.wq import wq_aides
 
 
 class Calculate_Discharge_V1(modeltools.Method):
@@ -289,6 +290,42 @@ class Calc_WaterDepth_V2(modeltools.Method):
                 break
 
 
+class Calc_WaterDepth_V3(modeltools.Method):
+    r"""Calculate the water depth based on the current water level.
+
+    Basic equation:
+      .. math::
+        WaterDepth = max(WaterLevel - Heights_{\,0}, \ 0)
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbrows(2)
+        >>> heights(2.0, 3.0)
+        >>> factors.waterlevel(6.0)
+        >>> model.calc_waterdepth_v3()
+        >>> factors.waterdepth
+        waterdepth(4.0)
+
+        >>> factors.waterlevel(1.0)
+        >>> model.calc_waterdepth_v3()
+        >>> factors.waterdepth
+        waterdepth(0.0)
+    """
+
+    CONTROLPARAMETERS = (wq_control.Heights,)
+    REQUIREDSEQUENCES = (wq_factors.WaterLevel,)
+    RESULTSEQUENCES = (wq_factors.WaterDepth,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.waterdepth = max(fac.waterlevel - con.heights[0], 0.0)
+
+
 class Calc_WaterLevel_V1(modeltools.Method):
     r"""Calculate the water level based on the current water depth.
 
@@ -318,6 +355,91 @@ class Calc_WaterLevel_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
 
         fac.waterlevel = fac.waterdepth + con.bottomlevels[0]
+
+
+class Calc_WaterLevel_V2(modeltools.Method):
+    r"""Calculate the water level based on the current water depth.
+
+    Basic equation:
+      .. math::
+        WaterLevel = WaterDepth + Heights_{\,0}
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbrows(2)
+        >>> heights(2.0, 3.0)
+        >>> factors.waterdepth(4.0)
+        >>> model.calc_waterlevel_v2()
+        >>> factors.waterlevel
+        waterlevel(6.0)
+    """
+
+    CONTROLPARAMETERS = (wq_control.Heights,)
+    REQUIREDSEQUENCES = (wq_factors.WaterDepth,)
+    RESULTSEQUENCES = (wq_factors.WaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.waterlevel = fac.waterdepth + con.heights[0]
+
+
+class Calc_Index_Excess_Weight_V1(modeltools.Method):
+    r"""
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbrows(3)
+        >>> heights(1.0, 5.0, 7.0)
+
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(10):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     print_vector([waterlevel, aides.index, aides.excess, aides.weight])
+        0, 0.0, 0.0, 0.0
+        1, 0.0, 0.0, 0.0
+        2, 0.0, 1.0, 0.25
+        3, 0.0, 2.0, 0.5
+        4, 0.0, 3.0, 0.75
+        5, 1.0, 0.0, 0.0
+        6, 1.0, 1.0, 0.5
+        7, 2.0, 0.0, nan
+        8, 2.0, 1.0, nan
+        9, 2.0, 2.0, nan
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbRows, wq_control.Heights)
+    REQUIREDSEQUENCES = (wq_factors.WaterLevel,)
+    RESULTSEQUENCES = (wq_aides.Index, wq_aides.Weight, wq_aides.Excess)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        if fac.waterlevel <= con.heights[0]:
+            aid.index = 0.0
+            aid.weight = 0.0
+            aid.excess = 0.0
+        else:
+            for i in range(con.nmbrows - 1):
+                if fac.waterlevel < con.heights[i + 1]:
+                    aid.index = i
+                    aid.excess = fac.waterlevel - con.heights[i]
+                    aid.weight = aid.excess / (con.heights[i + 1] - con.heights[i])
+                    break
+            else:
+                aid.index = con.nmbrows - 1
+                aid.excess = fac.waterlevel - con.heights[con.nmbrows - 1]
+                aid.weight = modelutils.nan
 
 
 class Calc_WettedAreas_V1(modeltools.Method):
@@ -459,6 +581,114 @@ class Calc_WettedAreas_V1(modeltools.Method):
                     fac.wettedareas[i] = (wb + ws / 2.0) * ht + (wb + ws) * (d - ht)
 
 
+class Calc_FlowAreas_V1(modeltools.Method):
+    """Interpolate the flow area for each cross section sector.
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbrows(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectionflowwidths.update()
+        >>> derived.sectionflowareas.update()
+
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_flowwidths_v1()
+        ...     model.calc_flowareas_v1()
+        ...     print_vector([waterlevel, *factors.flowareas.values])
+        0, 0.0, 0.0, 0.0, 0.0
+        1, 0.0, 0.0, 0.0, 0.0
+        2, 2.5, 0.0, 0.0, 0.0
+        3, 6.0, 0.0, 0.0, 0.0
+        4, 11.0, 0.0, 0.0, 0.0
+        5, 17.0, 8.0, 4.0, 0.0
+        6, 23.0, 16.0, 8.0, 3.0
+        7, 29.0, 24.0, 12.0, 11.0
+        8, 35.0, 32.0, 16.0, 22.0
+        9, 41.0, 40.0, 20.0, 34.0
+        10, 47.0, 48.0, 24.0, 46.0
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectionFlowAreas, wq_derived.SectionFlowWidths)
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_factors.FlowWidths)
+    RESULTSEQUENCES = (wq_factors.FlowAreas,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        for i in range(con.nmbsectors):
+            fac.flowareas[i] = der.sectionflowareas[i, j] + (
+                aid.excess * (der.sectionflowwidths[i, j] + fac.flowwidths[i]) / 2.0
+            )
+
+
+class Calc_TotalAreas_V1(modeltools.Method):
+    """Interpolate the total area for each cross section sector.
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbrows(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectiontotalwidths.update()
+        >>> derived.sectiontotalareas.update()
+
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_totalwidths_v1()
+        ...     model.calc_totalareas_v1()
+        ...     print_vector([waterlevel, *factors.totalareas.values])
+        0, 0.0, 0.0, 0.0, 0.0
+        1, 0.0, 0.0, 0.0, 0.0
+        2, 2.5, 0.0, 0.0, 0.0
+        3, 6.0, 0.0, 0.0, 0.0
+        4, 11.0, 0.0, 0.0, 0.0
+        5, 17.0, 8.0, 4.0, 0.0
+        6, 23.0, 16.0, 8.0, 3.0
+        7, 29.0, 24.0, 12.0, 11.0
+        8, 35.0, 32.0, 16.0, 22.0
+        9, 41.0, 40.0, 20.0, 34.0
+        10, 47.0, 48.0, 24.0, 46.0
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectionTotalAreas, wq_derived.SectionTotalWidths)
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_factors.TotalWidths)
+    RESULTSEQUENCES = (wq_factors.TotalAreas,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        for i in range(con.nmbsectors):
+            fac.totalareas[i] = der.sectiontotalareas[i, j] + (
+                aid.excess * (der.sectiontotalwidths[i, j] + fac.totalwidths[i]) / 2.0
+            )
+
+
 class Calc_WettedArea_V1(modeltools.Method):
     r"""Sum up the individual trapeze ranges' wetted areas.
 
@@ -488,6 +718,68 @@ class Calc_WettedArea_V1(modeltools.Method):
         fac.wettedarea = 0.0
         for i in range(con.nmbtrapezes):
             fac.wettedarea += fac.wettedareas[i]
+
+
+class Calc_FlowArea_V1(modeltools.Method):
+    r"""Sum up the individual cross section sectors' flow areas.
+
+    Basic equation:
+      :math:`WettedArea = \sum_{i=1}^{NmbTrapezes} WettedAreas_i`
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(3)
+        >>> factors.flowareas(2.0, 3.0, 1.0)
+        >>> model.calc_flowarea_v1()
+        >>> factors.flowarea
+        flowarea(6.0)
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    REQUIREDSEQUENCES = (wq_factors.FlowAreas,)
+    RESULTSEQUENCES = (wq_factors.FlowArea,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.flowarea = 0.0
+        for i in range(con.nmbsectors):
+            fac.flowarea += fac.flowareas[i]
+
+
+class Calc_TotalArea_V1(modeltools.Method):
+    r"""Sum up the individual cross section sectors' total wetted areas.
+
+    Basic equation:
+      :math:`WettedArea = \sum_{i=1}^{NmbTrapezes} WettedAreas_i`
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(3)
+        >>> factors.totalareas(2.0, 3.0, 1.0)
+        >>> model.calc_totalarea_v1()
+        >>> factors.totalarea
+        totalarea(6.0)
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    REQUIREDSEQUENCES = (wq_factors.TotalAreas,)
+    RESULTSEQUENCES = (wq_factors.TotalArea,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.totalarea = 0.0
+        for i in range(con.nmbsectors):
+            fac.totalarea += fac.totalareas[i]
 
 
 class Calc_WettedPerimeters_V1(modeltools.Method):
@@ -623,6 +915,67 @@ class Calc_WettedPerimeters_V1(modeltools.Method):
                     fac.wettedperimeters[i] = (
                         wb + 2.0 * ht * (ss**2.0 + 1.0) ** 0.5 + 2.0 * (d - ht)
                     )
+
+
+class Calc_FlowPerimeters_V1(modeltools.Method):
+    """Interpolate the flow perimeters for each cross section sector.
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbrows(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectionflowwidths.update()
+        >>> derived.sectionflowperimeters.update()
+
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_flowwidths_v1()
+        ...     model.calc_flowperimeters_v1()
+        ...     print_vector([waterlevel, *factors.flowperimeters.values])
+        0, 2.0, 0.0, 0.0, 0.0
+        1, 2.0, 0.0, 0.0, 0.0
+        2, 4.236068, 0.0, 0.0, 0.0
+        3, 6.472136, 0.0, 0.0, 0.0
+        4, 9.300563, 8.0, 4.0, 0.0
+        5, 11.300563, 10.0, 6.0, 0.0
+        6, 13.300563, 12.0, 8.0, 6.324555
+        7, 15.300563, 14.0, 10.0, 10.796691
+        8, 17.300563, 16.0, 12.0, 13.625118
+        9, 19.300563, 18.0, 14.0, 15.625118
+        10, 21.300563, 20.0, 16.0, 17.625118
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectionFlowPerimeters,)
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Weight, wq_aides.Excess)
+    RESULTSEQUENCES = (wq_factors.FlowPerimeters,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        if modelutils.isnan(aid.weight):
+            for i in range(con.nmbsectors):
+                fac.flowperimeters[i] = (
+                    der.sectionflowperimeters[i, j] + 2.0 * aid.excess
+                )
+        else:
+            for i in range(con.nmbsectors):
+                w: float = aid.weight
+                fac.flowperimeters[i] = (1.0 - w) * der.sectionflowperimeters[
+                    i, j
+                ] + w * der.sectionflowperimeters[i, j + 1]
 
 
 class Calc_WettedPerimeter_V1(modeltools.Method):
@@ -953,6 +1306,120 @@ class Calc_SurfaceWidth_V1(modeltools.Method):
             fac.surfacewidth += fac.surfacewidths[i]
 
 
+class Calc_FlowWidths_V1(modeltools.Method):
+    """Interpolate the flow surface width for each cross section sector.
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbrows(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectionflowwidths.update()
+
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_flowwidths_v1()
+        ...     print_vector([waterlevel, *factors.flowwidths.values])
+        0, 2.0, 0.0, 0.0, 0.0
+        1, 2.0, 0.0, 0.0, 0.0
+        2, 3.0, 0.0, 0.0, 0.0
+        3, 4.0, 0.0, 0.0, 0.0
+        4, 6.0, 8.0, 4.0, 0.0
+        5, 6.0, 8.0, 4.0, 0.0
+        6, 6.0, 8.0, 4.0, 6.0
+        7, 6.0, 8.0, 4.0, 10.0
+        8, 6.0, 8.0, 4.0, 12.0
+        9, 6.0, 8.0, 4.0, 12.0
+        10, 6.0, 8.0, 4.0, 12.0
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectionFlowWidths,)
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Weight)
+    RESULTSEQUENCES = (wq_factors.FlowWidths,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        if modelutils.isnan(aid.weight):
+            for i in range(con.nmbsectors):
+                fac.flowwidths[i] = der.sectionflowwidths[i, j]
+        else:
+            f: float = aid.weight
+            for i in range(con.nmbsectors):
+                fac.flowwidths[i] = (1.0 - f) * der.sectionflowwidths[
+                    i, j
+                ] + f * der.sectionflowwidths[i, j + 1]
+
+
+class Calc_TotalWidths_V1(modeltools.Method):
+    """Interpolate the total surface width for each cross section sector.
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbrows(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectiontotalwidths.update()
+
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_totalwidths_v1()
+        ...     print_vector([waterlevel, *factors.totalwidths.values])
+        0, 2.0, 0.0, 0.0, 0.0
+        1, 2.0, 0.0, 0.0, 0.0
+        2, 3.0, 0.0, 0.0, 0.0
+        3, 4.0, 0.0, 0.0, 0.0
+        4, 6.0, 8.0, 4.0, 0.0
+        5, 6.0, 8.0, 4.0, 0.0
+        6, 6.0, 8.0, 4.0, 6.0
+        7, 6.0, 8.0, 4.0, 10.0
+        8, 6.0, 8.0, 4.0, 12.0
+        9, 6.0, 8.0, 4.0, 12.0
+        10, 6.0, 8.0, 4.0, 12.0
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectionTotalWidths,)
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Weight)
+    RESULTSEQUENCES = (wq_factors.TotalWidths,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        if modelutils.isnan(aid.weight):
+            for i in range(con.nmbsectors):
+                fac.totalwidths[i] = der.sectiontotalwidths[i, j]
+        else:
+            f: float = aid.weight
+            for i in range(con.nmbsectors):
+                fac.totalwidths[i] = (1.0 - f) * der.sectiontotalwidths[
+                    i, j
+                ] + f * der.sectiontotalwidths[i, j + 1]
+
+
 class Calc_Discharges_V1(modeltools.Method):
     r"""Calculate the discharge for each trapeze range.
 
@@ -1017,6 +1484,62 @@ class Calc_Discharges_V1(modeltools.Method):
                 flu.discharges[i] = 0.0
 
 
+class Calc_Discharges_V2(modeltools.Method):
+    r"""Calculate the discharge for each cross section sector.
+
+    Basic equation:
+      .. math::
+        Discharges_i = \begin{cases}
+        0 &|\ d < 0 \\
+        C \cdot A^{5/3} \cdot P^{-2/3} \cdot \sqrt{S_B} &|\ 0 \leq d
+        \end{cases}
+        \\ \\
+        d = WaterDepth - BottomDepth_i \\
+        C = StricklerCoefficient_i \\
+        A = WettedAreas_i \\
+        P = WettedPerimeters_i \\
+        S_B = BottomSlope
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(4)
+        >>> bottomslope(0.01)
+        >>> stricklercoefficients(20.0, 40.0, 60.0, 80.0)
+        >>> factors.flowareas = 1.0, 4.0, 8.0, 0.0
+        >>> factors.flowperimeters = 2.0, 4.0, 6.0, 8.0
+        >>> model.calc_discharges_v2()
+        >>> fluxes.discharges
+        discharges(1.259921, 16.0, 58.147859, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        wq_control.NmbSectors,
+        wq_control.BottomSlope,
+        wq_control.StricklerCoefficients,
+    )
+    REQUIREDSEQUENCES = (wq_factors.FlowAreas, wq_factors.FlowPerimeters)
+    RESULTSEQUENCES = (wq_fluxes.Discharges,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        for i in range(con.nmbsectors):
+            if fac.flowareas[i] > 0.0:
+                flu.discharges[i] = (
+                    con.stricklercoefficients[i]
+                    * con.bottomslope**0.5
+                    * fac.flowareas[i] ** (5.0 / 3.0)
+                    / fac.flowperimeters[i] ** (2.0 / 3.0)
+                )
+            else:
+                flu.discharges[i] = 0.0
+
+
 class Calc_Discharge_V2(modeltools.Method):
     r"""Sum the individual trapeze ranges' discharges.
 
@@ -1028,7 +1551,6 @@ class Calc_Discharge_V2(modeltools.Method):
         >>> from hydpy.models.wq import *
         >>> parameterstep()
         >>> nmbtrapezes(3)
-        >>> bottomslope(0.01)
         >>> fluxes.discharges(2.0, 3.0, 1.0)
         >>> model.calc_discharge_v2()
         >>> fluxes.discharge
@@ -1046,6 +1568,37 @@ class Calc_Discharge_V2(modeltools.Method):
 
         flu.discharge = 0.0
         for i in range(con.nmbtrapezes):
+            flu.discharge += flu.discharges[i]
+
+
+class Calc_Discharge_V3(modeltools.Method):
+    r"""Sum the individual trapeze ranges' discharges.
+
+    Basic equation:
+      :math:`Discharge = \sum_{i=1}^{NmbTrapezes} Discharges_i`
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(3)
+        >>> fluxes.discharges(2.0, 3.0, 1.0)
+        >>> model.calc_discharge_v3()
+        >>> fluxes.discharge
+        discharge(6.0)
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    REQUIREDSEQUENCES = (wq_fluxes.Discharges,)
+    RESULTSEQUENCES = (wq_fluxes.Discharge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.discharge = 0.0
+        for i in range(con.nmbsectors):
             flu.discharge += flu.discharges[i]
 
 
@@ -1415,6 +1968,51 @@ class Use_WaterDepth_V2(modeltools.SetAutoMethod):
     )
 
 
+class Use_WaterDepth_V3(modeltools.SetAutoMethod):
+    """Set the water depth in m and use it to calculate all other properties.
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(2)
+        >>> bottomlevels(1.0, 3.0)
+        >>> bottomwidths(2.0, 2.0)
+        >>> sideslopes(0.0, 0.0)
+        >>> bottomslope(0.01)
+        >>> stricklercoefficients(20.0, 40.0)
+        >>> derived.bottomdepths.update()
+        >>> derived.trapezeheights.update()
+        >>> derived.slopewidths.update()
+        >>> derived.perimeterderivatives.update()
+        >>> model.use_waterdepth_v3(3.0)
+        >>> factors.waterdepth
+        waterdepth(3.0)
+        >>> factors.waterlevel
+        waterlevel(4.0)
+        >>> factors.wettedarea
+        wettedarea(8.0)
+        >>> fluxes.discharge
+        discharge(14.945466)
+        >>> factors.celerity
+        celerity(2.642957)
+    """
+
+    SUBMETHODS = (
+        Set_WaterDepth_V1,
+        Calc_WaterLevel_V2,
+        Calc_Index_Excess_Weight_V1,
+        Calc_FlowWidths_V1,
+        Calc_TotalWidths_V1,
+        Calc_FlowAreas_V1,
+        Calc_TotalAreas_V1,
+        Calc_FlowPerimeters_V1,
+        Calc_TotalArea_V1,
+        Calc_Discharges_V2,
+        Calc_Discharge_V3,
+    )
+
+
 class Use_WaterLevel_V1(modeltools.SetAutoMethod):
     """Set the water level in m and use it to calculate all other properties.
 
@@ -1665,6 +2263,27 @@ class Get_WettedArea_V1(modeltools.Method):
         return fac.wettedarea
 
 
+class Get_WettedArea_V2(modeltools.Method):
+    """Get the wetted area in m².
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> factors.totalarea = 2.0
+        >>> model.get_wettedarea_v2()
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (wq_factors.TotalArea,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.totalarea
+
+
 class Get_WettedPerimeter_V1(modeltools.Method):
     """Get the wetted perimeter in m.
 
@@ -1766,12 +2385,14 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Set_WettedArea_V1,
         Use_WaterDepth_V1,
         Use_WaterDepth_V2,
+        Use_WaterDepth_V3,
         Use_WaterLevel_V1,
         Use_WaterLevel_V2,
         Use_WettedArea_V1,
         Get_WaterDepth_V1,
         Get_WaterLevel_V1,
         Get_WettedArea_V1,
+        Get_WettedArea_V2,
         Get_WettedPerimeter_V1,
         Get_SurfaceWidth_V1,
         Get_Discharge_V1,
@@ -1780,16 +2401,28 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     ADD_METHODS = (
         Calc_WaterDepth_V1,
         Calc_WaterDepth_V2,
+        Calc_WaterDepth_V3,
         Calc_WaterLevel_V1,
+        Calc_WaterLevel_V2,
+        Calc_Index_Excess_Weight_V1,
         Calc_WettedAreas_V1,
+        Calc_FlowAreas_V1,
+        Calc_TotalAreas_V1,
         Calc_WettedArea_V1,
+        Calc_FlowArea_V1,
+        Calc_TotalArea_V1,
         Calc_WettedPerimeters_V1,
+        Calc_FlowPerimeters_V1,
         Calc_WettedPerimeter_V1,
         Calc_WettedPerimeterDerivatives_V1,
         Calc_SurfaceWidths_V1,
         Calc_SurfaceWidth_V1,
+        Calc_FlowWidths_V1,
+        Calc_TotalWidths_V1,
         Calc_Discharges_V1,
+        Calc_Discharges_V2,
         Calc_Discharge_V2,
+        Calc_Discharge_V3,
         Calc_DischargeDerivatives_V1,
         Calc_DischargeDerivative_V1,
         Calc_Celerity_V1,

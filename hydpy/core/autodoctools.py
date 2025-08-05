@@ -1586,6 +1586,7 @@ class SubmodelGraph:
         wq_trapeze
         wq_trapeze_strickler
         wq_walrus
+        wq_widths_strickler
         """
         dirpath = models.__path__[0]
         filenames = (n for n in os.listdir(dirpath) if n.endswith(".py"))

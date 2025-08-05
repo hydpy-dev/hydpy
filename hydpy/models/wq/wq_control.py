@@ -13,7 +13,54 @@ class NmbTrapezes(parametertools.NmbParameter):
     SPAN = (1, None)
 
 
-class BottomLevels(wq_variables.MixinShape, parametertools.Parameter):
+class NmbWidths(parametertools.NmbParameter):
+    """Number of widths that define the cross section [-]."""
+
+    SPAN = (1, None)
+
+
+class NmbSectors(parametertools.NmbParameter):
+    """Number of the separately calculated sectors of the cross section [-]."""
+
+    SPAN = (1, None)
+
+
+class Heights(wq_variables.MixinWidths, parametertools.Parameter):
+    """The measurement heights of the widths defining the cross section [m].
+
+    If water levels are essential, we encourage using the sea level as a reference.  If
+    not (as for common hydrological routing approaches), one could also set the lowest
+    tabulated level to zero.
+    """
+
+    TYPE, TIME, SPAN = float, None, (None, None)
+
+
+class FlowWidths(wq_variables.MixinWidths, parametertools.Parameter):
+    """The widths of those subareas of the cross section involved in water routing
+    [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+
+class TotalWidths(wq_variables.MixinWidths, parametertools.Parameter):
+    """The widths of the total cross section [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+
+class Transitions(parametertools.Parameter):
+    """The measurement heights that mark the transitions between separately calculated
+    cross section sectors [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, int, None, (0.0, None)
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, NmbSectors):
+            self.__hydpy__change_shape_if_necessary__((p.value - 1,))
+
+
+class BottomLevels(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The bottom level for each trapeze [m].
 
     If water levels are essential, we encourage using the sea level as a reference.  If
@@ -24,7 +71,7 @@ class BottomLevels(wq_variables.MixinShape, parametertools.Parameter):
     TYPE, TIME, SPAN = float, None, (None, None)
 
 
-class BottomWidths(wq_variables.MixinShape, parametertools.Parameter):
+class BottomWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The bottom width for each trapeze [m].
 
 
@@ -36,7 +83,7 @@ class BottomWidths(wq_variables.MixinShape, parametertools.Parameter):
     TYPE, TIME, SPAN = float, None, (0.0, None)
 
 
-class SideSlopes(wq_variables.MixinShape, parametertools.Parameter):
+class SideSlopes(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The side slope for each trapeze[-].
 
     A value of zero corresponds to a rectangular shape.  A value of two corresponds to
@@ -47,7 +94,9 @@ class SideSlopes(wq_variables.MixinShape, parametertools.Parameter):
     TYPE, TIME, SPAN = float, None, (0.0, None)
 
 
-class StricklerCoefficients(wq_variables.MixinShape, parametertools.Parameter):
+class StricklerCoefficients(
+    wq_variables.MixinTrapezesOrSectors, parametertools.Parameter
+):
     """Manning-Strickler coefficient for each trapeze [m^(1/3)/s].
 
     The higher the coefficient's value, the higher the calculated discharge.  Typical

@@ -103,7 +103,8 @@ class CustomMask(BaseMask):
         return type(self)(bools)
 
     def __contains__(
-        self, other: VectorInputBool | MatrixInputBool | TensorInputBool
+        self,
+        other: VectorInputBool | MatrixInputBool | TensorInputBool,  # type: ignore[override]  # pylint: disable=line-too-long
     ) -> bool:
         return bool(numpy.all(self[other]))
 

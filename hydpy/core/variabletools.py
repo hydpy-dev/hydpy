@@ -1477,7 +1477,7 @@ as `var` can only be `()`, but `(2,)` is given.
         initvalue, initflag = self.initinfo
         if self.NDIM:
             try:
-                array = numpy.full(
+                array: NDArray[Any] = numpy.full(
                     shape, initvalue, dtype=config.TYPES_PY2NP[self.TYPE]
                 )
             except BaseException:

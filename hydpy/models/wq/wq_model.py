@@ -599,12 +599,12 @@ class Calc_WettedAreas_V1(modeltools.Method):
 
 
 class Calc_FlowAreas_V1(modeltools.Method):
-    """Calculate the sector-specific wetted areas of those subareas of the cross
+    r"""Calculate the sector-specific wetted areas of those subareas of the cross
     section involved in water routing.
 
     Basic equation:
       .. math::
-        A_i = AS_i + E \cdot (SW_i + W) / 2
+        A = AS_i + E \cdot (SW_i + W) / 2
         \\ \\
         i = Index \\
         E = Excess \\
@@ -664,11 +664,11 @@ class Calc_FlowAreas_V1(modeltools.Method):
 
 
 class Calc_TotalAreas_V1(modeltools.Method):
-    """Calculate the sector-specific wetted areas of the total cross section.
+    r"""Calculate the sector-specific wetted areas of the total cross section.
 
     Basic equation:
       .. math::
-        A_i = AS_i + E \cdot (SW_i + W) / 2
+        A = AS_i + E \cdot (SW_i + W) / 2
         \\ \\
         i = Index \\
         E = Excess \\
@@ -956,12 +956,12 @@ class Calc_WettedPerimeters_V1(modeltools.Method):
 
 
 class Calc_FlowPerimeters_V1(modeltools.Method):
-    """Interpolate the sector-specific wetted perimeters of those subareas of the cross
+    r"""Interpolate the sector-specific wetted perimeters of those subareas of the cross
     section involved in water routing.
 
     Basic equations:
       .. math::
-        P_i = \begin{cases}
+        P = \begin{cases}
         (1 - w) \cdot PS_i + w \cdot PS_{i+1} &|\ w \neq nan \\
         PS_i + 2 \cdot E &|\ w = nan
         \end{cases}

@@ -39,7 +39,7 @@ class FlowAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequenc
     SPAN = (0.0, None)
 
 
-class FlowArea(sequencetools.FactorSequence):  # ToDo: remove?
+class FlowArea(sequencetools.FactorSequence):
     """The total wetted area of those subareas of the cross section involved in water
     routing [m²]."""
 

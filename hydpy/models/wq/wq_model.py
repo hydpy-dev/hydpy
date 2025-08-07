@@ -393,14 +393,14 @@ class Calc_Index_Excess_Weight_V1(modeltools.Method):
 
     Basic equations:
       .. math::
-        Excess = L - H_i \\
-        Weight = E / (H_{i+1} - H_i)
+        E = L - H_i \\
+        w = E / (H_{i+1} - H_i)
         \\ \\
         L = WaterLevel \\
         H = Heights \\
         i = Index \\
         E = Excess \\
-        W = Weight
+        w = Weight
 
     Example:
 
@@ -953,6 +953,80 @@ class Calc_WettedPerimeters_V1(modeltools.Method):
                     fac.wettedperimeters[i] = (
                         wb + 2.0 * ht * (ss**2.0 + 1.0) ** 0.5 + 2.0 * (d - ht)
                     )
+
+
+class Calc_FlowPerimeters_V1(modeltools.Method):
+    """Interpolate the sector-specific wetted perimeters of those subareas of the cross
+    section involved in water routing.
+
+    Basic equations:
+      .. math::
+        P_i = \begin{cases}
+        (1 - w) \cdot PS_i + w \cdot PS_{i+1} &|\ w \neq nan \\
+        PS_i + 2 \cdot E &|\ w = nan
+        \end{cases}
+        \\ \\
+        i = Index \\
+        w = Weight \\
+        E = Excess \\
+        P = FlowPerimeters \\
+        PS = SectorFlowPerimeters
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowperimeters.update()
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_flowwidths_v1()
+        ...     model.calc_flowperimeters_v1()
+        ...     print_vector([waterlevel, *factors.flowperimeters.values])
+        0, 2.0, 0.0, 0.0, 0.0
+        1, 2.0, 0.0, 0.0, 0.0
+        2, 4.236068, 0.0, 0.0, 0.0
+        3, 6.472136, 0.0, 0.0, 0.0
+        4, 9.300563, 8.0, 4.0, 0.0
+        5, 11.300563, 10.0, 6.0, 0.0
+        6, 13.300563, 12.0, 8.0, 6.324555
+        7, 15.300563, 14.0, 10.0, 10.796691
+        8, 17.300563, 16.0, 12.0, 13.625118
+        9, 19.300563, 18.0, 14.0, 15.625118
+        10, 21.300563, 20.0, 16.0, 17.625118
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectorFlowPerimeters,)
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Weight, wq_aides.Excess)
+    RESULTSEQUENCES = (wq_factors.FlowPerimeters,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        if modelutils.isnan(aid.weight):
+            for i in range(con.nmbsectors):
+                fac.flowperimeters[i] = (
+                    der.sectorflowperimeters[i, j] + 2.0 * aid.excess
+                )
+        else:
+            for i in range(con.nmbsectors):
+                w: float = aid.weight
+                fac.flowperimeters[i] = (1.0 - w) * der.sectorflowperimeters[
+                    i, j
+                ] + w * der.sectorflowperimeters[i, j + 1]
 
 
 class Calc_WettedPerimeter_V1(modeltools.Method):
@@ -2121,6 +2195,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_FlowArea_V1,
         Calc_TotalArea_V1,
         Calc_WettedPerimeters_V1,
+        Calc_FlowPerimeters_V1,
         Calc_WettedPerimeter_V1,
         Calc_WettedPerimeterDerivatives_V1,
         Calc_SurfaceWidths_V1,

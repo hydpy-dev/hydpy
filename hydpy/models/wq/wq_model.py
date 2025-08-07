@@ -663,6 +663,70 @@ class Calc_FlowAreas_V1(modeltools.Method):
             )
 
 
+class Calc_TotalAreas_V1(modeltools.Method):
+    """Calculate the section-specific wetted areas of the total cross section.
+
+    Basic equation:
+      .. math::
+        A_i = AS_i + E \cdot (SW_i + W) / 2
+        \\ \\
+        i = Index \\
+        E = Excess \\
+        A = TotalAreas \\
+        W = TotalWidths \\
+        AS = SectionTotalAreas \\
+        WS = SectionTotalWidths
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectiontotalwidths.update()
+        >>> derived.sectiontotalareas.update()
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_totalwidths_v1()
+        ...     model.calc_totalareas_v1()
+        ...     print_vector([waterlevel, *factors.totalareas.values])
+        0, 0.0, 0.0, 0.0, 0.0
+        1, 0.0, 0.0, 0.0, 0.0
+        2, 2.5, 0.0, 0.0, 0.0
+        3, 6.0, 0.0, 0.0, 0.0
+        4, 11.0, 0.0, 0.0, 0.0
+        5, 17.0, 8.0, 4.0, 0.0
+        6, 23.0, 16.0, 8.0, 3.0
+        7, 29.0, 24.0, 12.0, 11.0
+        8, 35.0, 32.0, 16.0, 22.0
+        9, 41.0, 40.0, 20.0, 34.0
+        10, 47.0, 48.0, 24.0, 46.0
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectionTotalAreas, wq_derived.SectionTotalWidths)
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_factors.TotalWidths)
+    RESULTSEQUENCES = (wq_factors.TotalAreas,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        for i in range(con.nmbsectors):
+            fac.totalareas[i] = der.sectiontotalareas[i, j] + (
+                aid.excess * (der.sectiontotalwidths[i, j] + fac.totalwidths[i]) / 2.0
+            )
+
+
 class Calc_WettedArea_V1(modeltools.Method):
     r"""Sum up the individual trapeze ranges' wetted areas.
 
@@ -1990,6 +2054,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_Index_Excess_Weight_V1,
         Calc_WettedAreas_V1,
         Calc_FlowAreas_V1,
+        Calc_TotalAreas_V1,
         Calc_WettedArea_V1,
         Calc_WettedPerimeters_V1,
         Calc_WettedPerimeter_V1,

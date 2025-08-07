@@ -1556,6 +1556,62 @@ class Calc_Discharges_V1(modeltools.Method):
                 flu.discharges[i] = 0.0
 
 
+class Calc_Discharges_V2(modeltools.Method):
+    r"""Calculate the discharge for each cross-section sector.
+
+    Basic equation:
+      .. math::
+        Q = \begin{cases}
+        0 &|\ A < 0 \\
+        C \cdot A^{5/3} \cdot P^{-2/3} \cdot \sqrt{S} &|\ 0 \leq A
+        \end{cases}
+        \\ \\
+        Q = Discharges \\
+        C = StricklerCoefficient \\
+        A = FlowAreas \\
+        P = FlowPerimeters \\
+        S = BottomSlope
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(4)
+        >>> bottomslope(0.01)
+        >>> stricklercoefficients(20.0, 40.0, 60.0, 80.0)
+        >>> factors.flowareas = 1.0, 4.0, 8.0, 0.0
+        >>> factors.flowperimeters = 2.0, 4.0, 6.0, 8.0
+        >>> model.calc_discharges_v2()
+        >>> fluxes.discharges
+        discharges(1.259921, 16.0, 58.147859, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        wq_control.NmbSectors,
+        wq_control.BottomSlope,
+        wq_control.StricklerCoefficients,
+    )
+    REQUIREDSEQUENCES = (wq_factors.FlowAreas, wq_factors.FlowPerimeters)
+    RESULTSEQUENCES = (wq_fluxes.Discharges,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        for i in range(con.nmbsectors):
+            if fac.flowareas[i] > 0.0:
+                flu.discharges[i] = (
+                    con.stricklercoefficients[i]
+                    * con.bottomslope**0.5
+                    * fac.flowareas[i] ** (5.0 / 3.0)
+                    / fac.flowperimeters[i] ** (2.0 / 3.0)
+                )
+            else:
+                flu.discharges[i] = 0.0
+
+
 class Calc_Discharge_V2(modeltools.Method):
     r"""Sum the individual trapeze ranges' discharges.
 
@@ -2338,6 +2394,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_FlowWidths_V1,
         Calc_TotalWidths_V1,
         Calc_Discharges_V1,
+        Calc_Discharges_V2,
         Calc_Discharge_V2,
         Calc_DischargeDerivatives_V1,
         Calc_DischargeDerivative_V1,

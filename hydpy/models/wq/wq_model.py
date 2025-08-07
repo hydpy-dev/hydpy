@@ -2290,6 +2290,27 @@ class Get_WettedArea_V1(modeltools.Method):
         return fac.wettedarea
 
 
+class Get_WettedArea_V2(modeltools.Method):
+    """Get the wetted area in m².
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> factors.totalarea = 2.0
+        >>> model.get_wettedarea_v2()
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (wq_factors.TotalArea,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.totalarea
+
+
 class Get_WettedPerimeter_V1(modeltools.Method):
     """Get the wetted perimeter in m.
 
@@ -2397,6 +2418,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Get_WaterDepth_V1,
         Get_WaterLevel_V1,
         Get_WettedArea_V1,
+        Get_WettedArea_V2,
         Get_WettedPerimeter_V1,
         Get_SurfaceWidth_V1,
         Get_Discharge_V1,

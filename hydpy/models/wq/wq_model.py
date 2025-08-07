@@ -1623,7 +1623,6 @@ class Calc_Discharge_V2(modeltools.Method):
         >>> from hydpy.models.wq import *
         >>> parameterstep()
         >>> nmbtrapezes(3)
-        >>> bottomslope(0.01)
         >>> fluxes.discharges(2.0, 3.0, 1.0)
         >>> model.calc_discharge_v2()
         >>> fluxes.discharge
@@ -1641,6 +1640,37 @@ class Calc_Discharge_V2(modeltools.Method):
 
         flu.discharge = 0.0
         for i in range(con.nmbtrapezes):
+            flu.discharge += flu.discharges[i]
+
+
+class Calc_Discharge_V3(modeltools.Method):
+    r"""Sum up the individual cross-section sectors' discharges.
+
+    Basic equation:
+      :math:`Discharge = \sum_{i=1}^{NmbSector} Discharges_i`
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(3)
+        >>> fluxes.discharges(2.0, 3.0, 1.0)
+        >>> model.calc_discharge_v3()
+        >>> fluxes.discharge
+        discharge(6.0)
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    REQUIREDSEQUENCES = (wq_fluxes.Discharges,)
+    RESULTSEQUENCES = (wq_fluxes.Discharge,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        flu.discharge = 0.0
+        for i in range(con.nmbsectors):
             flu.discharge += flu.discharges[i]
 
 
@@ -2396,6 +2426,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_Discharges_V1,
         Calc_Discharges_V2,
         Calc_Discharge_V2,
+        Calc_Discharge_V3,
         Calc_DischargeDerivatives_V1,
         Calc_DischargeDerivative_V1,
         Calc_Celerity_V1,

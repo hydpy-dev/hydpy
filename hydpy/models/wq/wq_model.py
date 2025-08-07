@@ -1191,6 +1191,65 @@ class Calc_WettedPerimeterDerivatives_V1(modeltools.Method):
                 fac.wettedperimeterderivatives[i] = 2.0
 
 
+class Calc_FlowPerimeterDerivatives_V1(modeltools.Method):
+    """Take the sector-specific wetted perimeter derivatives of those subareas of the
+    cross section involved in water routing.
+
+    Basic equations:
+      .. math::
+        P = DS_i
+        \\ \\
+        i = Index \\
+        D = FlowPerimeterDerivatives \\
+        DS = SectorFlowPerimeterDerivatives
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowperimeterderivatives.update()
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_flowperimeterderivatives_v1()
+        ...     print_vector([waterlevel, *factors.flowperimeterderivatives.values])
+        0, 2.236068, nan, nan, nan
+        1, 2.236068, nan, nan, nan
+        2, 2.236068, nan, nan, nan
+        3, 2.828427, nan, nan, nan
+        4, 2.0, 2.0, 2.0, nan
+        5, 2.0, 2.0, 2.0, 6.324555
+        6, 2.0, 2.0, 2.0, 4.472136
+        7, 2.0, 2.0, 2.0, 2.828427
+        8, 2.0, 2.0, 2.0, 2.0
+        9, 2.0, 2.0, 2.0, 2.0
+        10, 2.0, 2.0, 2.0, 2.0
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectorFlowPerimeterDerivatives,)
+    REQUIREDSEQUENCES = (wq_factors.WaterDepth,)
+    RESULTSEQUENCES = (wq_factors.FlowPerimeterDerivatives,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        for i in range(con.nmbsectors):
+            fac.flowperimeterderivatives[i] = der.sectorflowperimeterderivatives[i, j]
+
+
 class Calc_SurfaceWidths_V1(modeltools.Method):
     r"""Calculate the surface width for each trapeze range.
 
@@ -2441,6 +2500,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_FlowPerimeters_V1,
         Calc_WettedPerimeter_V1,
         Calc_WettedPerimeterDerivatives_V1,
+        Calc_FlowPerimeterDerivatives_V1,
         Calc_SurfaceWidths_V1,
         Calc_SurfaceWidth_V1,
         Calc_FlowWidths_V1,

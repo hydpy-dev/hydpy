@@ -86,6 +86,15 @@ class WettedPerimeterDerivatives(
     SPAN = (0.0, None)
 
 
+class FlowPerimeterDerivatives(
+    wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence
+):
+    """The sector-specific wetted perimeters of those subareas of the cross section
+    involved in water routing [m]."""
+
+    SPAN = (0.0, None)
+
+
 class SurfaceWidths(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
     """Surface width of each trapeze range [m]."""
 

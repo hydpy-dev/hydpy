@@ -1357,6 +1357,74 @@ class Calc_SurfaceWidth_V1(modeltools.Method):
             fac.surfacewidth += fac.surfacewidths[i]
 
 
+class Calc_FlowWidths_V1(modeltools.Method):
+    r"""Interpolate the sector-specific widths of those subareas of the cross section
+    involved in water routing.
+
+    Basic equation:
+      .. math::
+        W_i = \begin{cases}
+        (1 - w) \cdot WS_i + w \cdot WS_{i+1} &|\ w \neq nan \\
+        WS_i &|\ w = nan
+        \end{cases}
+        \\ \\
+        i = Index \\
+        w = Weight \\
+        W = FlowWidths \\
+        WS = SectorFlowWidths
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(11):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     model.calc_flowwidths_v1()
+        ...     print_vector([waterlevel, *factors.flowwidths.values])
+        0, 2.0, 0.0, 0.0, 0.0
+        1, 2.0, 0.0, 0.0, 0.0
+        2, 3.0, 0.0, 0.0, 0.0
+        3, 4.0, 0.0, 0.0, 0.0
+        4, 6.0, 8.0, 4.0, 0.0
+        5, 6.0, 8.0, 4.0, 0.0
+        6, 6.0, 8.0, 4.0, 6.0
+        7, 6.0, 8.0, 4.0, 10.0
+        8, 6.0, 8.0, 4.0, 12.0
+        9, 6.0, 8.0, 4.0, 12.0
+        10, 6.0, 8.0, 4.0, 12.0
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    DERIVEDPARAMETERS = (wq_derived.SectorFlowWidths,)
+    REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Weight)
+    RESULTSEQUENCES = (wq_factors.FlowWidths,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        j = int(aid.index)
+        if modelutils.isnan(aid.weight):
+            for i in range(con.nmbsectors):
+                fac.flowwidths[i] = der.sectorflowwidths[i, j]
+        else:
+            for i in range(con.nmbsectors):
+                fac.flowwidths[i] = (1.0 - aid.weight) * der.sectorflowwidths[
+                    i, j
+                ] + aid.weight * der.sectorflowwidths[i, j + 1]
+
+
 class Calc_Discharges_V1(modeltools.Method):
     r"""Calculate the discharge for each trapeze range.
 
@@ -2200,6 +2268,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_WettedPerimeterDerivatives_V1,
         Calc_SurfaceWidths_V1,
         Calc_SurfaceWidth_V1,
+        Calc_FlowWidths_V1,
         Calc_Discharges_V1,
         Calc_Discharge_V2,
         Calc_DischargeDerivatives_V1,

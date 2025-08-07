@@ -289,6 +289,42 @@ class Calc_WaterDepth_V2(modeltools.Method):
                 break
 
 
+class Calc_WaterDepth_V3(modeltools.Method):
+    r"""Calculate the water depth based on the current water level.
+
+    Basic equation:
+      .. math::m
+        WaterDepth = max(WaterLevel - Heights_0, \ 0)
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(2)
+        >>> heights(2.0, 3.0)
+        >>> factors.waterlevel(6.0)
+        >>> model.calc_waterdepth_v3()
+        >>> factors.waterdepth
+        waterdepth(4.0)
+
+        >>> factors.waterlevel(1.0)
+        >>> model.calc_waterdepth_v3()
+        >>> factors.waterdepth
+        waterdepth(0.0)
+    """
+
+    CONTROLPARAMETERS = (wq_control.Heights,)
+    REQUIREDSEQUENCES = (wq_factors.WaterLevel,)
+    RESULTSEQUENCES = (wq_factors.WaterDepth,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.waterdepth = max(fac.waterlevel - con.heights[0], 0.0)
+
+
 class Calc_WaterLevel_V1(modeltools.Method):
     r"""Calculate the water level based on the current water depth.
 
@@ -1780,6 +1816,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     ADD_METHODS = (
         Calc_WaterDepth_V1,
         Calc_WaterDepth_V2,
+        Calc_WaterDepth_V3,
         Calc_WaterLevel_V1,
         Calc_WettedAreas_V1,
         Calc_WettedArea_V1,

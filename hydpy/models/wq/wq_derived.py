@@ -155,7 +155,7 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
         self.values = 2.0 * (1.0 + sideslopes**2.0) ** 0.5
 
 
-class _SectionWidths(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
+class _SectorWidths(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
     TYPE, TIME, SPAN = float, None, (0.0, None)
 
     def _update(self, widths: wq_control.FlowWidths | wq_control.TotalWidths) -> None:
@@ -171,8 +171,8 @@ class _SectionWidths(wq_variables.MixinSectorsAndWidths, parametertools.Paramete
             s[i, :] = numpy.clip(w - w0, 0.0, w1 - w0)
 
 
-class SectionFlowWidths(_SectionWidths):
-    """The section-specific widths of those subareas of the cross section involved in
+class SectorFlowWidths(_SectorWidths):
+    """The sector-specific widths of those subareas of the cross section involved in
     water routing [m]."""
 
     CONTROLPARAMETERS = (
@@ -192,20 +192,20 @@ class SectionFlowWidths(_SectionWidths):
         >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
         >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
-        >>> derived.sectionflowwidths.update()
-        >>> derived.sectionflowwidths
-        sectionflowwidths([[2.0, 4.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0],
-                           [0.0, 0.0, 0.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0],
-                           [0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0],
-                           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowwidths
+        sectorflowwidths([[2.0, 4.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0],
+                          [0.0, 0.0, 0.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0],
+                          [0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0],
+                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])
         """
         flowwidths = self.subpars.pars.control.flowwidths
         assert isinstance(flowwidths, wq_control.FlowWidths)
         self._update(flowwidths)
 
 
-class SectionTotalWidths(_SectionWidths):
-    """The section-specific widths of the total cross section [m]."""
+class SectorTotalWidths(_SectorWidths):
+    """The sector-specific widths of the total cross section [m]."""
 
     CONTROLPARAMETERS = (
         wq_control.NmbSectors,
@@ -224,22 +224,22 @@ class SectionTotalWidths(_SectionWidths):
         >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
         >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
-        >>> derived.sectiontotalwidths.update()
-        >>> derived.sectiontotalwidths
-        sectiontotalwidths([[2.0, 4.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0],
-                            [0.0, 0.0, 0.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0],
-                            [0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0],
-                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])
+        >>> derived.sectortotalwidths.update()
+        >>> derived.sectortotalwidths
+        sectortotalwidths([[2.0, 4.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0],
+                           [0.0, 0.0, 0.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0],
+                           [0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0],
+                           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])
         """
         totalwidths = self.subpars.pars.control.totalwidths
         assert isinstance(totalwidths, wq_control.TotalWidths)
         self._update(totalwidths)
 
 
-class _SectionAreas(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
+class _SectorAreas(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
     TYPE, TIME, SPAN = float, None, (0.0, None)
 
-    def _update(self, widths: SectionFlowWidths | SectionTotalWidths) -> None:
+    def _update(self, widths: SectorFlowWidths | SectorTotalWidths) -> None:
         h = self.subpars.pars.control.heights.values
         w = widths.values
         h_diff = numpy.diff(h)
@@ -248,12 +248,12 @@ class _SectionAreas(wq_variables.MixinSectorsAndWidths, parametertools.Parameter
         self.values[:, 1:] = numpy.cumsum(h_diff * w_mean, axis=1)
 
 
-class SectionFlowAreas(_SectionAreas):
-    """The section-specific wetted areas of those subareas of the cross section
+class SectorFlowAreas(_SectorAreas):
+    """The sector-specific wetted areas of those subareas of the cross section
     involved in water routing [m²]."""
 
     CONTROLPARAMETERS = (wq_control.Heights,)
-    DERIVEDPARAMETERS = (SectionFlowWidths,)
+    DERIVEDPARAMETERS = (SectorFlowWidths,)
 
     def update(self) -> None:
         """Calculate the cumulative sum of the individual trapeze areas defined by the
@@ -266,24 +266,24 @@ class SectionFlowAreas(_SectionAreas):
         >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
         >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
-        >>> derived.sectionflowwidths.update()
-        >>> derived.sectionflowareas.update()
-        >>> derived.sectionflowareas
-        sectionflowareas([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0, 29.0, 35.0],
-                          [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0, 32.0],
-                          [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0, 16.0],
-                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowareas.update()
+        >>> derived.sectorflowareas
+        sectorflowareas([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0, 29.0, 35.0],
+                         [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0, 32.0],
+                         [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0, 16.0],
+                         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
         """
-        sectionflowwidths = self.subpars.sectionflowwidths
-        assert isinstance(sectionflowwidths, SectionFlowWidths)
-        self._update(sectionflowwidths)
+        sectorflowwidths = self.subpars.sectorflowwidths
+        assert isinstance(sectorflowwidths, SectorFlowWidths)
+        self._update(sectorflowwidths)
 
 
-class SectionTotalAreas(_SectionAreas):
-    """The section-specific wetted areas of the total cross section [m²]."""
+class SectorTotalAreas(_SectorAreas):
+    """The sector-specific wetted areas of the total cross section [m²]."""
 
     CONTROLPARAMETERS = (wq_control.Heights,)
-    DERIVEDPARAMETERS = (SectionTotalWidths,)
+    DERIVEDPARAMETERS = (SectorTotalWidths,)
 
     def update(self) -> None:
         """Calculate the cumulative sum of the individual trapeze areas defined by the
@@ -296,29 +296,29 @@ class SectionTotalAreas(_SectionAreas):
         >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
         >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
-        >>> derived.sectiontotalwidths.update()
-        >>> derived.sectiontotalareas.update()
-        >>> derived.sectiontotalareas
-        sectiontotalareas([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0, 29.0, 35.0],
-                           [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0, 32.0],
-                           [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0, 16.0],
-                           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
+        >>> derived.sectortotalwidths.update()
+        >>> derived.sectortotalareas.update()
+        >>> derived.sectortotalareas
+        sectortotalareas([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0, 29.0, 35.0],
+                          [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0, 32.0],
+                          [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0, 16.0],
+                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
         """
-        sectiontotalwidths = self.subpars.sectiontotalwidths
-        assert isinstance(sectiontotalwidths, SectionTotalWidths)
-        self._update(sectiontotalwidths)
+        sectortotalwidths = self.subpars.sectortotalwidths
+        assert isinstance(sectortotalwidths, SectorTotalWidths)
+        self._update(sectortotalwidths)
 
 
-class SectionFlowPerimeters(
+class SectorFlowPerimeters(
     wq_variables.MixinSectorsAndWidths, parametertools.Parameter
 ):
-    """The section-specific wetted perimeters of those subareas of the cross section
+    """The sector-specific wetted perimeters of those subareas of the cross section
     involved in water routing [m]."""
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.Heights,)
-    DERIVEDPARAMETERS = (SectionFlowWidths,)
+    DERIVEDPARAMETERS = (SectorFlowWidths,)
 
     def update(self) -> None:
         """Calculate the cumulative sum of the individual trapeze perimeters defined by
@@ -331,19 +331,19 @@ class SectionFlowPerimeters(
         >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
         >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
-        >>> derived.sectionflowwidths.update()
-        >>> derived.sectionflowperimeters.update()
-        >>> derived.sectionflowperimeters
-        sectionflowperimeters([[2.0, 6.472136, 9.300563, 9.300563, 9.300563,
-                                11.300563, 13.300563, 15.300563, 17.300563],
-                               [0.0, 0.0, 0.0, 8.0, 8.0, 10.0, 12.0, 14.0, 16.0],
-                               [0.0, 0.0, 0.0, 0.0, 4.0, 6.0, 8.0, 10.0, 12.0],
-                               [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.324555,
-                                10.796691, 13.625118]])
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowperimeters.update()
+        >>> derived.sectorflowperimeters
+        sectorflowperimeters([[2.0, 6.472136, 9.300563, 9.300563, 9.300563,
+                               11.300563, 13.300563, 15.300563, 17.300563],
+                              [0.0, 0.0, 0.0, 8.0, 8.0, 10.0, 12.0, 14.0, 16.0],
+                              [0.0, 0.0, 0.0, 0.0, 4.0, 6.0, 8.0, 10.0, 12.0],
+                              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.324555,
+                               10.796691, 13.625118]])
         """
         control = self.subpars.pars.control
         h = control.heights.values
-        w = self.subpars.sectionflowwidths.values
+        w = self.subpars.sectorflowwidths.values
         dh = numpy.diff(h)
         dw = numpy.diff(w)
         p = numpy.sqrt(numpy.square(2.0 * dh) + numpy.square(dw))

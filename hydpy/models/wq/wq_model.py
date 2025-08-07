@@ -599,7 +599,7 @@ class Calc_WettedAreas_V1(modeltools.Method):
 
 
 class Calc_FlowAreas_V1(modeltools.Method):
-    """Calculate the section-specific wetted areas of those subareas of the cross
+    """Calculate the sector-specific wetted areas of those subareas of the cross
     section involved in water routing.
 
     Basic equation:
@@ -610,8 +610,8 @@ class Calc_FlowAreas_V1(modeltools.Method):
         E = Excess \\
         A = FlowAreas \\
         W = FlowWidths \\
-        AS = SectionFlowAreas \\
-        WS = SectionFlowWidths
+        AS = SectorFlowAreas \\
+        WS = SectorFlowWidths
 
     Example:
 
@@ -622,8 +622,8 @@ class Calc_FlowAreas_V1(modeltools.Method):
         >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
         >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
-        >>> derived.sectionflowwidths.update()
-        >>> derived.sectionflowareas.update()
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowareas.update()
         >>> from hydpy import print_vector
         >>> for waterlevel in range(11):
         ...     factors.waterlevel = waterlevel
@@ -645,7 +645,7 @@ class Calc_FlowAreas_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wq_control.NmbSectors,)
-    DERIVEDPARAMETERS = (wq_derived.SectionFlowAreas, wq_derived.SectionFlowWidths)
+    DERIVEDPARAMETERS = (wq_derived.SectorFlowAreas, wq_derived.SectorFlowWidths)
     REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_factors.FlowWidths)
     RESULTSEQUENCES = (wq_factors.FlowAreas,)
 
@@ -658,13 +658,13 @@ class Calc_FlowAreas_V1(modeltools.Method):
 
         j = int(aid.index)
         for i in range(con.nmbsectors):
-            fac.flowareas[i] = der.sectionflowareas[i, j] + (
-                aid.excess * (der.sectionflowwidths[i, j] + fac.flowwidths[i]) / 2.0
+            fac.flowareas[i] = der.sectorflowareas[i, j] + (
+                aid.excess * (der.sectorflowwidths[i, j] + fac.flowwidths[i]) / 2.0
             )
 
 
 class Calc_TotalAreas_V1(modeltools.Method):
-    """Calculate the section-specific wetted areas of the total cross section.
+    """Calculate the sector-specific wetted areas of the total cross section.
 
     Basic equation:
       .. math::
@@ -674,8 +674,8 @@ class Calc_TotalAreas_V1(modeltools.Method):
         E = Excess \\
         A = TotalAreas \\
         W = TotalWidths \\
-        AS = SectionTotalAreas \\
-        WS = SectionTotalWidths
+        AS = SectorTotalAreas \\
+        WS = SectorTotalWidths
 
     Example:
 
@@ -686,8 +686,8 @@ class Calc_TotalAreas_V1(modeltools.Method):
         >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
         >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
         >>> transitions(2, 3, 5)
-        >>> derived.sectiontotalwidths.update()
-        >>> derived.sectiontotalareas.update()
+        >>> derived.sectortotalwidths.update()
+        >>> derived.sectortotalareas.update()
         >>> from hydpy import print_vector
         >>> for waterlevel in range(11):
         ...     factors.waterlevel = waterlevel
@@ -709,7 +709,7 @@ class Calc_TotalAreas_V1(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (wq_control.NmbSectors,)
-    DERIVEDPARAMETERS = (wq_derived.SectionTotalAreas, wq_derived.SectionTotalWidths)
+    DERIVEDPARAMETERS = (wq_derived.SectorTotalAreas, wq_derived.SectorTotalWidths)
     REQUIREDSEQUENCES = (wq_aides.Index, wq_aides.Excess, wq_factors.TotalWidths)
     RESULTSEQUENCES = (wq_factors.TotalAreas,)
 
@@ -722,8 +722,8 @@ class Calc_TotalAreas_V1(modeltools.Method):
 
         j = int(aid.index)
         for i in range(con.nmbsectors):
-            fac.totalareas[i] = der.sectiontotalareas[i, j] + (
-                aid.excess * (der.sectiontotalwidths[i, j] + fac.totalwidths[i]) / 2.0
+            fac.totalareas[i] = der.sectortotalareas[i, j] + (
+                aid.excess * (der.sectortotalwidths[i, j] + fac.totalwidths[i]) / 2.0
             )
 
 

@@ -33,7 +33,7 @@ class WettedArea(sequencetools.FactorSequence):
 
 
 class FlowAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
-    """The section-specific wetted areas of those subareas of the cross section
+    """The sector-specific wetted areas of those subareas of the cross section
     involved in water routing [m²]."""
 
     SPAN = (0.0, None)
@@ -47,7 +47,7 @@ class FlowArea(sequencetools.FactorSequence):
 
 
 class TotalAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
-    """The section-specific wetted areas of the total cross section [m²]."""
+    """The sector-specific wetted areas of the total cross section [m²]."""
 
     SPAN = (0.0, None)
 
@@ -65,7 +65,7 @@ class WettedPerimeters(wq_variables.MixinTrapezes, sequencetools.FactorSequence)
 
 
 class FlowPerimeters(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
-    """The section-specific wetted perimeters of those subareas of the cross section
+    """The sector-specific wetted perimeters of those subareas of the cross section
     involved in water routing [m]."""
 
     SPAN = (0.0, None)
@@ -99,14 +99,14 @@ class SurfaceWidth(sequencetools.FactorSequence):
 
 
 class FlowWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
-    """The section-specific widths of those subareas of the cross section involved in
+    """The sector-specific widths of those subareas of the cross section involved in
     water routing [m]."""
 
     SPAN = (0.0, None)
 
 
 class TotalWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
-    """The section-specific widths of the total cross section [m]."""
+    """The sector-specific widths of the total cross section [m]."""
 
     SPAN = (0.0, None)
 

@@ -789,6 +789,37 @@ class Calc_FlowArea_V1(modeltools.Method):
             fac.flowarea += fac.flowareas[i]
 
 
+class Calc_TotalArea_V1(modeltools.Method):
+    r"""Sum up the individual cross-section sectors' total wetted areas.
+
+    Basic equation:
+      :math:`TotalArea = \sum_{i=1}^{NmbSectors} TotalAreas_i`
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(3)
+        >>> factors.totalareas(2.0, 3.0, 1.0)
+        >>> model.calc_totalarea_v1()
+        >>> factors.totalarea
+        totalarea(6.0)
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    REQUIREDSEQUENCES = (wq_factors.TotalAreas,)
+    RESULTSEQUENCES = (wq_factors.TotalArea,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.totalarea = 0.0
+        for i in range(con.nmbsectors):
+            fac.totalarea += fac.totalareas[i]
+
+
 class Calc_WettedPerimeters_V1(modeltools.Method):
     r"""Calculate the wetted perimeter for each trapeze range.
 
@@ -2088,6 +2119,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_TotalAreas_V1,
         Calc_WettedArea_V1,
         Calc_FlowArea_V1,
+        Calc_TotalArea_V1,
         Calc_WettedPerimeters_V1,
         Calc_WettedPerimeter_V1,
         Calc_WettedPerimeterDerivatives_V1,

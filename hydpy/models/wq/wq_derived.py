@@ -3,6 +3,9 @@
 # ...from standard library
 import itertools
 
+# ...from standard library
+import math
+
 # ...from site-packages
 import numpy
 
@@ -351,6 +354,56 @@ class SectorFlowPerimeters(
         for i, t in enumerate(itertools.chain([0], control.transitions.values)):
             self.values[i, t:] = w[i, t]
             self.values[i, t + 1 :] += numpy.cumsum(p[i, t:])
+
+
+class SectorFlowPerimeterDerivatives(
+    wq_variables.MixinSectorsAndWidths, parametertools.Parameter
+):
+    """The sector-specific changes in the wetted perimeters of those subareas of the
+    cross section involved in water routing with respect to water level increases
+    [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (wq_control.Heights,)
+    DERIVEDPARAMETERS = (SectorFlowWidths,)
+
+    def update(self) -> None:
+        r"""Calculate the flow perimeter derivatives based on
+        :math:`2 \cdot \sqrt{1 + (dw/dh/2)^2}`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowperimeterderivatives.update()
+        >>> derived.sectorflowperimeterderivatives
+        sectorflowperimeterderivatives([[2.236068, 2.828427, 2.0, 2.0, 2.0, 2.0,
+                                         2.0, 2.0, 2.0],
+                                        [nan, nan, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+                                         2.0],
+                                        [nan, nan, nan, 2.0, 2.0, 2.0, 2.0, 2.0,
+                                         2.0],
+                                        [nan, nan, nan, nan, nan, 6.324555,
+                                         4.472136, 2.828427, 2.0]])
+        """
+        control = self.subpars.pars.control
+        n = control.nmbwidths.value
+        dh = numpy.diff(control.heights.values)
+        dw = numpy.diff(self.subpars.sectorflowwidths.values)
+        self.values = numpy.nan
+        v = self.values
+        v[:, -1] = 2.0
+        for i, t in enumerate(itertools.chain([0], control.transitions.values)):
+            d = 2.0
+            for j in range(n - 2, t - 1, -1):
+                if dh[j] > 0.0:
+                    d = 2.0 * math.sqrt(1.0 + math.pow(dw[i, j] / dh[j] / 2.0, 2.0))
+                v[i, j] = d
 
 
 class CrestHeightRegularisation(parametertools.Parameter):

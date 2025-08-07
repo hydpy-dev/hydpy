@@ -18,6 +18,7 @@ from hydpy.models.wq import wq_control
 from hydpy.models.wq import wq_derived
 from hydpy.models.wq import wq_factors
 from hydpy.models.wq import wq_fluxes
+from hydpy.models.wq import wq_aides
 
 
 class Calculate_Discharge_V1(modeltools.Method):
@@ -385,6 +386,77 @@ class Calc_WaterLevel_V2(modeltools.Method):
         fac = model.sequences.factors.fastaccess
 
         fac.waterlevel = fac.waterdepth + con.heights[0]
+
+
+class Calc_Index_Excess_Weight_V1(modeltools.Method):
+    r"""Calculate some aide sequences that help to ease other calculations.
+
+    Basic equations:
+      .. math::
+        Excess = L - H_i \\
+        Weight = E / (H_{i+1} - H_i)
+        \\ \\
+        L = WaterLevel \\
+        H = Heights \\
+        i = Index \\
+        E = Excess \\
+        W = Weight
+
+    Example:
+
+        |Index| corresponds to the measured height directly equal to or below the
+        current height (and is zero if the current height is smaller than the lowest
+        measured height).  |Excess| corresponds to the difference between the actual
+        and the indexed height. |Weight| serves as a linear weighting factor and grows
+        from zero to one when increasing the current height from the next-lower to the
+        next-upper height (and is |numpy.nan| in case there is no next-upper height):
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(3)
+        >>> heights(1.0, 5.0, 7.0)
+        >>> from hydpy import print_vector
+        >>> for waterlevel in range(10):
+        ...     factors.waterlevel = waterlevel
+        ...     model.calc_index_excess_weight_v1()
+        ...     print_vector([waterlevel, aides.index, aides.excess, aides.weight])
+        0, 0.0, 0.0, 0.0
+        1, 0.0, 0.0, 0.0
+        2, 0.0, 1.0, 0.25
+        3, 0.0, 2.0, 0.5
+        4, 0.0, 3.0, 0.75
+        5, 1.0, 0.0, 0.0
+        6, 1.0, 1.0, 0.5
+        7, 2.0, 0.0, nan
+        8, 2.0, 1.0, nan
+        9, 2.0, 2.0, nan
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbWidths, wq_control.Heights)
+    REQUIREDSEQUENCES = (wq_factors.WaterLevel,)
+    RESULTSEQUENCES = (wq_aides.Index, wq_aides.Weight, wq_aides.Excess)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        aid = model.sequences.aides.fastaccess
+
+        if fac.waterlevel <= con.heights[0]:
+            aid.index = 0.0
+            aid.weight = 0.0
+            aid.excess = 0.0
+        else:
+            for i in range(con.nmbwidths - 1):
+                if fac.waterlevel < con.heights[i + 1]:
+                    aid.index = i
+                    aid.excess = fac.waterlevel - con.heights[i]
+                    aid.weight = aid.excess / (con.heights[i + 1] - con.heights[i])
+                    break
+            else:
+                aid.index = con.nmbwidths - 1
+                aid.excess = fac.waterlevel - con.heights[con.nmbwidths - 1]
+                aid.weight = modelutils.nan
 
 
 class Calc_WettedAreas_V1(modeltools.Method):
@@ -1850,6 +1922,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_WaterDepth_V3,
         Calc_WaterLevel_V1,
         Calc_WaterLevel_V2,
+        Calc_Index_Excess_Weight_V1,
         Calc_WettedAreas_V1,
         Calc_WettedArea_V1,
         Calc_WettedPerimeters_V1,

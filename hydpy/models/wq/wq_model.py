@@ -2933,7 +2933,7 @@ class TrapezeModel(modeltools.AdHocModel):
     ) -> pyplot.Figure:
         """Plot the channel profile.
 
-        See the main documentation of application model |wq_trapeze| for more
+        See the main documentation of the application model |wq_trapeze| for more
         information.
         """
         con = self.parameters.control
@@ -3000,6 +3000,110 @@ class TrapezeModel(modeltools.AdHocModel):
         """
         bottomlevels = self.parameters.control.bottomlevels.values
         return tuple(bottomlevels[1:] - bottomlevels[0])
+
+
+class WidthsModel(modeltools.AdHocModel):
+    """Base class for |wq.DOCNAME.long| models that rely on width measurements."""
+
+    def plot(
+        self,
+        *,
+        ymax: float | None = None,
+        color: str | None = None,
+        label: bool | str = False
+    ) -> pyplot.Figure:
+        """Plot the channel profile.
+
+        See the main documentation of the application model |wq_widths| for more
+        information.
+        """
+
+        con = self.parameters.control
+        nw = con.nmbwidths.value
+        hs = con.heights.value
+        fws = con.flowwidths.values
+        tws = con.totalwidths.values
+        ts = con.transitions.values
+
+        fxs = [0.0]
+        txs = [0.0]
+        ys = [hs[0]]
+
+        def _add_to_lines(fx: float, tx: float, y: float) -> None:
+            fxs.append(fx / 2.0)
+            fxs.insert(0, -fx / 2.0)
+            txs.append(tx / 2.0)
+            txs.insert(0, -tx / 2.0)
+            ys.append(y)
+            ys.insert(0, y)
+
+        for h, fw, tw in zip(hs, fws, tws):
+            _add_to_lines(fx=fw, tx=tw, y=h)
+        if (ymax is None) or (ymax <= ys[-1]):
+            ymax = hs[0] + (hs[-1] - hs[0]) / nw * (nw + 1)
+        _add_to_lines(fx=fws[-1], tx=tws[-1], y=ymax)
+
+        pfxs = []
+        ptxs = []
+        pys = []
+
+        def _add_to_points(fx: float, tx: float, y: float) -> None:
+            pfxs.append(fx / 2.0)
+            pfxs.insert(0, -fx / 2.0)
+            ptxs.append(tx / 2.0)
+            ptxs.insert(0, -tx / 2.0)
+            pys.append(y)
+            pys.insert(0, y)
+
+        for t in ts:
+            t = int(t)
+            _add_to_points(fx=fws[t], tx=tws[t], y=hs[t])
+        _add_to_points(fx=fws[-1], tx=tws[-1], y=hs[-1])
+
+        pyplot.xlabel("distance from centre [m]")
+        pyplot.ylabel("height [m]")
+        if isinstance(label, bool) and label:
+            label = objecttools.devicename(self)
+        if isinstance(label, str):
+            line = pyplot.plot(fxs, ys, color=color, label=label, linestyle=":")[0]
+            colour = line.get_color()
+            pyplot.plot(txs, ys, color=colour, label=label)
+            pyplot.legend()
+        else:
+            line = pyplot.plot(fxs, ys, color=color, linestyle=":")[0]
+            colour = line.get_color()
+            pyplot.plot(txs, ys, color=colour)
+        pyplot.plot(
+            pfxs,
+            pys,
+            markeredgecolor=colour,
+            markerfacecolor="white",
+            linestyle="",
+            marker="o",
+        )
+        pyplot.plot(ptxs, pys, color=colour, linestyle="", marker="o")
+
+        return pyplot.gcf()
+
+    def get_depths_of_discontinuity(self) -> tuple[float, ...]:
+        """Get all measurement heights (except the first one).
+
+        >>> from hydpy.models.wq_widths_strickler import *
+        >>> parameterstep()
+
+        >>> nmbwidths(1)
+        >>> heights(1.0)
+        >>> model.get_depths_of_discontinuity()
+        ()
+
+        >>> nmbwidths(3)
+        >>> heights(1.0, 3.0, 4.0)
+        >>> from hydpy import print_vector
+        >>> print_vector(model.get_depths_of_discontinuity())
+        2.0, 3.0
+        """
+        heights = self.parameters.control.heights.values
+        return tuple(heights[1:] - heights[0])
 
 
 class Base_DischargeModel_V2(dischargeinterfaces.DischargeModel_V2):

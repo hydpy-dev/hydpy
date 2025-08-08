@@ -81,7 +81,7 @@ valid.
         return super().trim(lower, upper)
 
 
-class Heights(wq_variables.MixinWidths, parametertools.Parameter):
+class Heights(wq_variables.MixinWidths, parametertools.SortedParameter):
     """The measurement heights of the widths defining the cross section [m].
 
     If water levels are essential, we encourage using the sea level as a reference.  If
@@ -92,7 +92,7 @@ class Heights(wq_variables.MixinWidths, parametertools.Parameter):
     TYPE, TIME, SPAN = float, None, (None, None)
 
 
-class FlowWidths(wq_variables.MixinWidths, parametertools.Parameter):
+class FlowWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
     """The widths of those subareas of the cross section involved in water routing
     [m]."""
 
@@ -119,7 +119,7 @@ class FlowWidths(wq_variables.MixinWidths, parametertools.Parameter):
         return super().trim(lower, upper)
 
 
-class TotalWidths(wq_variables.MixinWidths, parametertools.Parameter):
+class TotalWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
     """The widths of the total cross section [m]."""
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
@@ -257,7 +257,7 @@ not strictly rising (1, 4, and 4).
         return super().__repr__()
 
 
-class BottomLevels(wq_variables.MixinTrapezes, parametertools.Parameter):
+class BottomLevels(wq_variables.MixinTrapezes, parametertools.SortedParameter):
     """The bottom level for each trapeze [m].
 
     If water levels are essential, we encourage using the sea level as a reference.  If

@@ -3915,12 +3915,12 @@ attribute nor a row or column related attribute named `wrong`.
 class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     """Base class for handling two values, a left one and a right one.
 
-    The original purpose of class |LeftRightParameter| is to make the
-    handling of river channel related parameters with different values
-    for both river banks a little more convenient.
+    The original purpose of class |LeftRightParameter| is to make the handling of river
+    channel-related parameters with different values for both river banks a little more
+    convenient.
 
-    As an example, we define a parameter class describing the width
-    both of the left and the right flood plain of a river segment:
+    As an example, we define a parameter class describing the width of both the left
+    and the right floodplain of a river segment:
 
     >>> from hydpy.core.parametertools import LeftRightParameter
     >>> class FloodPlainWidth(LeftRightParameter):
@@ -3928,8 +3928,8 @@ class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     ...     TIME = None
     >>> floodplainwidth = FloodPlainWidth(None)
 
-    Here, we need to set the shape of the parameter to 2, which is an
-    automated procedure in full model setups:
+    Here, we need to set the shape of the parameter to 2, which is an automated
+    procedure in full model setups:
 
     >>> floodplainwidth.shape = 2
 
@@ -3939,8 +3939,8 @@ class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     >>> floodplainwidth
     floodplainwidth(3.0)
 
-    Alternatively, use the keywords `left` or `l` and `right` or
-    `r` to define both values individually:
+    Alternatively, use the keywords `left` or `l` and `right` or `r` to define both
+    values individually:
 
     >>> floodplainwidth(left=1.0, right=2.0)
     >>> floodplainwidth
@@ -3954,18 +3954,19 @@ class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     >>> floodplainwidth(left=2.0)
     Traceback (most recent call last):
     ...
-    ValueError: When setting the values of parameter `floodplainwidth` of \
-element `?` via keyword arguments, either `right` or `r` for the "right" \
-parameter value must be given, but is not.
+    ValueError: When setting the values of parameter `floodplainwidth` of element `?` \
+via keyword arguments, either `right` or `r` for the "right" parameter value must be \
+given, but is not.
+
     >>> floodplainwidth(right=1.0)
     Traceback (most recent call last):
     ...
-    ValueError: When setting the values of parameter `floodplainwidth` of \
-element `?` via keyword arguments, either `left` or `l` for the "left" \
-parameter value must be given, but is not.
+    ValueError: When setting the values of parameter `floodplainwidth` of element `?` \
+via keyword arguments, either `left` or `l` for the "left" parameter value must be \
+given, but is not.
 
-    Additionally, one can query and modify the individual values via the
-    attribute names `left` and `right`:
+    Additionally, one can query and modify the individual values via the attribute
+    names `left` and `right`:
 
     >>> floodplainwidth.left
     2.0
@@ -4027,6 +4028,46 @@ parameter value must be given, but is not.
         if values[0] == values[1]:
             return f"{self.name}({values[0]})"
         return f"{self.name}(left={values[0]}, right={values[1]})"
+
+
+class SortedParameter(Parameter):
+    """Base parameter class that checks if given values are sorted in increasing order.
+
+    We take the subclassed parameter |wq_control.Heights| of the base model |wq| as an
+    example:
+
+    >>> from hydpy.models.wq import *
+    >>> parameterstep()
+    >>> nmbwidths(3)
+    >>> heights(1.0 / 3.0, 0.0, 2.0 / 3.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: The values assigned to parameter `heights` of element `?` are not \
+sorted in increasing order (0.333333, 0.0, and 0.666667).
+
+    >>> heights
+    heights(nan)
+
+    Subsequent identical values are allowed:
+
+    >>> heights(1.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0)
+    >>> heights
+    heights(0.333333, 0.666667, 0.666667)
+    """
+
+    NDIM = 1
+    TYPE = float
+
+    def __call__(self, *args, **kwargs) -> None:
+        super().__call__(*args, **kwargs)
+        values = self.values
+        if numpy.any(values[1:] < values[:-1]):
+            self.values = numpy.nan
+            raise ValueError(
+                f"The values assigned to parameter {objecttools.elementphrase(self)} "
+                f"are not sorted in increasing order "
+                f"({objecttools.enumeration(objecttools.repr_(v) for v in values)})."
+            )
 
 
 class FixedParameter(Parameter):

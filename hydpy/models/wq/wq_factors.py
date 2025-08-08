@@ -120,7 +120,9 @@ class TotalWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSeque
     SPAN = (0.0, None)
 
 
-class DischargeDerivatives(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
+class DischargeDerivatives(
+    wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence
+):
     """Discharge change of each trapeze range with respect to a water level increase
     [m²/s]."""
 

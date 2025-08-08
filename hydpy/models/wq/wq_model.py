@@ -1839,6 +1839,97 @@ class Calc_DischargeDerivatives_V1(modeltools.Method):
                 fac.dischargederivatives[i] = 0.0
 
 
+class Calc_DischargeDerivatives_V2(modeltools.Method):
+    r"""Calculate the discharge change for each cross section-sector with respect to a
+    water level increase.
+
+    Basic equation:
+     .. math::
+        Q' = \begin{cases}
+        0 &|\ L \leq H \\
+        C \cdot
+        (A / P)^{5/3} \cdot \frac{5 \cdot P \cdot A' - 2 \cdot A \cdot P'}{3 \cdot P}
+        \cdot \sqrt{S} &|\ L > H
+        \end{cases}
+        \\ \\
+        Q' = DischargeDerivatives \\
+        L = WaterLevel \\
+        H = Heights \\
+        C = StricklerCoefficient \\
+        A = FlowAreas \\
+        A' = FlowWidth \\
+        P = FlowPerimeters \\
+        P' = FlowPerimeterDerivatives \\
+        S = BottomSlope
+
+    Example:
+
+        The following example reuses the same cross-section configuration as the
+        example on method |Calc_DischargeDerivatives_V1| and so results in the same
+        derivative estimates:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(7)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0)
+        >>> flowwidths(2.0, 2.0, 6.0, 8.0, 12.0, 14.0, 16.0)
+        >>> transitions(1, 2, 4)
+        >>> bottomslope(0.01)
+        >>> stricklercoefficients(20.0, 40.0, 60.0, 60.0)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowareas.update()
+        >>> derived.sectorflowperimeterderivatives.update()
+        >>> derived.sectorflowperimeters.update()
+        >>> factors.waterlevel = 4.5
+        >>> model.calc_index_excess_weight_v1()
+        >>> model.calc_flowwidths_v1()
+        >>> model.calc_flowareas_v1()
+        >>> model.calc_flowperimeters_v1()
+        >>> model.calc_flowperimeterderivatives_v1()
+        >>> model.calc_dischargederivatives_v2()
+        >>> factors.dischargederivatives
+        dischargederivatives(3.884141, 18.475494, 16.850223, 0.0)
+    """
+
+    CONTROLPARAMETERS = (
+        wq_control.NmbSectors,
+        wq_control.Heights,
+        wq_control.BottomSlope,
+        wq_control.StricklerCoefficients,
+    )
+    REQUIREDSEQUENCES = (
+        wq_factors.WaterLevel,
+        wq_factors.FlowAreas,
+        wq_factors.FlowWidths,
+        wq_factors.FlowPerimeters,
+        wq_factors.FlowPerimeterDerivatives,
+    )
+    RESULTSEQUENCES = (wq_factors.DischargeDerivatives,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        for i in range(con.nmbsectors):
+            t = 0 if i == 0 else int(con.transitions[i - 1])
+            if fac.waterlevel > con.heights[t]:
+                a: float = fac.flowareas[i]
+                da: float = fac.flowwidths[i]
+                p: float = fac.flowperimeters[i]
+                dp: float = fac.flowperimeterderivatives[i]
+                fac.dischargederivatives[i] = (
+                    con.stricklercoefficients[i]
+                    * con.bottomslope**0.5
+                    * (a / p) ** (2.0 / 3.0)
+                    * (5.0 * p * da - 2.0 * a * dp)
+                    / (3.0 * p)
+                )
+            else:
+                fac.dischargederivatives[i] = 0.0
+
+
 class Calc_DischargeDerivative_V1(modeltools.Method):
     r"""Sum the individual trapeze ranges' discharge derivatives.
 
@@ -2510,6 +2601,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_Discharge_V2,
         Calc_Discharge_V3,
         Calc_DischargeDerivatives_V1,
+        Calc_DischargeDerivatives_V2,
         Calc_DischargeDerivative_V1,
         Calc_Celerity_V1,
     )

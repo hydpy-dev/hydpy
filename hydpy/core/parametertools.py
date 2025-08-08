@@ -4029,6 +4029,45 @@ parameter value must be given, but is not.
         return f"{self.name}(left={values[0]}, right={values[1]})"
 
 
+class SortedParameter(Parameter):
+    """Base parameter class that ensures that given values are sorted in increasing
+    order.
+
+    We take parameter |wq_control.Heights| of base model |wq| as an example:
+
+    >>> from hydpy.models.wq import *
+    >>> parameterstep()
+    >>> nmbwidths(3)
+    >>> heights(1.0 / 3.0, 0.0, 2.0 / 3.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: The values assigned to parameter `heights` of element `?` are not \
+sorted in rising order (0.333333, 0.0, and 0.666667).
+
+    >>> heights
+    heights(nan)
+
+    Subsequent identical values are allowed:
+
+    >>> heights(1.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0)
+    >>> heights
+    heights(0.333333, 0.666667, 0.666667)
+    """
+
+    NDIM = 1
+    TYPE = float
+
+    def __call__(self, *args, **kwargs) -> None:
+        super().__call__(*args, **kwargs)
+        values = self.values
+        if numpy.any(values[1:] < values[:-1]):
+            self.values = numpy.nan
+            raise ValueError(
+                f"The values assigned to parameter {objecttools.elementphrase(self)} "
+                f"are not sorted in rising order "
+                f"({objecttools.enumeration(objecttools.repr_(v) for v in values)})."
+            )
+
 class FixedParameter(Parameter):
     """Base class for defining parameters with fixed values.
 

@@ -1395,7 +1395,6 @@ class Calc_SurfaceWidth_V1(modeltools.Method):
         >>> from hydpy.models.wq import *
         >>> parameterstep()
         >>> nmbtrapezes(3)
-        >>> bottomslope(0.01)
         >>> factors.surfacewidths(2.0, 3.0, 1.0)
         >>> model.calc_surfacewidth_v1()
         >>> factors.surfacewidth
@@ -1549,6 +1548,37 @@ class Calc_TotalWidths_V1(modeltools.Method):
                 fac.totalwidths[i] = (1.0 - aid.weight) * der.sectortotalwidths[
                     i, j
                 ] + aid.weight * der.sectortotalwidths[i, j + 1]
+
+
+class Calc_TotalWidth_V1(modeltools.Method):
+    r"""Sum the individual cross-section sectors' water surface widths.
+
+    Basic equation:
+      :math:`TotalWidth = \sum_{i=1}^{NmbSectors} TotalWidths_i`
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(3)
+        >>> factors.totalwidths(2.0, 3.0, 1.0)
+        >>> model.calc_totalwidth_v1()
+        >>> factors.totalwidth
+        totalwidth(6.0)
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    REQUIREDSEQUENCES = (wq_factors.TotalWidths,)
+    RESULTSEQUENCES = (wq_factors.TotalWidth,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.totalwidth = 0.0
+        for i in range(con.nmbsectors):
+            fac.totalwidth += fac.totalwidths[i]
 
 
 class Calc_Discharges_V1(modeltools.Method):
@@ -2628,6 +2658,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_SurfaceWidth_V1,
         Calc_FlowWidths_V1,
         Calc_TotalWidths_V1,
+        Calc_TotalWidth_V1,
         Calc_Discharges_V1,
         Calc_Discharges_V2,
         Calc_Discharge_V2,

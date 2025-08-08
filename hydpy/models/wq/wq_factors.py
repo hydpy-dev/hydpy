@@ -120,6 +120,12 @@ class TotalWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSeque
     SPAN = (0.0, None)
 
 
+class TotalWidth(sequencetools.FactorSequence):
+    """The total width of the total cross section [m]."""
+
+    NDIM, SPAN = 0, (0.0, None)
+
+
 class DischargeDerivatives(
     wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence
 ):

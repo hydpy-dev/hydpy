@@ -16,7 +16,7 @@ class NmbTrapezes(parametertools.NmbParameter):
 class NmbWidths(parametertools.NmbParameter):
     """Number of widths that define the cross section [-]."""
 
-    SPAN = (1, None)
+    SPAN = (2, None)
 
 
 class NmbSectors(parametertools.NmbParameter):

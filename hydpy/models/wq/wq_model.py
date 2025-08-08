@@ -2693,6 +2693,27 @@ class Get_SurfaceWidth_V1(modeltools.Method):
         return fac.surfacewidth
 
 
+class Get_SurfaceWidth_V2(modeltools.Method):
+    """Get the surface width in m.
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> factors.totalwidth = 2.0
+        >>> model.get_surfacewidth_v2()
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (wq_factors.TotalWidth,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.totalwidth
+
+
 class Get_Discharge_V1(modeltools.Method):
     """Get the discharge in m³/s.
 
@@ -2762,6 +2783,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Get_WettedArea_V2,
         Get_WettedPerimeter_V1,
         Get_SurfaceWidth_V1,
+        Get_SurfaceWidth_V2,
         Get_Discharge_V1,
         Get_Celerity_V1,
     )

@@ -1962,6 +1962,38 @@ class Calc_DischargeDerivative_V1(modeltools.Method):
             fac.dischargederivative += fac.dischargederivatives[i]
 
 
+class Calc_DischargeDerivative_V2(modeltools.Method):
+    r"""Sum the individual cross-section sectors' discharge derivatives.
+
+    Basic equation:
+      :math:`DischargeDerivative = \sum_{i=1}^{NmbSectors} DischargeDerivatives_i`
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(3)
+        >>> bottomslope(0.01)
+        >>> factors.dischargederivatives(2.0, 3.0, 1.0)
+        >>> model.calc_dischargederivative_v2()
+        >>> factors.dischargederivative
+        dischargederivative(6.0)
+    """
+
+    CONTROLPARAMETERS = (wq_control.NmbSectors,)
+    REQUIREDSEQUENCES = (wq_factors.DischargeDerivatives,)
+    RESULTSEQUENCES = (wq_factors.DischargeDerivative,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.dischargederivative = 0.0
+        for i in range(con.nmbsectors):
+            fac.dischargederivative += fac.dischargederivatives[i]
+
+
 class Calc_Celerity_V1(modeltools.Method):
     r"""Calculate the kinematic wave celerity.
 
@@ -2603,6 +2635,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_DischargeDerivatives_V1,
         Calc_DischargeDerivatives_V2,
         Calc_DischargeDerivative_V1,
+        Calc_DischargeDerivative_V2,
         Calc_Celerity_V1,
     )
     OUTLET_METHODS = ()

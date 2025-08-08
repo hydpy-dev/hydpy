@@ -2059,6 +2059,41 @@ class Calc_Celerity_V1(modeltools.Method):
             fac.celerity = modelutils.nan
 
 
+class Calc_Celerity_V2(modeltools.Method):
+    r"""Calculate the kinematic wave celerity.
+
+    Basic equation:
+      :math:`Celerity = \frac{DischargeDerivative}{TotalWidth}`
+
+    Examples:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> factors.dischargederivative = 6.0
+        >>> factors.totalwidth = 2.0
+        >>> model.calc_celerity_v2()
+        >>> factors.celerity
+        celerity(3.0)
+
+        >>> factors.totalwidth = 0.0
+        >>> model.calc_celerity_v2()
+        >>> factors.celerity
+        celerity(nan)
+    """
+
+    REQUIREDSEQUENCES = (wq_factors.DischargeDerivative, wq_factors.TotalWidth)
+    RESULTSEQUENCES = (wq_factors.Celerity,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+
+        if fac.totalwidth > 0.0:
+            fac.celerity = fac.dischargederivative / fac.totalwidth
+        else:
+            fac.celerity = modelutils.nan
+
+
 class Set_WaterDepth_V1(modeltools.Method):
     """Set the water depth in m.
 
@@ -2668,6 +2703,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_DischargeDerivative_V1,
         Calc_DischargeDerivative_V2,
         Calc_Celerity_V1,
+        Calc_Celerity_V2,
     )
     OUTLET_METHODS = ()
     SENDER_METHODS = ()

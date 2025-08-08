@@ -2287,6 +2287,99 @@ class Use_WaterDepth_V2(modeltools.SetAutoMethod):
     )
 
 
+class Use_WaterDepth_V3(modeltools.SetAutoMethod):
+    """Set the water depth in m and use it to calculate all other properties.
+
+    Example:
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbsectors(2)
+        >>> nmbwidths(3)
+        >>> heights(1.0, 3.0, 3.0)
+        >>> flowwidths(2.0, 2.0, 4.0)
+        >>> totalwidths(2.0, 2.0, 4.0)
+        >>> transitions(1)
+        >>> stricklercoefficients(20.0, 40.0)
+        >>> bottomslope(0.01)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectortotalwidths.update()
+        >>> derived.sectorflowareas.update()
+        >>> derived.sectortotalareas.update()
+        >>> derived.sectorflowperimeters.update()
+        >>> derived.sectorflowperimeterderivatives.update()
+        >>> model.use_waterdepth_v3(3.0)
+        >>> factors.waterdepth
+        waterdepth(3.0)
+        >>> factors.waterlevel
+        waterlevel(4.0)
+        >>> factors.flowarea
+        flowarea(8.0)
+        >>> factors.totalarea
+        totalarea(8.0)
+        >>> fluxes.discharge
+        discharge(14.945466)
+        >>> factors.celerity
+        celerity(2.642957)
+    """
+
+    SUBMETHODS = (
+        Set_WaterDepth_V1,
+        Calc_WaterLevel_V2,
+        Calc_Index_Excess_Weight_V1,
+        Calc_FlowWidths_V1,
+        Calc_TotalWidths_V1,
+        Calc_TotalWidth_V1,
+        Calc_FlowAreas_V1,
+        Calc_TotalAreas_V1,
+        Calc_FlowPerimeters_V1,
+        Calc_FlowPerimeterDerivatives_V1,
+        Calc_FlowArea_V1,
+        Calc_TotalArea_V1,
+        Calc_Discharges_V2,
+        Calc_Discharge_V3,
+        Calc_DischargeDerivatives_V2,
+        Calc_DischargeDerivative_V2,
+        Calc_Celerity_V2,
+    )
+    CONTROLPARAMETERS = (
+        wq_control.NmbSectors,
+        wq_control.NmbWidths,
+        wq_control.Heights,
+        wq_control.StricklerCoefficients,
+        wq_control.BottomSlope,
+    )
+    DERIVEDPARAMETERS = (
+        wq_derived.SectorFlowWidths,
+        wq_derived.SectorTotalWidths,
+        wq_derived.SectorFlowAreas,
+        wq_derived.SectorTotalAreas,
+        wq_derived.SectorFlowPerimeters,
+        wq_derived.SectorFlowPerimeterDerivatives,
+    )
+    RESULTSEQUENCES = (
+        wq_factors.WaterDepth,
+        wq_factors.WaterLevel,
+        wq_aides.Index,
+        wq_aides.Excess,
+        wq_aides.Weight,
+        wq_factors.FlowAreas,
+        wq_factors.FlowArea,
+        wq_factors.TotalAreas,
+        wq_factors.TotalArea,
+        wq_factors.FlowPerimeters,
+        wq_factors.FlowPerimeterDerivatives,
+        wq_factors.FlowWidths,
+        wq_factors.TotalWidths,
+        wq_factors.TotalWidth,
+        wq_factors.DischargeDerivatives,
+        wq_factors.DischargeDerivative,
+        wq_fluxes.Discharges,
+        wq_fluxes.Discharge,
+        wq_factors.Celerity,
+    )
+
+
 class Use_WaterLevel_V1(modeltools.SetAutoMethod):
     """Set the water level in m and use it to calculate all other properties.
 
@@ -2659,6 +2752,7 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Set_WettedArea_V1,
         Use_WaterDepth_V1,
         Use_WaterDepth_V2,
+        Use_WaterDepth_V3,
         Use_WaterLevel_V1,
         Use_WaterLevel_V2,
         Use_WettedArea_V1,

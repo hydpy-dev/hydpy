@@ -595,15 +595,7 @@ therefore, please consider updating your model setup.
         >>> bsf0
         bsf0(0.5)
         """
-        if not exceptiontools.attrready(self, "values"):
-            self._set_value(0.0)
-            warnings.warn(
-                f"The value of parameter `{self.name}` (introduced in HydPy 6.2), has "
-                f"not been explicitly defined and is automatically set to `0.0`.  We "
-                f"will remove this fallback mechanism in HydPy 8.0; therefore, please "
-                f"consider updating your model setup.",
-                category=exceptiontools.HydPyDeprecationWarning,
-            )
+        self._update_newbie(value=0.0, version="6.2")
 
 
 class BSf(lland_parameters.ParameterSoil):

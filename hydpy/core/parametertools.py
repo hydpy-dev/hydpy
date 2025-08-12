@@ -1575,6 +1575,18 @@ parameter and a simulation time step size first.
         """To be overridden by those "primary" parameters which need special handling
         and all "secondary" parameters."""
 
+    def _update_newbie(self, *, value: float, version: str) -> None:
+        if not exceptiontools.attrready(self, "value"):
+            self._set_value(value)
+            warnings.warn(
+                f"The value of parameter `{self.name}` (introduced in HydPy "
+                f"{version}), has not been explicitly defined and is automatically "
+                f"set to `{value}`.  We will remove this fallback mechanism in HydPy "
+                f"{int(version.split('.')[0]) + 2}.0; therefore, please consider "
+                f"updating your model setup.",
+                category=exceptiontools.HydPyDeprecationWarning,
+            )
+
     @property
     def keywordarguments(self) -> KeywordArguments:
         """A |KeywordArguments| object.

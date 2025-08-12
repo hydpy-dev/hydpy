@@ -477,34 +477,44 @@ class Calc_NKor_V1(modeltools.Method):
 
 
 class Calc_TKor_V1(modeltools.Method):
-    """Adjust the given air temperature value.
+    r"""Adjust the given air temperature value.
 
     Basic equation:
-      :math:`TKor = KT + TemL`
+      :math:`TKor = TemL + ATB \cdot (GH - MGH) / 100 + KT`
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(3)
+        >>> gh(100.0, 200.0, 300.0)
+        >>> atg(-0.5)
         >>> kt(-2.0, 0.0, 2.0)
+        >>> derived.mgh(200.0)
         >>> inputs.teml(1.0)
         >>> model.calc_tkor_v1()
         >>> fluxes.tkor
-        tkor(-1.0, 1.0, 3.0)
+        tkor(-0.5, 1.0, 2.5)
     """
 
-    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.KT)
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.GH,
+        lland_control.ATG,
+        lland_control.KT,
+    )
+    DERIVEDPARAMETERS = (lland_derived.MGH,)
     REQUIREDSEQUENCES = (lland_inputs.TemL,)
     RESULTSEQUENCES = (lland_fluxes.TKor,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
-            flu.tkor[k] = con.kt[k] + inp.teml
+            flu.tkor[k] = inp.teml + con.atg * (con.gh[k] - der.mgh) / 100.0 + con.kt[k]
 
 
 class Calc_WindSpeed2m_V1(modeltools.Method):
@@ -4691,6 +4701,7 @@ class Calc_EvB_AETModel_V1(modeltools.Method):
         >>> lnk(VERS, ACKER, ACKER, MISCHW, WASSER)
         >>> ft(1.0)
         >>> fhru(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> gh(100.0)
         >>> wmax(100.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     dissefactor(5.0)
@@ -4828,6 +4839,7 @@ class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
         >>> lnk(VERS, ACKER, ACKER, MISCHW, WASSER)
         >>> ft(1.0)
         >>> fhru(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> gh(100.0)
         >>> derived.kinz.jun = 3.0
         >>> wmax(50.0)
         >>> derived.moy.shape = 1
@@ -7461,6 +7473,7 @@ class _Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_nmbzones(nhru)
         aetmodel.prepare_zonetypes(lnk)
         aetmodel.prepare_subareas(control.fhru.values * control.ft.value)
+        aetmodel.prepare_elevations(control.gh.values)
         aetmodel.prepare_leafareaindex(control.lai.values)
         aetmodel.prepare_maxsoilwater(control.wmax.values)
         sel = numpy.full(nhru, False, dtype=config.NP_BOOL)
@@ -7493,6 +7506,7 @@ class Main_AETModel_V1A(_Main_AETModel_V1):
         aetinterfaces.AETModel_V1.prepare_nmbzones,
         aetinterfaces.AETModel_V1.prepare_zonetypes,
         aetinterfaces.AETModel_V1.prepare_subareas,
+        aetinterfaces.AETModel_V1.prepare_elevations,
         aetinterfaces.AETModel_V1.prepare_water,
         aetinterfaces.AETModel_V1.prepare_interception,
         aetinterfaces.AETModel_V1.prepare_soil,
@@ -7523,6 +7537,7 @@ class Main_AETModel_V1A(_Main_AETModel_V1):
         >>> nhru(9)
         >>> ft(10.0)
         >>> fhru(0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.16)
+        >>> gh(100.0)
         >>> lnk(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
         >>> lai(1.0)
         >>> lai.acker_jan = 2.0
@@ -7561,6 +7576,7 @@ glets=1.1)
         prepare_nmbzones: 9
         prepare_zonetypes: [ 4 14 13  3 16 17 18  7  8]
         prepare_subareas: [0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.6]
+        prepare_elevations: [100. 100. 100. 100. 100. 100. 100. 100. 100.]
         prepare_leafareaindex: [[1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
         ...
         prepare_maxsoilwater: [50. 50. 50. 50. 50. 50. 50. 50. 50.]
@@ -7631,6 +7647,7 @@ class Main_AETModel_V1B(_Main_AETModel_V1):
         >>> nhru(2)
         >>> ft(10.0)
         >>> fhru(0.5, 0.5)
+        >>> gh(100.0)
         >>> lnk(ACKER, LAUBW)
         >>> measuringheightwindspeed(10.0)
         >>> lai(1.0)

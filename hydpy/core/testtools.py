@@ -2339,6 +2339,7 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     control3.nhru(1)
     control3.ft(1.0)
     control3.fhru(1.0)
+    control3.gh(100.0)
     control3.lnk(lland.ACKER)
     control3.measuringheightwindspeed(10.0)
     control3.lai(3.0)

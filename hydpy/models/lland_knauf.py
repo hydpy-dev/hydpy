@@ -102,6 +102,7 @@ start with a different period and a daily simulation time step:
 >>> nhru(1)
 >>> ft(1.0)
 >>> fhru(1.0)
+>>> gh(100.0)
 
 .. _lland_knauf_acker_summer_daily:
 
@@ -113,6 +114,7 @@ First, we set the values of those parameters also required by the application mo
 
 >>> lnk(ACKER)
 >>> kg(0.94)
+>>> atg(-0.65)
 >>> kt(0.0)
 >>> hinz(0.2)
 >>> lai.acker_aug = 3.5

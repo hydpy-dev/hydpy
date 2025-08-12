@@ -444,6 +444,7 @@ class SubmodelAdder(_DoctestAdder, Generic[TD, TM_contra, TI_contra]):
     >>> nhru(2)
     >>> ft(10.0)
     >>> fhru(0.2, 0.8)
+    >>> gh(100.0)
     >>> lnk(ACKER, MISCHW)
     >>> measuringheightwindspeed(10.0)
     >>> lai(3.0)
@@ -513,8 +514,9 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     intermediate submodel does not consume or provide the corresponding data.
     The following example shows that the main model of type |lland_knauf| shares some
     of its class-level configurations with the sub-submodel of type |evap_pet_hbv96|
-    and that the sub-submodel knows about the zone areas of its main model (which the
-    submodel is not aware of) and uses it for querying air temperature data:
+    and that the sub-submodel knows about the zone areas and elevations of its main
+    model (which the submodel is not aware of) and uses it for querying air temperature
+    data:
 
     >>> lnk(ACKER, WASSER)
     >>> with model.add_aetmodel_v1("evap_aet_hbv96"):
@@ -525,13 +527,14 @@ following error occurred: Submodel `ga_garto_submodel1` does not comply with the
     ...     with model.add_petmodel_v1("evap_pet_hbv96"):
     ...         nmbhru
     ...         hruarea
-    ...         hrualtitude(2.0)
+    ...         hrualtitude
     ...         evapotranspirationfactor(acker=1.2, default=1.0)
     nmbhru(2)
     False
     soil(acker=True, wasser=False)
     nmbhru(2)
     hruarea(2.0, 8.0)
+    hrualtitude(100.0)
     >>> model.aetmodel.parameters.control.excessreduction
     excessreduction(1.0)
     >>> model.aetmodel.petmodel.parameters.control.evapotranspirationfactor
@@ -1221,6 +1224,7 @@ the following error occurred: ...
     ...         control.nhru(2)
     ...         control.ft(1.0)
     ...         control.fhru(0.5)
+    ...         control.gh(100.0)
     ...         control.lnk(ACKER)
     ...         control.lai.acker_jan = 0.5
     ...         control.lai.acker_jul = 5.0

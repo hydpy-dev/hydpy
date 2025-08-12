@@ -71,6 +71,7 @@ ________________
 >>> nhru(1)
 >>> ft(1.0)
 >>> fhru(1.0)
+>>> gh(100.0)
 
 .. _lland_knauf_ic_acker_summer_daily:
 
@@ -79,6 +80,7 @@ acre (summer)
 
 >>> lnk(ACKER)
 >>> kg(0.94)
+>>> atg(-0.65)
 >>> kt(0.0)
 >>> hinz(0.2)
 >>> lai.acker_aug = 3.5

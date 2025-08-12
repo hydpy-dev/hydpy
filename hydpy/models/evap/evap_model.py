@@ -1602,6 +1602,7 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
         >>> ft(10.0)
         >>> nhru(3)
         >>> fhru(5.0, 3.0, 2.0)
+        >>> gh(100.0)
         >>> lnk(ACKER, VERS, VERS)
         >>> measuringheightwindspeed(10.0)
         >>> lai(3.0)
@@ -1695,6 +1696,7 @@ class Calc_CurrentAlbedo_V2(modeltools.Method):
         >>> lnk(WASSER, BODEN, ACKER, BAUMB, LAUBW)
         >>> ft(10.0)
         >>> fhru(0.2)
+        >>> gh(100.0)
         >>> wmax(200.0)
         >>> measuringheightwindspeed(10.0)
         >>> lai.acker = 2.0
@@ -3842,6 +3844,8 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> lnk(WASSER, FLUSS, SEE, BODEN, BODEN)
         >>> ft(10.0)
         >>> fhru(0.2)
+        >>> gh(100.0)
+        >>> atg(-0.65)
         >>> bsf0(0.0)
         >>> wmax(200.0)
         >>> from hydpy import pub
@@ -3935,6 +3939,8 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> fhru(1.0)
         >>> wmax(200.0)
         >>> bsf0(0.0)
+        >>> gh(100.0)
+        >>> atg(-0.65)
         >>> model.update_parameters(ignore_errors=True)
         >>> control.hrutype
         hrutype(NADELW)
@@ -4201,6 +4207,7 @@ class Calc_SnowyCanopy_V1(modeltools.Method):
         >>> ft(10.0)
         >>> nhru(3)
         >>> fhru(5.0, 3.0, 2.0)
+        >>> gh(100.0)
         >>> lnk(LAUBW, LAUBW, ACKER)
         >>> measuringheightwindspeed(10.0)
         >>> lai(3.0)

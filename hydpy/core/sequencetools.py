@@ -2820,6 +2820,7 @@ class ModelSequence(Sequence_):
         >>> nhru(1)
         >>> ft(1.0)
         >>> fhru(1.0)
+        >>> gh(100.0)
         >>> lnk(ACKER)
         >>> measuringheightwindspeed(10.0)
         >>> lai(10.0)

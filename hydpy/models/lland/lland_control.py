@@ -104,6 +104,36 @@ class Lnk(parametertools.NameParameter):
     constants = CONSTANTS_
 
 
+class GH(lland_parameters.ParameterComplete):
+    """Gebietshöhe (elevation) [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> gh.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`gh` (introduced in HydPy 6.2), has not been explicitly defined and is automatically \
+set to `0.0`.  We will remove this fallback mechanism in HydPy 8.0; therefore, please \
+consider updating your model setup.
+
+        >>> gh
+        gh(0.0)
+
+        >>> gh(100.0, 200.0)
+        >>> gh
+        gh(100.0, 200.0)
+        """
+        self._update_newbie(value=0.0, version="6.2")
+
+
 class FHRU(lland_parameters.ParameterComplete):
     """Flächenanteile der Hydrotope (area percentages of the respective HRUs) [-]."""
 
@@ -119,6 +149,37 @@ class KG(lland_parameters.ParameterComplete):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 1.0
+
+
+class ATG(parametertools.Parameter):
+    """Atmosphärischer Temperaturgradient (atmospheric temperature gradient)
+    [°C/100m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = -0.65
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> atg.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`atg` (introduced in HydPy 6.2), has not been explicitly defined and is automatically \
+set to `0.0`.  We will remove this fallback mechanism in HydPy 8.0; therefore, please \
+consider updating your model setup.
+
+        >>> atg
+        atg(0.0)
+
+        >>> atg(-0.65)
+        >>> atg
+        atg(-0.65)
+        """
+        self._update_newbie(value=0.0, version="6.2")
 
 
 class KT(lland_parameters.ParameterComplete):

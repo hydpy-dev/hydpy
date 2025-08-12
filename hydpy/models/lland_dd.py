@@ -80,6 +80,7 @@ We focus on a single hydrological response unit with one square kilometre:
 >>> nhru(1)
 >>> ft(1.0)
 >>> fhru(1.0)
+>>> gh(100.0)
 
 .. _lland_dd_acker_summer:
 
@@ -96,6 +97,7 @@ The following set of control parameter values tries to configure application mod
 implemented methods on the shown results:
 
 >>> kg(1.2)
+>>> atg(-0.65)
 >>> kt(0.8)
 >>> hinz(0.2)
 >>> lai(4.0)
@@ -146,7 +148,6 @@ evapotranspiration to actual evapotranspiration:
 ...         landmonthfactor(0.5)
 ...         dampingfactor(1.0)
 ...         with model.add_retmodel_v1("evap_ret_tw2002"):
-...             hrualtitude(100.0)
 ...             coastfactor(0.6)
 ...             evapotranspirationfactor(0.4)
 ...             with model.add_radiationmodel_v2("meteo_glob_io"):

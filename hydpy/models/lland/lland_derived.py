@@ -1,6 +1,9 @@
 # pylint: disable=missing-module-docstring
 
 # import...
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
@@ -125,6 +128,30 @@ class AbsFHRU(lland_parameters.ParameterComplete):
         """
         control = self.subpars.pars.control
         self.value = control.ft * control.fhru
+
+
+class MGH(lland_parameters.ParameterComplete):
+    """Mittlere Gebietshöhe (average elevation) [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+
+    CONTROLPARAMETERS = (lland_control.GH, lland_control.FHRU)
+
+    def update(self):
+        """Update |MGH| based on |GH| and |FHRU|.
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> fhru(0.2, 0.8)
+        >>> gh(100.0, 200.0)
+        >>> derived.mgh.update()
+        >>> derived.mgh
+        mgh(180.0)
+        """
+        control = self.subpars.pars.control
+        weights = control.fhru.values
+        self.value = numpy.dot(weights, control.gh.values) / numpy.sum(weights)
 
 
 class KInz(lland_parameters.LanduseMonthParameter):

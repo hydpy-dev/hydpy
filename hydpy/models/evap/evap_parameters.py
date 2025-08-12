@@ -106,6 +106,7 @@ class PlantParameter1D(ZipParameter1D):
     >>> lnk(WASSER, GLETS, BODEN, ACKER, BAUMB, MISCHW)
     >>> ft(10.0)
     >>> fhru(0.1, 0.1, 0.2, 0.1, 0.3, 0.2)
+    >>> gh(100.0)
     >>> wmax(200.0)
     >>> from hydpy import pub
     >>> pub.timegrids = "2000-01-01", "2000-01-02", "1d"

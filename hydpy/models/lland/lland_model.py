@@ -517,6 +517,46 @@ class Calc_TKor_V1(modeltools.Method):
             flu.tkor[k] = inp.teml + con.atg * (con.gh[k] - der.mgh) / 100.0 + con.kt[k]
 
 
+class Calc_ATKor_V1(modeltools.Method):
+    r"""Calculate the air temperature for calculating snowmelt above the "alpinity
+    thresholds |AGGH| and |AGSH|.
+
+    Basic equation:
+      :math:`ATKor = TKor - ATG \cdot max(GH - AGGH, \ 0) / 100.0`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(4)
+        >>> gh(1900.0, 2000.0, 2100.0, 2200.0)
+        >>> atg(-0.5)
+        >>> aggh(2000.0)
+        >>> fluxes.tkor(-1.0, -2.0, -3.0, -4.0)
+        >>> model.calc_atkor_v1()
+        >>> fluxes.atkor
+        atkor(-1.0, -2.0, -2.5, -3.0)
+    """
+
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.GH,
+        lland_control.ATG,
+        lland_control.AGGH,
+    )
+    REQUIREDSEQUENCES = (lland_fluxes.TKor,)
+    RESULTSEQUENCES = (lland_fluxes.ATKor,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.atkor[k] = flu.tkor[k]
+            if con.gh[k] > con.aggh:
+                flu.atkor[k] -= con.atg * (con.gh[k] - con.aggh) / 100.0
+
+
 class Calc_WindSpeed2m_V1(modeltools.Method):
     r"""Adjust the measured wind speed to a height of 2 meters above the ground
     according to :cite:t:`ref-LARSIM`.
@@ -2027,6 +2067,51 @@ class Calc_WGTF_V1(modeltools.Method):
                 flu.wgtf[k] = con.gtf[k] * (flu.tkor[k] - con.treft[k]) * fix.rschmelz
 
 
+class Calc_AWGTF_V1(modeltools.Method):
+    r"""Calculate the heat flux above the "alpinity thresholds" |AGGH| and |AGSH|
+    according to the degree-day method analogous to method |Calc_WGTF_V1|.
+
+    Basic equation:
+      :math:`AWGTF = GTF \cdot (ATKor - TRefT) \cdot RSchmelz`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(6)
+        >>> lnk(FLUSS, SEE, LAUBW, ACKER, ACKER, LAUBW)
+        >>> gtf(5.0)
+        >>> treft(0.0)
+        >>> trefn(1.0)
+        >>> fluxes.atkor = 1.0, 1.0, 1.0, 1.0, 0.0, -1.0
+        >>> model.calc_awgtf_v1()
+        >>> fluxes.awgtf
+        awgtf(0.0, 0.0, 19.328704, 19.328704, 0.0, -19.328704)
+    """
+
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.GTF,
+        lland_control.TRefT,
+    )
+    FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
+    REQUIREDSEQUENCES = (lland_fluxes.ATKor,)
+    RESULTSEQUENCES = (lland_fluxes.AWGTF,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.awgtf[k] = 0.0
+            else:
+                flu.awgtf[k] = con.gtf[k] * (flu.atkor[k] - con.treft[k]) * fix.rschmelz
+
+
 class Calc_WNied_V1(modeltools.Method):
     """Calculate the heat flux into the snow layer due to the total amount
     of ingoing precipitation (:cite:t:`ref-LARSIM`, modified).
@@ -2071,6 +2156,50 @@ class Calc_WNied_V1(modeltools.Method):
                 d_ice = fix.cpeis * flu.sbes[k]
                 d_water = fix.cpwasser * (flu.nbes[k] - flu.sbes[k])
                 flu.wnied[k] = (flu.tkor[k] - con.trefn[k]) * (d_ice + d_water)
+
+
+class Calc_AWNied_V1(modeltools.Method):
+    r"""Calculate the heat flux into the snow layer above the "alpinity thresholds"
+    |AGGH| and |AGSH| due to the total amount of ingoing precipitation analogous to
+    method |Calc_WNied_V1|.
+
+    Basic equation:
+      :math:`AWNied = \big( ATKor - TRefN \big) \cdot
+      \big( CPEis \cdot SBes + CPWasser \cdot (NBes - SBes) \big)`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(5)
+        >>> lnk(ACKER, ACKER, ACKER, ACKER, WASSER)
+        >>> trefn(-2.0, 2.0, 2.0, 2.0, 2.0)
+        >>> fluxes.atkor(1.0)
+        >>> fluxes.nbes = 10.0
+        >>> fluxes.sbes = 0.0, 0.0, 5.0, 10.0, 10.0
+        >>> model.calc_awnied_v1()
+        >>> fluxes.awnied
+        awnied(2.9075, -0.969167, -0.726481, -0.483796, 0.0)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.TRefN)
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_fluxes.ATKor, lland_fluxes.NBes, lland_fluxes.SBes)
+    RESULTSEQUENCES = (lland_fluxes.AWNied,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.awnied[k] = 0.0
+            else:
+                d_ice = fix.cpeis * flu.sbes[k]
+                d_water = fix.cpwasser * (flu.nbes[k] - flu.sbes[k])
+                flu.awnied[k] = (flu.atkor[k] - con.trefn[k]) * (d_ice + d_water)
 
 
 class Calc_WNied_ESnow_V1(modeltools.Method):
@@ -4260,27 +4389,51 @@ class Update_ESnow_V1(modeltools.Method):
 
 
 class Calc_SchmPot_V1(modeltools.Method):
-    """Calculate the potential snow melt according to the day degree method.
+    r"""Calculate the potential snow melt according to the day degree method below and
+    above the "alpinity thresholds" |AGGH| and |AGSH| and determine their weighted
+    average.
 
     Basic equation:
-      :math:`SchmPot = max\\left(\\frac{WGTF + WNied}{RSchmelz}, 0\\right)`
+      .. math::
+        SchmPot = \begin{cases}
+        p &|\ WAeS \leq AGSH
+        \\
+        w \cdot p + (1 - w) \cdot p_a
+        &|\
+        AGSH < WAeS
+        \end{cases}
+        \\ \\
+        p = max \big( (WGTF + WNied) / RSchmelz, \ 0 \big) \\
+        p_a = max \big( (AWGTF + AWNied) / RSchmelz, \ 0 \big) \\
+        w = AGSH / WAES
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
-        >>> nhru(2)
-        >>> fluxes.wgtf = 20.0
-        >>> fluxes.wnied = 10.0, 20.0
+        >>> nhru(8)
+        >>> agsh(2000.0)
+        >>> states.waes = 1000.0, 1000.0, 2000.0, 2000.0, 3000.0, 3000.0, 4000.0, 4000.0
+        >>> fluxes.wgtf = 20.0, 30.0, 20.0, 30.0, 20.0, 30.0, 20.0, 30.0
+        >>> fluxes.awgtf = 40.0, 60.0, 40.0, 60.0, 40.0, 60.0, 40.0, 60.0
+        >>> fluxes.awnied = 20.0, 40.0, 20.0, 40.0, 20.0, 40.0, 20.0, 40.0
+        >>> fluxes.wnied = 10.0, 20.0, 10.0, 20.0, 10.0, 20.0, 10.0, 20.0
         >>> model.calc_schmpot_v1()
         >>> fluxes.schmpot
-        schmpot(3.88024, 5.173653)
+        schmpot(3.88024, 6.467066, 3.88024, 6.467066, 5.173653, 8.622754,
+                5.820359, 9.700599)
     """
 
-    CONTROLPARAMETERS = (lland_control.NHRU,)
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.AGSH)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (lland_fluxes.WGTF, lland_fluxes.WNied)
+    REQUIREDSEQUENCES = (
+        lland_states.WAeS,
+        lland_fluxes.WGTF,
+        lland_fluxes.AWGTF,
+        lland_fluxes.WNied,
+        lland_fluxes.AWNied,
+    )
     RESULTSEQUENCES = (lland_fluxes.SchmPot,)
 
     @staticmethod
@@ -4288,8 +4441,15 @@ class Calc_SchmPot_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            flu.schmpot[k] = max((flu.wgtf[k] + flu.wnied[k]) / fix.rschmelz, 0.0)
+            p1: float = max((flu.wgtf[k] + flu.wnied[k]) / fix.rschmelz, 0.0)
+            if sta.waes[k] > con.agsh:
+                p2: float = max((flu.awgtf[k] + flu.awnied[k]) / fix.rschmelz, 0.0)
+                w1: float = con.agsh / sta.waes[k]
+                flu.schmpot[k] = w1 * p1 + (1.0 - w1) * p2
+            else:
+                flu.schmpot[k] = p1
 
 
 class Calc_SchmPot_V2(modeltools.Method):
@@ -7306,6 +7466,7 @@ class Model(modeltools.AdHocModel):
         Calc_DailyPossibleSunshineDuration_V1,
         Calc_NKor_V1,
         Calc_TKor_V1,
+        Calc_ATKor_V1,
         Calc_WindSpeed2m_V1,
         Calc_ReducedWindSpeed2m_V1,
         Calc_SaturationVapourPressure_V1,
@@ -7337,7 +7498,9 @@ class Model(modeltools.AdHocModel):
         Calc_WaDa_WAeS_V1,
         Calc_WaDa_WAeS_V2,
         Calc_WGTF_V1,
+        Calc_AWGTF_V1,
         Calc_WNied_V1,
+        Calc_AWNied_V1,
         Calc_WNied_ESnow_V1,
         Calc_TZ_V1,
         Calc_WG_V1,

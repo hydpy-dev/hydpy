@@ -3846,6 +3846,8 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> fhru(0.2)
         >>> gh(100.0)
         >>> atg(-0.65)
+        >>> aggh(inf)
+        >>> agsh(inf)
         >>> bsf0(0.0)
         >>> wmax(200.0)
         >>> from hydpy import pub
@@ -3941,6 +3943,8 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> bsf0(0.0)
         >>> gh(100.0)
         >>> atg(-0.65)
+        >>> aggh(inf)
+        >>> agsh(inf)
         >>> model.update_parameters(ignore_errors=True)
         >>> control.hrutype
         hrutype(NADELW)

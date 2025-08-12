@@ -379,6 +379,68 @@ class TSp(lland_parameters.ParameterLand):
     INIT = 0.0
 
 
+class AGGH(parametertools.Parameter):
+    """Alpine Gebietshöhe, ab der eine Erhöhung des Grad-Tag-Faktors erfolgen kann
+    (alpine elevation above which the degree-day factor can be increased) [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = numpy.inf
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> aggh.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`aggh` (introduced in HydPy 6.2), has not been explicitly defined and is \
+automatically set to `inf`.  We will remove this fallback mechanism in HydPy 8.0; \
+therefore, please consider updating your model setup.
+
+        >>> aggh
+        aggh(inf)
+
+        >>> aggh(2000.0)
+        >>> aggh
+        aggh(2000.0)
+        """
+        self._update_newbie(value=numpy.inf, version="6.2")
+
+
+class AGSH(parametertools.Parameter):
+    """Alpine Schneehöhe, ab der eine Erhöhung des Grad-Tag-Faktors erfolgen kann
+    (alpine snow height above which the degree-day factor can be increased) [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = numpy.inf
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> agsh.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`agsh` (introduced in HydPy 6.2), has not been explicitly defined and is \
+automatically set to `inf`.  We will remove this fallback mechanism in HydPy 8.0; \
+therefore, please consider updating your model setup.
+
+        >>> agsh
+        agsh(inf)
+
+        >>> agsh(2000.0)
+        >>> agsh
+        agsh(2000.0)
+        """
+        self._update_newbie(value=numpy.inf, version="6.2")
+
+
 class GTF(lland_parameters.ParameterLand):
     """Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T]."""
 

@@ -147,7 +147,6 @@ def mypy(session: nox.Session) -> None:
     the typing of numpy arrays, model parameters and so on.
     """
     _install_hydpy(session)
-    session.run("pip", "install", "numpy<2.2")
     session.install("mypy", "types-docutils")
     session.run("mypy", "hydpy")
 

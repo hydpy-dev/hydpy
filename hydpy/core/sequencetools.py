@@ -2454,15 +2454,31 @@ step is `1d`.
         >>> with TestIO(), sm.reset(False), sm.filetype("nc"), opt.checkseries(False):
         ...     with sm.netcdfreading():
         ...         t.load_series()
-        >>> from hydpy import round_
         >>> round_(t.series)
         99.9, 99.9, 10.1, 10.0
+
+        If the available data covers the complete initialisation period, option
+        |SequenceManager.reset| does not make a difference:
+
+        >>> pub.timegrids.init.firstdate = "1990-01-01"
+        >>> pub.timegrids.init.lastdate = "2020-01-01"
+        >>> with TestIO(), sm.filetype("nc"), opt.checkseries(False):
+        ...     t.series = -99.9
+        ...     with sm.netcdfreading():
+        ...         t.load_series()
+        ...     values = t.series.copy()
+        ...     t.series = 99.9
+        ...     with sm.reset(False), sm.netcdfreading():
+        ...         t.load_series()
+        >>> import numpy
+        >>> assert numpy.array_equal(values, t.series)
         """
         if hydpy.pub.sequencemanager.reset:
             self.series = series
         else:
             init = hydpy.pub.timegrids.init
-            i0, i1 = init[timegrid_data.firstdate], init[timegrid_data.lastdate]
+            i0 = max(init[timegrid_data.firstdate], 0)
+            i1 = min(init[timegrid_data.lastdate], len(init))
             self.series[i0:i1] = series[i0:i1]
 
     def check_completeness(self) -> None:

@@ -355,6 +355,14 @@ class WGTF(lland_sequences.Flux1DSequence):
     mask = lland_masks.Land()
 
 
+class USG(lland_sequences.Flux1DSequence):
+    """Umwandlung Schnee in Gletschereis (transformation of snow into glacier ice
+    [mm/T]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Glets()
+
+
 class AWGTF(lland_sequences.Flux1DSequence):
     """Mit dem Grad-Tag-Verfahren berechneter Wärmeestrom in die Schneedecke oberhalb
     der "alpinitäts-Grenzwerte" |AGGH| und |AGSH| (heat flux into the snow layer above
@@ -421,12 +429,26 @@ class SchmPot(lland_sequences.Flux1DSequence):
     mask = lland_masks.Land()
 
 
+class SchmPotGl(lland_sequences.Flux1DSequence):
+    """Potentielle Gletscherschmelze (potential glacier melting) [mm/T]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Glets()
+
+
 class Schm(lland_sequences.Flux1DSequence):
     """Tatsächliche Schneeschmelze (actual amount of water melting within the
     snow cover) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
+
+
+class SchmGl(lland_sequences.Flux1DSequence):
+    """Tatsächliche Gletscherschmelze (actual glacier melting) [mm/T]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Glets()
 
 
 class GefrPot(lland_sequences.Flux1DSequence):

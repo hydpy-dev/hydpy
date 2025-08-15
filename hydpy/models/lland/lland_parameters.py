@@ -171,6 +171,35 @@ occurred: Keyword `feld` is not among the available model constants.
                 raise exc
 
 
+class ParameterGlacier(ParameterComplete):
+    """Base class for 1-dimensional parameters relevant for all |GLETS| zones.
+
+    |ParameterLand| works similarly to |lland_parameters.ParameterComplete|.  Some
+    examples based on parameter |FEis|:
+
+    >>> from hydpy.models.lland import *
+    >>> simulationstep("12h")
+    >>> parameterstep("1d")
+    >>> nhru(5)
+    >>> lnk(ACKER, GLETS, FLUSS, VERS, GLETS)
+
+    >>> feis(wasser=1.0, acker=1.0, glets=0.1, vers=1.0)
+    >>> feis
+    feis(0.1)
+
+    >>> feis(default=0.2)
+    >>> feis
+    feis(0.2)
+
+    >>> derived.absfhru(nan, 1.0, nan, nan, 1.0)
+    >>> from hydpy import round_
+    >>> round_(feis.average_values())
+    0.1
+    """
+
+    mask = lland_masks.Glets()
+
+
 class LanduseMonthParameter(parametertools.KeywordParameter2D):
     """Base class for parameters which values depend both an the actual
     land use class and the actual month."""

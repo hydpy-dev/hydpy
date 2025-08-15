@@ -1885,6 +1885,52 @@ class Calc_WATS_V2(modeltools.Method):
                 sta.wats[k] += flu.sbes[k]
 
 
+class Calc_USG_WATS_WAeS_V1(modeltools.Method):
+    r"""Convert snow into glacier ice.
+
+    Basic equations:
+      .. math::
+        USG = FEis \cdot WAeS_{old} \\
+        WAeS_{new} = WAeS_{old} - USG
+        WATS_{new} = WATS_{old} - USG
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(5)
+        >>> lnk(GLETS, GLETS, GLETS, GLETS, ACKER)
+        >>> feis(0.02, 0.02, 0.0, 0.02, 0.02)
+        >>> states.waes = 20.0, 20.0, 20.0, 0.0, 20.0
+        >>> states.wats = 10.0, 0.1, 10.0, 0.0, 10.0
+        >>> model.calc_usg_wats_waes_v1()
+        >>> fluxes.usg
+        usg(0.2, 0.2, 0.0, 0.0, 0.0)
+        >>> states.waes
+        waes(19.8, 19.8, 20.0, 0.0, 20.0)
+        >>> states.wats
+        wats(9.8, 0.0, 10.0, 0.0, 10.0)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.FEis)
+    UPDATEDSEQUENCES = (lland_states.WAeS, lland_states.WATS)
+    RESULTSEQUENCES = (lland_fluxes.USG,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] == GLETS:
+                flu.usg[k] = con.feis[k] * sta.waes[k]
+                sta.waes[k] -= flu.usg[k]
+                sta.wats[k] = max(sta.wats[k] - flu.usg[k], 0.0)
+            else:
+                flu.usg[k] = 0.0
+
+
 class Calc_WaDa_WAeS_V1(modeltools.Method):
     """Add as much liquid precipitation to the snow cover as it is able to hold.
 
@@ -1998,6 +2044,38 @@ class Calc_WaDa_WAeS_V2(modeltools.Method):
                 sta.waes[k] += flu.nbes[k]
                 flu.wada[k] = max(sta.waes[k] - con.pwmax[k] * sta.wats[k], 0.0)
                 sta.waes[k] -= flu.wada[k]
+
+
+class Update_WaDa_V1(modeltools.Method):
+    r"""Add glacial melt to the water reaching the soil.
+
+    Basic equations:
+      :math:`WaDa_{new} = WaDa_{old} + SchmGl`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(3)
+        >>> lnk(GLETS, GLETS, ACKER)
+        >>> fluxes.wada = 1.0, 2.0, 3.0
+        >>> fluxes.schmgl = 0.0, 5.0, 5.0
+        >>> model.update_wada_v1()
+        >>> fluxes.wada
+        wada(1.0, 7.0, 3.0)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    REQUIREDSEQUENCES = (lland_fluxes.SchmGl,)
+    UPDATEDSEQUENCES = (lland_fluxes.WaDa,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] == GLETS:
+                flu.wada[k] += flu.schmgl[k]
 
 
 class Calc_WGTF_V1(modeltools.Method):
@@ -4389,7 +4467,7 @@ class Update_ESnow_V1(modeltools.Method):
 
 
 class Calc_SchmPot_V1(modeltools.Method):
-    r"""Calculate the potential snow melt according to the day degree method below and
+    r"""Calculate the potential snow melt according to the degree-day method below and
     above the "alpinity thresholds" |AGGH| and |AGSH| and determine their weighted
     average.
 
@@ -4490,6 +4568,47 @@ class Calc_SchmPot_V2(modeltools.Method):
                 flu.schmpot[k] = 0.0
 
 
+class Calc_SchmPotGl_V1(modeltools.Method):
+    r"""Calculate the potential glacier melt according to the degree-day method.
+
+    Basic equation:
+      .. math::
+        SchmPotGl = max \big( GSF \cdot (WGTF + WNied) / RSchmelz, \ 0 \big)
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(4)
+        >>> lnk(GLETS, GLETS, GLETS, ACKER)
+        >>> gsf(2.0)
+        >>> fluxes.wgtf = -20.0, 0.0, 20.0, 20.0
+        >>> fluxes.wnied = -10.0, 0.0, 10.0, 10.0
+        >>> model.calc_schmpotgl_v1()
+        >>> fluxes.schmpotgl
+        schmpotgl(0.0, 0.0, 7.760479, 0.0)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.GSF)
+    FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
+    REQUIREDSEQUENCES = (lland_fluxes.WGTF, lland_fluxes.WNied)
+    RESULTSEQUENCES = (lland_fluxes.SchmPotGl,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] == GLETS:
+                flu.schmpotgl[k] = max(
+                    con.gsf * (flu.wgtf[k] + flu.wnied[k]) / fix.rschmelz, 0.0
+                )
+            else:
+                flu.schmpotgl[k] = 0.0
+
+
 class Calc_GefrPot_V1(modeltools.Method):
     """Calculate the potential refreezing within the snow layer according
     to the thermal energy content of the snow layer.
@@ -4587,6 +4706,47 @@ class Calc_Schm_WATS_V1(modeltools.Method):
             else:
                 flu.schm[k] = min(flu.schmpot[k], sta.wats[k])
                 sta.wats[k] -= flu.schm[k]
+
+
+class Calc_SchmGl_V1(modeltools.Method):
+    r"""Calculate the actual glacier melt.
+
+    Basic equations:
+      .. math::
+        SchmGl = \big( 1 - Schm / SchmPot \big) \cdot SchmPotGl
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(5)
+        >>> lnk(GLETS, GLETS, GLETS, GLETS, ACKER)
+        >>> fluxes.schmpot = 4.0
+        >>> fluxes.schm = 0.0, 1.0, 4.0, 5.0, 0.0
+        >>> fluxes.schmpotgl = 2.0
+        >>> model.calc_schmgl_v1()
+        >>> fluxes.schmgl
+        schmgl(2.0, 1.5, 0.0, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    REQUIREDSEQUENCES = (
+        lland_fluxes.SchmPotGl,
+        lland_fluxes.SchmPot,
+        lland_fluxes.Schm,
+    )
+    RESULTSEQUENCES = (lland_fluxes.SchmGl,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if (con.lnk[k] == GLETS) and (flu.schmpot[k] > 0.0):
+                w: float = max(1.0 - flu.schm[k] / flu.schmpot[k], 0.0)
+                flu.schmgl[k] = w * flu.schmpotgl[k]
+            else:
+                flu.schmgl[k] = 0.0
 
 
 class Calc_Gefr_WATS_V1(modeltools.Method):
@@ -7495,8 +7655,10 @@ class Model(modeltools.AdHocModel):
         Update_ESnowInz_V2,
         Calc_WATS_V1,
         Calc_WATS_V2,
+        Calc_USG_WATS_WAeS_V1,
         Calc_WaDa_WAeS_V1,
         Calc_WaDa_WAeS_V2,
+        Update_WaDa_V1,
         Calc_WGTF_V1,
         Calc_AWGTF_V1,
         Calc_WNied_V1,
@@ -7515,8 +7677,10 @@ class Model(modeltools.AdHocModel):
         Calc_EvB_V1,
         Calc_SchmPot_V1,
         Calc_SchmPot_V2,
+        Calc_SchmPotGl_V1,
         Calc_GefrPot_V1,
         Calc_Schm_WATS_V1,
+        Calc_SchmGl_V1,
         Calc_Gefr_WATS_V1,
         Calc_EvS_WAeS_WATS_V1,
         Update_WaDa_WAeS_V1,

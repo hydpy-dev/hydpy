@@ -379,6 +379,44 @@ class TSp(lland_parameters.ParameterLand):
     INIT = 0.0
 
 
+class GTF(lland_parameters.ParameterLand):
+    """Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    INIT = 3.0
+
+
+class GSF(parametertools.Parameter):
+    """Gletscherschmelze-Faktor (factor for adjusting the snow-related degree-day
+    factor |GTF| to the melting of glacier ice) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 1.5
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> gsf.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`gsf` (introduced in HydPy 6.2), has not been explicitly defined and is automatically \
+set to `0.0`.  We will remove this fallback mechanism in HydPy 8.0; therefore, please \
+consider updating your model setup.
+
+        >>> gsf
+        gsf(0.0)
+
+        >>> gsf(2.0)
+        >>> gsf
+        gsf(2.0)
+        """
+        self._update_newbie(value=0.0, version="6.2")
+
+
 class AGGH(parametertools.Parameter):
     """Alpine Gebietshöhe, ab der eine Erhöhung des Grad-Tag-Faktors erfolgen kann
     (alpine elevation above which the degree-day factor can be increased) [m]."""
@@ -441,11 +479,38 @@ therefore, please consider updating your model setup.
         self._update_newbie(value=numpy.inf, version="6.2")
 
 
-class GTF(lland_parameters.ParameterLand):
-    """Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T]."""
+class FEis(lland_parameters.ParameterGlacier):
+    """Umwandlungsfaktor Schnee Gletschereis (conversion factor for transforming snow
+    into glacier ice) [1/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
-    INIT = 3.0
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
+    INIT = 0.01
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(2)
+        >>> lnk(GLETS, ACKER)
+        >>> feis.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`feis` (introduced in HydPy 6.2), has not been explicitly defined and is \
+automatically set to `0.0`.  We will remove this fallback mechanism in HydPy 8.0; \
+therefore, please consider updating your model setup.
+
+        >>> feis
+        feis(0.0)
+
+        >>> feis(0.02)
+        >>> feis
+        feis(0.02)
+        """
+        self._update_newbie(value=0.0, version="6.2")
 
 
 class PWMax(lland_parameters.ParameterLand):

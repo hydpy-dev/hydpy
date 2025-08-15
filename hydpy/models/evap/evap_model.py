@@ -3839,15 +3839,18 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         instance (more precisely, an |evap_pet_ambav1| instance) more easily:
 
         >>> from hydpy.models.lland_dd import *
-        >>> parameterstep()
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> nhru(5)
         >>> lnk(WASSER, FLUSS, SEE, BODEN, BODEN)
         >>> ft(10.0)
         >>> fhru(0.2)
         >>> gh(100.0)
         >>> atg(-0.65)
+        >>> gsf(2.0)
         >>> aggh(inf)
         >>> agsh(inf)
+        >>> feis(0.01)
         >>> bsf0(0.0)
         >>> wmax(200.0)
         >>> from hydpy import pub
@@ -3943,8 +3946,10 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> bsf0(0.0)
         >>> gh(100.0)
         >>> atg(-0.65)
+        >>> gsf(2.0)
         >>> aggh(inf)
         >>> agsh(inf)
+        >>> feis(0.01)
         >>> model.update_parameters(ignore_errors=True)
         >>> control.hrutype
         hrutype(NADELW)

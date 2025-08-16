@@ -1,0 +1,42 @@
+.. |AETModel_V1| replace:: :class:`~hydpy.interfaces.aetinterfaces.AETModel_V1`
+.. |BW1| replace:: :class:`~hydpy.models.hland.hland_states.BW1`
+.. |BW2| replace:: :class:`~hydpy.models.hland.hland_states.BW2`
+.. |CFMax| replace:: :class:`~hydpy.models.hland.hland_control.CFMax`
+.. |FIELD| replace:: :const:`~hydpy.models.hland.hland_constants.FIELD`
+.. |FOREST| replace:: :const:`~hydpy.models.hland.hland_constants.FOREST`
+.. |GLACIER| replace:: :const:`~hydpy.models.hland.hland_constants.GLACIER`
+.. |GMelt| replace:: :class:`~hydpy.models.hland.hland_control.GMelt`
+.. |H1| replace:: :class:`~hydpy.models.hland.hland_control.H1`
+.. |ILAKE| replace:: :const:`~hydpy.models.hland.hland_constants.ILAKE`
+.. |Indexer.dayofyear| replace:: :const:`~hydpy.core.indextools.Indexer.dayofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |LZ| replace:: :class:`~hydpy.models.hland.hland_states.LZ`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.hland_96c.Model.check_waterbalance`
+.. |QAb1| replace:: :class:`~hydpy.models.hland.hland_fluxes.QAb1`
+.. |QAb2| replace:: :class:`~hydpy.models.hland.hland_fluxes.QAb2`
+.. |RConcModel_V1| replace:: :class:`~hydpy.interfaces.rconcinterfaces.RConcModel_V1`
+.. |SEALED| replace:: :const:`~hydpy.models.hland.hland_constants.SEALED`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |TAb1| replace:: :class:`~hydpy.models.hland.hland_control.TAb1`
+.. |TTM| replace:: :class:`~hydpy.models.hland.hland_derived.TTM`
+.. |TT| replace:: :class:`~hydpy.models.hland.hland_control.TT`
+.. |TVs1| replace:: :class:`~hydpy.models.hland.hland_control.TVs1`
+.. |UZ| replace:: :class:`~hydpy.models.hland.hland_states.UZ`
+.. |hland_96c.DOCNAME.complete| replace:: HydPy-H-HBV96-COSERO (fusion of SMHI-IHMS-HBV96 and COSERO)
+.. |hland_96c| replace:: :mod:`~hydpy.models.hland_96c`
+.. |hland_96p| replace:: :mod:`~hydpy.models.hland_96p`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+.. |hland| replace:: :mod:`~hydpy.models.hland`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |rconc_nash| replace:: :mod:`~hydpy.models.rconc_nash`
+.. |hland_fluxes.Q0| replace:: :class:`~hydpy.models.hland.hland_fluxes.Q0`
+
+.. _hland_96c:
+
+hland_96c
+=========
+
+.. automodule:: hydpy.models.hland_96c
+    :members:
+    :show-inheritance:
+    :exclude-members: InletSequences, Deque, Sentinel, ItemsView, Container, Format, SupportsComplex, DERIVEDPARAMETERS, SOLVERPARAMETERS, FIXEDPARAMETERS, BinaryIO, FrozenSet, MappingView, FULL_ODE_METHODS, MutableSet, SupportsRound, SENDER_METHODS, TypeForm, is_protocol, get_args, cast, AsyncContextManager, LiteralString, ForwardRef, Text, runtime, Callable, Hashable, Final, fastaccess_new, MutableMapping, OUTLET_METHODS, AsyncIterator, TypeAliasType, NoDefault, TypeVar, get_original_bases, get_origin, NotRequired, TYPE_CHECKING, ClassVar, no_type_check_decorator, ADD_METHODS, TypeVarTuple, dataclass_transform, NoReturn, SenderSequences, Protocol, Coroutine, List, ReadOnly, SupportsBytes, IntVar, Iterable, TypeAlias, Required, Annotated, SUBMODELINTERFACES, ContextManager, SUBMODELS, CLASSES, Counter, UPDATEDSEQUENCES, SOLVERSEQUENCES, subvars, ObserverSequences, ParamSpecKwargs, Literal, DefaultDict, Any, ReceiverSequences, TextIO, SUBMETHODS, RECEIVER_METHODS, CapsuleType, PART_ODE_METHODS, get_protocol_members, subpars, evaluate_forward_ref, TypeGuard, Self, Sequence, Awaitable, AbstractSet, TypeIs, override, get_type_hints, LogSequences, NamedTuple, Concatenate, OrderedDict, ParamSpecArgs, deprecated, ChainMap, runtime_checkable, SupportsInt, INLET_METHODS, clear_overloads, Mapping, RUN_METHODS, Tuple, Reader, Collection, get_overloads, KeysView, AsyncIterable, ByteString, Sized, REQUIREDSEQUENCES, Iterator, get_annotations, Set, assert_never, Match, CONTROLPARAMETERS, Never, AnyStr, seqs, ValuesView, Writer, SupportsFloat, INTERFACE_METHODS, no_type_check, overload, Doc, Generic, TypedDict, Pattern, Generator, AsyncGenerator, Unpack, NewType, SupportsIndex, assert_type, ParamSpec, final, IO, Buffer, fastaccess, is_typeddict, subseqs, MutableSequence, reveal_type, Type, Optional, Reversible, SupportsAbs, RESULTSEQUENCES, pars, NoExtraItems, fastaccess_old, Union, Dict

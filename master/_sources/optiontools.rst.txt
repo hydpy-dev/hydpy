@@ -1,0 +1,38 @@
+.. |False| replace:: :const:`False`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |None| replace:: :const:`None`
+.. |OptionPropertyBase| replace:: :class:`~hydpy.core.optiontools.OptionPropertyBase`
+.. |OptionPropertyBool| replace:: :class:`~hydpy.core.optiontools.OptionPropertyBool`
+.. |OptionPropertyInt| replace:: :class:`~hydpy.core.optiontools.OptionPropertyInt`
+.. |OptionPropertyPeriod| replace:: :class:`~hydpy.core.optiontools.OptionPropertyPeriod`
+.. |OptionPropertySeriesAggregation| replace:: :class:`~hydpy.core.optiontools.OptionPropertySeriesAggregation`
+.. |OptionPropertySeriesFileType| replace:: :class:`~hydpy.core.optiontools.OptionPropertySeriesFileType`
+.. |OptionPropertyStr| replace:: :class:`~hydpy.core.optiontools.OptionPropertyStr`
+.. |Options.simulationstep| replace:: :const:`~hydpy.core.optiontools.Options.simulationstep`
+.. |Options.utclongitude| replace:: :const:`~hydpy.core.optiontools.Options.utclongitude`
+.. |Options.utcoffset| replace:: :const:`~hydpy.core.optiontools.Options.utcoffset`
+.. |Period| replace:: :class:`~hydpy.core.timetools.Period`
+.. |SeriesAggregationType| replace:: :const:`~hydpy.core.typingtools.SeriesAggregationType`
+.. |SeriesConventionType| replace:: :const:`~hydpy.core.typingtools.SeriesConventionType`
+.. |SeriesFileType| replace:: :const:`~hydpy.core.typingtools.SeriesFileType`
+.. |Timegrids.stepsize| replace:: :const:`~hydpy.core.timetools.Timegrids.stepsize`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |Timegrid| replace:: :class:`~hydpy.core.timetools.Timegrid`
+.. |Variable| replace:: :class:`~hydpy.core.variabletools.Variable`
+.. |property| replace:: :class:`property`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |repr_| replace:: :const:`~hydpy.core.objecttools.repr_`
+.. |simulationstep| replace:: :func:`~hydpy.core.importtools.simulationstep`
+.. |trim| replace:: :func:`~hydpy.core.variabletools.trim`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |sequencetools.StandardInputNames| replace:: :class:`~hydpy.core.sequencetools.StandardInputNames`
+
+.. _optiontools:
+
+optiontools
+===========
+
+.. automodule:: hydpy.core.optiontools
+    :members:
+    :show-inheritance:
+    :exclude-members: Deque, Sentinel, ItemsView, Container, Format, SupportsComplex, DERIVEDPARAMETERS, SOLVERPARAMETERS, FIXEDPARAMETERS, BinaryIO, FrozenSet, MappingView, FULL_ODE_METHODS, MutableSet, SupportsRound, SENDER_METHODS, TypeForm, is_protocol, get_args, cast, AsyncContextManager, LiteralString, ForwardRef, Text, runtime, Callable, Hashable, Final, fastaccess_new, MutableMapping, OUTLET_METHODS, AsyncIterator, TypeAliasType, NoDefault, TypeVar, get_original_bases, get_origin, NotRequired, TYPE_CHECKING, ClassVar, no_type_check_decorator, ADD_METHODS, TypeVarTuple, dataclass_transform, NoReturn, Protocol, Coroutine, List, ReadOnly, SupportsBytes, IntVar, Iterable, TypeAlias, Required, Annotated, SUBMODELINTERFACES, ContextManager, SUBMODELS, CLASSES, Counter, UPDATEDSEQUENCES, SOLVERSEQUENCES, subvars, ParamSpecKwargs, Literal, DefaultDict, Any, TextIO, SUBMETHODS, RECEIVER_METHODS, CapsuleType, PART_ODE_METHODS, get_protocol_members, subpars, evaluate_forward_ref, TypeGuard, Self, Sequence, Awaitable, AbstractSet, TypeIs, override, get_type_hints, NamedTuple, Concatenate, OrderedDict, ParamSpecArgs, deprecated, ChainMap, runtime_checkable, SupportsInt, INLET_METHODS, clear_overloads, Mapping, RUN_METHODS, Tuple, Reader, Collection, get_overloads, KeysView, AsyncIterable, ByteString, Sized, REQUIREDSEQUENCES, Iterator, get_annotations, Set, assert_never, Match, CONTROLPARAMETERS, Never, AnyStr, seqs, ValuesView, Writer, SupportsFloat, INTERFACE_METHODS, no_type_check, overload, Doc, Generic, TypedDict, Pattern, Generator, AsyncGenerator, Unpack, NewType, SupportsIndex, assert_type, ParamSpec, final, IO, Buffer, fastaccess, is_typeddict, subseqs, MutableSequence, reveal_type, Type, Optional, Reversible, SupportsAbs, RESULTSEQUENCES, pars, NoExtraItems, fastaccess_old, Union, Dict

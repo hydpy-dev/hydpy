@@ -38,7 +38,7 @@ from hydpy.core.filetools import check_projectstructure, create_projectstructure
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.importtools import prepare_model, reverse_model_wildcard_import
 from hydpy.core.itemtools import AddItem, GetItem, MultiplyItem, SetItem
-from hydpy.core.netcdftools import summarise_ncfile
+from hydpy.core.netcdftools import chars2str, str2chars, summarise_ncfile, write_ncfile
 from hydpy.core.objecttools import classname, print_matrix, print_vector, round_, repr_
 from hydpy.core.parametertools import KeywordArguments
 from hydpy.core.selectiontools import Selection, Selections
@@ -157,7 +157,10 @@ __all__ = [
     "GetItem",
     "MultiplyItem",
     "SetItem",
+    "chars2str",
+    "str2chars",
     "summarise_ncfile",
+    "write_ncfile",
     "classname",
     "print_matrix",
     "print_vector",

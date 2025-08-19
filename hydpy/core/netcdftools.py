@@ -7,8 +7,8 @@ cf-conventions.html>`_.
 .. _`Delft-FEWS`: https://oss.deltares.nl/web/delft-fews
 
 Usually, we only indirectly apply the features implemented in this module.  Here, we
-demonstrate the underlying functionalities, which can be subsumed by following three
-steps:
+demonstrate the underlying functionalities, which can be subsumed by the following
+three steps:
 
   1. Call either method |SequenceManager.open_netcdfreader| or method
      |SequenceManager.open_netcdfwriter| of the |SequenceManager| object available in
@@ -434,6 +434,185 @@ def summarise_ncfile(ncfile: netcdf4.Dataset | str, /) -> str:
         with netcdf4.Dataset(ncfile, "r") as ncfile_:
             return _summarize(ncfile_)
     return _summarize(ncfile)
+
+
+def write_ncfile(
+    *,
+    filepath: str,
+    sequence: str,
+    data: Sequence[tuple[str, VectorInputFloat]],
+    timegrid: timetools.Timegrid,
+    timereference: Literal["current", "left", "right"] | None = None,
+    cfunit: timetools.TypeUnit = "hours",
+    cfconvention: str | None = None,
+    namingconvention: SeriesConventionType | None = None,
+    history: str | None = None,
+) -> None:
+    """Write a NetCDF file that is, depending on your choices, more or less compatible
+    with usual HydPy NetCDF time series files.
+
+    At least, you need to supply the filepath, the sequence's name (the name of the
+    NetCDF variable that stores the actual time series data), the time series data (as
+    tuples of names and floating point vectors), and a |Timegrid| instance (for the
+    temporal referencing of the given time series):
+
+    >>> from hydpy import TestIO, Timegrid, write_ncfile
+    >>> with TestIO():
+    ...     write_ncfile(
+    ...         filepath="my_ncfile.nc",
+    ...         sequence="my_sequence",
+    ...         data=[("series_1", [1.0, 2.0, 3.0]), ("series_2", [2.0, 3.0, 4.0])],
+    ...         timegrid=Timegrid("2000-01-01", "2000-01-04", "1d"),
+    ...     )
+
+    >>> from hydpy import summarise_ncfile
+    >>> with TestIO():  # doctest: +ELLIPSIS
+    ...     print(summarise_ncfile("my_ncfile.nc"))
+    GENERAL
+        file path = my_ncfile.nc
+        file format = NETCDF4
+        disk format = HDF5
+        Attributes
+            history = Created ... by HydPy ...
+            sequence = my_sequence
+    DIMENSIONS
+        time = 3
+        stations = 2
+        char_leng_name = 8
+    VARIABLES
+        time
+            dimensions = time
+            shape = 3
+            data type = float64
+            Attributes
+                long_name = time
+                units = hours since 2000-01-01 00:00:00 +01:00
+                standard_name = time
+                calendar = standard
+        station_id
+            dimensions = stations, char_leng_name
+            shape = 2, 8
+            data type = |S1
+            Attributes
+                long_name = station_id
+        my_sequence
+            dimensions = time, stations
+            shape = 3, 2
+            data type = float64
+            Attributes
+                _FillValue = nan
+                long_name = my_sequence
+
+    >>> from netCDF4 import Dataset
+    >>> from hydpy import chars2str, print_vector
+    >>> with TestIO():  # doctest: +ELLIPSIS
+    ...     with Dataset("my_ncfile.nc") as ncfile:
+    ...         Timegrid.from_timepoints(ncfile["time"][:], "2000-01-01", "hours")
+    ...         for i, subdevice in enumerate(chars2str(ncfile["station_id"])):
+    ...             print(subdevice, end=": ")
+    ...             print_vector(ncfile["my_sequence"][:, i])
+    Timegrid("2000-01-01 00:00:00",
+             "2000-01-04 00:00:00",
+             "1d")
+    series_1: 1.0, 2.0, 3.0
+    series_2: 2.0, 3.0, 4.0
+
+    Function |write_ncfile| checks if all time series fit the given |Timegrid|
+    instance:
+
+    >>> with TestIO():
+    ...     write_ncfile(
+    ...         filepath="my_ncfile.nc",
+    ...         sequence="my_sequence",
+    ...         data=[("series_1", [1.0, 2.0, 3.0]), ("series_2", [2.0, 3.0])],
+    ...         timegrid=Timegrid("2000-01-01", "2000-01-04", "1d"),
+    ...     )
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to write the NetCDF file `my_ncfile.nc`, the following \
+error occurred: According to the given timegrid, all given series must have a length \
+of `3`, but the length of series `series_2` is `2`.
+
+    When creating the following NetCDF file, we use all possible ways to add more
+    metadata and follow one of the available conventions for naming the NetCDF sequence
+    variable, which would make it safely usable in a hypothetical two-basin project:
+
+    >>> with TestIO():
+    ...     write_ncfile(
+    ...         filepath="air_temperature.nc",
+    ...         sequence="air_temperature",
+    ...         data=[("basin_1", [1.0, 2.0, 3.0]), ("basin_2", [2.0, 3.0, 4.0])],
+    ...         timegrid=Timegrid("2000-01-01", "2000-01-04", "1d"),
+    ...         timereference="right",
+    ...         cfunit="days",
+    ...         cfconvention="CF-1.8",
+    ...         namingconvention="HydPy",
+    ...         history="Created for testing only.",
+    ...     )
+
+    >>> with TestIO():  # doctest: +ELLIPSIS
+    ...     print(summarise_ncfile("air_temperature.nc"))
+    GENERAL
+        file path = air_temperature.nc
+        ...
+        Attributes
+            history = Created for testing only.
+            sequence = air_temperature (naming convention: HydPy)
+            Conventions = CF-1.8
+            timereference = right interval boundary
+    DIMENSIONS
+    ...
+                units = days since 2000-01-01 00:00:00 +01:00
+    ...
+    TIME GRID
+        first date = 2000-01-01 00:00:00+01:00
+        last date = 2000-01-04 00:00:00+01:00
+        step size = 1d
+
+    >>> from hydpy import pub
+    >>> with TestIO():  # doctest: +ELLIPSIS
+    ...     with Dataset("air_temperature.nc") as nc:
+    ...         with pub.options.timestampleft(False):
+    ...             Timegrid.from_timepoints(nc["time"][:], "2000-01-01", "days")
+    ...         for i, subdevice in enumerate(chars2str(nc["station_id"])):
+    ...             print(subdevice, end=": ")
+    ...             print_vector(nc["air_temperature"][:, i])
+    Timegrid("2000-01-01 00:00:00",
+             "2000-01-04 00:00:00",
+             "1d")
+    basin_1: 1.0, 2.0, 3.0
+    basin_2: 2.0, 3.0, 4.0
+    """
+
+    try:
+        subdevicenames = [d[0] for d in data]
+        ncols = len(subdevicenames)
+        nrows = len(timegrid)
+        seriesmatrix = numpy.full((nrows, ncols), fillvalue, dtype=config.NP_FLOAT)
+        for j, (subdevicename, seriesvector) in enumerate(data):
+            if len(seriesvector) != nrows:
+                raise ValueError(
+                    f"According to the given timegrid, all given series must have a "
+                    f"length of `{nrows}`, but the length of series `{subdevicename}` "
+                    f"is `{len(seriesvector)}`."
+                )
+            seriesmatrix[:, j] = seriesvector
+        MixinVariableWriter.__hydpy_write_ncfile__(
+            filepath=filepath,
+            sequence=sequence,
+            subdevicenames=subdevicenames,
+            seriesmatrix=seriesmatrix,
+            timegrid=timegrid,
+            timereference=timereference,
+            cfunit=cfunit,
+            cfconvention=cfconvention,
+            namingconvention=namingconvention,
+            history=history,
+        )
+    except BaseException:
+        objecttools.augment_excmessage(
+            f"While trying to write the NetCDF file `{filepath}`"
+        )
 
 
 def str2chars(strings: Sequence[str]) -> MatrixBytes:
@@ -1097,7 +1276,6 @@ class NetCDFVariable(abc.ABC):
         >>> from hydpy.core.netcdftools import netcdf4, NetCDFVariableFlatWriter
         >>> class Var(NetCDFVariableFlatWriter):
         ...     pass
-        >>> Var.subdevicenames = "element1", "element_2"
         >>> var = Var("filename.nc")
         >>> with TestIO():
         ...     ncfile = netcdf4.Dataset("filename.nc", "w")
@@ -1109,7 +1287,7 @@ class NetCDFVariable(abc.ABC):
 
         After inserting the (sub)device names, they can be queried and returned:
 
-        >>> var.insert_subdevices(ncfile)
+        >>> var.insert_subdevices(ncfile, ["element1", "element_2"])
         >>> Var("filename.nc").query_subdevices(ncfile)
         ['element1', 'element_2']
 
@@ -1146,9 +1324,9 @@ class NetCDFVariable(abc.ABC):
         ...     ncfile = netcdf4.Dataset("filename.nc", "w")
         >>> class Var(NetCDFVariableFlatWriter):
         ...     pass
-        >>> Var.subdevicenames = ["element3", "element1", "element1_1", "element2"]
         >>> var = Var("filename.nc")
-        >>> var.insert_subdevices(ncfile)
+        >>> var.insert_subdevices(ncfile,
+        ...                       ["element3", "element1", "element1_1", "element2"])
         >>> subdevice2index = var.query_subdevice2index(ncfile)
         >>> subdevice2index.get_index("element1_1")
         2
@@ -1583,7 +1761,10 @@ class MixinVariableWriter(NetCDFVariable, abc.ABC):
     def _descr2anysequence(self) -> dict[str, sequencetools.IOSequence]:
         return self._descr2sequence
 
-    def insert_subdevices(self, ncfile: netcdf4.Dataset) -> None:
+    @staticmethod
+    def insert_subdevices(
+        ncfile: netcdf4.Dataset, subdevicenames: Sequence[str]
+    ) -> None:
         """Insert a variable of the names of the (sub)devices of the logged sequences
         into the given NetCDF file.
 
@@ -1594,7 +1775,6 @@ class MixinVariableWriter(NetCDFVariable, abc.ABC):
         >>> from hydpy.core.netcdftools import netcdf4
         >>> class Var(NetCDFVariableFlatWriter):
         ...     pass
-        >>> Var.subdevicenames = "element1", "element_2", "element_ß"
 
         The first dimension of the added variable corresponds to the number of
         (sub)devices, and the second dimension to the number of characters of the
@@ -1603,7 +1783,7 @@ class MixinVariableWriter(NetCDFVariable, abc.ABC):
         >>> var = Var("filename.nc")
         >>> with TestIO():
         ...     ncfile = netcdf4.Dataset("filename.nc", "w")
-        >>> var.insert_subdevices(ncfile)
+        >>> var.insert_subdevices(ncfile, ("element1", "element_2", "element_ß"))
         >>> ncfile["station_id"].dimensions
         ('stations', 'char_leng_name')
         >>> ncfile["station_id"].shape
@@ -1615,7 +1795,7 @@ class MixinVariableWriter(NetCDFVariable, abc.ABC):
         nmb_subdevices = dimmapping["nmb_subdevices"]
         nmb_characters = dimmapping["nmb_characters"]
         subdevices = varmapping["subdevices"]
-        statchars = str2chars(self.subdevicenames)
+        statchars = str2chars(subdevicenames)
         create_dimension(ncfile, nmb_subdevices, statchars.shape[0])
         create_dimension(ncfile, nmb_characters, statchars.shape[1])
         create_variable(ncfile, subdevices, "S1", (nmb_subdevices, nmb_characters))
@@ -1685,37 +1865,89 @@ series data for the (sub)device `element2` nor define a member named `element2`.
     def array(self) -> NDArrayFloat:
         """A |numpy.ndarray| containing the values of all logged sequences."""
 
+    @classmethod
+    def __hydpy_write_ncfile__(
+        cls,
+        *,
+        filepath: str,
+        sequence: str,
+        subdevicenames: Sequence[str],
+        seriesmatrix: MatrixFloat,
+        timegrid: timetools.Timegrid,
+        timereference: Literal["current", "left", "right"] | None,
+        cfunit: timetools.TypeUnit,
+        cfconvention: str | None,
+        namingconvention: Literal[SeriesConventionType] | None,
+        history: str | None,
+    ) -> None:
+
+        with netcdf4.Dataset(filepath, "w") as ncfile:
+
+            if history:
+                ncfile.history = history
+            else:
+                now = time.ctime(time.time())
+                ncfile.history = f"Created {now} by HydPy {hydpy.__version__}"
+            ncfile.sequence = sequence
+            if namingconvention:
+                ncfile.sequence += f" (naming convention: {namingconvention})"
+            if cfconvention:
+                ncfile.Conventions = cfconvention
+
+            opts = hydpy.pub.options
+            match timereference:
+                case "current":
+                    with opts.timestampleft(False):
+                        timepoints = timegrid.to_timepoints(cfunit)
+                    ncfile.timereference = "current time"
+                case "left":
+                    with opts.timestampleft(True):
+                        timepoints = timegrid.to_timepoints(cfunit)
+                    ncfile.timereference = "left interval boundary"
+                case "right":
+                    with opts.timestampleft(False):
+                        timepoints = timegrid.to_timepoints(cfunit)
+                    ncfile.timereference = "right interval boundary"
+                case None:
+                    timepoints = timegrid.to_timepoints(cfunit)
+                case _:
+                    assert_never(timereference)
+
+            cls._insert_timepoints(
+                ncfile=ncfile,
+                timepoints=timepoints,
+                timeunit=timegrid.firstdate.to_cfunits(cfunit),
+            )
+            cls.insert_subdevices(ncfile, subdevicenames=subdevicenames)
+            dimensions = dimmapping["nmb_timepoints"], dimmapping["nmb_subdevices"]
+            create_variable(ncfile, sequence, "f8", dimensions)
+            ncfile[sequence][:] = seriesmatrix
+
     def write(self) -> None:
         """Write the logged data to a new NetCDF file.
 
         See the general documentation on classes |NetCDFVariableFlatWriter| and
         |NetCDFVariableAggregated| for some examples.
         """
-        with netcdf4.Dataset(self.filepath, "w") as ncfile:
-            now = time.ctime(time.time())
-            ncfile.history = f"Created {now} by HydPy {hydpy.__version__}"
-            ncfile.sequence = (
-                f"{os.path.split(self.filepath)[-1][:-3]} "
-                f"(naming convention: {hydpy.pub.sequencemanager.convention})"
-            )
-            ncfile.Conventions = "CF-1.8"
-            init = hydpy.pub.timegrids.init
-            timeunit = init.firstdate.to_cfunits("hours")
-            opts = hydpy.pub.options
-            if _timereference_currenttime(self._anysequence):
-                with opts.timestampleft(False):
-                    timepoints = init.to_timepoints("hours")
-                ncfile.timereference = "current time"
-            else:
-                timepoints = init.to_timepoints("hours")
-                ncfile.timereference = (
-                    f"{'left' if opts.timestampleft else 'right'} interval boundary"
-                )
-            self._insert_timepoints(ncfile, timepoints, timeunit)
-            self.insert_subdevices(ncfile)
-            dimensions = dimmapping["nmb_timepoints"], dimmapping["nmb_subdevices"]
-            create_variable(ncfile, self.name, "f8", dimensions)
-            ncfile[self.name][:] = self.array
+
+        timereference: Literal["current", "left", "right"]
+        if _timereference_currenttime(self._anysequence):
+            timereference = "current"
+        else:
+            timereference = "left" if hydpy.pub.options.timestampleft else "right"
+
+        self.__hydpy_write_ncfile__(
+            filepath=self.filepath,
+            sequence=self.name,
+            subdevicenames=self.subdevicenames,
+            seriesmatrix=self.array,
+            timegrid=hydpy.pub.timegrids.init,
+            timereference=timereference,
+            cfunit="hours",
+            cfconvention="CF-1.8",
+            namingconvention=hydpy.pub.sequencemanager.convention,  # type: ignore[arg-type]  # pylint: disable=line-too-long
+            history=None,
+        )
 
     def __getattr__(self, name: str) -> NetCDFVariableInfo:
         try:

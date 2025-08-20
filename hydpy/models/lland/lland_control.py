@@ -484,7 +484,7 @@ class FEis(lland_parameters.ParameterGlacier):
     into glacier ice) [1/T]."""
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
-    INIT = 0.01
+    INIT = 0.001
 
     def update(self) -> None:
         """Always fall back to the default value if the user provides none

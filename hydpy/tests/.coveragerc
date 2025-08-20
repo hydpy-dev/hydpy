@@ -20,3 +20,4 @@ exclude_lines =
     assert .*
     ^    +assert_never\(.*\)
     ^    +from .* import .*
+    ^    +case _:

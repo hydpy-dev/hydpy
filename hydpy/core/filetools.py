@@ -1815,8 +1815,10 @@ documentation for help).
     def close_netcdfreader(self) -> None:
         """Read data with a prepared |NetCDFInterfaceReader| object and delete it
         afterwards."""
-        self.netcdfreader.read()
-        self._netcdfreader = None
+        try:
+            self.netcdfreader.read()
+        finally:
+            self._netcdfreader = None
 
     @contextlib.contextmanager
     def netcdfreading(self) -> Iterator[None]:
@@ -1872,8 +1874,10 @@ documentation for help).
     def close_netcdfwriter(self) -> None:
         """Write data with a prepared |NetCDFInterfaceWriter| object and delete it
         afterwards."""
-        self.netcdfwriter.write()
-        self._netcdfwriter = None
+        try:
+            self.netcdfwriter.write()
+        finally:
+            self._netcdfwriter = None
 
     @contextlib.contextmanager
     def netcdfwriting(self) -> Iterator[None]:

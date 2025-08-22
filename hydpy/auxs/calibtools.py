@@ -2651,7 +2651,7 @@ complete set of relevant elements (element1 and element2).
     TranslationDiffusionEquation(d=50.0, u=10.0, x=1.0)
     >>> element1.model.parameters.control.responses
     responses(th_0_0=((0.811473, -0.15234, -0.000256, 0.000177),
-                      (0.916619, -0.670781, 0.087185, 0.007923)))
+                      (0.91662, -0.670782, 0.087185, 0.007923)))
     >>> tde2
     TranslationDiffusionEquation(d=50.0, u=10.0, x=2.0)
     >>> element2.model.parameters.control.responses

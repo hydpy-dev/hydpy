@@ -925,17 +925,16 @@ results of the linear storage cascade with a single bucket:
 >>> outflow = numpy.convolve(lsc.ma.coefs, inflow)
 >>> from hydpy import print_vector
 >>> print_vector(outflow[:20])
-0.0, 0.02652, 0.183776, 0.543037, 0.961081, 1.251541, 1.395548,
-1.453371, 1.455585, 1.405116, 1.331252, 1.261271, 1.194968, 1.132151,
-1.072636, 1.01625, 0.962828, 0.912214, 0.864261, 0.818829
+0.0, 0.026494, 0.183646, 0.542809, 0.960891, 1.25144, 1.395505,
+1.453356, 1.455598, 1.405154, 1.331288, 1.261305, 1.195001, 1.132182,
+1.072665, 1.016278, 0.962854, 0.912239, 0.864284, 0.818851
 
-The largest difference occurs on January 1. But this difference of 0.000054 m³/s is way
-below the required accuracy of 0.01 m³/s.  There is no guarantee that the actual
-numerical error will always fall below the defined tolerance value, but if everything
-works well, we have good reason to hope this happens in many cases.  At least for
-sufficiently smooth problems, the actual error should be better than the error estimate
-by one order.  However, one can never rule out the risk of error accumulations over
-multiple simulation steps.
+The largest difference occurs on January 1 but is way below the required accuracy of
+0.01 m³/s.  There is no guarantee that the actual numerical error will always fall
+below the defined tolerance value, but if everything works well, we have good reason to
+hope this happens in many cases.  At least for sufficiently smooth problems, the actual
+error should be better than the error estimate by one order.  However, one can never
+rule out the risk of error accumulations over multiple simulation steps.
 
 |dam_v001| required about four calls per simulation step on average:
 
@@ -1035,8 +1034,8 @@ numerical accuracy for this extreme parameterisation:
 
 >>> lsc.k = 1.0/5.4
 >>> print_vector(numpy.convolve(lsc.ma.coefs, inflow)[:20])
-0.0, 0.815651, 4.261772, 8.259271, 8.181003, 5.553864, 3.371199,
-2.186025, 1.185189, 0.185185, 0.000836, 0.000004, 0.0, 0.0, 0.0, 0.0,
+0.0, 0.815647, 4.261754, 8.259252, 8.181008, 5.553878, 3.371208,
+2.18603, 1.185194, 0.18519, 0.000836, 0.000004, 0.0, 0.0, 0.0, 0.0,
 0.0, 0.0, 0.0, 0.0
 
 However, stability issues required dividing the simulation steps into shorter internal

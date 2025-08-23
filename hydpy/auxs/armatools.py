@@ -208,11 +208,14 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
     MA(coefs=(1.0,))
     """
 
-    smallest_coeff: float = 1e-9
+    smallest_coeff: float = 1e-9  # 1e-6
     """Smallest MA coefficient allowed at the end of the response."""
 
     max_subdivisions: int = 1000
     """Maximum number of subdivisions of the numerical integration space."""
+
+    atol = 1e-10
+    rtol = 0.0
 
     _coefs: VectorFloat | None = None
 
@@ -260,21 +263,35 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
 
         coefs: list[float] = []
         sum_coefs = 0.0
+        max_coef = 0.0
         moment1 = self.iuh.moment1
         raise_warning = False
+
         for t in itertools.count(0.0, 1.0):
+
             result = integrate.cubature(
                 self._help_cubature,
                 [t, 0.0],
                 [t + 1.0, 1.0],
                 args=(t,),
                 max_subdivisions=self.max_subdivisions,
+                atol=self.atol,
+                rtol=self.rtol,
             )
             coef = result.estimate
             if result.subdivisions == self.max_subdivisions:
                 raise_warning = True
             sum_coefs += coef
-            if (sum_coefs < 0.5) and (t > 10.0 * moment1):
+
+            if (sum_coefs > 0.9) and (coef < self.smallest_coeff):
+                self.coefs = (coefs_ := numpy.asarray(coefs)) / sum(coefs_)
+                if raise_warning:
+                    self._raise_integrationwarning(coefs_)
+                return
+
+            if (coef < self.atol < max_coef) or (
+                (sum_coefs < 0.5) and (t > 10.0 * moment1)
+            ):
                 if moment1 < 0.01:
                     self.coefs = numpy.ones(1, dtype=config.NP_FLOAT)
                 else:
@@ -286,11 +303,9 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
                     self.coefs = coefs_
                 self._raise_integrationwarning(self.coefs)
                 return
-            if (sum_coefs > 0.9) and (coef < self.smallest_coeff):
-                self.coefs = (coefs_ := numpy.asarray(coefs)) / sum(coefs_)
-                if raise_warning:
-                    self._raise_integrationwarning(coefs_)
-                return
+
+            if coef > max_coef:
+                max_coef = coef
             coefs.append(coef)
 
     def _raise_integrationwarning(self, coefs) -> None:

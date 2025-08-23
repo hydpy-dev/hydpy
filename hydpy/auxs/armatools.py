@@ -153,6 +153,13 @@ class MA:
     >>> round_(ma.turningpoint)
     6, 0.123759
 
+    For MA models of order one, property |MA.turningpoint| returns the index and value
+    of the first ordinate:
+
+    >>> ma.coefs = [1.0]
+    >>> round_(ma.turningpoint)
+    0, 1.0
+
     Undetectable turning points result in the following error:
 
     >>> ma.coefs = 1.0, 1.0, 1.0
@@ -304,6 +311,9 @@ check the calculated coefficients: 1.0.
     def turningpoint(self) -> tuple[int, float]:
         """Turning point (index and value tuple) in the recession part of the MA
         approximation of the instantaneous unit hydrograph."""
+
+        if self.order == 1:
+            return 0, self.coefs[0]
 
         coefs = self.coefs
         old_dc = coefs[1] - coefs[0]

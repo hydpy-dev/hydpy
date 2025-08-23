@@ -434,7 +434,6 @@ keywords were given: d and u.
     def __call__(self, t: VectorFloat) -> VectorFloat: ...
 
     def __call__(self, t: float | VectorFloat) -> float | VectorFloat:
-        # float-handling optimised for fast numerical integration
         if isinstance(t, float):
             if t < 1e-10:  # pylint: disable=consider-using-max-builtin
                 t = 1e-10
@@ -442,8 +441,8 @@ keywords were given: d and u.
             t = numpy.clip(t, 1e-10, numpy.inf)
         return (
             self._a
-            / (t * (numpy.pi * t) ** 0.5)
-            * numpy.e ** (-t * (self._a / t - self._b) ** 2)
+            / (t * numpy.sqrt(numpy.pi * t))
+            * numpy.exp(-t * numpy.square(self._a / t - self._b))
         )
 
     @property
@@ -518,7 +517,6 @@ class LinearStorageCascade(IUH):
     def __call__(self, t: VectorFloat) -> VectorFloat: ...
 
     def __call__(self, t: float | VectorFloat) -> float | VectorFloat:
-        # float-handling optimised for fast numerical integration
         if isinstance(t, float):
             if t == 0.0:
                 return 0.0

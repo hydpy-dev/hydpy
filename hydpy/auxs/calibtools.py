@@ -2742,13 +2742,13 @@ class MultiplyIUH(RuleIUH):
     >>> tde1
     TranslationDiffusionEquation(d=5.0, u=15.0, x=1.0)
     >>> element1.model.parameters.control.responses
-    responses(th_0_0=((0.0, 0.0),
-                      (0.933333, 0.066667)))
+    responses(th_0_0=((),
+                      (0.933333, 0.066667, 0.0)))
     >>> tde2
     TranslationDiffusionEquation(d=5.0, u=15.0, x=2.0)
     >>> element2.model.parameters.control.responses
-    responses(th_0_0=((0.0, 0.0),
-                      (0.866667, 0.133333)))
+    responses(th_0_0=((),
+                      (0.866667, 0.133333, 0.0)))
 
     >>> u.value = 1.0
     >>> u.apply_value()

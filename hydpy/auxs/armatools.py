@@ -394,8 +394,8 @@ class ARMA:
                    11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0))
 
     Alternatively, they are determined by method |ARMA.update_coefs|, which requires an
-    available |MA|.  We use the MA model based on the shifted normal distribution of
-    the documentation on class |MA| as an example:
+    available |MA| model.  We use the MA model based on the shifted normal distribution
+    of the documentation on class |MA| as an example:
 
     >>> from scipy import stats
     >>> ma = MA(iuh=lambda x: 1.02328 * stats.norm.pdf(x, 4.0, 2.0))
@@ -419,9 +419,8 @@ class ARMA:
     >>> round_(arma.moments)
     4.110439, 1.926845
 
-    On can check the accuray of the approximation directly via the property
-    |ARMA.dev_moments|, which is the sum of the absolute values of the deviations of
-    both methods:
+    On can check the accuray of the approximation via the property |ARMA.dev_moments|,
+    which returns the sum of the absolute values of the deviations of both methods:
 
     >>> round_(arma.dev_moments)
     0.0
@@ -549,24 +548,29 @@ of the ARMA model with the desired accuracy.  You can either set the tolerance v
 `max_rel_rmse` to a higher value or increase the allowed `max_ar_order`.  An accuracy \
 of `0.0` has been reached using `10` coefficients.
 
-    >>> arma.ma.coefs = 1.0, 1.0, 1.0
-    >>> arma.update_coefs()
-    Traceback (most recent call last):
-    ...
+    >>> arma.ma.coefs = 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+    >>> with warn_later():
+    ...     arma.update_coefs()
     UserWarning: Not able to detect a turning point in the impulse response defined \
-by the MA coefficients `1.0, 1.0, 1.0`.
+by the MA coefficients `1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0`.
 
     When getting such warnings, you need to inspect the achieved coefficients manually.
     In the last case, when the turning point detection failed, method
     |ARMA.update_coefs| simplified the ARMA to the original MA model, which is safe but
     not always a good choice:
 
-    >>> import warnings
-    >>> with warnings.catch_warnings(action="ignore"):
-    ...     arma.update_coefs()
     >>> arma
     ARMA(ar_coefs=(),
-         ma_coefs=(0.333333, 0.333333, 0.333333))
+         ma_coefs=(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1))
+
+    As approximating small MA models is seldom beneficial, it does not happen for fewer
+    than 10 ordinates:
+
+    >>> arma.ma.coefs = 0.08, 0.29, 0.22, 0.16, 0.11, 0.07, 0.04, 0.02, 0.01
+    >>> arma.update_coefs()
+    >>> arma
+    ARMA(ar_coefs=(),
+         ma_coefs=(0.08, 0.29, 0.22, 0.16, 0.11, 0.07, 0.04, 0.02, 0.01))
     """
 
     max_ar_order: int = 10
@@ -740,7 +744,7 @@ far.
         |ARMA.update_ar_coefs| raises a warning.
         """
         del self.ar_coefs
-        if (max_ar_order := self.effective_max_ar_order) == 0:
+        if (self.ma.order < 10) or ((max_ar_order := self.effective_max_ar_order) == 0):
             self.ar_coefs = ()
         else:
             for ar_order in range(1, max_ar_order + 1):
@@ -832,26 +836,30 @@ far.
         precision (|ARMA.max_dev_coefs|) or the or the order of the original |MA| model
         is reached.  In the second case, |ARMA.update_ma_coefs| raises a warning.
         """
-        self.ma_coefs = []
-        for ma_order in range(1, self.ma.order + 1):
-            self.calc_next_ma_coef(ma_order, self.ma)
-            if self.dev_coefs < self.max_dev_coefs:
-                break
+
+        if self.ar_order == 0:
+            self.ma_coefs = self.ma.coefs / numpy.sum(self.ma.coefs)
         else:
-            with hydpy.pub.options.reprdigits(12):
+            self.ma_coefs = []
+            for ma_order in range(1, self.ma.order + 1):
+                self.calc_next_ma_coef(ma_order, self.ma)
+                if self.dev_coefs < self.max_dev_coefs:
+                    break
+            else:
+                with hydpy.pub.options.reprdigits(12):
+                    warnings.warn(
+                        f"Method `update_ma_coefs` is not able to determine the MA "
+                        f"coefficients of the ARMA model with the desired accuracy.  "
+                        f"You can set the tolerance value ´max_dev_coefs` to a higher "
+                        f"value.  An accuracy of `{objecttools.repr_(self.dev_coefs)}` "
+                        f"has been reached using `{self.ma.order}` MA coefficients."
+                    )
+            if numpy.min(self.response) < 0.0:
                 warnings.warn(
-                    f"Method `update_ma_coefs` is not able to determine the MA "
-                    f"coefficients of the ARMA model with the desired accuracy.  You "
-                    f"can set the tolerance value ´max_dev_coefs` to a higher value.  "
-                    f"An accuracy of `{objecttools.repr_(self.dev_coefs)}` has been "
-                    f"reached using `{self.ma.order}` MA coefficients."
+                    f"Note that the smallest response to a standard impulse of the "
+                    f"determined ARMA model is negative "
+                    f"(`{objecttools.repr_(numpy.min(self.response))}`)."
                 )
-        if numpy.min(self.response) < 0.0:
-            warnings.warn(
-                f"Note that the smallest response to a standard impulse of the "
-                f"determined ARMA model is negative "
-                f"(`{objecttools.repr_(numpy.min(self.response))}`)."
-            )
 
     def calc_next_ma_coef(self, ma_order, ma_model) -> None:
         """Determine the MA coefficients of the ARMA model based on its predetermined

@@ -62,51 +62,37 @@ class MA:
 
     >>> ma.iuh.moment1 = 10.0
 
-    Method |MA.update_coefs| can handle the discontinuity at :math:`x = 0` without
-    problems because it never needs to evaluate negative :math:`x` values.  However,
-    the sharp discontinuity at :math:`x = 20` disturbs the underlying numerical
-    integration technique significantly, and so increases computation time and
-    decreases accuracy:
+    The limited precision of method |MA.update_coefs| results in observable
+    inaccuracies at the impulse's edges:
 
     >>> ma.update_coefs()  # doctest: +ELLIPSIS
-    Traceback (most recent call last):
-    ...
-    UserWarning: During the determination of the MA coefficients corresponding to the \
-instantaneous unit hydrograph ... a numerical integration problem occurred.  Please \
-check the calculated coefficients: 0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, \
-0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.024999.
+    >>> ma
+    MA(coefs=(0.025025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
+              0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
+              0.05, 0.024975))
 
+    In such cases, you can increase the number of nodes at which method
+    |MA.update_coefs| evaluates the impulse function at the cost of more computation
+    time:
+
+    >>> ma.nmb_nodes = 100000
+    >>> ma.update_coefs()
     >>> ma
     MA(coefs=(0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
               0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
-              0.024999))
-
-    In such cases, you can increase the number of subdivisions of the integration space
-    at the cost of even more computation time:
-
-    >>> ma.max_subdivisions = 10000
-    >>> ma.update_coefs()  # doctest: +ELLIPSIS
-    Traceback (most recent call last):
-    ...
-    UserWarning: During the determination of the MA coefficients corresponding to the \
-instantaneous unit hydrograph ... a numerical integration problem occurred.  Please \
-check the calculated coefficients: 0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, \
-0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.025.
+              0.025))
 
     You can modify the number of resulting coefficients via the attribute
     |MA.smallest_coeff|:
 
     >>> ma.smallest_coeff = 0.03
-    >>> ma.max_subdivisions = 1000
-    >>> import warnings
-    >>> with warnings.catch_warnings(action="ignore"):
-    ...     ma.update_coefs()
+    >>> ma.nmb_nodes = 1000
+    >>> ma.update_coefs()
     >>> ma
-    MA(coefs=(0.025641, 0.051282, 0.051282, 0.051282, 0.051282, 0.051282,
-              0.051282, 0.051282, 0.051282, 0.051282, 0.051282, 0.051282,
-              0.051282, 0.051282, 0.051282, 0.051282, 0.051282, 0.051282,
-              0.051282, 0.051282))
-
+    MA(coefs=(0.025666, 0.051281, 0.051281, 0.051281, 0.051281, 0.051281,
+              0.051281, 0.051281, 0.051281, 0.051281, 0.051281, 0.051281,
+              0.051281, 0.051281, 0.051281, 0.051281, 0.051281, 0.051281,
+              0.051281, 0.051281))
 
     The first two central moments of the time delay subsume describing how an MA model
     behaves:
@@ -117,12 +103,11 @@ check the calculated coefficients: 0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.
     ...     return y
     >>> ma = MA(iuh=iuh)
     >>> ma.iuh.moment1 = 0.5
-    >>> with warnings.catch_warnings(action="ignore"):
-    ...     ma
-    MA(coefs=(0.50001, 0.49999))
+    >>> ma
+    MA(coefs=(0.500253, 0.499747))
     >>> from hydpy import round_
     >>> round_(ma.moments, 6)
-    0.49999, 0.5
+    0.499747, 0.5
 
     The first central moment is the weighted time delay (mean lag time).  The second
     central moment is the weighted mean deviation from the mean lag time (diffusion).
@@ -136,10 +121,10 @@ check the calculated coefficients: 0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.
     >>> ma = MA(iuh=lambda x: 2.0 * stats.norm.pdf(x, 0.0, 2.0))
     >>> ma.iuh.moment1 = 1.35
     >>> ma
-    MA(coefs=(0.195417, 0.346659, 0.24189, 0.13277, 0.057318, 0.019458,
-              0.005193, 0.001089, 0.00018, 0.000023, 0.000002, 0.0, 0.0))
+    MA(coefs=(0.195578, 0.346589, 0.241841, 0.132744, 0.057307, 0.019454,
+              0.005192, 0.001089, 0.00018, 0.000023, 0.000002, 0.0, 0.0))
     >>> round_(ma.turningpoint)
-    2, 0.24189
+    2, 0.241841
 
     Note that the first returned value is the index of the MA coefficient closest to
     the turning point, and not a high-precision estimate of the real turning point of
@@ -162,11 +147,11 @@ check the calculated coefficients: 0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.
     >>> ma.iuh.moment1 = 3.94
     >>> ma.update_coefs()
     >>> ma
-    MA(coefs=(0.019322, 0.067931, 0.12376, 0.177364, 0.199966, 0.177364,
-              0.12376, 0.067931, 0.029326, 0.009956, 0.002657, 0.000557,
+    MA(coefs=(0.019335, 0.06793, 0.123759, 0.177362, 0.199964, 0.177362,
+              0.123759, 0.06793, 0.029326, 0.009956, 0.002657, 0.000557,
               0.000092, 0.000012, 0.000001, 0.0, 0.0))
     >>> round_(ma.turningpoint)
-    6, 0.12376
+    6, 0.123759
 
     Undetectable turning points result in the following error:
 
@@ -203,19 +188,28 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
 
     >>> ma = MA(iuh=lambda x: 1e6 * numpy.exp(-1e6 * x))
     >>> ma.iuh.moment1 = 6.931e-7
-    >>> with warnings.catch_warnings(action="ignore"):
+    >>> from hydpy.core.testtools import warn_later
+    >>> with warn_later():  # doctest: +ELLIPSIS
     ...     ma
     MA(coefs=(1.0,))
+    UserWarning: During the determination of the MA coefficients corresponding to the \
+instantaneous unit hydrograph `...` a numerical integration problem occurred.  Please \
+check the calculated coefficients: 1.0.
     """
 
     smallest_coeff: float = 1e-9  # 1e-6
     """Smallest MA coefficient allowed at the end of the response."""
 
-    max_subdivisions: int = 1000
-    """Maximum number of subdivisions of the numerical integration space."""
+    nmb_nodes = 1000
+    """The number of nodes usually applied for numerically integrating all MA 
+    coefficients."""
 
-    atol = 1e-10
-    rtol = 0.0
+    nmb_nodes_extra = 100000
+    """The number of nodes applied for numerically integrating the MA coefficient if
+    the instantaneous unit hydrograph has a small delay time.
+    
+    |MA.nmb_nodes_extra| is ignored if set to a smaller value than |MA.nmb_nodes|. 
+    """
 
     _coefs: VectorFloat | None = None
 
@@ -247,16 +241,6 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
         """MA order."""
         return len(self.coefs)
 
-    def _help_cubature(self, xy: MatrixFloat, index: float, /) -> VectorFloat:
-        x, y = xy[:, 0], xy[:, 1]
-        if index == 0.0:
-            y = x * y
-        d = x - y
-        r = self.iuh(d)
-        if index == 0.0:
-            r *= x
-        return r
-
     def update_coefs(self) -> None:
         """(Re)Calculate the MA coefficients based on the instantaneous unit
         hydrograph."""
@@ -265,31 +249,36 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
         sum_coefs = 0.0
         max_coef = 0.0
         moment1 = self.iuh.moment1
-        raise_warning = False
+
+        n = self.nmb_nodes
+        nodes = numpy.linspace(0.0, 1.0 - 1.0 / n, n)
+        responses = numpy.zeros(2 * n, dtype=config.NP_FLOAT)
+        weights = numpy.linspace(1.0, 2 * n - 1, 2 * n - 1)
+        weights[n:] = weights[:n - 1][::-1]
+        weights /= n**2
 
         for t in itertools.count(0.0, 1.0):
 
-            result = integrate.cubature(
-                self._help_cubature,
-                [t, 0.0],
-                [t + 1.0, 1.0],
-                args=(t,),
-                max_subdivisions=self.max_subdivisions,
-                atol=self.atol,
-                rtol=self.rtol,
-            )
-            coef = result.estimate
-            if result.subdivisions == self.max_subdivisions:
-                raise_warning = True
+            responses[:n] = responses[n:]
+            responses[n:] = self.iuh(nodes + t)
+
+            if (t == 0) and (moment1 < 1.0) and ((m := self.nmb_nodes_extra) > n):
+                fine_nodes = numpy.linspace(0.0 / m, 1.0 - 1.0 / m, m)
+                fine_responses = self.iuh(fine_nodes)
+                fine_weights = numpy.linspace(m, 1.0, m) / m / m
+                coef = numpy.dot(fine_weights, fine_responses)
+            else:
+                coef = numpy.dot(weights, responses[1:])
+
             sum_coefs += coef
 
             if (sum_coefs > 0.9) and (coef < self.smallest_coeff):
                 self.coefs = (coefs_ := numpy.asarray(coefs)) / sum(coefs_)
-                if raise_warning:
-                    self._raise_integrationwarning(coefs_)
+                if (sum_coefs < 0.99) or (sum_coefs > 1.01):
+                    self._raise_integrationwarning()
                 return
 
-            if (coef < self.atol < max_coef) or (
+            if (coef < self.smallest_coeff / 10.0 < max_coef) or (
                 (sum_coefs < 0.5) and (t > 10.0 * moment1)
             ):
                 if moment1 < 0.01:
@@ -301,19 +290,19 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
                     coefs_[idx] = 1.0 - weight
                     coefs_[idx + 1] = weight
                     self.coefs = coefs_
-                self._raise_integrationwarning(self.coefs)
+                self._raise_integrationwarning()
                 return
 
             if coef > max_coef:
                 max_coef = coef
             coefs.append(coef)
 
-    def _raise_integrationwarning(self, coefs) -> None:
+    def _raise_integrationwarning(self) -> None:
         warnings.warn(
             f"During the determination of the MA coefficients corresponding to the "
             f"instantaneous unit hydrograph `{repr(self.iuh)}` a numerical integration "
             f"problem occurred.  Please check the calculated coefficients: "
-            f"{objecttools.repr_values(coefs)}."
+            f"{objecttools.repr_values(self.coefs)}."
         )
 
     @property
@@ -322,12 +311,17 @@ Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.
         approximation of the instantaneous unit hydrograph."""
 
         coefs = self.coefs
+
+        if len(coefs) == 1:
+            return 0, coefs[0]
+
         old_dc = coefs[1] - coefs[0]
         for idx in range(self.order - 2):
             new_dc = coefs[idx + 2] - coefs[idx + 1]
             if (old_dc < 0.0) and (new_dc > old_dc):
                 return idx, coefs[idx]
             old_dc = new_dc
+
         raise RuntimeError(
             f"Not able to detect a turning point in the impulse response "
             f"defined by the MA coefficients `{objecttools.repr_values(coefs)}`."
@@ -408,8 +402,8 @@ class ARMA:
     >>> arma = ARMA(ma_model=ma)
     >>> arma
     ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),
-         ma_coefs=(0.019322, 0.054783, 0.08195, 0.107757, 0.104458,
-                   0.07637, 0.041095, 0.01581, 0.004132, 0.000663,
+         ma_coefs=(0.019335, 0.054772, 0.081952, 0.107755, 0.104457,
+                   0.076369, 0.041094, 0.01581, 0.004132, 0.000663,
                    0.00005))
 
     To verify that the ARMA model approximates the MA model with sufficient accuracy,
@@ -420,9 +414,9 @@ class ARMA:
     >>> round_(arma.rel_rmse)
     0.0
     >>> round_(ma.moments)
-    4.110496, 1.926798
+    4.110439, 1.926845
     >>> round_(arma.moments)
-    4.110496, 1.926798
+    4.110439, 1.926845
 
     On can check the accuray of the approximation directly via the property
     |ARMA.dev_moments|, which is the sum of the absolute values of the deviations of
@@ -446,8 +440,8 @@ class ARMA:
     >>> arma.update_coefs()
     >>> arma
     ARMA(ar_coefs=(0.788899, -0.256436, 0.034256),
-         ma_coefs=(0.019322, 0.052688, 0.075125, 0.096488, 0.089453,
-                   0.060854, 0.029041, 0.008929, 0.001397, 0.000001,
+         ma_coefs=(0.019335, 0.052676, 0.075127, 0.096486, 0.089452,
+                   0.060853, 0.02904, 0.008929, 0.001397, 0.000001,
                    -0.000004, 0.00001, -0.000008, -0.000009, -0.000004,
                    -0.000001))
 
@@ -458,7 +452,7 @@ class ARMA:
     >>> arma.order
     (3, 16)
     >>> round_(arma.moments)
-    4.110497, 1.926804
+    4.110441, 1.926851
     >>> round_(arma.dev_moments)
     0.000007
 
@@ -469,8 +463,8 @@ class ARMA:
     >>> arma.update_coefs()
     >>> arma
     ARMA(ar_coefs=(0.788888, -0.256432, 0.034255),
-         ma_coefs=(0.019321, 0.052687, 0.075124, 0.096486, 0.089452,
-                   0.060853, 0.02904, 0.008929, 0.001397))
+         ma_coefs=(0.019335, 0.052675, 0.075126, 0.096485, 0.089451,
+                   0.060852, 0.02904, 0.008928, 0.001397))
 
     Now the total number of coefficients is in fact decreased, and the loss in accuracy
     is still small:
@@ -478,7 +472,7 @@ class ARMA:
     >>> arma.order
     (3, 9)
     >>> round_(arma.moments)
-    4.110794, 1.927625
+    4.110737, 1.927672
     >>> round_(arma.dev_moments)
     0.001125
 
@@ -493,15 +487,15 @@ class ARMA:
     UserWarning: Note that the smallest response to a standard impulse of the \
 determined ARMA model is negative (`-0.000336`).
     >>> arma
-    ARMA(ar_coefs=(0.736954, -0.166457),
-         ma_coefs=(0.01946, 0.05418, 0.077804, 0.098741, 0.091295,
-                   0.060797, 0.027226))
+    ARMA(ar_coefs=(0.736953, -0.166457),
+         ma_coefs=(0.019474, 0.054169, 0.077806, 0.09874, 0.091294,
+                   0.060796, 0.027226))
     >>> arma.order
     (2, 7)
     >>> from hydpy import print_vector
     >>> print_vector(arma.response)
-    0.01946, 0.068521, 0.125062, 0.1795, 0.202761, 0.180343, 0.12638,
-    0.063117, 0.025477, 0.008269, 0.001853, -0.000011, -0.000316,
+    0.019474, 0.06852, 0.12506, 0.179497, 0.202758, 0.18034, 0.126378,
+    0.063116, 0.025477, 0.008269, 0.001853, -0.000011, -0.000316,
     -0.000231, -0.000118, -0.000048, -0.000016
 
     It seems to be hard to find a parameter efficient approximation to the MA model in
@@ -542,8 +536,9 @@ determined ARMA model is negative (`-0.000336`).
     ...
     UserWarning: Method `update_ma_coefs` is not able to determine the MA coefficients \
 of the ARMA model with the desired accuracy.  You can set the tolerance value \
-´max_dev_coefs` to a higher value.  An accuracy of `0.000000000925` has been reached \
+´max_dev_coefs` to a higher value.  An accuracy of `0.000000000924` has been reached \
 using `185` MA coefficients.
+
     >>> arma.max_rel_rmse = 0.0
     >>> arma.update_coefs()
     Traceback (most recent call last):
@@ -552,6 +547,7 @@ using `185` MA coefficients.
 of the ARMA model with the desired accuracy.  You can either set the tolerance value \
 `max_rel_rmse` to a higher value or increase the allowed `max_ar_order`.  An accuracy \
 of `0.0` has been reached using `10` coefficients.
+
     >>> arma.ma.coefs = 1.0, 1.0, 1.0
     >>> arma.update_coefs()
     Traceback (most recent call last):
@@ -636,8 +632,8 @@ far.
         0.680483, -0.228511, 0.047283, -0.006022, 0.000377
         >>> arma
         ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),
-             ma_coefs=(0.019322, 0.054783, 0.08195, 0.107757, 0.104458,
-                       0.07637, 0.041095, 0.01581, 0.004132, 0.000663,
+             ma_coefs=(0.019335, 0.054772, 0.081952, 0.107755, 0.104457,
+                       0.076369, 0.041094, 0.01581, 0.004132, 0.000663,
                        0.00005))
         """
         if (ar_coefs := self._ar_coefs) is not None:
@@ -673,12 +669,12 @@ far.
 
         >>> del arma.ma_coefs
         >>> print_vector(arma.ma_coefs)
-        0.019322, 0.054783, 0.08195, 0.107757, 0.104458, 0.07637, 0.041095,
+        0.019335, 0.054772, 0.081952, 0.107755, 0.104457, 0.076369, 0.041094,
         0.01581, 0.004132, 0.000663, 0.00005
         >>> arma
         ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),
-             ma_coefs=(0.019322, 0.054783, 0.08195, 0.107757, 0.104458,
-                       0.07637, 0.041095, 0.01581, 0.004132, 0.000663,
+             ma_coefs=(0.019335, 0.054772, 0.081952, 0.107755, 0.104457,
+                       0.076369, 0.041094, 0.01581, 0.004132, 0.000663,
                        0.00005))
         """
         if (ma_coefs := self._ma_coefs) is not None:

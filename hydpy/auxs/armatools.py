@@ -14,7 +14,6 @@ import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
-from hydpy.core import propertytools
 from hydpy.auxs import statstools
 from hydpy.core.typingtools import *
 
@@ -203,7 +202,8 @@ check the calculated coefficients: 1.0.
         if coefs is not None:
             self.coefs = coefs
 
-    def _get_coefs(self) -> VectorFloat:
+    @property
+    def coefs(self) -> VectorFloat:
         """|numpy.ndarray| containing all MA coefficents."""
         if (coefs := self._coefs) is not None:
             return coefs
@@ -211,13 +211,13 @@ check the calculated coefficients: 1.0.
         assert (coefs := self._coefs) is not None
         return coefs
 
-    def _set_coefs(self, values: VectorInputFloat) -> None:
+    @coefs.setter
+    def coefs(self, values: VectorInputFloat) -> None:
         self._coefs = numpy.array(values, ndmin=1, dtype=config.NP_FLOAT)
 
-    def _del_coefs(self) -> None:
+    @coefs.deleter
+    def coefs(self) -> None:
         self._coefs = None
-
-    coefs = propertytools.Property(fget=_get_coefs, fset=_set_coefs, fdel=_del_coefs)
 
     @property
     def order(self) -> int:
@@ -567,7 +567,8 @@ far.
             )
         return rel_rmse
 
-    def _get_ar_coefs(self) -> VectorFloat:
+    @property
+    def ar_coefs(self) -> VectorFloat:
         """The AR coefficients of the ARMA model.
 
         |property| |ARMA.ar_coefs| does not recalculate already defined coefficients
@@ -598,17 +599,16 @@ far.
         assert (ar_coefs := self._ar_coefs) is not None
         return ar_coefs
 
-    def _set_ar_coefs(self, values) -> None:
+    @ar_coefs.setter
+    def ar_coefs(self, values) -> None:
         self._ar_coefs = numpy.array(values, ndmin=1, dtype=config.NP_FLOAT)
 
-    def _del_ar_coefs(self) -> None:
+    @ar_coefs.deleter
+    def ar_coefs(self) -> None:
         self._ar_coefs = None
 
-    ar_coefs = propertytools.Property(
-        fget=_get_ar_coefs, fset=_set_ar_coefs, fdel=_del_ar_coefs
-    )
-
-    def _get_ma_coefs(self) -> VectorFloat:
+    @property
+    def ma_coefs(self) -> VectorFloat:
         """The MA coefficients of the ARMA model.
 
         |property| |ARMA.ma_coefs| does not recalculate already defined coefficients
@@ -640,15 +640,13 @@ far.
         assert (ma_coefs := self._ma_coefs) is not None
         return ma_coefs
 
-    def _set_ma_coefs(self, values: VectorInputFloat) -> None:
+    @ma_coefs.setter
+    def ma_coefs(self, values: VectorInputFloat) -> None:
         self._ma_coefs = numpy.array(values, ndmin=1, dtype=config.NP_FLOAT)
 
-    def _del_ma_coefs(self) -> None:
+    @ma_coefs.deleter
+    def ma_coefs(self) -> None:
         self._ma_coefs = None
-
-    ma_coefs = propertytools.Property(
-        fget=_get_ma_coefs, fset=_set_ma_coefs, fdel=_del_ma_coefs
-    )
 
     @property
     def coefs(self) -> tuple[VectorFloat, VectorFloat]:

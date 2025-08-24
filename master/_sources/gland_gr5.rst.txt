@@ -1,0 +1,23 @@
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.gland_gr5.Model.check_waterbalance`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PN| replace:: :class:`~hydpy.models.gland.gland_fluxes.PN`
+.. |PR1| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR1`
+.. |PR9| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR9`
+.. |PR| replace:: :class:`~hydpy.models.gland.gland_fluxes.PR`
+.. |Q10| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q10`
+.. |Q1| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q1`
+.. |Q9| replace:: :class:`~hydpy.models.gland.gland_fluxes.Q9`
+.. |RConcModel_V1| replace:: :class:`~hydpy.interfaces.rconcinterfaces.RConcModel_V1`
+.. |gland_gr4| replace:: :mod:`~hydpy.models.gland_gr4`
+.. |gland_gr5.DOCNAME.complete| replace:: HydPy-G-GR5 (Génie Rural model with 5 parameters)
+.. |gland_gr5| replace:: :mod:`~hydpy.models.gland_gr5`
+
+.. _gland_gr5:
+
+gland_gr5
+=========
+
+.. automodule:: hydpy.models.gland_gr5
+    :members:
+    :show-inheritance:
+    :exclude-members: overload, Tuple, NoExtraItems, PART_ODE_METHODS, Pattern, is_typeddict, INLET_METHODS, AsyncIterator, SupportsAbs, reveal_type, get_annotations, Callable, RESULTSEQUENCES, Format, clear_overloads, TypeIs, MutableSet, MappingView, MutableSequence, Self, SenderSequences, SOLVERSEQUENCES, get_original_bases, Deque, REQUIREDSEQUENCES, RUN_METHODS, NoDefault, ItemsView, assert_never, FactorSequences, runtime, Sentinel, Concatenate, fastaccess_new, ParamSpecKwargs, SupportsInt, OrderedDict, subseqs, Hashable, TypeVar, TYPE_CHECKING, Type, AbstractSet, Reversible, SOLVERPARAMETERS, ParamSpecArgs, Generator, NamedTuple, runtime_checkable, SupportsRound, Dict, no_type_check, ByteString, Buffer, InletSequences, LogSequences, BinaryIO, AnyStr, Annotated, Awaitable, is_protocol, cast, fastaccess_old, TextIO, LiteralString, ObserverSequences, FrozenSet, NotRequired, Required, OUTLET_METHODS, Reader, final, List, DERIVEDPARAMETERS, subpars, MutableMapping, assert_type, FIXEDPARAMETERS, Protocol, Collection, Iterator, ClassVar, get_args, TypeForm, NewType, KeysView, Iterable, seqs, CLASSES, ForwardRef, UPDATEDSEQUENCES, AideSequences, SupportsFloat, Coroutine, DefaultDict, SupportsBytes, fastaccess, CONTROLPARAMETERS, Final, subvars, CapsuleType, ValuesView, Counter, get_origin, IO, Literal, Union, TypeVarTuple, override, Writer, Match, Generic, TypeGuard, ChainMap, RECEIVER_METHODS, SENDER_METHODS, Sequence, get_type_hints, ADD_METHODS, TypeAlias, get_overloads, Text, ContextManager, AsyncIterable, SUBMODELINTERFACES, TypedDict, dataclass_transform, NoReturn, INTERFACE_METHODS, pars, Optional, ReadOnly, deprecated, Set, Container, get_protocol_members, no_type_check_decorator, Mapping, ParamSpec, AsyncContextManager, Never, SupportsComplex, SupportsIndex, evaluate_forward_ref, TypeAliasType, ReceiverSequences, SUBMODELS, FULL_ODE_METHODS, IntVar, Sized, Unpack, Any, AsyncGenerator, Doc, SUBMETHODS

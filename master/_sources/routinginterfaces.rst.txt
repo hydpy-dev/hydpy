@@ -1,0 +1,29 @@
+.. |ChannelModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.ChannelModel_V1`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |RoutingModelBase.determine_discharge| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge`
+.. |RoutingModelBase.determine_maxtimestep| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep`
+.. |RoutingModelBase.get_discharge| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge`
+.. |RoutingModelBase.set_timestep| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep`
+.. |RoutingModel_V1.get_partialdischargeupstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream`
+.. |RoutingModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1`
+.. |RoutingModel_V2.get_partialdischargedownstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream`
+.. |RoutingModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2`
+.. |RoutingModel_V3.get_partialdischargedownstream| replace:: :func:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream`
+.. |RoutingModel_V3| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_lias| replace:: :mod:`~hydpy.models.sw1d_lias`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_q_in| replace:: :mod:`~hydpy.models.sw1d_q_in`
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+
+.. _routinginterfaces:
+
+routinginterfaces
+=================
+
+.. automodule:: hydpy.interfaces.routinginterfaces
+    :members:
+    :show-inheritance:
+    :exclude-members: overload, Tuple, NoExtraItems, PART_ODE_METHODS, Pattern, is_typeddict, INLET_METHODS, AsyncIterator, SupportsAbs, reveal_type, get_annotations, Callable, RESULTSEQUENCES, Format, clear_overloads, TypeIs, MutableSet, MappingView, MutableSequence, Self, SOLVERSEQUENCES, get_original_bases, Deque, REQUIREDSEQUENCES, RUN_METHODS, NoDefault, ItemsView, assert_never, runtime, Sentinel, Concatenate, fastaccess_new, ParamSpecKwargs, SupportsInt, OrderedDict, subseqs, Hashable, TypeVar, TYPE_CHECKING, Type, AbstractSet, Reversible, SOLVERPARAMETERS, ParamSpecArgs, Generator, NamedTuple, runtime_checkable, SupportsRound, Dict, no_type_check, ByteString, Buffer, BinaryIO, AnyStr, Annotated, Awaitable, is_protocol, cast, fastaccess_old, TextIO, LiteralString, FrozenSet, NotRequired, Required, OUTLET_METHODS, Reader, final, List, DERIVEDPARAMETERS, subpars, MutableMapping, assert_type, FIXEDPARAMETERS, Protocol, Collection, Iterator, ClassVar, get_args, TypeForm, NewType, KeysView, Iterable, seqs, CLASSES, ForwardRef, UPDATEDSEQUENCES, SupportsFloat, Coroutine, DefaultDict, SupportsBytes, fastaccess, CONTROLPARAMETERS, Final, subvars, CapsuleType, ValuesView, Counter, get_origin, IO, Literal, Union, TypeVarTuple, override, Writer, Match, Generic, TypeGuard, ChainMap, RECEIVER_METHODS, SENDER_METHODS, Sequence, get_type_hints, ADD_METHODS, TypeAlias, get_overloads, Text, ContextManager, AsyncIterable, SUBMODELINTERFACES, TypedDict, dataclass_transform, NoReturn, INTERFACE_METHODS, pars, Optional, ReadOnly, deprecated, Set, Container, get_protocol_members, no_type_check_decorator, Mapping, ParamSpec, AsyncContextManager, Never, SupportsComplex, SupportsIndex, evaluate_forward_ref, TypeAliasType, SUBMODELS, FULL_ODE_METHODS, IntVar, Sized, Unpack, Any, AsyncGenerator, Doc, SUBMETHODS

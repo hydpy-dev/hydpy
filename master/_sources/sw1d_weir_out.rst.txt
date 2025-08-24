@@ -1,0 +1,16 @@
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_weir_out.DOCNAME.complete| replace:: HydPy-SW1D-Weir-Out (submodel for calculating free weir flow at a channel outlet)
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+
+.. _sw1d_weir_out:
+
+sw1d_weir_out
+=============
+
+.. automodule:: hydpy.models.sw1d_weir_out
+    :members:
+    :show-inheritance:
+    :exclude-members: overload, Tuple, NoExtraItems, PART_ODE_METHODS, Pattern, is_typeddict, INLET_METHODS, AsyncIterator, SupportsAbs, reveal_type, get_annotations, Callable, RESULTSEQUENCES, Format, InputSequences, clear_overloads, TypeIs, MutableSet, MappingView, MutableSequence, Self, SenderSequences, SOLVERSEQUENCES, get_original_bases, Deque, REQUIREDSEQUENCES, RUN_METHODS, NoDefault, ItemsView, assert_never, runtime, Sentinel, Concatenate, fastaccess_new, ParamSpecKwargs, SupportsInt, OrderedDict, subseqs, Hashable, TypeVar, TYPE_CHECKING, Type, AbstractSet, Reversible, SOLVERPARAMETERS, ParamSpecArgs, Generator, NamedTuple, runtime_checkable, SupportsRound, Dict, no_type_check, ByteString, Buffer, InletSequences, LogSequences, BinaryIO, AnyStr, Annotated, Awaitable, is_protocol, cast, fastaccess_old, TextIO, LiteralString, ObserverSequences, FrozenSet, NotRequired, Required, OUTLET_METHODS, Reader, final, List, DERIVEDPARAMETERS, subpars, MutableMapping, assert_type, FIXEDPARAMETERS, Protocol, Collection, Iterator, ClassVar, get_args, TypeForm, NewType, KeysView, Iterable, seqs, CLASSES, ForwardRef, UPDATEDSEQUENCES, AideSequences, SupportsFloat, Coroutine, DefaultDict, SupportsBytes, fastaccess, CONTROLPARAMETERS, Final, subvars, CapsuleType, ValuesView, Counter, get_origin, IO, Literal, Union, TypeVarTuple, override, Writer, Match, Generic, TypeGuard, ChainMap, RECEIVER_METHODS, SENDER_METHODS, Sequence, get_type_hints, ADD_METHODS, TypeAlias, get_overloads, Text, ContextManager, AsyncIterable, SUBMODELINTERFACES, TypedDict, dataclass_transform, NoReturn, INTERFACE_METHODS, pars, Optional, ReadOnly, deprecated, Set, Container, get_protocol_members, no_type_check_decorator, Mapping, ParamSpec, AsyncContextManager, Never, SupportsComplex, SupportsIndex, evaluate_forward_ref, TypeAliasType, ReceiverSequences, SUBMODELS, FULL_ODE_METHODS, IntVar, Sized, Unpack, Any, AsyncGenerator, Doc, SUBMETHODS

@@ -1,0 +1,19 @@
+.. |AETModel_V1| replace:: :class:`~hydpy.interfaces.aetinterfaces.AETModel_V1`
+.. |CisternSource| replace:: :class:`~hydpy.models.whmod.whmod_control.CisternSource`
+.. |False| replace:: :const:`False`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.whmod_urban.Model.check_waterbalance`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |True| replace:: :const:`True`
+.. |whmod_rural| replace:: :mod:`~hydpy.models.whmod_rural`
+.. |whmod_urban.DOCNAME.complete| replace:: HydPy-WHMod-Urban (WHMod for urban regions)
+.. |whmod_urban| replace:: :mod:`~hydpy.models.whmod_urban`
+
+.. _whmod_urban:
+
+whmod_urban
+===========
+
+.. automodule:: hydpy.models.whmod_urban
+    :members:
+    :show-inheritance:
+    :exclude-members: overload, Tuple, NoExtraItems, PART_ODE_METHODS, Pattern, is_typeddict, INLET_METHODS, AsyncIterator, SupportsAbs, reveal_type, get_annotations, Callable, RESULTSEQUENCES, Format, clear_overloads, TypeIs, MutableSet, MappingView, MutableSequence, Self, SenderSequences, SOLVERSEQUENCES, get_original_bases, Deque, REQUIREDSEQUENCES, RUN_METHODS, NoDefault, ItemsView, assert_never, runtime, Sentinel, Concatenate, fastaccess_new, ParamSpecKwargs, SupportsInt, OrderedDict, subseqs, Hashable, TypeVar, TYPE_CHECKING, Type, AbstractSet, Reversible, SOLVERPARAMETERS, ParamSpecArgs, Generator, NamedTuple, runtime_checkable, SupportsRound, Dict, no_type_check, ByteString, Buffer, InletSequences, LogSequences, BinaryIO, AnyStr, Annotated, Awaitable, is_protocol, cast, fastaccess_old, TextIO, LiteralString, ObserverSequences, FrozenSet, NotRequired, Required, OUTLET_METHODS, Reader, final, List, DERIVEDPARAMETERS, subpars, MutableMapping, assert_type, FIXEDPARAMETERS, Protocol, Collection, Iterator, ClassVar, get_args, TypeForm, NewType, KeysView, Iterable, seqs, CLASSES, ForwardRef, UPDATEDSEQUENCES, AideSequences, SupportsFloat, Coroutine, DefaultDict, SupportsBytes, fastaccess, CONTROLPARAMETERS, Final, subvars, CapsuleType, ValuesView, Counter, get_origin, IO, Literal, Union, TypeVarTuple, override, Writer, Match, Generic, TypeGuard, OutletSequences, ChainMap, RECEIVER_METHODS, SENDER_METHODS, Sequence, get_type_hints, ADD_METHODS, TypeAlias, get_overloads, Text, ContextManager, AsyncIterable, SUBMODELINTERFACES, TypedDict, dataclass_transform, NoReturn, INTERFACE_METHODS, pars, Optional, ReadOnly, deprecated, Set, Container, get_protocol_members, no_type_check_decorator, Mapping, ParamSpec, AsyncContextManager, Never, SupportsComplex, SupportsIndex, evaluate_forward_ref, TypeAliasType, ReceiverSequences, SUBMODELS, FULL_ODE_METHODS, IntVar, Sized, Unpack, Any, AsyncGenerator, Doc, SUBMETHODS

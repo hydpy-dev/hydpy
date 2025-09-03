@@ -1512,7 +1512,7 @@ class PyxWriter:
             self.reset_sum_fluxes(lines)
             self.addup_fluxes(lines)
             self.calculate_error(lines)
-            self.extrapolate_error(lines)
+            self.convert_normal_method("extrapolate_error", lines)
 
     @property
     def has_submodels(self) -> bool:
@@ -2407,14 +2407,13 @@ class PyxWriter:
                     f"NDIM of sequence `{seq.name}` is higher than expected."
                 )
 
-    def extrapolate_error(self, lines: PyxPxdLines) -> None:
-        """Extrapolate error statements."""
-        extrapolate_error = getattr(self.model, "extrapolate_error", None)
-        if extrapolate_error:
-            print("            . extrapolate_error")
-            funcconverter = FuncConverter(
-                self.model, "extrapolate_error", extrapolate_error
-            )
+    def convert_normal_method(self, name: str, lines: PyxPxdLines) -> None:
+        """Use |FuncConverter| to convert a "normal" method of the current
+        |modeltools.Model| class."""
+        func = getattr(self.model, name, None)
+        if func:
+            print(f"            . {name}")
+            funcconverter = FuncConverter(self.model, name, func)
             pyxlines = tuple(f"    {line}" for line in funcconverter.pyxlines)
             lines.pyx.extend(pyxlines)
             lines.pxd.append(pyxlines[0][:-1])
@@ -2423,9 +2422,9 @@ class PyxWriter:
         """Write a stub file for the actual base or application model.
 
         At the moment, *HydPy* creates model objects quite dynamically.  In many
-        regards, this comes with lots of conveniences.  However, there two critical
-        drawbacks compared to more static approaches: some amount of additional
-        initialisation time and, more important, much opaqueness for code inspection
+        regards, this comes with lots of conveniences.  However, there are two critical
+        drawbacks compared to more static approaches: Some amount of additional
+        initialisation time and, more importantly, much opaqueness for code inspection
         tools.  In this context, we experiment with "stub files" at the moment.  These
         could either contain typing information only or define statically predefined
         model classes.  The following example uses method |PyxWriter.write_stubfile| to

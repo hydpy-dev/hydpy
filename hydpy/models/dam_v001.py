@@ -16,17 +16,19 @@ defines these relationships via interpolators.  See the documentation on the cla
 |PPoly| and |ANN|, which explains how to configure stepwise linear, spline, or neural
 network-based interpolations.
 
-|dam_v001| solves its differential equation with an adaptive Runge-Kutta method that
+|dam_v001| solves its differential equation using an adaptive Runge-Kutta method that
 only works well on continuous equations.  Hence, we defined most threshold-based
 low-flow equations in a "smoothable" manner.  However, defining realistic and
 computationally efficient configurations of the related smoothing parameters requires
 some experience.  Therefore, it seems advisable to investigate the functioning of each
 new model parameterisation on several synthetic or measured drought events.
 
-The applied solver is an explicit Runge-Kutta method unsuitable for stiff initial value
-problems.  Its adaptive order and stepsize control prevent inaccurate results caused by
-stability issues.  But for very responsive dams, increased computation times are
-possible.  We come back to this point at the end of this section.
+The applied solver is an explicit Runge-Kutta method, which is unsuitable for solving
+stiff initial value problems.  Its adaptive order and stepsize control prevent
+inaccurate results caused by stability issues.  But for very responsive dams, increased
+computation times are possible.  For such cases, |dam_v001| provides  a less accurate
+but more stable fallback mechanism.  We come back to this point at the end of this
+section.
 
 By default, |dam_v001| neither takes precipitation nor evaporation into account, but
 you can add submodels that comply with the |PrecipModel_V2| or |PETModel_V1| interface
@@ -85,7 +87,7 @@ Moving Average model that neither results in translation nor retention:
 >>> stream2.model.parameters.control.responses(((), (1.0,)))
 >>> stream2.model.parameters.update()
 
-`stream2` also works like a pure Moving Average model but causes a time delay of
+`stream2` also works like a pure Moving Average model, but causes a time delay of
 1.8 days:
 
 >>> stream1.model = prepare_model("arma_rimorido")
@@ -180,7 +182,7 @@ mechanism by setting any other tolerance value (possible within any control file
 the :ref:`dam_v001_accuracy_drought` and the :ref:`dam_v001_accuracy_flood` examples
 for further information).
 
-We enable the |RestrictTargetedRelease| option flag in the following examples if not
+We enable the |RestrictTargetedRelease| option flag in the following examples unless
 stated otherwise:
 
 >>> restricttargetedrelease(True)
@@ -362,7 +364,7 @@ we introduce a local minimum water release of 0.2 m³/s:
 
 >>> neardischargeminimumthreshold(0.2)
 
-Consequently, |dam_v001| now releases discharge that is not required at the
+Consequently, |dam_v001| now releases the discharge that is not required at the
 cross-section downstream:
 
 .. integration-test::
@@ -630,7 +632,7 @@ and negative water volumes:
 Now the dam empties without any fluctuations.  The lowest storage content of 541 m³
 occurs on January 14.  After that date, the dam refills to a certain degree due to the
 decreasing remote demand. Note that we can circumvent negative water volumes in this
-example, but this would not happen if the low flow period were prolonged:
+example, but this would not happen if the low-flow period were prolonged:
 
 .. integration-test::
 
@@ -744,10 +746,10 @@ cross-section downstream:
 >>> stream1.model.parameters.control.responses(((), (1.0,)))
 >>> stream1.model.parameters.update()
 
-The example is a little artificial but reveals a general problem that might occur in
-different forms.  Due to the time delay of the information flow from the cross-section
-to the dam, the dam wastes much water by increasing the high flows without increasing
-the low flows:
+The example is a little artificial, but it reveals a general problem that might occur
+in different forms.  Due to the time delay of the information flow from the
+cross-section to the dam, the dam wastes much water by increasing the high flows
+without increasing the low flows:
 
 .. integration-test::
 
@@ -781,7 +783,7 @@ long memory
 ___________
 
 It seems advisable to increase the number of observations for estimating and using a
-more long-term natural discharge at the cross-section. For this purpose, we set
+longer-term natural discharge at the cross-section. For this purpose, we set
 |NmbLogEntries| to two:
 
 >>> nmblogentries(2)
@@ -882,7 +884,7 @@ abserrormax(0.01)
 
 When discussing the simulation of flood events, we should examine numerical stability
 and accuracy and their relation to computation time more closely.  We use the number of
-calls of the differential equations as an indicator for computation time.  To do so, we
+calls to the differential equations as an indicator for computation time.  To do so, we
 first set the corresponding counter to zero:
 
 >>> model.numvars.nmb_calls = 0
@@ -931,10 +933,11 @@ results of the linear storage cascade with a single bucket:
 
 The largest difference occurs on January 1 but is way below the required accuracy of
 0.01 m³/s.  There is no guarantee that the actual numerical error will always fall
-below the defined tolerance value, but if everything works well, we have good reason to
-hope this happens in many cases.  At least for sufficiently smooth problems, the actual
-error should be better than the error estimate by one order.  However, one can never
-rule out the risk of error accumulations over multiple simulation steps.
+below the defined tolerance value; however, if everything works well, we have good
+reason to hope that this happens in many cases.  At least for sufficiently smooth
+problems, the actual error should be better than the error estimate by one order.
+But keep in mind, one can never rule out the risk of error accumulation over multiple
+simulation steps.
 
 |dam_v001| required about four calls per simulation step on average:
 
@@ -989,7 +992,7 @@ This improvement in accuracy comes with a significant increase in computation ti
 stiffness
 _________
 
-We reset the local error tolerance to the more practical value but configure the
+We reset the local error tolerance to a more practical value but configure the
 |WaterLevel2FloodDischarge| parameter in a highly dynamic manner:
 
 >>> solver.abserrormax(0.01)
@@ -1052,6 +1055,142 @@ This stability issue should seldom be relevant for typical simulations of dam re
 processes.  But one should keep it in mind when playing around with parameters, for
 example, during model calibration.  Otherwise, unexpectedly long simulation durations
 might occur.
+
+
+.. _dam_v001_optional_implicit_euler:
+
+optional Implicit Euler
+_______________________
+
+|dam_v001| provides a pragmatic approach to preserving efficiency even for stiff
+initial value problems by switching to the Implicit Euler method.  Compared to the
+Explicit Lobatto Sequence, the Implicit Euler method is computationally expensive, as
+it relies on applying a root search method, which does not bring any benefits for
+non-stiff problems but stabilises stiff ones.  Hence, it often makes sense to apply the
+Explicit Lobatto Sequence when possible and the Implicit Euler method when necessary.
+Therefore, one can set the Courant number threshold parameter |MaxCFL|.  |dam_v001|
+starts each simulation time step with the Explicit Lobatto Sequence, but checks for a
+violation of MaxCFL after the first function evaluation and then eventually switches to
+the Implicit Euler Method:
+
+.. integration-test::
+
+    >>> solver.maxcfl(1.0)
+    >>> test("dam_v001_optional_implicit_euler")
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | inflow | natural |  outflow |   remote |
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 02.01. |   0.003916 |          50.0 |                   1.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |             1.818699 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.818699 | 0.818699 |    0.015664 |    0.0 |     1.0 | 0.818699 | 1.818699 |
+    | 03.01. |   0.017487 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    5.0 |             5.371723 |                    1.0 |          0.0 |     -1.818699 |                   0.0 |             0.0 |             0.0 |           0.0 |       4.371723 | 4.371723 |    0.069948 |    5.0 |     1.0 | 4.371723 | 5.371723 |
+    | 04.01. |   0.033107 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    9.0 |             9.276832 |                    1.0 |          0.0 |     -5.371723 |                   0.0 |             0.0 |             0.0 |           0.0 |       8.276832 | 8.276832 |    0.132429 |    9.0 |     1.0 | 8.276832 | 9.276832 |
+    | 05.01. |   0.032173 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    8.0 |             9.043255 |                    1.0 |          0.0 |     -9.276832 |                   0.0 |             0.0 |             0.0 |           0.0 |       8.043255 | 8.043255 |    0.128692 |    8.0 |     1.0 | 8.043255 | 9.043255 |
+    | 06.01. |   0.021902 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    5.0 |             6.475509 |                    1.0 |          0.0 |     -9.043255 |                   0.0 |             0.0 |             0.0 |           0.0 |       5.475509 | 5.475509 |    0.087608 |    5.0 |     1.0 | 5.475509 | 6.475509 |
+    | 07.01. |   0.013547 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |             4.386798 |                    1.0 |          0.0 |     -6.475509 |                   0.0 |             0.0 |             0.0 |           0.0 |       3.386798 | 3.386798 |    0.054189 |    3.0 |     1.0 | 3.386798 | 4.386798 |
+    | 08.01. |   0.008867 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |             3.216687 |                    1.0 |          0.0 |     -4.386798 |                   0.0 |             0.0 |             0.0 |           0.0 |       2.216687 | 2.216687 |    0.035467 |    2.0 |     1.0 | 2.216687 | 3.216687 |
+    | 09.01. |    0.00476 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |             2.190107 |                    1.0 |          0.0 |     -3.216687 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.190107 | 1.190107 |    0.019042 |    1.0 |     1.0 | 1.190107 | 2.190107 |
+    | 10.01. |   0.000744 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |             1.185954 |                    1.0 |          0.0 |     -2.190107 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.185954 | 0.185954 |    0.002975 |    0.0 |     1.0 | 0.185954 | 1.185954 |
+    | 11.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |             1.029055 |                    1.0 |          0.0 |     -1.185954 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.029055 | 0.029055 |    0.000465 |    0.0 |     1.0 | 0.029055 | 1.029055 |
+    | 12.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |     -1.029055 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 13.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 14.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 15.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 16.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 17.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 18.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 19.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 20.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+
+These Implicit Euler results are not necessarily more accurate than the Explicit
+Lobatto Sequence results calculated earlier (we apply the Implicit Euler method without
+adaptive error control), but are gained with significantly less computational effort:
+
+>>> model.numvars.nmb_calls
+93
+>>> model.numvars.nmb_calls = 0
+
+.. _dam_v001_enforced_implicit_euler:
+
+enforced Implicit Euler
+_______________________
+
+If you configure a dam model in a clearly stiff manner, you can alternatively prevent
+any attempts to use the Explicit Lobatto Sequence by setting parameter |MaxEval| to
+zero, which skips the then unnecessary (and sometimes maybe misleading) stiffness
+estimations at the beginning of the individual simulation steps:
+
+.. integration-test::
+
+    >>> solver.maxcfl(nan)
+    >>> solver.maxeval(0)
+    >>> test("dam_v001_enforced_implicit_euler")
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | inflow | natural |  outflow |   remote |
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 02.01. |   0.003375 |          50.0 |                   1.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |              1.84375 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |        0.84375 |  0.84375 |      0.0135 |    0.0 |     1.0 |  0.84375 |  1.84375 |
+    | 03.01. |   0.017402 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    5.0 |             5.350586 |                    1.0 |          0.0 |      -1.84375 |                   0.0 |             0.0 |             0.0 |           0.0 |       4.350586 | 4.350586 |    0.069609 |    5.0 |     1.0 | 4.350586 | 5.350586 |
+    | 04.01. |   0.033094 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    9.0 |             9.273529 |                    1.0 |          0.0 |     -5.350586 |                   0.0 |             0.0 |             0.0 |           0.0 |       8.273529 | 8.273529 |    0.132376 |    9.0 |     1.0 | 8.273529 | 9.273529 |
+    | 05.01. |   0.032171 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    8.0 |             9.042739 |                    1.0 |          0.0 |     -9.273529 |                   0.0 |             0.0 |             0.0 |           0.0 |       8.042739 | 8.042739 |    0.128684 |    8.0 |     1.0 | 8.042739 | 9.042739 |
+    | 06.01. |   0.021902 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    5.0 |             6.475428 |                    1.0 |          0.0 |     -9.042739 |                   0.0 |             0.0 |             0.0 |           0.0 |       5.475428 | 5.475428 |    0.087607 |    5.0 |     1.0 | 5.475428 | 6.475428 |
+    | 07.01. |   0.013547 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |             4.386786 |                    1.0 |          0.0 |     -6.475428 |                   0.0 |             0.0 |             0.0 |           0.0 |       3.386786 | 3.386786 |    0.054189 |    3.0 |     1.0 | 3.386786 | 4.386786 |
+    | 08.01. |   0.008867 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |             3.216685 |                    1.0 |          0.0 |     -4.386786 |                   0.0 |             0.0 |             0.0 |           0.0 |       2.216685 | 2.216685 |    0.035467 |    2.0 |     1.0 | 2.216685 | 3.216685 |
+    | 09.01. |    0.00476 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |             2.190107 |                    1.0 |          0.0 |     -3.216685 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.190107 | 1.190107 |    0.019042 |    1.0 |     1.0 | 1.190107 | 2.190107 |
+    | 10.01. |   0.000744 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |             1.185954 |                    1.0 |          0.0 |     -2.190107 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.185954 | 0.185954 |    0.002975 |    0.0 |     1.0 | 0.185954 | 1.185954 |
+    | 11.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |             1.029055 |                    1.0 |          0.0 |     -1.185954 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.029055 | 0.029055 |    0.000465 |    0.0 |     1.0 | 0.029055 | 1.029055 |
+    | 12.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |     -1.029055 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 13.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 14.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 15.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 16.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 17.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 18.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 19.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 20.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+
+
+>>> model.numvars.nmb_calls
+45
+>>> model.numvars.nmb_calls = 0
+
+
+.. _dam_v001_mixed_approach:
+
+mixed approach
+______________
+
+By setting the parameter |MaxEval| to a value larger than one but not too large, you
+give the Explicit Lobatto Sequence a chance to solve the initial value problem with the
+desired accuracy while preventing excessive processing time:
+
+>>> solver.maxeval(9)
+
+.. integration-test::
+
+    >>> test("dam_v001_mixed_approach")
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | totalremotedischarge | naturalremotedischarge | remotedemand | remotefailure | requiredremoterelease | requiredrelease | targetedrelease | actualrelease | flooddischarge |  outflow | watervolume | inflow | natural |  outflow |   remote |
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 02.01. |   0.003375 |          50.0 |                   1.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |              1.84375 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |        0.84375 |  0.84375 |      0.0135 |    0.0 |     1.0 |  0.84375 |  1.84375 |
+    | 03.01. |   0.017402 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    5.0 |             5.350586 |                    1.0 |          0.0 |      -1.84375 |                   0.0 |             0.0 |             0.0 |           0.0 |       4.350586 | 4.350586 |    0.069609 |    5.0 |     1.0 | 4.350586 | 5.350586 |
+    | 04.01. |   0.033094 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    9.0 |             9.273529 |                    1.0 |          0.0 |     -5.350586 |                   0.0 |             0.0 |             0.0 |           0.0 |       8.273529 | 8.273529 |    0.132376 |    9.0 |     1.0 | 8.273529 | 9.273529 |
+    | 05.01. |   0.032171 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    8.0 |             9.042739 |                    1.0 |          0.0 |     -9.273529 |                   0.0 |             0.0 |             0.0 |           0.0 |       8.042739 | 8.042739 |    0.128684 |    8.0 |     1.0 | 8.042739 | 9.042739 |
+    | 06.01. |   0.021902 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    5.0 |             6.475428 |                    1.0 |          0.0 |     -9.042739 |                   0.0 |             0.0 |             0.0 |           0.0 |       5.475428 | 5.475428 |    0.087607 |    5.0 |     1.0 | 5.475428 | 6.475428 |
+    | 07.01. |   0.013547 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |             4.386786 |                    1.0 |          0.0 |     -6.475428 |                   0.0 |             0.0 |             0.0 |           0.0 |       3.386786 | 3.386786 |    0.054189 |    3.0 |     1.0 | 3.386786 | 4.386786 |
+    | 08.01. |   0.008867 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |             3.216685 |                    1.0 |          0.0 |     -4.386786 |                   0.0 |             0.0 |             0.0 |           0.0 |       2.216685 | 2.216685 |    0.035467 |    2.0 |     1.0 | 2.216685 | 3.216685 |
+    | 09.01. |    0.00476 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |             2.190107 |                    1.0 |          0.0 |     -3.216685 |                   0.0 |             0.0 |             0.0 |           0.0 |       1.190107 | 1.190107 |    0.019042 |    1.0 |     1.0 | 1.190107 | 2.190107 |
+    | 10.01. |   0.000744 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |             1.185954 |                    1.0 |          0.0 |     -2.190107 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.185954 | 0.185954 |    0.002975 |    0.0 |     1.0 | 0.185954 | 1.185954 |
+    | 11.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |             1.029055 |                    1.0 |          0.0 |     -1.185954 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.029055 | 0.029055 |    0.000465 |    0.0 |     1.0 | 0.029055 | 1.029055 |
+    | 12.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |     -1.029055 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 13.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 14.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 15.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 16.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 17.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 18.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 19.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+    | 20.01. |   0.000116 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                  1.0 |                    1.0 |          0.0 |          -1.0 |                   0.0 |             0.0 |             0.0 |           0.0 |            0.0 |      0.0 |    0.000465 |    0.0 |     1.0 |      0.0 |      1.0 |
+
+>>> model.numvars.nmb_calls
+217
 """
 # import...
 # ...from HydPy
@@ -1068,7 +1207,7 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(
-    modeltools.ELSModel, dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1
+    dam_model.ELSIEModel, dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1
 ):
     """|dam_v001.DOCNAME.complete|."""
 
@@ -1080,6 +1219,8 @@ class Model(
         dam_solver.RelErrorMax,
         dam_solver.RelDTMin,
         dam_solver.RelDTMax,
+        dam_solver.MaxEval,
+        dam_solver.MaxCFL,
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (

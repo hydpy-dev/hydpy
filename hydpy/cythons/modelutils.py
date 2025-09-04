@@ -315,6 +315,9 @@ else:
     build = exceptiontools.OptionalImport("build", ["Cython.Build"], locals())
 
 
+Pegasus_IMPL_EULER = "PegasusImplEuler"
+
+
 def get_dllextension() -> str:
     """Return the DLL file extension for the current operating system.
 
@@ -1390,8 +1393,10 @@ class PyxWriter:
 
     def submodels(self, lines: PyxPxdLines) -> None:
         """Submodel declaration lines."""
+
+        pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
+
         for submodel in self.model.SUBMODELS:
-            pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
             both(0, "@cython.final")
             cls = submodel.CYTHONBASECLASS
             both(
@@ -1405,6 +1410,15 @@ class PyxWriter:
             for idx, method in enumerate(submodel.METHODS):
                 both(1, f"cpdef double apply_method{idx}(self, double x) {_nogil}:")
                 pyx(2, f"return self.model.{method.__name__.lower()}(x)")
+
+        if isinstance(self.model, modeltools.ELSIEModel):
+            both(0, "@cython.final")
+            both(0, f"cdef class {Pegasus_IMPL_EULER}(rootutils.PegasusBase):")
+            pxd(1, "cdef public Model model")
+            pyx(1, "def __init__(self, Model model):")
+            pyx(2, "self.model = model")
+            both(1, f"cpdef double apply_method0(self, double x) {_nogil}:")
+            pyx(2, "return self.model.calculate_backwards_error(x)")
 
     def modeldeclarations(self, lines: PyxPxdLines) -> None:
         """The attribute declarations of the model class."""
@@ -1454,6 +1468,8 @@ class PyxWriter:
                 pxd(1, f"cdef public {TYPE2STR[int]} {name}_typeid")
         for submodel in submodeltypes_old:
             pxd(1, f"cdef public {submodel.__name__} {submodel.name}")
+        if isinstance(self.model, modeltools.ELSIEModel):
+            pxd(1, f"cdef public {Pegasus_IMPL_EULER} {Pegasus_IMPL_EULER.lower()}")
         if hasattr(self.model, "numconsts"):
             pxd(1, "cdef public NumConsts numconsts")
         if hasattr(self.model, "numvars"):
@@ -1470,6 +1486,9 @@ class PyxWriter:
                     pyx(2, f"self.{name}_is_mainmodel = False")
             for submodel in submodeltypes_old:
                 pyx(2, f"self.{submodel.name} = {submodel.__name__}(self)")
+            if isinstance(self.model, modeltools.ELSIEModel):
+                name = Pegasus_IMPL_EULER
+                pyx(2, f"self.{name.lower()} = {name}(self)")
         baseinterface = "masterinterface.MasterInterface | None"
         for name in submodelnames_new:
             if not name.endswith("_*"):
@@ -1499,6 +1518,7 @@ class PyxWriter:
     def modelnumericfunctions(self, lines: PyxPxdLines) -> None:
         """Numerical integration functions of the model class."""
         if isinstance(self.model, modeltools.SolverModel):
+            self.convert_normal_method("stop_els", lines)
             self.solve(lines)
             self.calculate_single_terms(lines, self.model)
             self.calculate_full_terms(lines, self.model)
@@ -1513,6 +1533,17 @@ class PyxWriter:
             self.addup_fluxes(lines)
             self.calculate_error(lines)
             self.convert_normal_method("extrapolate_error", lines)
+            if isinstance(self.model, modeltools.ELSIEModel):
+                self.convert_normal_method("apply_implicit_euler_fallback", lines)
+                self.convert_normal_method("determine_ytol", lines)
+                self.convert_normal_method("calculate_backwards_error", lines)
+                self.convert_normal_method("adjust_backwards_error", lines)
+                self.convert_normal_method("get_state_old", lines)
+                self.convert_normal_method("set_state_old", lines)
+                self.convert_normal_method("get_state_new", lines)
+                self.convert_normal_method("set_state_new", lines)
+                self.convert_normal_method("get_state_min", lines)
+                self.convert_normal_method("get_state_max", lines)
 
     @property
     def has_submodels(self) -> bool:
@@ -1530,6 +1561,7 @@ class PyxWriter:
         print("                . simulate")
         pyx, both = lines.pyx.add, lines.add
         both(1, f"cpdef inline void simulate(self, {INT} idx) {_nogil}:")
+        pyx(2, f"cdef {TYPE2STR[float]} state")
         pyx(2, "self.idx_sim = idx")
         if self.model.REUSABLE_METHODS or self.model.find_submodels(
             include_optional=True, include_subsubmodels=False, repeat_sharedmodels=True
@@ -1549,7 +1581,14 @@ class PyxWriter:
         if self.model.OBSERVER_METHODS or self.has_submodels:
             pyx(2, "self.update_observers()")
         if isinstance(self.model, modeltools.SolverModel):
-            pyx(2, "self.solve()")
+            if isinstance(self.model, modeltools.ELSIEModel):
+                pyx(2, "state = self.get_state_old()")
+                pyx(2, "if not self.solve():")
+                pyx(3, "self.set_state_old(state)")
+                pyx(3, "self.apply_implicit_euler_fallback()")
+                pyx(3, "self.new2old()")
+            else:
+                pyx(2, "self.solve()")
         else:
             pyx(2, "self.run()")
             if seqs.states:

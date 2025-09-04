@@ -5747,3 +5747,128 @@ class MixinSimpleWaterBalance(modeltools.Model, abc.ABC):
             + sum(fluxes.inflow.series)
             - sum(fluxes.outflow.series)
         ) - (last.watervolume - first["watervolume"])
+
+
+class ELSIEModel(modeltools.ELSIEModel):
+    """Base class for all |dam| models formulated in the state-space form."""
+
+    def stop_els(self, nmbeval: int) -> bool:
+        """Stop the Explicit Lobatto Sequence early if the first function evaluation
+        indicates an exceedance of the allowed Courant number, or if the actual number
+        of function evaluations reached the permitted number.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> solver.maxcfl = 1.0
+        >>> solver.maxeval = 10
+        >>> derived.seconds(1000)
+        >>> states.watervolume.old = 2.0
+        >>> fluxes.outflow = 2000.0
+        >>> assert not model.stop_els(1)
+        >>> fluxes.outflow = 2000.1
+        >>> assert model.stop_els(1)
+        >>> assert not model.stop_els(0)
+        >>> assert not model.stop_els(2)
+        >>> assert not model.stop_els(9)
+        >>> assert model.stop_els(10)
+        >>> assert model.stop_els(11)
+        """
+
+        der = self.parameters.derived.fastaccess
+        sol = self.parameters.solver.fastaccess
+        flu = self.sequences.fluxes.fastaccess
+        old = self.sequences.states.fastaccess_old
+
+        if nmbeval >= sol.maxeval:
+            return True
+        if (
+            (nmbeval == 1)
+            and (old.watervolume != 0.0)
+            and (flu.outflow * der.seconds / (old.watervolume * 1e6) > sol.maxcfl)
+        ):
+            return True
+        return False
+
+    def adjust_backwards_error(self, value: float) -> float:
+        """Adjust the given water volume error [million m³] to a discharge error
+        [m³/s].
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> derived.seconds(1000)
+        >>> model.adjust_backwards_error(1.0)
+        1000.0
+        """
+        return value * 1e6 / self.parameters.derived.seconds
+
+    def get_state_old(self) -> float:
+        """Get the water volume that corresponds to the beginning of the current
+        simulation step.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> states.watervolume.old = 1.0
+        >>> model.get_state_old()
+        1.0
+        """
+        old = self.sequences.states.fastaccess_old
+        return old.watervolume
+
+    def set_state_old(self, value: float) -> None:
+        """Set the water volume that corresponds to the beginning of the current
+        simulation step.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> model.set_state_old(2.0)
+        >>> states.watervolume.old
+        2.0
+        """
+        old = self.sequences.states.fastaccess_old
+        old.watervolume = value
+
+    def get_state_new(self) -> float:
+        """Get the water volume that corresponds to the end of the current simulation
+        step.
+
+         >>> from hydpy.models.dam_v001 import *
+         >>> parameterstep()
+         >>> states.watervolume.new = 3.0
+         >>> model.get_state_new()
+         3.0
+        """
+        new = self.sequences.states.fastaccess_new
+        return new.watervolume
+
+    def set_state_new(self, value: float) -> None:
+        """Set the water volume that corresponds to the end of the current simulation
+        step.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> model.set_state_new(4.0)
+        >>> states.watervolume.new
+        4.0
+        """
+        new = self.sequences.states.fastaccess_new
+        new.watervolume = value
+
+    def get_state_min(self) -> float:
+        """Return no minimum water volume.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> model.get_state_min()
+        -inf
+        """
+        return -modelutils.inf
+
+    def get_state_max(self) -> float:
+        """Return no maximum water volume.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> model.get_state_max()
+        inf
+        """
+        return modelutils.inf

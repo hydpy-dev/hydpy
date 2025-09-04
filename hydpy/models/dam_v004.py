@@ -603,7 +603,7 @@ from hydpy.models.dam import dam_solver
 
 
 class Model(
-    modeltools.ELSModel, dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1
+    dam_model.ELSIEModel, dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1
 ):
     """|dam_v004.DOCNAME.complete|."""
 
@@ -615,6 +615,8 @@ class Model(
         dam_solver.RelErrorMax,
         dam_solver.RelDTMin,
         dam_solver.RelDTMax,
+        dam_solver.MaxEval,
+        dam_solver.MaxCFL,
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (

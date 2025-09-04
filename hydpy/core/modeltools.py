@@ -33,6 +33,8 @@ from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 
+# from hydpy.auxs import roottools  # actual import below
+
 if TYPE_CHECKING:
     from hydpy.core import masktools
     from hydpy.core import selectiontools
@@ -3526,7 +3528,7 @@ class SolverModel(Model):
     FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
 
     @abc.abstractmethod
-    def solve(self) -> None:
+    def solve(self) -> bool:
         """Solve all `FULL_ODE_METHODS` in parallel."""
 
 
@@ -3685,7 +3687,7 @@ class ELSModel(SolverModel):
         self.update_outlets()
         self.update_outputs()
 
-    def solve(self) -> None:
+    def solve(self) -> bool:
         """Solve all `FULL_ODE_METHODS` in parallel.
 
         Implementing numerical integration algorithms that (hopefully) always work well
@@ -3720,13 +3722,13 @@ class ELSModel(SolverModel):
 
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(1.0)
         >>> fluxes.q
         q(0.0)
 
-        The achieve the above result, |ELSModel| requires two function calls, one for
+        To achieve the above result, |ELSModel| requires two function calls, one for
         the initial guess (using the Explicit Euler Method) and the other one
         (extending the Explicit Euler method to the Explicit Heun method) to confirm
         the first guess meets the required accuracy:
@@ -3744,7 +3746,7 @@ class ELSModel(SolverModel):
         >>> k(0.1)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.905)
         >>> fluxes.q
@@ -3769,7 +3771,7 @@ class ELSModel(SolverModel):
         >>> solver.abserrormax(0.001)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.904833)
         >>> fluxes.q
@@ -3786,7 +3788,7 @@ class ELSModel(SolverModel):
         >>> solver.abserrormax(0.0001)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.904837)
         >>> fluxes.q
@@ -3797,13 +3799,13 @@ class ELSModel(SolverModel):
         7
 
         |ELSModel| achieves even a very extreme numerical precision (just for testing,
-        way beyond hydrological requirements) in one single step but now requires 29
+        way beyond hydrological requirements) in one single step, but now requires 29
         method calls:
 
         >>> solver.abserrormax(1e-12)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.904837)
         >>> fluxes.q
@@ -3815,15 +3817,15 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         29
 
-        With a more dynamical parameterisation, where the storage decreases by about
-        40 % per time step, |ELSModel| needs seven method calls to meet a "normal"
-        error tolerance:
+        With a more dynamic parameterisation, where the storage decreases by about 40 %
+        per time step, |ELSModel| needs seven method calls to meet a "normal" error
+        tolerance:
 
         >>> solver.abserrormax(0.01)
         >>> k(0.5)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.606771)
         >>> fluxes.q
@@ -3845,7 +3847,7 @@ class ELSModel(SolverModel):
         0.135335
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.134658)
         >>> fluxes.q
@@ -3863,7 +3865,7 @@ class ELSModel(SolverModel):
         0.018316
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.019774)
         >>> fluxes.q
@@ -3874,12 +3876,12 @@ class ELSModel(SolverModel):
         44
 
         If we prevent |ELSModel| from compensatingf or its problems by disallowing it
-        to reduce its integration step size, it does not achieve satisfying results:
+        to reduce its integration step size, it does not achieve satisfactory results:
 
         >>> solver.reldtmin(1.0)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.09672)
         >>> fluxes.q
@@ -3897,7 +3899,7 @@ class ELSModel(SolverModel):
         >>> solver.reldtmax(0.25)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.016806)
         >>> fluxes.q
@@ -3908,14 +3910,14 @@ class ELSModel(SolverModel):
         33
 
         Alternatively, you can restrict the available number of Lobatto methods.  Using
-        two methods only is an inefficient choice for the given initial value problem
-        but at least solves it with the required accuracy:
+        two methods only is an inefficient choice for the given initial value problem,
+        but it at least solves it with the required accuracy:
 
         >>> solver.reldtmax(1.0)
         >>> model.numconsts.nmb_methods = 2
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.020284)
         >>> fluxes.q
@@ -3925,13 +3927,13 @@ class ELSModel(SolverModel):
         >>> model.numvars.nmb_calls
         74
 
-        In the above examples, we control numerical accuracies based on absolute error
+        In the above examples, we control numerical accuracy based on absolute error
         estimates only via parameter |test_solver.AbsErrorMax|.  After assigning an
         actual value to parameter |test_solver.RelErrorMax|, |ELSModel| also takes
         relative errors into account.  We modify some of the above examples to show how
         this works.
 
-        Generally, it is sufficient to meet one of both criteria.  If we repeat the
+        Generally, it is sufficient to meet one of the two criteria.  If we repeat the
         second example with a relaxed absolute but a strict relative tolerance, we
         reproduce the original result due to our absolute criteria being the relevant
         one:
@@ -3940,7 +3942,7 @@ class ELSModel(SolverModel):
         >>> solver.relerrormax(0.000001)
         >>> k(0.1)
         >>> states.s(1.0)
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.905)
         >>> fluxes.q
@@ -3953,30 +3955,30 @@ class ELSModel(SolverModel):
         >>> solver.relerrormax(0.1)
         >>> k(0.1)
         >>> states.s(1.0)
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.905)
         >>> fluxes.q
         q(0.095)
 
-        Reiterating the "more dynamical parameterisation" example results in slightly
+        Reiterating the "more dynamic parameterisation" example results in slightly
         different but also correct results:
 
         >>> k(0.5)
         >>> states.s(1.0)
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.607196)
         >>> fluxes.q
         q(0.392804)
 
         Reiterating the stiffest example with a relative instead of an absolute error
-        tolerance of 0.1 achieves higher accuracy, as to be expected due to the value
-        of |test_states.S| being far below 1.0 for some time:
+        tolerance of 0.1 achieves higher accuracy, as expected due to the value of
+        |test_states.S| being far below 1.0 for some time:
 
         >>> k(4.0)
         >>> states.s(1.0)
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.0185)
         >>> fluxes.q
@@ -4001,7 +4003,7 @@ class ELSModel(SolverModel):
         >>> solver.relerrormax(nan)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(0.5)
         >>> fluxes.q
@@ -4019,7 +4021,7 @@ class ELSModel(SolverModel):
         >>> k(2.0)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(-0.006827)
         >>> fluxes.q
@@ -4030,7 +4032,7 @@ class ELSModel(SolverModel):
         >>> k(2.1)
         >>> states.s(1.0)
         >>> model.numvars.nmb_calls = 0
-        >>> model.solve()
+        >>> assert model.solve()
         >>> states.s
         s(-0.00072)
         >>> fluxes.q
@@ -4041,6 +4043,9 @@ class ELSModel(SolverModel):
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
+        maxeval = 0
+        if self.stop_els(maxeval):
+            return False
         self.numvars.use_relerror = not modelutils.isnan(
             self.parameters.solver.relerrormax.value
         )
@@ -4057,7 +4062,10 @@ class ELSModel(SolverModel):
                 max(self.numvars.dt_est, self.parameters.solver.reldtmin.value),
             )
             if not self.numvars.f0_ready:
+                if self.stop_els(maxeval):
+                    return False
                 self.calculate_single_terms()
+                maxeval += 1
                 self.numvars.idx_method = 0
                 self.numvars.idx_stage = 0
                 self.set_point_fluxes()
@@ -4066,7 +4074,10 @@ class ELSModel(SolverModel):
             for self.numvars.idx_method in range(1, self.numconsts.nmb_methods + 1):
                 for self.numvars.idx_stage in range(1, self.numvars.idx_method):
                     self.get_point_states()
+                    if self.stop_els(maxeval):
+                        return False
                     self.calculate_single_terms()
+                    maxeval += 1
                     self.set_point_fluxes()
                 for self.numvars.idx_stage in range(1, self.numvars.idx_method + 1):
                     self.integrate_fluxes()
@@ -4114,6 +4125,19 @@ class ELSModel(SolverModel):
                     self.numvars.f0_ready = True
                     self.numvars.dt_est = self.numvars.dt / self.numconsts.dt_decrease
         self.get_sum_fluxes()
+        return True
+
+    def stop_els(self, nmbeval: int) -> bool:  # pylint: disable=unused-argument
+        """Stop the Explicit Lobatto Sequence early.
+
+        Always returns |False| but gives subclasses the chance to fall back to
+        alternative methods in case the Explicit Lobatto Sequence does not converge
+        fast enough.
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+        return False
 
     def calculate_single_terms(self) -> None:
         """Apply all methods stored in the `PART_ODE_METHODS` tuple.
@@ -4645,6 +4669,137 @@ class ELSModel(SolverModel):
                 self.numvars.extrapolated_relerror = modelutils.inf
 
 
+class ELSIEModel(ELSModel):
+    """Extension of |ELSModel| that can fall back to the simple non-adaptive Implicit
+    Euler method.
+
+
+    As thoroughly explained in the documentation of |ELSModel|, the "Explicit Lobatto
+    Sequence" can solve many non-stiff ordinary differential equations quite
+    efficiently, but struggles with solving stiff ones.  If you develop a model that
+    might be prone to stiffness, |ELSIEModel| could be a usable alternative.  It
+    primarily works like |ELSModel| but falls back to using the simple non-adaptive
+    Implicit Euler method as soon as the Explicit Lobatto Sequence is likely to fail
+    because of stiffness.  See the examples :ref:`dam_v001_stiffness`,
+    :ref:`dam_v001_optional_implicit_euler`, :ref:`dam_v001_enforced_implicit_euler`,
+    and :ref:`dam_v001_mixed_approach` on application model |dam_v001| for how this
+    works in practice.
+
+    Note that, due to relying on the Pegasus iteration, |ELSIEModel| is currently
+    restricted to models that require only a single, scalar state sequence.
+    """
+
+    def __init__(self) -> None:
+        from hydpy.auxs import roottools  # pylint: disable=import-outside-toplevel
+
+        super().__init__()
+        pegasus = roottools.Pegasus(model=self)
+        pegasus._cysubmodel.method0 = self.calculate_backwards_error
+        self.pegasusimpleuler = pegasus
+
+    def simulate(self, idx: int) -> None:
+        """Similar to method |ELSModel.simulate| of class |ELSModel|, but can fall back
+        to the Implicit Euler method by calling method
+        |ELSIEModel.apply_implicit_euler_fallback| .
+
+        When working in Cython mode, the standard model import overrides this generic
+        Python version with a model-specific Cython version.
+        """
+        self.reset_reuseflags()
+        self.load_data(idx)
+        self.update_inlets()
+        self.update_observers()
+        state: float = self.get_state_old()
+        if not self.solve():
+            self.set_state_old(state)
+            self.apply_implicit_euler_fallback()
+            self.new2old()
+        self.update_outlets()
+        self.update_outputs()
+
+    def apply_implicit_euler_fallback(self) -> None:
+        """Solve the ordinary differential equation in a simple, non-adaptive manner by
+        applying the Implicit Euler method in combination with the Pegasus root-finding
+        method."""
+        x: float = self.get_state_old()
+        self.pegasusimpleuler.find_x(
+            0.0,
+            1.0 if x == 0.0 else 2.0 * x,
+            self.get_state_min(),
+            self.get_state_max(),
+            0.0,
+            self.determine_ytol(x),
+            100,
+        )
+        self.calculate_full_terms()
+
+    def determine_ytol(self, x: float) -> float:
+        """Determine the absolute result error tolerance of the Pegasus iteration based
+        on the user-defined absolute and relative tolerance values.
+
+        >>> from hydpy.models.dam_v001 import *
+        >>> parameterstep()
+        >>> solver.abserrormax(1.0)
+        >>> solver.relerrormax(nan)
+        >>> from math import isclose
+        >>> assert isclose(model.determine_ytol(0.0), 1.0)
+        >>> assert isclose(model.determine_ytol(2.0), 1.0)
+        >>> solver.relerrormax(0.1)
+        >>> assert isclose(model.determine_ytol(0.0), 1.0)
+        >>> assert isclose(model.determine_ytol(9.9), 0.99)
+        >>> assert isclose(model.determine_ytol(10.1), 1.0)
+        """
+        sol = self.parameters.solver.fastaccess
+        if (x == 0.0) or modelutils.isnan(sol.relerrormax):
+            return sol.abserrormax
+        return min(sol.abserrormax, sol.relerrormax * abs(x))
+
+    def calculate_backwards_error(self, value: float) -> float:
+        """Determine the "backwards error" of the current Pegasus iteration step."""
+        self.set_state_new(value)
+        self.calculate_single_terms()
+        self.calculate_full_terms()
+        return self.adjust_backwards_error(value - self.get_state_new())
+
+    @abc.abstractmethod
+    def stop_els(self, nmbeval: int) -> bool:
+        """Stop the Explicit Lobatto Sequence early."""
+
+    @abc.abstractmethod
+    def adjust_backwards_error(self, value: float) -> float:
+        """Adjust the given error of the Pegasus iteration, which is the difference
+        between the estimated value and the calculated value of the single state
+        variable, so that it is better comparable with the defined error tolerances."""
+
+    @abc.abstractmethod
+    def get_state_old(self) -> float:
+        """Get the single state value that corresponds to the beginning of the
+        current simulation step."""
+
+    @abc.abstractmethod
+    def set_state_old(self, value: float) -> None:
+        """Set the single state value that corresponds to the beginning of the
+        current simulation step."""
+
+    @abc.abstractmethod
+    def get_state_new(self) -> float:
+        """Get the single state value that corresponds to the end of the current
+        simulation step."""
+
+    @abc.abstractmethod
+    def set_state_new(self, value: float) -> None:
+        """Set the single state value that corresponds to the end of the current
+        simulation step."""
+
+    @abc.abstractmethod
+    def get_state_min(self) -> float:
+        """Get the lowest allowed value of the single state variable."""
+
+    @abc.abstractmethod
+    def get_state_max(self) -> float:
+        """Get the highest allowed value of the single state variable."""
+
+
 class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
@@ -4733,7 +4888,7 @@ class Submodel:
             self._cysubmodel = getattr(model.cymodel, self.name)
         else:
             self._cysubmodel = self.PYTHONCLASS()
-            for idx, methodtype in enumerate(self.METHODS):
+            for idx, methodtype in enumerate(getattr(self, "METHODS", ())):
                 setattr(
                     self._cysubmodel,
                     f"method{idx}",

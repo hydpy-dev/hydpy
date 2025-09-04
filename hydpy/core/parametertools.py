@@ -4273,10 +4273,10 @@ solver parameter `tol` of element `?` has been defined so far.
         See the main documentation on class |SolverParameter| for more
         information.
         """
-        if self._alternative_initvalue:
-            self.value = self.alternative_initvalue
-        else:
+        if self._alternative_initvalue is None:
             self.value = self.modify_init()
+        else:
+            self.value = self.alternative_initvalue
 
     def modify_init(self) -> bool | int | float:
         """Return the value of class constant `INIT`.

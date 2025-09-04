@@ -2681,7 +2681,7 @@ class Calc_WaterDepth_V1(modeltools.Method):
         irrelevant but still recognisable inaccuracies.  The following example shows
         that decreasing the water depth-related tolerance reduces these errors:
 
-        >>> solver.waterdepthtolerance(0.0)
+        >>> solver.waterdepthtolerance(1e-8)
         >>> check_search_algorithm()
         volume depth tolerance error
         0.0, 0.0, 0.0, 0.0

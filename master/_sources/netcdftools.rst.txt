@@ -1,0 +1,97 @@
+.. |Elements.load_inputseries| replace:: :func:`~hydpy.core.devicetools.Elements.load_inputseries`
+.. |Elements.save_allseries| replace:: :func:`~hydpy.core.devicetools.Elements.save_allseries`
+.. |Elements.save_inputseries| replace:: :func:`~hydpy.core.devicetools.Elements.save_inputseries`
+.. |Elements.save_stateseries| replace:: :func:`~hydpy.core.devicetools.Elements.save_stateseries`
+.. |Elements| replace:: :class:`~hydpy.core.devicetools.Elements`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |HydPy.load_fluxseries| replace:: :func:`~hydpy.core.hydpytools.HydPy.load_fluxseries`
+.. |HydPy.simulate| replace:: :func:`~hydpy.core.hydpytools.HydPy.simulate`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |IOSequence.load_series| replace:: :func:`~hydpy.core.sequencetools.IOSequence.load_series`
+.. |IOSequence.save_series| replace:: :func:`~hydpy.core.sequencetools.IOSequence.save_series`
+.. |IOSequence.series| replace:: :const:`~hydpy.core.sequencetools.IOSequence.series`
+.. |IOSequence| replace:: :class:`~hydpy.core.sequencetools.IOSequence`
+.. |Idx_Sim| replace:: :class:`~hydpy.core.modeltools.Idx_Sim`
+.. |InfoArray| replace:: :class:`~hydpy.core.sequencetools.InfoArray`
+.. |JITAccessInfo.data| replace:: :attr:`~hydpy.core.netcdftools.JITAccessInfo.data`
+.. |JITAccessInfo.ncvariable| replace:: :attr:`~hydpy.core.netcdftools.JITAccessInfo.ncvariable`
+.. |JITAccessInfo| replace:: :class:`~hydpy.core.netcdftools.JITAccessInfo`
+.. |MixinVariableWriter.log| replace:: :func:`~hydpy.core.netcdftools.MixinVariableWriter.log`
+.. |MixinVariableWriter.write| replace:: :func:`~hydpy.core.netcdftools.MixinVariableWriter.write`
+.. |MixinVariableWriter| replace:: :class:`~hydpy.core.netcdftools.MixinVariableWriter`
+.. |ModelSequence| replace:: :class:`~hydpy.core.sequencetools.ModelSequence`
+.. |NetCDFInterfaceBase.filenames| replace:: :const:`~hydpy.core.netcdftools.NetCDFInterfaceBase.filenames`
+.. |NetCDFInterfaceBase.foldernames| replace:: :const:`~hydpy.core.netcdftools.NetCDFInterfaceBase.foldernames`
+.. |NetCDFInterfaceBase| replace:: :class:`~hydpy.core.netcdftools.NetCDFInterfaceBase`
+.. |NetCDFInterfaceJIT.provide_jitaccess| replace:: :func:`~hydpy.core.netcdftools.NetCDFInterfaceJIT.provide_jitaccess`
+.. |NetCDFInterfaceJIT| replace:: :class:`~hydpy.core.netcdftools.NetCDFInterfaceJIT`
+.. |NetCDFInterfaceReader| replace:: :class:`~hydpy.core.netcdftools.NetCDFInterfaceReader`
+.. |NetCDFInterfaceWriter| replace:: :class:`~hydpy.core.netcdftools.NetCDFInterfaceWriter`
+.. |NetCDFVariable.query_subdevice2index| replace:: :func:`~hydpy.core.netcdftools.NetCDFVariable.query_subdevice2index`
+.. |NetCDFVariable.query_subdevices| replace:: :func:`~hydpy.core.netcdftools.NetCDFVariable.query_subdevices`
+.. |NetCDFVariableAggregated.array| replace:: :const:`~hydpy.core.netcdftools.NetCDFVariableAggregated.array`
+.. |NetCDFVariableAggregated.shape| replace:: :const:`~hydpy.core.netcdftools.NetCDFVariableAggregated.shape`
+.. |NetCDFVariableAggregated| replace:: :class:`~hydpy.core.netcdftools.NetCDFVariableAggregated`
+.. |NetCDFVariableFlat.shape| replace:: :const:`~hydpy.core.netcdftools.NetCDFVariableFlat.shape`
+.. |NetCDFVariableFlat.subdevicenames| replace:: :const:`~hydpy.core.netcdftools.NetCDFVariableFlat.subdevicenames`
+.. |NetCDFVariableFlatReader.read| replace:: :func:`~hydpy.core.netcdftools.NetCDFVariableFlatReader.read`
+.. |NetCDFVariableFlatReader| replace:: :class:`~hydpy.core.netcdftools.NetCDFVariableFlatReader`
+.. |NetCDFVariableFlatWriter.array| replace:: :const:`~hydpy.core.netcdftools.NetCDFVariableFlatWriter.array`
+.. |NetCDFVariableFlatWriter| replace:: :class:`~hydpy.core.netcdftools.NetCDFVariableFlatWriter`
+.. |NetCDFVariableFlat| replace:: :class:`~hydpy.core.netcdftools.NetCDFVariableFlat`
+.. |NetCDFVariable| replace:: :class:`~hydpy.core.netcdftools.NetCDFVariable`
+.. |Node.deploymode| replace:: :const:`~hydpy.core.devicetools.Node.deploymode`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |Nodes.save_allseries| replace:: :func:`~hydpy.core.devicetools.Nodes.save_allseries`
+.. |Nodes| replace:: :class:`~hydpy.core.devicetools.Nodes`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |None| replace:: :const:`None`
+.. |Obs| replace:: :class:`~hydpy.core.sequencetools.Obs`
+.. |Options.checkseries| replace:: :const:`~hydpy.core.optiontools.Options.checkseries`
+.. |Options.timestampleft| replace:: :const:`~hydpy.core.optiontools.Options.timestampleft`
+.. |SequenceManager.aggregation| replace:: :const:`~hydpy.core.filetools.SequenceManager.aggregation`
+.. |SequenceManager.close_netcdfreader| replace:: :func:`~hydpy.core.filetools.SequenceManager.close_netcdfreader`
+.. |SequenceManager.close_netcdfwriter| replace:: :func:`~hydpy.core.filetools.SequenceManager.close_netcdfwriter`
+.. |SequenceManager.netcdfreading| replace:: :func:`~hydpy.core.filetools.SequenceManager.netcdfreading`
+.. |SequenceManager.netcdfwriting| replace:: :func:`~hydpy.core.filetools.SequenceManager.netcdfwriting`
+.. |SequenceManager.open_netcdfreader| replace:: :func:`~hydpy.core.filetools.SequenceManager.open_netcdfreader`
+.. |SequenceManager.open_netcdfwriter| replace:: :func:`~hydpy.core.filetools.SequenceManager.open_netcdfwriter`
+.. |SequenceManager| replace:: :class:`~hydpy.core.filetools.SequenceManager`
+.. |Sim| replace:: :class:`~hydpy.core.sequencetools.Sim`
+.. |StandardInputNames.PRECIPITATION| replace:: :const:`~hydpy.core.sequencetools.StandardInputNames.PRECIPITATION`
+.. |Subdevice2Index| replace:: :class:`~hydpy.core.netcdftools.Subdevice2Index`
+.. |Timegrid| replace:: :class:`~hydpy.core.timetools.Timegrid`
+.. |create_dimension| replace:: :func:`~hydpy.core.netcdftools.create_dimension`
+.. |create_variable| replace:: :func:`~hydpy.core.netcdftools.create_variable`
+.. |dict| replace:: :class:`dict`
+.. |evap_aet_morsim| replace:: :mod:`~hydpy.models.evap_aet_morsim`
+.. |filetools| replace:: :mod:`~hydpy.core.filetools`
+.. |float| replace:: :class:`float`
+.. |lland_dd| replace:: :mod:`~hydpy.models.lland_dd`
+.. |lland_knauf| replace:: :mod:`~hydpy.models.lland_knauf`
+.. |netcdftools| replace:: :mod:`~hydpy.core.netcdftools`
+.. |prepare_io_example_1| replace:: :func:`~hydpy.core.testtools.prepare_io_example_1`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |query_array| replace:: :func:`~hydpy.core.netcdftools.query_array`
+.. |query_timegrid| replace:: :func:`~hydpy.core.netcdftools.query_timegrid`
+.. |query_variable| replace:: :func:`~hydpy.core.netcdftools.query_variable`
+.. |sequencetools| replace:: :mod:`~hydpy.core.sequencetools`
+.. |str2chars| replace:: :func:`~hydpy.core.netcdftools.str2chars`
+.. |write_ncfile| replace:: :func:`~hydpy.core.netcdftools.write_ncfile`
+.. |hland_inputs.P| replace:: :class:`~hydpy.models.hland.hland_inputs.P`
+.. |hland_states.SM| replace:: :class:`~hydpy.models.hland.hland_states.SM`
+.. |hland_states.SP| replace:: :class:`~hydpy.models.hland.hland_states.SP`
+.. |lland_fluxes.NKor| replace:: :class:`~hydpy.models.lland.lland_fluxes.NKor`
+.. |lland_inputs.Nied| replace:: :class:`~hydpy.models.lland.lland_inputs.Nied`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _netcdftools:
+
+netcdftools
+===========
+
+.. automodule:: hydpy.core.netcdftools
+    :members:
+    :show-inheritance:
+    :exclude-members: AbstractSet, SupportsInt, ItemsView, get_original_bases, SENDER_METHODS, cast, override, DERIVEDPARAMETERS, Reversible, Protocol, TYPE_CHECKING, ChainMap, subpars, get_protocol_members, ForwardRef, NoReturn, INTERFACE_METHODS, AsyncGenerator, Reader, Writer, Hashable, ParamSpec, NoExtraItems, fastaccess_old, SupportsComplex, NotRequired, Doc, MutableSequence, disjoint_base, is_protocol, deprecated, TypeAliasType, RECEIVER_METHODS, Type, FrozenSet, Match, no_type_check, RESULTSEQUENCES, KeysView, REQUIREDSEQUENCES, Sequence, Set, SUBMODELS, ByteString, TypedDict, Never, Required, TypeForm, CLASSES, Iterator, FULL_ODE_METHODS, ValuesView, TypeGuard, TypeVar, FIXEDPARAMETERS, AsyncIterable, AsyncContextManager, is_typeddict, ParamSpecArgs, dataclass_transform, subseqs, SupportsFloat, TypeVarTuple, Final, Generic, DefaultDict, MutableMapping, get_type_hints, Optional, reveal_type, fastaccess, INLET_METHODS, SOLVERPARAMETERS, List, SupportsRound, NamedTuple, Unpack, SOLVERSEQUENCES, BinaryIO, ContextManager, get_origin, fastaccess_new, Buffer, Tuple, Callable, Pattern, Dict, Any, LiteralString, Mapping, Iterable, ReadOnly, CapsuleType, ADD_METHODS, TypeAlias, seqs, NewType, ParamSpecKwargs, pars, NoDefault, Collection, MappingView, get_args, SupportsIndex, SUBMETHODS, Self, SupportsAbs, Container, type_repr, OrderedDict, OUTLET_METHODS, final, Sized, assert_type, no_type_check_decorator, overload, TypeIs, CONTROLPARAMETERS, IntVar, clear_overloads, UPDATEDSEQUENCES, SupportsBytes, runtime_checkable, runtime, Annotated, ClassVar, Format, SUBMODELINTERFACES, evaluate_forward_ref, Generator, MutableSet, Literal, Text, AnyStr, get_annotations, Deque, Coroutine, assert_never, Awaitable, TextIO, subvars, PART_ODE_METHODS, AsyncIterator, Counter, IO, get_overloads, RUN_METHODS, Sentinel, Union, Concatenate

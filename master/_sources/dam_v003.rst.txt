@@ -1,0 +1,36 @@
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Inflow| replace:: :class:`~hydpy.models.dam.dam_fluxes.Inflow`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |LoggedRequiredRemoteRelease| replace:: :class:`~hydpy.models.dam.dam_logs.LoggedRequiredRemoteRelease`
+.. |Model.connect| replace:: :func:`~hydpy.core.modeltools.Model.connect`
+.. |NearDischargeMinimumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.NearDischargeMinimumThreshold`
+.. |Node.variable| replace:: :const:`~hydpy.core.devicetools.Node.variable`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PrecipModel_V2| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V2`
+.. |ToleranceEvaporation| replace:: :class:`~hydpy.models.dam.dam_control.ToleranceEvaporation`
+.. |WaterLevelMinimumRemoteThreshold| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumRemoteThreshold`
+.. |WaterLevelMinimumRemoteTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumRemoteTolerance`
+.. |WaterLevelMinimumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumThreshold`
+.. |WaterLevelMinimumTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumTolerance`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |dam_v002| replace:: :mod:`~hydpy.models.dam_v002`
+.. |dam_v003.DOCNAME.complete| replace:: HydPy-Dam-V3 (dam model, version 3)
+.. |dam_v003| replace:: :mod:`~hydpy.models.dam_v003`
+.. |evap_ret_io| replace:: :mod:`~hydpy.models.evap_ret_io`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+.. |dam_outlets.S| replace:: :class:`~hydpy.models.dam.dam_outlets.S`
+
+.. _dam_v003:
+
+dam_v003
+========
+
+.. automodule:: hydpy.models.dam_v003
+    :members:
+    :show-inheritance:
+    :exclude-members: AbstractSet, SupportsInt, ItemsView, get_original_bases, SENDER_METHODS, cast, override, DERIVEDPARAMETERS, Reversible, Protocol, TYPE_CHECKING, ChainMap, subpars, InputSequences, get_protocol_members, ForwardRef, NoReturn, INTERFACE_METHODS, AsyncGenerator, Reader, Writer, Hashable, ParamSpec, NoExtraItems, ObserverSequences, fastaccess_old, SupportsComplex, NotRequired, Doc, MutableSequence, disjoint_base, is_protocol, deprecated, TypeAliasType, RECEIVER_METHODS, Type, FrozenSet, Match, no_type_check, RESULTSEQUENCES, KeysView, REQUIREDSEQUENCES, Sequence, Set, SUBMODELS, ByteString, TypedDict, Never, Required, SenderSequences, TypeForm, CLASSES, Iterator, FULL_ODE_METHODS, ValuesView, TypeGuard, TypeVar, FIXEDPARAMETERS, AsyncIterable, AsyncContextManager, is_typeddict, ParamSpecArgs, dataclass_transform, subseqs, SupportsFloat, TypeVarTuple, Final, Generic, DefaultDict, MutableMapping, get_type_hints, Optional, reveal_type, fastaccess, INLET_METHODS, SOLVERPARAMETERS, List, SupportsRound, NamedTuple, Unpack, SOLVERSEQUENCES, BinaryIO, ContextManager, get_origin, fastaccess_new, Buffer, Tuple, Callable, Pattern, Dict, Any, LiteralString, Mapping, Iterable, ReadOnly, CapsuleType, ADD_METHODS, TypeAlias, seqs, NewType, ParamSpecKwargs, pars, NoDefault, Collection, MappingView, get_args, SupportsIndex, SUBMETHODS, Self, SupportsAbs, Container, type_repr, OrderedDict, AideSequences, OUTLET_METHODS, final, Sized, assert_type, no_type_check_decorator, overload, TypeIs, CONTROLPARAMETERS, IntVar, clear_overloads, UPDATEDSEQUENCES, SupportsBytes, runtime_checkable, runtime, Annotated, ClassVar, Format, SUBMODELINTERFACES, evaluate_forward_ref, Generator, MutableSet, Literal, Text, AnyStr, get_annotations, Deque, Coroutine, assert_never, Awaitable, TextIO, subvars, PART_ODE_METHODS, AsyncIterator, Counter, IO, get_overloads, RUN_METHODS, Sentinel, Union, Concatenate

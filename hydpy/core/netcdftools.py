@@ -249,23 +249,18 @@ import time
 import warnings
 
 # ...from site-packages
+import netCDF4 as netcdf4
 import numpy
 
 # ...from HydPy
 import hydpy
 from hydpy import config
-from hydpy.core import exceptiontools
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
-
-if TYPE_CHECKING:
-    import netCDF4 as netcdf4
-else:
-    netcdf4 = exceptiontools.OptionalImport("netcdf4", ["netCDF4"], locals())
 
 dimmapping = {
     "nmb_timepoints": "time",

@@ -1,0 +1,14 @@
+.. |dummy_snowcover.DOCNAME.complete| replace:: HydPy-Dummy-SnowCover (dummy model supplying main models with snow cover states)
+.. |dummy_snowcover| replace:: :mod:`~hydpy.models.dummy_snowcover`
+.. |evap_aet_hbv96| replace:: :mod:`~hydpy.models.evap_aet_hbv96`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+
+.. _dummy_snowcover:
+
+dummy_snowcover
+===============
+
+.. automodule:: hydpy.models.dummy_snowcover
+    :members:
+    :show-inheritance:
+    :exclude-members: ParamSpecArgs, Iterable, AsyncIterator, ContextManager, ADD_METHODS, NotRequired, KeysView, MappingView, SupportsFloat, Match, Required, FIXEDPARAMETERS, SupportsAbs, AsyncIterable, AbstractSet, deprecated, Mapping, Optional, ClassVar, fastaccess_new, dataclass_transform, SENDER_METHODS, Deque, get_args, Self, Sized, SOLVERPARAMETERS, ParamSpec, override, TypedDict, TypeGuard, SUBMODELINTERFACES, get_protocol_members, INTERFACE_METHODS, Reversible, TypeIs, Dict, REQUIREDSEQUENCES, subpars, subseqs, get_overloads, SenderSequences, Container, NoReturn, overload, ParamSpecKwargs, TypeAliasType, DefaultDict, CONTROLPARAMETERS, is_typeddict, final, get_type_hints, get_annotations, MutableMapping, ReceiverSequences, Pattern, Generator, TextIO, ByteString, TypeAlias, Type, RECEIVER_METHODS, FactorSequences, List, Format, SupportsComplex, Generic, pars, fastaccess, cast, TypeForm, AsyncGenerator, ValuesView, StateSequences, clear_overloads, runtime, AnyStr, NewType, AideSequences, IO, Doc, Sequence, UPDATEDSEQUENCES, Buffer, no_type_check, Concatenate, Callable, SupportsBytes, Awaitable, fastaccess_old, RESULTSEQUENCES, AsyncContextManager, SOLVERSEQUENCES, assert_never, FULL_ODE_METHODS, SUBMODELS, CLASSES, runtime_checkable, SUBMETHODS, Coroutine, Text, seqs, IntVar, get_original_bases, InletSequences, Iterator, SupportsRound, NamedTuple, reveal_type, ChainMap, Unpack, DERIVEDPARAMETERS, TypeVarTuple, MutableSequence, Set, ReadOnly, Final, SupportsInt, Any, LiteralString, TYPE_CHECKING, OutletSequences, no_type_check_decorator, is_protocol, MutableSet, OrderedDict, Tuple, get_origin, CapsuleType, Protocol, ItemsView, OUTLET_METHODS, assert_type, RUN_METHODS, Counter, NoDefault, PART_ODE_METHODS, Literal, TypeVar, Annotated, Never, SupportsIndex, Collection, LogSequences, evaluate_forward_ref, BinaryIO, FrozenSet, Hashable, FluxSequences, Union, INLET_METHODS, ForwardRef, subvars, NoExtraItems

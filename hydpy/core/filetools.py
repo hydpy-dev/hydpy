@@ -1826,8 +1826,10 @@ documentation for help).
         beginning of a with-block and read the data and delete the object at the end of
         the same with-block."""
         self.open_netcdfreader()
-        yield
-        self.close_netcdfreader()
+        try:
+            yield
+        finally:
+            self.close_netcdfreader()
 
     @property
     def netcdfwriter(self) -> netcdftools.NetCDFInterfaceWriter:

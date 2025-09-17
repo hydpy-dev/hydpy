@@ -1226,7 +1226,7 @@ class Subdevice2Index:
         try:
             return self.dict_[name_subdevice]
         except KeyError:
-            raise RuntimeError(
+            raise OSError(
                 f"No data for (sub)device `{name_subdevice}` is available in NetCDF "
                 f"file `{self.name_ncfile}`."
             ) from None
@@ -1330,7 +1330,7 @@ class NetCDFVariable(abc.ABC):
         >>> subdevice2index.get_index("element5")
         Traceback (most recent call last):
         ...
-        RuntimeError: No data for (sub)device `element5` is available in NetCDF file \
+        OSError: No data for (sub)device `element5` is available in NetCDF file \
 `filename.nc`.
 
         Additionally, |NetCDFVariable.query_subdevice2index| checks for duplicates:
@@ -1502,7 +1502,7 @@ already registered under the same column name(s) but with different time series 
     ...     var_nied.read()
     Traceback (most recent call last):
     ...
-    RuntimeError: While trying to read data from NetCDF file `nied.nc`, the following \
+    OSError: While trying to read data from NetCDF file `nied.nc`, the following \
 error occurred: No data for (sub)device `element2` is available in NetCDF file \
 `nied.nc`.
 
@@ -1694,7 +1694,7 @@ handle a sequence for the (sub)device `element2` nor define a member named \
                 array = query_array(ncfile, self.name)
                 idxs: tuple[Any] = (slice(None),)
                 subdev2index = self.query_subdevice2index(ncfile)
-                first_exception: RuntimeError | None = None
+                first_exception: RuntimeError | OSError | None = None
                 for devicename, seqs in self._descr2sequences.items():
                     for seq in seqs:
                         try:
@@ -1711,10 +1711,13 @@ handle a sequence for the (sub)device `element2` nor define a member named \
                                 subarray = array[:, subdev2index.get_index(devicename)]
                             series = seq.adjust_series(timegrid, subarray)
                             seq.apply_adjusted_series(timegrid, series)
-                        except RuntimeError as current_exception:
-                            seq.series[:] = numpy.nan
-                            if first_exception is None:
-                                first_exception = current_exception
+                        except (RuntimeError, OSError) as current_exception:
+                            if isinstance(seq, (sequencetools.Sim, sequencetools.Obs)):
+                                seq.__hydpy__handle_missing_series_error__()
+                            else:
+                                seq.series[:] = numpy.nan
+                                if first_exception is None:
+                                    first_exception = current_exception
                 if first_exception is not None:
                     raise first_exception
         except BaseException:
@@ -2633,10 +2636,10 @@ The data of the NetCDF `...hland_96_factor_tc.nc` (Timegrid("1996-01-01 00:00:00
         ...     hp.simulate()  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: While trying to prepare NetCDF files for reading or writing \
-data "just in time" during the current simulation run, the following error occurred: \
-No data for (sub)device `land_lahn_kalk_0` is available in NetCDF \
-file `...hland_96_flux_pc.nc`.
+        OSError: While trying to prepare NetCDF files for reading or writing data \
+"just in time" during the current simulation run, the following error occurred: No \
+data for (sub)device `land_lahn_kalk_0` is available in NetCDF file \
+`...hland_96_flux_pc.nc`.
 
         Of course, one way to prepare complete HydPy-compatible NetCDF files is to let
         HydPy do it:

@@ -4260,11 +4260,24 @@ node `dill_assl` contains 1 nan value.
         >>> sim.series
         InfoArray([ 1.,  1., nan,  1.,  1.])
 
-        >>> sim.series = 0.0
+        >>> sim.prepare_series(allocate_ram=False)
+        >>> with TestIO(), pub.sequencemanager.filetype("nc"):
+        ...     pub.sequencemanager.currentdir = "new_series"
+        ...     hp.save_simseries()
+        >>> hp.prepare_simseries()
+        >>> with TestIO(), pub.sequencemanager.filetype("nc"):
+        ...     hp.load_simseries()  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        UserWarning: While trying to read data from NetCDF file `...sim_q.nc`, the \
+following error occurred: No data for (sub)device `dill_assl` is available in NetCDF \
+file `...sim_q.nc`.
+
+        >>> sim.series = 2.0
         >>> with TestIO(), pub.options.warnmissingsimfile(False):
         ...         sim.load_series()
         >>> sim.series
-        InfoArray([ 1.,  1., nan,  1.,  1.])
+        InfoArray([2., 2., 2., 2., 2.])
 
         .. testsetup::
 
@@ -4275,8 +4288,11 @@ node `dill_assl` contains 1 nan value.
         try:
             super().load_series()
         except BaseException:
-            if hydpy.pub.options.warnmissingsimfile:
-                warnings.warn(str(sys.exc_info()[1]))
+            self.__hydpy__handle_missing_series_error__()
+
+    def __hydpy__handle_missing_series_error__(self) -> None:
+        if hydpy.pub.options.warnmissingsimfile:
+            warnings.warn(str(sys.exc_info()[1]))
 
 
 class Obs(NodeSequence):
@@ -4298,8 +4314,8 @@ class Obs(NodeSequence):
         According to this reasoning, *HydPy* raises (at most) a |UserWarning| in case
         of missing or incomplete external time series data of |Obs| sequences.  The
         following examples show this based on the `HydPy-H-Lahn` project, mainly
-        focussing on the |Obs| sequence of node `dill_assl`, which is ready for handling
-        time series data at the end of the following steps:
+        focussing on the |Obs| sequence of node `dill_assl`, which is ready for
+        handling time series data at the end of the following steps:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -4373,6 +4389,26 @@ node `dill_assl` contains 1 nan value.
         >>> hp.nodes.lahn_marb.sequences.obs.memoryflag
         False
 
+        The same logic holds when trying to load observed time series from NetCDF files
+        that are missing entirely:
+
+        >>> obs.series = 1.0
+        >>> with TestIO(), pub.sequencemanager.filetype("nc"):
+        ...     pub.sequencemanager.currentdir = "new_series"
+        ...     hp.save_obsseries()
+        >>> hp.prepare_obsseries()
+        >>> with TestIO(), pub.sequencemanager.filetype("nc"):
+        ...     hp.load_obsseries()  # doctest: +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        UserWarning: While trying to read data from NetCDF file `...obs_q.nc`, the \
+following error occurred: The `memory flag` of sequence `obs` of node `lahn_marb` had \
+to be set to `False` due to the following problem: No data for (sub)device \
+`lahn_marb` is available in NetCDF file `...obs_q.nc`.
+
+        >>> hp.nodes.lahn_marb.sequences.obs.memoryflag
+        False
+
         .. testsetup::
 
             >>> from hydpy import Node, Element
@@ -4381,18 +4417,24 @@ node `dill_assl` contains 1 nan value.
         """
         try:
             super().load_series()
-        except OSError:
+        except BaseException:
+            self.__hydpy__handle_missing_series_error__()
+
+    def __hydpy__handle_missing_series_error__(self) -> None:
+        exc_type, exc_value, _ = sys.exc_info()
+        assert exc_type is not None
+        if issubclass(exc_type, OSError):
             self.__hydpy__set_fastaccessattribute__("ramflag", False)
             self.__hydpy__set_fastaccessattribute__("diskflag_reading", False)
             if hydpy.pub.options.warnmissingobsfile:
                 warnings.warn(
-                    f"The `memory flag` of sequence {objecttools.nodephrase(self)} had "
-                    f"to be set to `False` due to the following problem: "
-                    f"{sys.exc_info()[1]}"
+                    f"The `memory flag` of sequence {objecttools.nodephrase(self)} "
+                    f"had to be set to `False` due to the following problem: "
+                    f"{exc_value}"
                 )
-        except BaseException:
+        else:
             if hydpy.pub.options.warnmissingobsfile:
-                warnings.warn(str(sys.exc_info()[1]))
+                warnings.warn(str(exc_value))
 
 
 class NodeSequences(

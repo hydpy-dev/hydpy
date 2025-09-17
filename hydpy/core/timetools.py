@@ -1603,7 +1603,7 @@ moment.
     def __radd__(self: TypePeriod, other: str) -> Date | TypePeriod:
         """Result depends on the string."""
 
-    def __radd__(  # type: ignore
+    def __radd__(
         self: TypePeriod,
         other: Date | datetime_.datetime | Period | datetime_.timedelta | str,
     ) -> Date | TypePeriod:

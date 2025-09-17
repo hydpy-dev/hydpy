@@ -2452,7 +2452,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
     _name2variable: dict[str, TypeVariable_co] = {}
     fastaccess: TypeFastAccess_co
     _cls_fastaccess: type[TypeFastAccess_co] | None = None
-    _CLS_FASTACCESS_PYTHON: ClassVar[type[TypeFastAccess_co]]  # type: ignore[misc]
+    _CLS_FASTACCESS_PYTHON: ClassVar[type[TypeFastAccess_co]]
 
     def __init__(
         self,

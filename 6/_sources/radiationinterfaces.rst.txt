@@ -1,0 +1,14 @@
+.. |RadiationModel_V1| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V1`
+.. |RadiationModel_V2| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V2`
+.. |RadiationModel_V3| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V3`
+.. |RadiationModel_V4| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V4`
+
+.. _radiationinterfaces:
+
+radiationinterfaces
+===================
+
+.. automodule:: hydpy.interfaces.radiationinterfaces
+    :members:
+    :show-inheritance:
+    :exclude-members: ParamSpecArgs, Iterable, AsyncIterator, ContextManager, ADD_METHODS, NotRequired, KeysView, MappingView, SupportsFloat, Match, Required, FIXEDPARAMETERS, SupportsAbs, AsyncIterable, AbstractSet, deprecated, Mapping, Optional, ClassVar, fastaccess_new, dataclass_transform, SENDER_METHODS, Deque, get_args, Self, Sized, SOLVERPARAMETERS, ParamSpec, override, TypedDict, TypeGuard, SUBMODELINTERFACES, get_protocol_members, INTERFACE_METHODS, Reversible, TypeIs, Dict, REQUIREDSEQUENCES, subpars, subseqs, get_overloads, Container, NoReturn, overload, ParamSpecKwargs, TypeAliasType, DefaultDict, CONTROLPARAMETERS, is_typeddict, final, get_type_hints, get_annotations, MutableMapping, Pattern, Generator, TextIO, ByteString, TypeAlias, Type, RECEIVER_METHODS, List, Format, SupportsComplex, Generic, pars, fastaccess, cast, TypeForm, AsyncGenerator, ValuesView, clear_overloads, runtime, AnyStr, NewType, IO, Doc, Sequence, UPDATEDSEQUENCES, Buffer, no_type_check, Concatenate, Callable, SupportsBytes, Awaitable, fastaccess_old, RESULTSEQUENCES, AsyncContextManager, SOLVERSEQUENCES, assert_never, FULL_ODE_METHODS, SUBMODELS, CLASSES, runtime_checkable, SUBMETHODS, Coroutine, Text, seqs, IntVar, get_original_bases, Iterator, SupportsRound, NamedTuple, reveal_type, ChainMap, Unpack, DERIVEDPARAMETERS, TypeVarTuple, MutableSequence, Set, ReadOnly, Final, SupportsInt, Any, LiteralString, TYPE_CHECKING, no_type_check_decorator, is_protocol, MutableSet, OrderedDict, Tuple, get_origin, CapsuleType, Protocol, ItemsView, OUTLET_METHODS, assert_type, RUN_METHODS, Counter, NoDefault, PART_ODE_METHODS, Literal, TypeVar, Annotated, Never, SupportsIndex, Collection, evaluate_forward_ref, BinaryIO, FrozenSet, Hashable, Union, INLET_METHODS, ForwardRef, subvars, NoExtraItems

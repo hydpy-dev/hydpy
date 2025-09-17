@@ -1,0 +1,13 @@
+.. |Calculate_Discharge_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calculate_Discharge_V1`
+.. |wq_walrus.DOCNAME.complete| replace:: HydPy-WQ-WALRUS (WALRUS default function for calculating catchment outflow)
+.. |wq_walrus| replace:: :mod:`~hydpy.models.wq_walrus`
+
+.. _wq_walrus:
+
+wq_walrus
+=========
+
+.. automodule:: hydpy.models.wq_walrus
+    :members:
+    :show-inheritance:
+    :exclude-members: AsyncIterable, ParamSpec, CONTROLPARAMETERS, seqs, assert_type, no_type_check, SenderSequences, Annotated, Iterator, FrozenSet, ReadOnly, Dict, type_repr, SUBMODELINTERFACES, Set, Final, SupportsAbs, subvars, Generator, OrderedDict, deprecated, disjoint_base, pars, MutableSequence, fastaccess_old, NoDefault, subpars, AideSequences, ChainMap, List, AbstractSet, FactorSequences, Generic, FIXEDPARAMETERS, FULL_ODE_METHODS, get_type_hints, UPDATEDSEQUENCES, Union, is_typeddict, FluxSequences, get_overloads, Unpack, TypeGuard, Awaitable, SupportsFloat, reveal_type, overload, NamedTuple, runtime, Literal, ReceiverSequences, RUN_METHODS, CLASSES, Format, MutableMapping, ItemsView, Match, TYPE_CHECKING, PART_ODE_METHODS, ClassVar, NoExtraItems, SupportsBytes, Concatenate, TypeAlias, fastaccess_new, Iterable, KeysView, Deque, ObserverSequences, Sentinel, TypeForm, cast, NotRequired, Pattern, AnyStr, AsyncIterator, SupportsComplex, subseqs, SOLVERSEQUENCES, SupportsInt, SUBMETHODS, get_args, DefaultDict, SUBMODELS, AsyncContextManager, assert_never, MappingView, get_original_bases, Tuple, InputSequences, Sequence, CapsuleType, Mapping, runtime_checkable, StateSequences, Hashable, Doc, TypedDict, MutableSet, ByteString, no_type_check_decorator, Type, Buffer, BinaryIO, get_annotations, TypeVarTuple, Collection, NewType, Protocol, Callable, ForwardRef, SOLVERPARAMETERS, Coroutine, clear_overloads, InletSequences, DERIVEDPARAMETERS, Text, Self, INLET_METHODS, get_origin, ContextManager, fastaccess, ADD_METHODS, Sized, ParamSpecKwargs, evaluate_forward_ref, AsyncGenerator, LogSequences, ParamSpecArgs, Writer, RESULTSEQUENCES, SENDER_METHODS, is_protocol, REQUIREDSEQUENCES, Reversible, get_protocol_members, Counter, RECEIVER_METHODS, override, Any, Container, OutletSequences, dataclass_transform, IntVar, SupportsIndex, TextIO, final, Required, INTERFACE_METHODS, OUTLET_METHODS, LiteralString, TypeIs, ValuesView, TypeVar, Never, Optional, IO, SupportsRound, NoReturn, Reader, TypeAliasType

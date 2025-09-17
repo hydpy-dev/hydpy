@@ -1,0 +1,20 @@
+.. |Coefficients| replace:: :class:`~hydpy.models.musk.musk_control.Coefficients`
+.. |Discharge| replace:: :class:`~hydpy.models.musk.musk_states.Discharge`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |NmbSegments| replace:: :class:`~hydpy.models.musk.musk_control.NmbSegments`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |RunModel.RUN_METHODS| replace:: :attr:`~hydpy.core.modeltools.RunModel.RUN_METHODS`
+.. |musk.DOCNAME.long| replace:: HydPy-Musk
+.. |musk_classic.DOCNAME.complete| replace:: HydPy-Musk-Classic (classic Muskingum routing, compatible with SMHI-IHMS-HBV96)
+.. |musk_classic| replace:: :mod:`~hydpy.models.musk_classic`
+.. |musk_classic.NmbRuns| replace:: :class:`~hydpy.models.musk_classic.NmbRuns`
+
+.. _musk_classic:
+
+musk_classic
+============
+
+.. automodule:: hydpy.models.musk_classic
+    :members:
+    :show-inheritance:
+    :exclude-members: AsyncIterable, ParamSpec, CONTROLPARAMETERS, seqs, assert_type, no_type_check, SenderSequences, Annotated, Iterator, FrozenSet, ReadOnly, Dict, type_repr, SUBMODELINTERFACES, Set, Final, SupportsAbs, subvars, Generator, OrderedDict, deprecated, disjoint_base, pars, MutableSequence, fastaccess_old, NoDefault, subpars, AideSequences, ChainMap, List, AbstractSet, FactorSequences, Generic, FIXEDPARAMETERS, FULL_ODE_METHODS, get_type_hints, UPDATEDSEQUENCES, Union, is_typeddict, get_overloads, Unpack, TypeGuard, Awaitable, SupportsFloat, reveal_type, overload, NamedTuple, runtime, Literal, ReceiverSequences, RUN_METHODS, CLASSES, Format, MutableMapping, ItemsView, Match, TYPE_CHECKING, PART_ODE_METHODS, ClassVar, NoExtraItems, SupportsBytes, Concatenate, TypeAlias, fastaccess_new, Iterable, KeysView, Deque, ObserverSequences, Sentinel, TypeForm, cast, NotRequired, Pattern, AnyStr, AsyncIterator, SupportsComplex, subseqs, SOLVERSEQUENCES, SupportsInt, SUBMETHODS, get_args, DefaultDict, SUBMODELS, AsyncContextManager, assert_never, MappingView, get_original_bases, Tuple, InputSequences, Sequence, CapsuleType, Mapping, runtime_checkable, Hashable, Doc, TypedDict, MutableSet, ByteString, no_type_check_decorator, Type, Buffer, BinaryIO, get_annotations, TypeVarTuple, Collection, NewType, Protocol, Callable, ForwardRef, SOLVERPARAMETERS, Coroutine, clear_overloads, DERIVEDPARAMETERS, Text, Self, INLET_METHODS, get_origin, ContextManager, fastaccess, ADD_METHODS, Sized, ParamSpecKwargs, evaluate_forward_ref, AsyncGenerator, LogSequences, ParamSpecArgs, Writer, RESULTSEQUENCES, SENDER_METHODS, is_protocol, REQUIREDSEQUENCES, Reversible, get_protocol_members, Counter, RECEIVER_METHODS, override, Any, Container, dataclass_transform, IntVar, SupportsIndex, TextIO, final, Required, INTERFACE_METHODS, OUTLET_METHODS, LiteralString, TypeIs, ValuesView, TypeVar, Never, Optional, IO, SupportsRound, NoReturn, Reader, TypeAliasType

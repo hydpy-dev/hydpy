@@ -1840,6 +1840,7 @@ def print_evaluationtable(
     filter_: float = 0.0,
     missingvalue: str = "-",
     decimalseperator: str = ".",
+    columnseparator: str = "\t",
     file_: str | TextIO | None = None,
 ) -> None: ...
 
@@ -1863,6 +1864,7 @@ def print_evaluationtable(
     aggregator: str | Callable[[VectorInputFloat], float] = "mean",
     missingvalue: str = "-",
     decimalseperator: str = ".",
+    columnseparator: str = "\t",
     file_: str | TextIO | None = None,
 ) -> None: ...
 
@@ -1888,6 +1890,7 @@ def print_evaluationtable(
     aggregator: str | Callable[[VectorInputFloat], float] = "mean",
     missingvalue: str = "-",
     decimalseperator: str = ".",
+    columnseparator: str = "\t",
     file_: str | TextIO | None = None,
 ) -> None:
     """Print a table containing the results of the given evaluation criteria for the
@@ -1919,10 +1922,10 @@ def print_evaluationtable(
     mean    0.00      -1.50
 
     One can pass alternative names for the first cell, the node objects, the criteria
-    functions, and the row containing the average values.  Also, one can use the
-    `filter_` argument to suppress printing statistics in case of incomplete
-    observation data.  In the following example, we set the minimum fraction of
-    required data to 80 %:
+    functions, and the row containing the average values, as well as alternative column
+    and decimal separators..  Also, one can use the `filter_` argument to suppress
+    printing statistics in case of incomplete observation data.  In the following
+    example, we set the minimum fraction of required data to 80 %:
 
     >>> print_evaluationtable(nodes=nodes,
     ...                       criteria=(corr, bias_abs),
@@ -1931,11 +1934,13 @@ def print_evaluationtable(
     ...                       critnames=("corrcoef", "bias"),
     ...                       critdigits=1,
     ...                       averagename="average",
-    ...                       filter_=0.8)   # doctest: +NORMALIZE_WHITESPACE
-    nodes       corrcoef  bias
-    first node       1.0  -3.0
-    second node        -     -
-    average          1.0  -3.0
+    ...                       decimalseperator=",",
+    ...                       columnseparator=";",
+    ...                       filter_=0.8)
+    nodes;corrcoef;bias
+    first node;1,0;-3,0
+    second node;-;-
+    average;1,0;-3,0
 
     The number of assigned node objects and criteria functions must match the number of
     given alternative names:
@@ -2106,8 +2111,8 @@ number of given alternative names being 1.
         data[idx, :] = numpy.nan if availability < filter_ else node2values[node]
 
     def _write(x: str, ys: Iterable[str], printtarget_: TextIO) -> None:
-        printtarget_.write(f"{x}\t")
-        printtarget_.write("\t".join(ys).replace(".", decimalseperator))
+        printtarget_.write(f"{x}{columnseparator}")
+        printtarget_.write(columnseparator.join(ys).replace(".", decimalseperator))
         printtarget_.write("\n")
 
     def _nmbs2strs(numbers: Iterable[float]) -> Generator[str, None, None]:

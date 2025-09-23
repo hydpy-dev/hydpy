@@ -1828,6 +1828,7 @@ def print_evaluationtable(
     *,
     nodes: Collection[devicetools.Node],
     criteria: Collection[Criterion],
+    firstcellname: str = "",
     nodenames: Collection[str] | None = None,
     critnames: Collection[str] | None = None,
     critfactors: Collection1[float] = 1.0,
@@ -1848,6 +1849,7 @@ def print_evaluationtable(
     *,
     nodes: Collection[devicetools.Node],
     criteria: Collection[Criterion],
+    firstcellname: str = "",
     nodenames: Collection[str] | None = None,
     critnames: Collection[str] | None = None,
     critfactors: Collection1[float] = 1.0,
@@ -1872,6 +1874,7 @@ def print_evaluationtable(
     *,
     nodes: Collection[devicetools.Node],
     criteria: Collection[Criterion],
+    firstcellname: str = "",
     nodenames: Collection[str] | None = None,
     critnames: Collection[str] | None = None,
     critfactors: Collection1[float] = 1.0,
@@ -1915,19 +1918,21 @@ def print_evaluationtable(
     test2  -1.00       0.00
     mean    0.00      -1.50
 
-    One can pass alternative names for the node objects, the criteria functions, and
-    the row containing the average values.  Also, one can use the `filter_` argument to
-    suppress printing statistics in case of incomplete observation data.  In the
-    following example, we set the minimum fraction of required data to 80 %:
+    One can pass alternative names for the first cell, the node objects, the criteria
+    functions, and the row containing the average values.  Also, one can use the
+    `filter_` argument to suppress printing statistics in case of incomplete
+    observation data.  In the following example, we set the minimum fraction of
+    required data to 80 %:
 
     >>> print_evaluationtable(nodes=nodes,
     ...                       criteria=(corr, bias_abs),
+    ...                       firstcellname="nodes",
     ...                       nodenames=("first node", "second node"),
     ...                       critnames=("corrcoef", "bias"),
     ...                       critdigits=1,
     ...                       averagename="average",
     ...                       filter_=0.8)   # doctest: +NORMALIZE_WHITESPACE
-                corrcoef  bias
+    nodes       corrcoef  bias
     first node       1.0  -3.0
     second node        -     -
     average          1.0  -3.0
@@ -1999,7 +2004,7 @@ number of given alternative names being 1.
     test2  -10.0       0.0
     mean     0.0      -0.2
 
-    By default, function |print_evaluationtable| prints the statics relevant for the
+    By default, function |print_evaluationtable| prints the statistics relevant for the
     actual evaluation period only:
 
     >>> pub.timegrids.eval_.dates = "01.01.2000", "02.01.2000"
@@ -2038,7 +2043,7 @@ number of given alternative names being 1.
     test2  -1.00      0.00
     mean    0.00     -1.50
 
-    For the monthly step size, the result table is empty due to the too short
+    For the monthly step size, the result table is empty due to the too-short
     initialisation period covering less than a month:
 
     >>> pub.timegrids.eval_.dates = pub.timegrids.init.dates
@@ -2112,7 +2117,7 @@ number of given alternative names being 1.
         )
 
     with objecttools.get_printtarget(file_) as printtarget:
-        _write("", critnames, printtarget)
+        _write(firstcellname, critnames, printtarget)
         for nodename, row in zip(nodenames, data):
             _write(nodename, _nmbs2strs(row), printtarget)
         if average:

@@ -46,6 +46,7 @@ case taken from :cite:t:`ref-Todini2007`):
 ...     bottomslope(0.00025)
 ...     sideslopes(5.0)
 ...     stricklercoefficients(1.0/0.035)
+...     calibrationfactors(1.0)
 
 >>> from hydpy.core.testtools import IntegrationTest
 >>> IntegrationTest.plotting_options.axis1 = (
@@ -292,6 +293,7 @@ of each other, as in the :ref:`kinw_williams_overbank_flow` example on |kinw_wil
 ...     bottomslope(0.00025)
 ...     sideslopes(5.0, 10.0, 100.0)
 ...     stricklercoefficients(1.0/0.035, 10.0, 10.0)
+...     calibrationfactors(1.0)
 
 The simulation results are similar to those of |kinw_williams| but with more
 recognisable inflexion points related activation and deactivation of overbank flow,
@@ -1661,6 +1663,7 @@ among the result sequences of any of its predecessors: InternalFlow
         ...     bottomlevels(1.0, 3.0)
         ...     bottomslope(0.01)
         ...     sideslopes(2.0, 4.0)
+        ...     calibrationfactors(1.0)
 
         >>> model.wqmodel.parameters.control.nmbtrapezes
         nmbtrapezes(2)
@@ -1687,6 +1690,7 @@ among the result sequences of any of its predecessors: InternalFlow
         ...     bottomslope(0.00025)
         ...     sideslopes(5.0)
         ...     stricklercoefficients(1.0/0.035)
+        ...     calibrationfactors(1.0)
         >>> model.prepare_states(0.0)
         >>> states.watervolume
         watervolume(0.0, 0.0)

@@ -294,13 +294,47 @@ class SideSlopes(wq_variables.MixinTrapezes, parametertools.Parameter):
 class StricklerCoefficients(
     wq_variables.MixinTrapezesOrSectors, parametertools.Parameter
 ):
-    """Manning-Strickler coefficient for each trapeze [m^(1/3)/s].
+    """Manning-Strickler coefficient for each trapeze or sector [m^(1/3)/s].
 
     The higher the coefficient's value, the higher the calculated discharge.  Typical
     values range from 20 to 80.
     """
 
     TYPE, TIME, SPAN = float, None, (0.0, None)
+
+
+class CalibrationFactors(wq_variables.MixinTrapezesOrSectors, parametertools.Parameter):
+    """Calibration factor for each trapeze or sector [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 1.0
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> import warnings
+        >>> warnings.filterwarnings("error")
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbtrapezes(2)
+        >>> calibrationfactors.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`calibrationfactors` (introduced in HydPy 6.2), has not been explicitly defined and \
+is automatically set to `1.0`.  We will remove this fallback mechanism in HydPy 8.0; \
+therefore, please consider updating your model setup.
+
+        >>> calibrationfactors
+        calibrationfactors(1.0)
+
+        >>> calibrationfactors(2.0)
+        >>> calibrationfactors
+        calibrationfactors(2.0)
+        """
+        self._update_newbie(value=1.0, version="6.2")
 
 
 class BottomSlope(parametertools.Parameter):

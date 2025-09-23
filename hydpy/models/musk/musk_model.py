@@ -294,6 +294,7 @@ class Return_ReferenceDischargeError_V1(modeltools.Method):
         ...     bottomwidths(2.0)
         ...     sideslopes(2.0)
         ...     stricklercoefficients(20.0)
+        ...     calibrationfactors(1.0)
         >>> fluxes.referencedischarge = 50.0
         >>> from hydpy import round_
         >>> round_(model.return_referencedischargeerror_v1(3.0))
@@ -337,6 +338,7 @@ class Calc_ReferenceWaterDepth_V1(modeltools.Method):
         ...     bottomwidths(2.0)
         ...     sideslopes(2.0)
         ...     stricklercoefficients(20.0)
+        ...     calibrationfactors(1.0)
         >>> solver.tolerancewaterdepth.update()
         >>> solver.tolerancedischarge.update()
         >>> fluxes.referencedischarge = -10.0, 0.0, 64.475285, 1000.0, 1000000000.0
@@ -443,6 +445,7 @@ class Calc_WettedArea_SurfaceWidth_Celerity_V1(modeltools.Method):
         ...     bottomwidths(2.0)
         ...     sideslopes(0.0)
         ...     stricklercoefficients(20.0)
+        ...     calibrationfactors(1.0)
         >>> factors.referencewaterdepth = 1.0, 2.0, 3.0
         >>> model.run_segments(model.calc_wettedarea_surfacewidth_celerity_v1)
         >>> factors.wettedarea

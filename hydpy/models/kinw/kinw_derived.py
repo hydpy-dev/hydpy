@@ -220,6 +220,7 @@ class NmbDiscontinuities(parametertools.Parameter):
         ...     bottomlevels(1.0, 3.0)
         ...     bottomslope(0.01)
         ...     sideslopes(2.0, 4.0)
+        ...     calibrationfactors(1.0)
         >>> derived.nmbdiscontinuities.update()
         >>> derived.nmbdiscontinuities
         nmbdiscontinuities(1)
@@ -252,6 +253,7 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
         ...     sideslopes(0.0, 0.0, 0.0)
         ...     bottomslope(0.001)
         ...     stricklercoefficients(30.0)
+        ...     calibrationfactors(1.0)
         >>> derived.nmbdiscontinuities.update()
         >>> derived.finaldepth2initialvolume.update()
         >>> derived.finaldepth2initialvolume

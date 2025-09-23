@@ -67,6 +67,7 @@ example's results:
 ...     control.flowwidths(15.0, 75.0, 1015.0)
 ...     control.totalwidths(15.0, 75.0, 1015.0)
 ...     control.stricklercoefficients(1.0/0.035)
+...     control.calibrationfactors(1.0)
 >>> IntegrationTest.plotting_options.axis1 = (states.discharge,)
 >>> test = IntegrationTest(stream)
 >>> nodes.input1.sequences.sim.series = q_base
@@ -525,6 +526,7 @@ can reuse the test configuration of the :ref:`kinw_impl_euler_overbank_flow` exa
 ...     control.bottomslope(0.00025)
 ...     control.transitions(1, 3)
 ...     control.stricklercoefficients(1.0/0.035, 10.0, 10.0)
+...     control.calibrationfactors(1.0)
 >>> IntegrationTest.plotting_options.axis1 = (
 ...     fluxes.inflow, fluxes.internalflow, fluxes.outflow
 ... )

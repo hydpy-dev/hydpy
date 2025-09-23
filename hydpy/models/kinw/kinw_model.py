@@ -2456,6 +2456,7 @@ class Return_InitialWaterVolume_V1(modeltools.Method):
         ...     sideslopes(0.0)
         ...     bottomslope(0.001)
         ...     stricklercoefficients(30.0)
+        ...     calibrationfactors(1.0)
         >>> from hydpy import round_
         >>> round_(model.return_initialwatervolume_v1(2.0))
         5.008867
@@ -2520,6 +2521,7 @@ class Return_VolumeError_V1(modeltools.Method):
         ...     sideslopes(0.0)
         ...     bottomslope(0.001)
         ...     stricklercoefficients(30.0)
+        ...     calibrationfactors(1.0)
         >>> states.watervolume(4.0)
         >>> from hydpy import round_
         >>> round_(model.return_volumeerror_v1(2.0))
@@ -2583,6 +2585,7 @@ class Calc_WaterDepth_V1(modeltools.Method):
         ...     sideslopes(0.0)
         ...     bottomslope(0.001)
         ...     stricklercoefficients(30.0)
+        ...     calibrationfactors(1.0)
         >>> derived.seconds(60 * 60 * 24)
         >>> derived.nmbdiscontinuities.update()
         >>> derived.finaldepth2initialvolume.update()
@@ -2658,6 +2661,7 @@ class Calc_WaterDepth_V1(modeltools.Method):
         ...     sideslopes(0.0, 0.0, 0.0)
         ...     bottomslope(0.001)
         ...     stricklercoefficients(30.0)
+        ...     calibrationfactors(1.0)
         >>> derived.nmbdiscontinuities.update()
         >>> derived.finaldepth2initialvolume.update()
         >>> solver.watervolumetolerance.update()
@@ -2761,6 +2765,7 @@ class Update_WaterVolume_V2(modeltools.Method):
         ...     nmbtrapezes(1)
         ...     bottomlevels(1.0)
         ...     sideslopes(0.0)
+        ...     calibrationfactors(1.0)
         >>> model.wqmodel.sequences.factors.wettedarea = 2.0
         >>> model.idx_segment = 0
         >>> model.update_watervolume_v2()

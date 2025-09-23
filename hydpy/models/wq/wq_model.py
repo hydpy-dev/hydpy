@@ -1589,11 +1589,12 @@ class Calc_Discharges_V1(modeltools.Method):
       .. math::
         Discharges_i = \begin{cases}
         0 &|\ d < 0 \\
-        C \cdot A^{5/3} \cdot P^{-2/3} \cdot \sqrt{S_B} &|\ 0 \leq d
+        F \cdot C \cdot A^{5/3} \cdot P^{-2/3} \cdot \sqrt{S_B} &|\ 0 \leq d
         \end{cases}
         \\ \\
         d = WaterDepth - BottomDepth_i \\
-        C = StricklerCoefficient_i \\
+        F = CalibrationFactors_i \\
+        C = StricklerCoefficients_i \\
         A = WettedAreas_i \\
         P = WettedPerimeters_i \\
         S_B = BottomSlope
@@ -1604,7 +1605,8 @@ class Calc_Discharges_V1(modeltools.Method):
         >>> parameterstep()
         >>> nmbtrapezes(4)
         >>> bottomslope(0.01)
-        >>> stricklercoefficients(20.0, 40.0, 60.0, 80.0)
+        >>> stricklercoefficients(20.0, 40.0, 20.0, 20.0)
+        >>> calibrationfactors(1.0, 1.0, 3.0, 1.0)
         >>> derived.bottomdepths = 1.0, 2.0, 3.0, 4.0
         >>> factors.wettedareas = 1.0, 4.0, 8.0, 16.0
         >>> factors.wettedperimeters = 2.0, 4.0, 6.0, 8.0
@@ -1618,6 +1620,7 @@ class Calc_Discharges_V1(modeltools.Method):
         wq_control.NmbTrapezes,
         wq_control.BottomSlope,
         wq_control.StricklerCoefficients,
+        wq_control.CalibrationFactors,
     )
     DERIVEDPARAMETERS = (wq_derived.BottomDepths,)
     REQUIREDSEQUENCES = (
@@ -1637,7 +1640,8 @@ class Calc_Discharges_V1(modeltools.Method):
         for i in range(con.nmbtrapezes):
             if fac.waterdepth > der.bottomdepths[i]:
                 flu.discharges[i] = (
-                    con.stricklercoefficients[i]
+                    con.calibrationfactors[i]
+                    * con.stricklercoefficients[i]
                     * con.bottomslope**0.5
                     * fac.wettedareas[i] ** (5.0 / 3.0)
                     / fac.wettedperimeters[i] ** (2.0 / 3.0)
@@ -1653,11 +1657,12 @@ class Calc_Discharges_V2(modeltools.Method):
       .. math::
         Q = \begin{cases}
         0 &|\ A < 0 \\
-        C \cdot A^{5/3} \cdot P^{-2/3} \cdot \sqrt{S} &|\ 0 \leq A
+        F \cdot C \cdot A^{5/3} \cdot P^{-2/3} \cdot \sqrt{S} &|\ 0 \leq A
         \end{cases}
         \\ \\
         Q = Discharges \\
-        C = StricklerCoefficient \\
+        F = CalibrationFactors \\
+        C = StricklerCoefficients \\
         A = FlowAreas \\
         P = FlowPerimeters \\
         S = BottomSlope
@@ -1668,7 +1673,8 @@ class Calc_Discharges_V2(modeltools.Method):
         >>> parameterstep()
         >>> nmbsectors(4)
         >>> bottomslope(0.01)
-        >>> stricklercoefficients(20.0, 40.0, 60.0, 80.0)
+        >>> stricklercoefficients(20.0, 40.0, 20.0, 80.0)
+        >>> calibrationfactors(1.0, 1.0, 3.0, 1.0)
         >>> factors.flowareas = 1.0, 4.0, 8.0, 0.0
         >>> factors.flowperimeters = 2.0, 4.0, 6.0, 8.0
         >>> model.calc_discharges_v2()
@@ -1680,6 +1686,7 @@ class Calc_Discharges_V2(modeltools.Method):
         wq_control.NmbSectors,
         wq_control.BottomSlope,
         wq_control.StricklerCoefficients,
+        wq_control.CalibrationFactors,
     )
     REQUIREDSEQUENCES = (wq_factors.FlowAreas, wq_factors.FlowPerimeters)
     RESULTSEQUENCES = (wq_fluxes.Discharges,)
@@ -1693,7 +1700,8 @@ class Calc_Discharges_V2(modeltools.Method):
         for i in range(con.nmbsectors):
             if fac.flowareas[i] > 0.0:
                 flu.discharges[i] = (
-                    con.stricklercoefficients[i]
+                    con.calibrationfactors[i]
+                    * con.stricklercoefficients[i]
                     * con.bottomslope**0.5
                     * fac.flowareas[i] ** (5.0 / 3.0)
                     / fac.flowperimeters[i] ** (2.0 / 3.0)
@@ -1772,13 +1780,14 @@ class Calc_DischargeDerivatives_V1(modeltools.Method):
      .. math::
         DischargeDerivatives_i = \begin{cases}
         0 &|\ d < 0 \\
-        C \cdot
+        F \cdot C \cdot
         (A / P)^{5/3} \cdot \frac{5 \cdot P \cdot A' - 2 \cdot A \cdot P'}{3 \cdot P}
         \cdot \sqrt{S_B} &|\ 0 \leq d
         \end{cases}
         \\ \\
         d = WaterDepth - BottomDepth_i \\
-        C = StricklerCoefficient_i \\
+        F = CalibrationFactors_i \\
+        C = StricklerCoefficients_i \\
         A = WettedAreas_i \\
         A' = SurfaceWidth_i \\
         P = WettedPerimeters_i \\
@@ -1803,7 +1812,8 @@ class Calc_DischargeDerivatives_V1(modeltools.Method):
         >>> bottomwidths(2.0, 0.0, 2.0, 2.0)
         >>> sideslopes(0.0, 2.0, 2.0, 2.0)
         >>> bottomslope(0.01)
-        >>> stricklercoefficients(20.0, 40.0, 60.0, 60.0)
+        >>> stricklercoefficients(20.0, 40.0, 20.0, 60.0)
+        >>> calibrationfactors(1.0, 1.0, 3.0, 1.0)
         >>> factors.waterdepth = 3.5
         >>> derived.bottomdepths.update()
         >>> derived.trapezeheights.update()
@@ -1836,6 +1846,7 @@ class Calc_DischargeDerivatives_V1(modeltools.Method):
         wq_control.NmbTrapezes,
         wq_control.BottomSlope,
         wq_control.StricklerCoefficients,
+        wq_control.CalibrationFactors,
     )
     DERIVEDPARAMETERS = (wq_derived.BottomDepths,)
     REQUIREDSEQUENCES = (
@@ -1860,7 +1871,8 @@ class Calc_DischargeDerivatives_V1(modeltools.Method):
                 p: float = fac.wettedperimeters[i]
                 dp: float = fac.wettedperimeterderivatives[i]
                 fac.dischargederivatives[i] = (
-                    con.stricklercoefficients[i]
+                    con.calibrationfactors[i]
+                    * con.stricklercoefficients[i]
                     * con.bottomslope**0.5
                     * (a / p) ** (2.0 / 3.0)
                     * (5.0 * p * da - 2.0 * a * dp)
@@ -1886,7 +1898,8 @@ class Calc_DischargeDerivatives_V2(modeltools.Method):
         Q' = DischargeDerivatives \\
         L = WaterLevel \\
         H = Heights \\
-        C = StricklerCoefficient \\
+        F = CalibrationFactors \\
+        C = StricklerCoefficients \\
         A = FlowAreas \\
         A' = FlowWidth \\
         P = FlowPerimeters \\
@@ -1907,7 +1920,8 @@ class Calc_DischargeDerivatives_V2(modeltools.Method):
         >>> flowwidths(2.0, 2.0, 6.0, 8.0, 12.0, 14.0, 16.0)
         >>> transitions(1, 2, 4)
         >>> bottomslope(0.01)
-        >>> stricklercoefficients(20.0, 40.0, 60.0, 60.0)
+        >>> stricklercoefficients(20.0, 40.0, 20.0, 60.0)
+        >>> calibrationfactors(1.0, 1.0, 3.0, 1.0)
         >>> derived.sectorflowwidths.update()
         >>> derived.sectorflowareas.update()
         >>> derived.sectorflowperimeterderivatives.update()
@@ -1929,6 +1943,7 @@ class Calc_DischargeDerivatives_V2(modeltools.Method):
         wq_control.Heights,
         wq_control.BottomSlope,
         wq_control.StricklerCoefficients,
+        wq_control.CalibrationFactors,
     )
     REQUIREDSEQUENCES = (
         wq_factors.WaterLevel,
@@ -1952,7 +1967,8 @@ class Calc_DischargeDerivatives_V2(modeltools.Method):
                 p: float = fac.flowperimeters[i]
                 dp: float = fac.flowperimeterderivatives[i]
                 fac.dischargederivatives[i] = (
-                    con.stricklercoefficients[i]
+                    con.calibrationfactors[i]
+                    * con.stricklercoefficients[i]
                     * con.bottomslope**0.5
                     * (a / p) ** (2.0 / 3.0)
                     * (5.0 * p * da - 2.0 * a * dp)
@@ -2172,6 +2188,7 @@ class Use_WaterDepth_V1(modeltools.SetAutoMethod):
         >>> sideslopes(0.0, 0.0)
         >>> bottomslope(0.01)
         >>> stricklercoefficients(20.0, 40.0)
+        >>> calibrationfactors(1.0)
         >>> derived.bottomdepths.update()
         >>> derived.trapezeheights.update()
         >>> derived.slopewidths.update()
@@ -2210,6 +2227,7 @@ class Use_WaterDepth_V1(modeltools.SetAutoMethod):
         wq_control.BottomWidths,
         wq_control.SideSlopes,
         wq_control.StricklerCoefficients,
+        wq_control.CalibrationFactors,
         wq_control.BottomSlope,
     )
     DERIVEDPARAMETERS = (
@@ -2303,6 +2321,7 @@ class Use_WaterDepth_V3(modeltools.SetAutoMethod):
         >>> totalwidths(2.0, 2.0, 4.0)
         >>> transitions(1)
         >>> stricklercoefficients(20.0, 40.0)
+        >>> calibrationfactors(1.0)
         >>> bottomslope(0.01)
         >>> derived.sectorflowwidths.update()
         >>> derived.sectortotalwidths.update()
@@ -2350,6 +2369,7 @@ class Use_WaterDepth_V3(modeltools.SetAutoMethod):
         wq_control.Transitions,
         wq_control.Heights,
         wq_control.StricklerCoefficients,
+        wq_control.CalibrationFactors,
         wq_control.BottomSlope,
     )
     DERIVEDPARAMETERS = (
@@ -2396,6 +2416,7 @@ class Use_WaterLevel_V1(modeltools.SetAutoMethod):
         >>> sideslopes(0.0, 0.0)
         >>> bottomslope(0.01)
         >>> stricklercoefficients(20.0, 40.0)
+        >>> calibrationfactors(1.0)
         >>> derived.bottomdepths.update()
         >>> derived.trapezeheights.update()
         >>> derived.slopewidths.update()
@@ -2434,6 +2455,7 @@ class Use_WaterLevel_V1(modeltools.SetAutoMethod):
         wq_control.BottomWidths,
         wq_control.SideSlopes,
         wq_control.StricklerCoefficients,
+        wq_control.CalibrationFactors,
         wq_control.BottomSlope,
     )
     DERIVEDPARAMETERS = (
@@ -2527,6 +2549,7 @@ class Use_WaterLevel_V3(modeltools.SetAutoMethod):
         >>> totalwidths(2.0, 2.0, 4.0)
         >>> transitions(1)
         >>> stricklercoefficients(20.0, 40.0)
+        >>> calibrationfactors(1.0)
         >>> bottomslope(0.01)
         >>> derived.sectorflowwidths.update()
         >>> derived.sectortotalwidths.update()
@@ -2574,6 +2597,7 @@ class Use_WaterLevel_V3(modeltools.SetAutoMethod):
         wq_control.Transitions,
         wq_control.Heights,
         wq_control.StricklerCoefficients,
+        wq_control.CalibrationFactors,
         wq_control.BottomSlope,
     )
     DERIVEDPARAMETERS = (

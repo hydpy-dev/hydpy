@@ -707,6 +707,68 @@ def nse_log(
 
 
 @overload
+def fdc_nse(
+    *,
+    sim: VectorInputFloat,
+    obs: VectorInputFloat,
+    skip_nan: bool = False,
+    subperiod: bool = False,
+) -> float:
+    """node as argument"""
+
+
+@overload
+def fdc_nse(
+    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
+) -> float:
+    """sim and obs as arguments"""
+
+
+@objecttools.excmessage_decorator(
+    "calculate the flow duration curve Nash-Sutcliffe efficiency"
+)
+def fdc_nse(
+    *,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
+    skip_nan: bool = False,
+    subperiod: bool | None = None,
+) -> float:
+    """Calculate the efficiency criteria after Nash & Sutcliffe based on sorted
+    simulation and observation data (such as when comparing flow duration curves).
+
+    |fdc_nse| sorts the simulation and the observation data independently.  Hence, it
+    compares their statistical distributions only and ignores any differences in the
+    temporal occurrence of individual values:
+
+    >>> from hydpy import fdc_nse, round_
+    >>> round_(fdc_nse(sim=[3.0, 2.0, 1.0], obs=[1.0, 2.0, 3.0]))
+    1.0
+
+    Except for its blindness regarding temporal patterns, |fdc_nse| works like |nse|:
+
+    >>> round_(fdc_nse(sim=[2.0, 2.0, 2.0], obs=[1.0, 2.0, 3.0]))
+    0.0
+    >>> round_(fdc_nse(sim=[0.0, 2.0, 4.0], obs=[1.0, 2.0, 3.0]))
+    0.0
+    >>> round_(fdc_nse(sim=[1.0, 4.0, 5.0], obs=[1.0, 2.0, 3.0]))
+    -3.0
+    >>> round_(fdc_nse(sim=[1.0, 2.0, 2.0], obs=[1.0, 2.0, 3.0]))
+    0.5
+
+    See the documentation on function |prepare_arrays| for additional instructions on
+    using |fdc_nse|.
+    """
+    sim_, obs_ = prepare_arrays(
+        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
+    )
+    del sim, obs
+    sim_, obs_ = numpy.sort(sim_), numpy.sort(obs_)
+    return nse(sim=sim_, obs=obs_, skip_nan=False, subperiod=False)
+
+
+@overload
 def corr2(
     *,
     sim: VectorInputFloat,

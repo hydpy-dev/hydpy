@@ -1,0 +1,14 @@
+.. |dummy_snowcover.DOCNAME.complete| replace:: HydPy-Dummy-SnowCover (dummy model supplying main models with snow cover states)
+.. |dummy_snowcover| replace:: :mod:`~hydpy.models.dummy_snowcover`
+.. |evap_aet_hbv96| replace:: :mod:`~hydpy.models.evap_aet_hbv96`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+
+.. _dummy_snowcover:
+
+dummy_snowcover
+===============
+
+.. automodule:: hydpy.models.dummy_snowcover
+    :members:
+    :show-inheritance:
+    :exclude-members: is_typeddict, Writer, OutletSequences, MutableMapping, ContextManager, ParamSpecArgs, FULL_ODE_METHODS, disjoint_base, NotRequired, Text, UPDATEDSEQUENCES, SupportsComplex, Set, override, fastaccess_new, List, final, SENDER_METHODS, SOLVERPARAMETERS, SupportsBytes, BinaryIO, TypeIs, SupportsIndex, Coroutine, TypeForm, Type, SenderSequences, ReceiverSequences, ValuesView, CLASSES, OrderedDict, TypedDict, overload, Sentinel, SUBMODELINTERFACES, LogSequences, INTERFACE_METHODS, SupportsFloat, Collection, Optional, InletSequences, Sequence, TypeAliasType, ItemsView, reveal_type, FluxSequences, FIXEDPARAMETERS, Iterable, SupportsAbs, no_type_check_decorator, ObserverSequences, Counter, Never, LiteralString, Annotated, ReadOnly, NamedTuple, SUBMETHODS, DERIVEDPARAMETERS, TypeVar, get_type_hints, SOLVERSEQUENCES, fastaccess_old, MutableSet, Format, Concatenate, AsyncGenerator, Mapping, get_args, fastaccess, INLET_METHODS, IO, get_protocol_members, Generator, pars, seqs, ForwardRef, subvars, SUBMODELS, Iterator, get_annotations, runtime_checkable, AsyncIterable, ClassVar, Any, runtime, AideSequences, TypeGuard, Unpack, AbstractSet, Container, ByteString, KeysView, ChainMap, assert_type, Generic, OUTLET_METHODS, Sized, get_original_bases, Protocol, RESULTSEQUENCES, Reversible, Pattern, TypeVarTuple, NoReturn, get_origin, NoExtraItems, RECEIVER_METHODS, MappingView, evaluate_forward_ref, CONTROLPARAMETERS, Awaitable, Final, IntVar, REQUIREDSEQUENCES, ParamSpec, AsyncIterator, Deque, subpars, Buffer, type_repr, PART_ODE_METHODS, SupportsInt, Literal, StateSequences, NoDefault, subseqs, is_protocol, CapsuleType, get_overloads, DefaultDict, Match, Callable, no_type_check, FrozenSet, ADD_METHODS, Self, FactorSequences, NewType, Hashable, SupportsRound, ParamSpecKwargs, Dict, Reader, clear_overloads, MutableSequence, TypeAlias, TYPE_CHECKING, RUN_METHODS, Required, AnyStr, Tuple, dataclass_transform, Doc, assert_never, Union, cast, TextIO, AsyncContextManager, deprecated

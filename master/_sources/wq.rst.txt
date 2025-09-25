@@ -1,0 +1,37 @@
+.. |BottomWidths| replace:: :class:`~hydpy.models.wq.wq_control.BottomWidths`
+.. |Calc_DischargeDerivatives_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_DischargeDerivatives_V1`
+.. |Calc_Discharges_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_Discharges_V1`
+.. |Calc_SurfaceWidths_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_SurfaceWidths_V1`
+.. |Calc_WaterDepth_V2| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WaterDepth_V2`
+.. |Calc_WettedArea_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedArea_V1`
+.. |Calc_WettedAreas_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedAreas_V1`
+.. |Calc_WettedPerimeterDerivatives_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedPerimeterDerivatives_V1`
+.. |Calc_WettedPerimeters_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedPerimeters_V1`
+.. |CrestHeight| replace:: :class:`~hydpy.models.wq.wq_control.CrestHeight`
+.. |DischargeModel_V2| replace:: :class:`~hydpy.interfaces.dischargeinterfaces.DischargeModel_V2`
+.. |Excess| replace:: :class:`~hydpy.models.wq.wq_aides.Excess`
+.. |Index| replace:: :class:`~hydpy.models.wq.wq_aides.Index`
+.. |NmbSectors| replace:: :class:`~hydpy.models.wq.wq_control.NmbSectors`
+.. |NmbTrapezes| replace:: :class:`~hydpy.models.wq.wq_control.NmbTrapezes`
+.. |NmbWidths| replace:: :class:`~hydpy.models.wq.wq_control.NmbWidths`
+.. |NumericalDifferentiator| replace:: :class:`~hydpy.core.testtools.NumericalDifferentiator`
+.. |Transitions| replace:: :class:`~hydpy.models.wq.wq_control.Transitions`
+.. |Weight| replace:: :class:`~hydpy.models.wq.wq_aides.Weight`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |wq.DOCNAME.complete| replace:: HydPy-WQ (base model)
+.. |wq.DOCNAME.long| replace:: HydPy-WQ
+.. |wq_trapeze| replace:: :mod:`~hydpy.models.wq_trapeze`
+.. |wq_widths_strickler| replace:: :mod:`~hydpy.models.wq_widths_strickler`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |wq_control.FlowWidths| replace:: :class:`~hydpy.models.wq.wq_control.FlowWidths`
+.. |wq_control.TotalWidths| replace:: :class:`~hydpy.models.wq.wq_control.TotalWidths`
+
+.. _wq:
+
+wq
+==
+
+.. automodule:: hydpy.models.wq
+    :members:
+    :show-inheritance:
+    :exclude-members: is_typeddict, Writer, OutletSequences, MutableMapping, ContextManager, ParamSpecArgs, FULL_ODE_METHODS, disjoint_base, NotRequired, Text, UPDATEDSEQUENCES, SupportsComplex, Set, override, fastaccess_new, List, final, SENDER_METHODS, SOLVERPARAMETERS, SupportsBytes, BinaryIO, TypeIs, SupportsIndex, Coroutine, TypeForm, Type, SenderSequences, ReceiverSequences, ValuesView, CLASSES, OrderedDict, TypedDict, overload, Sentinel, SUBMODELINTERFACES, LogSequences, INTERFACE_METHODS, SupportsFloat, Collection, Optional, InletSequences, Sequence, TypeAliasType, ItemsView, reveal_type, FIXEDPARAMETERS, Iterable, SupportsAbs, no_type_check_decorator, ObserverSequences, Counter, Never, LiteralString, Annotated, ReadOnly, NamedTuple, SUBMETHODS, DERIVEDPARAMETERS, TypeVar, get_type_hints, SOLVERSEQUENCES, fastaccess_old, MutableSet, Format, Concatenate, AsyncGenerator, Mapping, get_args, fastaccess, INLET_METHODS, IO, get_protocol_members, Generator, pars, seqs, ForwardRef, subvars, SUBMODELS, Iterator, get_annotations, runtime_checkable, AsyncIterable, ClassVar, Any, runtime, TypeGuard, Unpack, AbstractSet, Container, ByteString, KeysView, ChainMap, assert_type, Generic, OUTLET_METHODS, Sized, get_original_bases, Protocol, RESULTSEQUENCES, Reversible, Pattern, TypeVarTuple, NoReturn, get_origin, NoExtraItems, RECEIVER_METHODS, MappingView, evaluate_forward_ref, CONTROLPARAMETERS, Awaitable, InputSequences, Final, IntVar, REQUIREDSEQUENCES, ParamSpec, AsyncIterator, Deque, subpars, Buffer, type_repr, PART_ODE_METHODS, SupportsInt, Literal, StateSequences, NoDefault, subseqs, is_protocol, CapsuleType, get_overloads, DefaultDict, Match, Callable, no_type_check, FrozenSet, ADD_METHODS, Self, NewType, Hashable, SupportsRound, ParamSpecKwargs, Dict, Reader, clear_overloads, MutableSequence, TypeAlias, TYPE_CHECKING, RUN_METHODS, Required, AnyStr, Tuple, dataclass_transform, Doc, assert_never, Union, cast, TextIO, AsyncContextManager, deprecated

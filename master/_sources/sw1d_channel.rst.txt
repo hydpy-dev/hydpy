@@ -1,0 +1,42 @@
+.. |CrossSectionModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V2`
+.. |DiffusionFactor| replace:: :class:`~hydpy.models.sw1d.sw1d_control.DiffusionFactor`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |Model.add_routingmodel_v1| replace:: :func:`~hydpy.models.sw1d_channel.Model.add_routingmodel_v1`
+.. |Model.add_routingmodel_v3| replace:: :func:`~hydpy.models.sw1d_channel.Model.add_routingmodel_v3`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.sw1d_channel.Model.check_waterbalance`
+.. |Node.deploymode| replace:: :const:`~hydpy.core.devicetools.Node.deploymode`
+.. |RoutingModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V1`
+.. |RoutingModel_V2| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V2`
+.. |RoutingModel_V3| replace:: :class:`~hydpy.interfaces.routinginterfaces.RoutingModel_V3`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |StorageModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.StorageModel_V1`
+.. |TimeStepFactor| replace:: :class:`~hydpy.models.sw1d.sw1d_control.TimeStepFactor`
+.. |Update_Discharge_V1| replace:: :class:`~hydpy.models.sw1d.sw1d_model.Update_Discharge_V1`
+.. |musk_mct| replace:: :mod:`~hydpy.models.musk_mct`
+.. |sw1d.DOCNAME.long| replace:: HydPy-SW1D
+.. |sw1d_channel.DOCNAME.complete| replace:: HydPy-SW1D-Channel ("user model" for preparing single channels that will be combined and solved by HydPy-SW1D-Network)
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |sw1d_lias| replace:: :mod:`~hydpy.models.sw1d_lias`
+.. |sw1d_network| replace:: :mod:`~hydpy.models.sw1d_network`
+.. |sw1d_q_in| replace:: :mod:`~hydpy.models.sw1d_q_in`
+.. |sw1d_q_out| replace:: :mod:`~hydpy.models.sw1d_q_out`
+.. |sw1d_storage| replace:: :mod:`~hydpy.models.sw1d_storage`
+.. |sw1d_weir_out| replace:: :mod:`~hydpy.models.sw1d_weir_out`
+.. |wq_trapeze| replace:: :mod:`~hydpy.models.wq_trapeze`
+.. |sw1d_inlets.LatQ| replace:: :class:`~hydpy.models.sw1d.sw1d_inlets.LatQ`
+.. |sw1d_inlets.LongQ| replace:: :class:`~hydpy.models.sw1d.sw1d_inlets.LongQ`
+.. |sw1d_network.combine_channels| replace:: :const:`~hydpy.models.sw1d_network.combine_channels`
+.. |sw1d_outlets.LongQ| replace:: :class:`~hydpy.models.sw1d.sw1d_outlets.LongQ`
+.. |sw1d_senders.WaterLevel| replace:: :class:`~hydpy.models.sw1d.sw1d_senders.WaterLevel`
+.. |wq_model.Calc_WaterDepth_V2| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WaterDepth_V2`
+
+.. _sw1d_channel:
+
+sw1d_channel
+============
+
+.. automodule:: hydpy.models.sw1d_channel
+    :members:
+    :show-inheritance:
+    :exclude-members: is_typeddict, Writer, OutletSequences, MutableMapping, ContextManager, ParamSpecArgs, FULL_ODE_METHODS, disjoint_base, NotRequired, Text, UPDATEDSEQUENCES, SupportsComplex, Set, override, fastaccess_new, List, final, SENDER_METHODS, SOLVERPARAMETERS, SupportsBytes, BinaryIO, TypeIs, SupportsIndex, Coroutine, TypeForm, Type, SenderSequences, ReceiverSequences, ValuesView, CLASSES, OrderedDict, TypedDict, overload, Sentinel, SUBMODELINTERFACES, LogSequences, INTERFACE_METHODS, SupportsFloat, Collection, Optional, InletSequences, Sequence, TypeAliasType, ItemsView, reveal_type, FIXEDPARAMETERS, Iterable, SupportsAbs, no_type_check_decorator, ObserverSequences, Counter, Never, LiteralString, Annotated, ReadOnly, NamedTuple, SUBMETHODS, DERIVEDPARAMETERS, TypeVar, get_type_hints, SOLVERSEQUENCES, fastaccess_old, MutableSet, Format, Concatenate, AsyncGenerator, Mapping, get_args, fastaccess, INLET_METHODS, IO, get_protocol_members, Generator, pars, seqs, ForwardRef, subvars, SUBMODELS, Iterator, get_annotations, runtime_checkable, AsyncIterable, ClassVar, Any, runtime, AideSequences, TypeGuard, Unpack, AbstractSet, Container, ByteString, KeysView, ChainMap, assert_type, Generic, OUTLET_METHODS, Sized, get_original_bases, Protocol, RESULTSEQUENCES, Reversible, Pattern, TypeVarTuple, NoReturn, get_origin, NoExtraItems, RECEIVER_METHODS, MappingView, evaluate_forward_ref, CONTROLPARAMETERS, Awaitable, InputSequences, Final, IntVar, REQUIREDSEQUENCES, ParamSpec, AsyncIterator, Deque, subpars, Buffer, type_repr, PART_ODE_METHODS, SupportsInt, Literal, StateSequences, NoDefault, subseqs, is_protocol, CapsuleType, get_overloads, DefaultDict, Match, Callable, no_type_check, FrozenSet, ADD_METHODS, Self, NewType, Hashable, SupportsRound, ParamSpecKwargs, Dict, Reader, clear_overloads, MutableSequence, TypeAlias, TYPE_CHECKING, RUN_METHODS, Required, AnyStr, Tuple, dataclass_transform, Doc, assert_never, Union, cast, TextIO, AsyncContextManager, deprecated

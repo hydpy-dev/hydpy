@@ -1,0 +1,29 @@
+.. |Calc_QAR_V1| replace:: :class:`~hydpy.models.arma.arma_model.Calc_QAR_V1`
+.. |Calc_QMA_V1| replace:: :class:`~hydpy.models.arma.arma_model.Calc_QMA_V1`
+.. |Calc_QOut_V1| replace:: :class:`~hydpy.models.arma.arma_model.Calc_QOut_V1`
+.. |Calc_QPIn_V1| replace:: :class:`~hydpy.models.arma.arma_model.Calc_QPIn_V1`
+.. |Calc_QPOut_V1| replace:: :class:`~hydpy.models.arma.arma_model.Calc_QPOut_V1`
+.. |LogIn| replace:: :class:`~hydpy.models.arma.arma_logs.LogIn`
+.. |LogOut| replace:: :class:`~hydpy.models.arma.arma_logs.LogOut`
+.. |MaxQ| replace:: :class:`~hydpy.models.arma.arma_derived.MaxQ`
+.. |QAR| replace:: :class:`~hydpy.models.arma.arma_fluxes.QAR`
+.. |QMA| replace:: :class:`~hydpy.models.arma.arma_fluxes.QMA`
+.. |QPIn| replace:: :class:`~hydpy.models.arma.arma_fluxes.QPIn`
+.. |QPOut| replace:: :class:`~hydpy.models.arma.arma_fluxes.QPOut`
+.. |Responses| replace:: :class:`~hydpy.models.arma.arma_control.Responses`
+.. |Update_LogIn_V1| replace:: :class:`~hydpy.models.arma.arma_model.Update_LogIn_V1`
+.. |Update_LogOut_V1| replace:: :class:`~hydpy.models.arma.arma_model.Update_LogOut_V1`
+.. |arma.DOCNAME.complete| replace:: HydPy-ARMA (base model)
+.. |arma| replace:: :mod:`~hydpy.models.arma`
+.. |dir| replace:: :func:`dir`
+.. |iuhtools| replace:: :mod:`~hydpy.auxs.iuhtools`
+
+.. _arma:
+
+arma
+====
+
+.. automodule:: hydpy.models.arma
+    :members:
+    :show-inheritance:
+    :exclude-members: is_typeddict, Writer, MutableMapping, ContextManager, ParamSpecArgs, FULL_ODE_METHODS, disjoint_base, NotRequired, Text, UPDATEDSEQUENCES, SupportsComplex, Set, override, fastaccess_new, List, final, SENDER_METHODS, SOLVERPARAMETERS, SupportsBytes, BinaryIO, TypeIs, SupportsIndex, Coroutine, TypeForm, Type, SenderSequences, ReceiverSequences, ValuesView, CLASSES, OrderedDict, TypedDict, overload, Sentinel, SUBMODELINTERFACES, INTERFACE_METHODS, SupportsFloat, Collection, Optional, Sequence, TypeAliasType, ItemsView, reveal_type, FIXEDPARAMETERS, Iterable, SupportsAbs, no_type_check_decorator, ObserverSequences, Counter, Never, LiteralString, Annotated, ReadOnly, NamedTuple, SUBMETHODS, DERIVEDPARAMETERS, TypeVar, get_type_hints, SOLVERSEQUENCES, fastaccess_old, MutableSet, Format, Concatenate, AsyncGenerator, Mapping, get_args, fastaccess, INLET_METHODS, IO, get_protocol_members, Generator, pars, seqs, ForwardRef, subvars, SUBMODELS, Iterator, get_annotations, runtime_checkable, AsyncIterable, ClassVar, Any, runtime, AideSequences, TypeGuard, Unpack, AbstractSet, Container, ByteString, KeysView, ChainMap, assert_type, Generic, OUTLET_METHODS, Sized, get_original_bases, Protocol, RESULTSEQUENCES, Reversible, Pattern, TypeVarTuple, NoReturn, get_origin, NoExtraItems, RECEIVER_METHODS, MappingView, evaluate_forward_ref, CONTROLPARAMETERS, Awaitable, InputSequences, Final, IntVar, REQUIREDSEQUENCES, ParamSpec, AsyncIterator, Deque, subpars, Buffer, type_repr, PART_ODE_METHODS, SupportsInt, Literal, StateSequences, NoDefault, subseqs, is_protocol, CapsuleType, get_overloads, DefaultDict, Match, Callable, no_type_check, FrozenSet, ADD_METHODS, Self, FactorSequences, NewType, Hashable, SupportsRound, ParamSpecKwargs, Dict, Reader, clear_overloads, MutableSequence, TypeAlias, TYPE_CHECKING, RUN_METHODS, Required, AnyStr, Tuple, dataclass_transform, Doc, assert_never, Union, cast, TextIO, AsyncContextManager, deprecated

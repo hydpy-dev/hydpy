@@ -1,0 +1,45 @@
+.. |ActualConstant| replace:: :class:`~hydpy.models.conv.conv_fluxes.ActualConstant`
+.. |ActualFactor| replace:: :class:`~hydpy.models.conv.conv_fluxes.ActualFactor`
+.. |Calc_ActualConstant_ActualFactor_V1| replace:: :class:`~hydpy.models.conv.conv_model.Calc_ActualConstant_ActualFactor_V1`
+.. |Calc_Outputs_V1| replace:: :class:`~hydpy.models.conv.conv_model.Calc_Outputs_V1`
+.. |Calc_Outputs_V2| replace:: :class:`~hydpy.models.conv.conv_model.Calc_Outputs_V2`
+.. |Coordinates.nodes| replace:: :attr:`~hydpy.models.conv.conv_control.Coordinates.nodes`
+.. |Coordinates| replace:: :class:`~hydpy.models.conv.conv_control.Coordinates`
+.. |DefaultConstant| replace:: :class:`~hydpy.models.conv.conv_control.DefaultConstant`
+.. |DefaultFactor| replace:: :class:`~hydpy.models.conv.conv_control.DefaultFactor`
+.. |Distances| replace:: :class:`~hydpy.models.conv.conv_derived.Distances`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Heights.nodes| replace:: :attr:`~hydpy.models.conv.conv_control.Heights.nodes`
+.. |Heights| replace:: :class:`~hydpy.models.conv.conv_control.Heights`
+.. |InletSequence| replace:: :class:`~hydpy.core.sequencetools.InletSequence`
+.. |InputCoordinates| replace:: :class:`~hydpy.models.conv.conv_control.InputCoordinates`
+.. |InputHeights| replace:: :class:`~hydpy.models.conv.conv_control.InputHeights`
+.. |MaxNmbInputs| replace:: :class:`~hydpy.models.conv.conv_control.MaxNmbInputs`
+.. |MinNmbInputs| replace:: :class:`~hydpy.models.conv.conv_control.MinNmbInputs`
+.. |NmbInputs.update| replace:: :func:`~hydpy.models.conv.conv_derived.NmbInputs.update`
+.. |NmbOutputs.update| replace:: :func:`~hydpy.models.conv.conv_derived.NmbOutputs.update`
+.. |Node.deploymode| replace:: :const:`~hydpy.core.devicetools.Node.deploymode`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |OutletSequence| replace:: :class:`~hydpy.core.sequencetools.OutletSequence`
+.. |OutputCoordinates| replace:: :class:`~hydpy.models.conv.conv_control.OutputCoordinates`
+.. |OutputHeights| replace:: :class:`~hydpy.models.conv.conv_control.OutputHeights`
+.. |Power| replace:: :class:`~hydpy.models.conv.conv_control.Power`
+.. |ProximityOrder| replace:: :class:`~hydpy.models.conv.conv_derived.ProximityOrder`
+.. |Return_Mean_V1| replace:: :class:`~hydpy.models.conv.conv_model.Return_Mean_V1`
+.. |Weights| replace:: :class:`~hydpy.models.conv.conv_derived.Weights`
+.. |conv| replace:: :mod:`~hydpy.models.conv`
+.. |conv_fluxes.Inputs| replace:: :class:`~hydpy.models.conv.conv_fluxes.Inputs`
+.. |conv_fluxes.Outputs| replace:: :class:`~hydpy.models.conv.conv_fluxes.Outputs`
+.. |conv_model.Model| replace:: :class:`~hydpy.models.conv.conv_model.Model`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _conv:
+
+conv
+====
+
+.. automodule:: hydpy.models.conv
+    :members:
+    :show-inheritance:
+    :exclude-members: Self, Reversible, Generic, Sized, Awaitable, IntVar, clear_overloads, TypeAlias, Sequence, Hashable, SenderSequences, SUBMETHODS, SupportsAbs, AnyStr, assert_never, InputSequences, reveal_type, CLASSES, REQUIREDSEQUENCES, ItemsView, Union, SupportsFloat, get_overloads, get_origin, OUTLET_METHODS, NoReturn, no_type_check, Type, Final, PART_ODE_METHODS, RECEIVER_METHODS, Tuple, AbstractSet, ByteString, MappingView, subpars, MutableSequence, MutableSet, SupportsRound, CONTROLPARAMETERS, INLET_METHODS, get_protocol_members, SOLVERSEQUENCES, FrozenSet, no_type_check_decorator, fastaccess_old, Mapping, FIXEDPARAMETERS, seqs, KeysView, SUBMODELS, Protocol, SupportsComplex, SENDER_METHODS, ContextManager, deprecated, SupportsBytes, get_original_bases, Iterator, is_protocol, TypeGuard, DefaultDict, LiteralString, Required, TextIO, TYPE_CHECKING, AsyncContextManager, fastaccess_new, FULL_ODE_METHODS, SOLVERPARAMETERS, BinaryIO, fastaccess, runtime, IO, Text, TypeVarTuple, ValuesView, AsyncIterable, Generator, Optional, assert_type, Literal, dataclass_transform, subvars, pars, get_args, ParamSpec, Annotated, cast, final, subseqs, ClassVar, Any, Unpack, Coroutine, is_typeddict, Counter, UPDATEDSEQUENCES, Callable, Dict, NamedTuple, overload, OrderedDict, Set, ADD_METHODS, AideSequences, Collection, Pattern, List, get_type_hints, Concatenate, ParamSpecKwargs, DERIVEDPARAMETERS, AsyncGenerator, override, Container, RUN_METHODS, NotRequired, NewType, RESULTSEQUENCES, SupportsInt, Buffer, StateSequences, Iterable, TypeVar, SupportsIndex, MutableMapping, ChainMap, FactorSequences, ForwardRef, TypeAliasType, AsyncIterator, Never, ParamSpecArgs, Match, LogSequences, Deque, TypedDict, ReceiverSequences, runtime_checkable

@@ -1,0 +1,30 @@
+.. |Adjust_Inflow_V1| replace:: :class:`~hydpy.models.musk.musk_model.Adjust_Inflow_V1`
+.. |Calc_Discharge_V2| replace:: :class:`~hydpy.models.musk.musk_model.Calc_Discharge_V2`
+.. |Calc_ReferenceDischarge_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReferenceDischarge_V1`
+.. |Calc_ReferenceWaterDepth_V1| replace:: :class:`~hydpy.models.musk.musk_model.Calc_ReferenceWaterDepth_V1`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.musk_mct.Model.check_waterbalance`
+.. |Model.prepare_states| replace:: :func:`~hydpy.models.musk_mct.Model.prepare_states`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |Pegasus| replace:: :class:`~hydpy.auxs.roottools.Pegasus`
+.. |RunModel.RUN_METHODS| replace:: :attr:`~hydpy.core.modeltools.RunModel.RUN_METHODS`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |ToleranceDischarge.modify_init| replace:: :func:`~hydpy.models.musk.musk_solver.ToleranceDischarge.modify_init`
+.. |ToleranceDischarge| replace:: :class:`~hydpy.models.musk.musk_solver.ToleranceDischarge`
+.. |musk.DOCNAME.long| replace:: HydPy-Musk
+.. |musk_mct.DOCNAME.complete| replace:: HydPy-Musk-MCT (Muskingum-Cunge-Todini routing)
+.. |musk_mct| replace:: :mod:`~hydpy.models.musk_mct`
+.. |wq_trapeze_strickler| replace:: :mod:`~hydpy.models.wq_trapeze_strickler`
+.. |musk_mct.NmbRuns| replace:: :class:`~hydpy.models.musk_mct.NmbRuns`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _musk_mct:
+
+musk_mct
+========
+
+.. automodule:: hydpy.models.musk_mct
+    :members:
+    :show-inheritance:
+    :exclude-members: is_typeddict, Writer, MutableMapping, ContextManager, ParamSpecArgs, FULL_ODE_METHODS, disjoint_base, NotRequired, Text, UPDATEDSEQUENCES, SupportsComplex, Set, override, fastaccess_new, List, final, SENDER_METHODS, SOLVERPARAMETERS, SupportsBytes, BinaryIO, TypeIs, SupportsIndex, Coroutine, TypeForm, Type, SenderSequences, ReceiverSequences, ValuesView, CLASSES, OrderedDict, TypedDict, overload, Sentinel, SUBMODELINTERFACES, LogSequences, INTERFACE_METHODS, SupportsFloat, Collection, Optional, Sequence, TypeAliasType, ItemsView, reveal_type, FIXEDPARAMETERS, Iterable, SupportsAbs, no_type_check_decorator, ObserverSequences, Counter, Never, LiteralString, Annotated, ReadOnly, NamedTuple, SUBMETHODS, DERIVEDPARAMETERS, TypeVar, get_type_hints, SOLVERSEQUENCES, fastaccess_old, MutableSet, Format, Concatenate, AsyncGenerator, Mapping, get_args, fastaccess, INLET_METHODS, IO, get_protocol_members, Generator, pars, seqs, ForwardRef, subvars, SUBMODELS, Iterator, get_annotations, runtime_checkable, AsyncIterable, ClassVar, Any, runtime, AideSequences, TypeGuard, Unpack, AbstractSet, Container, ByteString, KeysView, ChainMap, assert_type, Generic, OUTLET_METHODS, Sized, get_original_bases, Protocol, RESULTSEQUENCES, Reversible, Pattern, TypeVarTuple, NoReturn, get_origin, NoExtraItems, RECEIVER_METHODS, MappingView, evaluate_forward_ref, CONTROLPARAMETERS, Awaitable, InputSequences, Final, IntVar, REQUIREDSEQUENCES, ParamSpec, AsyncIterator, Deque, subpars, Buffer, type_repr, PART_ODE_METHODS, SupportsInt, Literal, NoDefault, subseqs, is_protocol, CapsuleType, get_overloads, DefaultDict, Match, Callable, no_type_check, FrozenSet, ADD_METHODS, Self, NewType, Hashable, SupportsRound, ParamSpecKwargs, Dict, Reader, clear_overloads, MutableSequence, TypeAlias, TYPE_CHECKING, RUN_METHODS, Required, AnyStr, Tuple, dataclass_transform, Doc, assert_never, Union, cast, TextIO, AsyncContextManager, deprecated

@@ -304,6 +304,7 @@ def prepare_arrays(
     obs: VectorInputFloat | None = None,
     node: devicetools.Node | None = None,
     skip_nan: bool = False,
+    skip_notpositive: bool = False,
     subperiod: bool | None = None,
 ) -> SimObs:
     """Prepare and return two |numpy| arrays based on the given arguments.
@@ -348,11 +349,31 @@ def prepare_arrays(
     >>> round_(arrays.obs)
     4.0, 5.0, nan, nan, nan, 6.0
 
-    The optional `skip_nan` flag allows skipping all values, which are no numbers.
+    The optional `skip_nan` flag allows skipping all values, which are not numbers.
     Note that |prepare_arrays| returns only those pairs of `simulated` and `observed`
     values that do not contain any `nan` value:
 
     >>> arrays = prepare_arrays(node=node, skip_nan=True)
+    >>> round_(arrays.sim)
+    1.0, 3.0
+    >>> round_(arrays.obs)
+    4.0, 6.0
+
+    Additionally, you can use the `skip_notpositive` option to filter out zero and
+    negative values:
+
+    >>> with pub.options.checkseries(False):
+    ...     node.sequences.sim.series = 1.0, 0.0, nan, -1.0, 2.0, 3.0
+    ...     node.sequences.obs.series = 4.0, 5.0, nan, -2.0, 0.0, 6.0
+    >>> arrays = prepare_arrays(node=node, skip_notpositive=True)
+    >>> round_(arrays.sim)
+    1.0, nan, 3.0
+    >>> round_(arrays.obs)
+    4.0, nan, 6.0
+
+    You can even combine `skip_nan` and `skip_notpositive`:
+
+    >>> arrays = prepare_arrays(node=node, skip_notpositive=True, skip_nan=True)
     >>> round_(arrays.sim)
     1.0, 3.0
     >>> round_(arrays.obs)
@@ -365,9 +386,9 @@ def prepare_arrays(
     >>> pub.timegrids.eval_.dates = "02.01.2000", "06.01.2000"
     >>> arrays = prepare_arrays(node=node)
     >>> round_(arrays.sim)
-    nan, nan, nan, 2.0
+    0.0, nan, -1.0, 2.0
     >>> round_(arrays.obs)
-    5.0, nan, nan, nan
+    5.0, nan, -2.0, 0.0
 
     Suppose one instead passes the simulation and observation time series directly
     (which possibly fit the evaluation period already).  In that case, function
@@ -375,23 +396,23 @@ def prepare_arrays(
 
     >>> arrays = prepare_arrays(sim=arrays.sim, obs=arrays.obs)
     >>> round_(arrays.sim)
-    nan, nan, nan, 2.0
+    0.0, nan, -1.0, 2.0
     >>> round_(arrays.obs)
-    5.0, nan, nan, nan
+    5.0, nan, -2.0, 0.0
 
     Use the `subperiod` argument to deviate from the default behaviour:
 
     >>> arrays = prepare_arrays(node=node, subperiod=False)
     >>> round_(arrays.sim)
-    1.0, nan, nan, nan, 2.0, 3.0
+    1.0, 0.0, nan, -1.0, 2.0, 3.0
     >>> round_(arrays.obs)
-    4.0, 5.0, nan, nan, nan, 6.0
+    4.0, 5.0, nan, -2.0, 0.0, 6.0
 
     >>> arrays = prepare_arrays(sim=arrays.sim, obs=arrays.obs, subperiod=True)
     >>> round_(arrays.sim)
-    nan, nan, nan, 2.0
+    0.0, nan, -1.0, 2.0
     >>> round_(arrays.obs)
-    5.0, nan, nan, nan
+    5.0, nan, -2.0, 0.0
 
     The final examples show the error messages returned in case of invalid combinations
     of input arguments:
@@ -461,7 +482,11 @@ allowed.
         sim_ = sim_[idx0:idx1]
         obs_ = obs_[idx0:idx1]
     if skip_nan:
-        idxs = ~numpy.isnan(sim_) * ~numpy.isnan(obs_)
+        idxs = numpy.logical_not(numpy.logical_or(numpy.isnan(sim_), numpy.isnan(obs_)))
+        sim_ = sim_[idxs]
+        obs_ = obs_[idxs]
+    if skip_notpositive:
+        idxs = numpy.logical_not(numpy.logical_or(sim_ <= 0.0, obs_ <= 0.0))
         sim_ = sim_[idxs]
         obs_ = obs_[idxs]
     return SimObs(sim=sim_, obs=obs_)

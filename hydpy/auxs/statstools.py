@@ -625,6 +625,7 @@ def nse_log(
     sim: VectorInputFloat,
     obs: VectorInputFloat,
     skip_nan: bool = False,
+    skip_notpositive: bool = False,
     subperiod: bool = False,
 ) -> float:
     """node as argument"""
@@ -632,7 +633,11 @@ def nse_log(
 
 @overload
 def nse_log(
-    *, node: devicetools.Node, skip_nan: bool = False, subperiod: bool = True
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    skip_notpositive: bool = False,
+    subperiod: bool = True,
 ) -> float:
     """sim and obs as arguments"""
 
@@ -644,13 +649,13 @@ def nse_log(
     obs: VectorInputFloat | None = None,
     node: devicetools.Node | None = None,
     skip_nan: bool = False,
+    skip_notpositive: bool = False,
     subperiod: bool | None = None,
 ) -> float:
     """Calculate the efficiency criteria after Nash & Sutcliffe for logarithmic values.
 
-    The following calculations repeat the ones of the documentation on function |nse|
-    but with exponentiated values.  Hence, the results are similar or, as in the first
-    and the last example, even identical:
+    The following calculations replicate those in the documentation for the |nse|
+    function, but with exponentiated values.  Hence, the results are identical:
 
     >>> from hydpy import nse_log, round_
     >>> from numpy import exp
@@ -659,27 +664,46 @@ def nse_log(
     >>> round_(nse_log(sim=exp([0.0, 2.0, 4.0]), obs=exp([1.0, 2.0, 3.0])))
     0.0
 
-    >>> round_(nse(sim=exp([3.0, 2.0, 1.0]), obs=exp([1.0, 2.0, 3.0])))
-    -2.734185
-    >>> round_(nse(sim=exp([1.0, 2.0, 2.0]), obs=exp([1.0, 2.0, 3.0])))
-    0.002139
+    >>> round_(nse_log(sim=exp([3.0, 2.0, 1.0]), obs=exp([1.0, 2.0, 3.0])))
+    -3.0
+    >>> round_(nse_log(sim=exp([1.0, 2.0, 2.0]), obs=exp([1.0, 2.0, 3.0])))
+    0.5
 
-    >>> round_(nse(sim=exp([1.0, 2.0, 3.0]), obs=exp([1.0, 2.0, 3.0])))
+    >>> round_(nse_log(sim=exp([1.0, 2.0, 3.0]), obs=exp([1.0, 2.0, 3.0])))
+    1.0
+
+    Zero and negative values can prevent the successful application of |nse_log|:
+
+    >>> import warnings
+    >>> with warnings.catch_warnings(action="ignore"):
+    ...     round_(nse_log(sim=[-1.0, 1.0, 2.0, 3.0], obs=[1.0, 0.0, 1.0, 2.0]))
+    nan
+
+    You may want to activate the `skip_notpositive` option in such cases:
+
+    >>> round_(
+    ...     nse_log(
+    ...         sim=[-1.0, 1.0, 2.0, 3.0],
+    ...         obs=[1.0, 0.0, 2.0, 3.0],
+    ...         skip_notpositive=True,
+    ...     )
+    ... )
     1.0
 
     See the documentation on function |prepare_arrays| for some additional instructions
     for using |nse_log|.
     """
     sim_, obs_ = prepare_arrays(
-        sim=sim, obs=obs, node=node, skip_nan=skip_nan, subperiod=subperiod
+        sim=sim,
+        obs=obs,
+        node=node,
+        skip_nan=skip_nan,
+        skip_notpositive=skip_notpositive,
+        subperiod=subperiod,
     )
     del sim, obs
-    return cast(
-        float,
-        1.0
-        - numpy.sum((numpy.log(sim_) - numpy.log(obs_)) ** 2)
-        / numpy.sum((numpy.log(obs_) - numpy.mean(numpy.log(obs_))) ** 2),
-    )
+    sim_, obs_ = numpy.log(sim_), numpy.log(obs_)
+    return nse(sim=sim_, obs=obs_, skip_nan=False, subperiod=False)
 
 
 @overload

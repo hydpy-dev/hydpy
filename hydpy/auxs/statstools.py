@@ -769,6 +769,96 @@ def fdc_nse(
 
 
 @overload
+def fdc_nse_log(
+    *,
+    sim: VectorInputFloat,
+    obs: VectorInputFloat,
+    skip_nan: bool = False,
+    skip_notpositive: bool = False,
+    subperiod: bool = False,
+) -> float:
+    """node as argument"""
+
+
+@overload
+def fdc_nse_log(
+    *,
+    node: devicetools.Node,
+    skip_nan: bool = False,
+    skip_notpositive: bool = False,
+    subperiod: bool = True,
+) -> float:
+    """sim and obs as arguments"""
+
+
+@objecttools.excmessage_decorator(
+    "calculate the logarithmic flow duration curve Nash-Sutcliffe efficiency"
+)
+def fdc_nse_log(
+    *,
+    sim: VectorInputFloat | None = None,
+    obs: VectorInputFloat | None = None,
+    node: devicetools.Node | None = None,
+    skip_nan: bool = False,
+    skip_notpositive: bool = False,
+    subperiod: bool | None = None,
+) -> float:
+    """Calculate the efficiency criteria after Nash & Sutcliffe based on sorted
+    logarithmic simulation and observation data (such as when comparing logarithmic
+    flow duration curves).
+
+    The following calculations replicate those in the documentation for the |fdc_nse|
+    function, but with exponentiated values.  Hence, the results are identical:
+
+    >>> from hydpy import fdc_nse_log, round_
+    >>> from numpy import exp
+    >>> round_(fdc_nse_log(sim=exp([3.0, 2.0, 1.0]), obs=exp([1.0, 2.0, 3.0])))
+    1.0
+
+    >>> round_(fdc_nse_log(sim=exp([2.0, 2.0, 2.0]), obs=exp([1.0, 2.0, 3.0])))
+    0.0
+    >>> round_(fdc_nse_log(sim=exp([0.0, 2.0, 4.0]), obs=exp([1.0, 2.0, 3.0])))
+    0.0
+    >>> round_(fdc_nse_log(sim=exp([1.0, 4.0, 5.0]), obs=exp([1.0, 2.0, 3.0])))
+    -3.0
+    >>> round_(fdc_nse_log(sim=exp([1.0, 2.0, 2.0]), obs=exp([1.0, 2.0, 3.0])))
+    0.5
+
+    Zero and negative values can prevent the successful application of |fdc_nse_log|:
+
+    >>> import warnings
+    >>> with warnings.catch_warnings(action="ignore"):
+    ...     round_(fdc_nse_log(sim=[-1.0, 1.0, 2.0, 3.0], obs=[1.0, 0.0, 1.0, 2.0]))
+    nan
+
+    You may want to activate the `skip_notpositive` option in such cases:
+
+    >>> round_(
+    ...     fdc_nse_log(
+    ...         sim=[-1.0, 1.0, 2.0, 3.0],
+    ...         obs=[1.0, 0.0, 2.0, 3.0],
+    ...         skip_notpositive=True,
+    ...     )
+    ... )
+    1.0
+
+    See the documentation on function |prepare_arrays| for additional instructions on
+    using |fdc_nse_log|.
+    """
+    sim_, obs_ = prepare_arrays(
+        sim=sim,
+        obs=obs,
+        node=node,
+        skip_nan=skip_nan,
+        skip_notpositive=skip_notpositive,
+        subperiod=subperiod,
+    )
+    del sim, obs
+    sim_, obs_ = numpy.sort(sim_), numpy.sort(obs_)
+    return nse_log(sim=sim_, obs=obs_, skip_nan=False, subperiod=False)
+
+
+@overload
 def corr2(
     *,
     sim: VectorInputFloat,

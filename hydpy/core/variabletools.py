@@ -1144,7 +1144,8 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
             args = args[0]
         self.values = args
 
-    def _get_value(self):
+    @property
+    def value(self):
         """The actual parameter or sequence value(s).
 
         First, we prepare a simple (not fully functional) |Variable| subclass:
@@ -1265,7 +1266,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
             )
         return value
 
-    def _set_value(self, value) -> None:
+    @value.setter
+    def value(self, value) -> None:
         try:
             value = self._prepare_setvalue(value)
             setattr(self.fastaccess, self.name, value)
@@ -1314,16 +1316,14 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
                 ) from None
         return value
 
-    value = property(fget=_get_value, fset=_set_value)
-
     @property
     def values(self):
         """Alias for |Variable.value|."""
-        return self._get_value()
+        return self.value
 
     @values.setter
     def values(self, values):
-        self._set_value(values)
+        self.value = values
 
     def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
@@ -1978,10 +1978,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def _do_math(self, other, methodname, description):
         try:
-            if hasattr(type(other), "_get_value"):
-                value = other.value
-            else:
-                value = other
+            value = other.value if isinstance(other, Variable) else other
             result = getattr(self.value, methodname)(value)
             if (result is NotImplemented) and (not self.NDIM) and (self.TYPE is int):
                 result = getattr(float(self.value), methodname)(value)
@@ -2102,19 +2099,16 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         callingfunc: Literal["lt", "le", "eq", "ne", "ge", "gt"],
     ) -> bool:
         try:
-            vs1 = self._get_value()
-            if isinstance(other, Variable):
-                vs2 = other._get_value()  # pylint: disable=protected-access
-            else:
-                vs2 = numpy.asarray(other)
+            v1 = self.value
+            v2 = other.value if isinstance(other, Variable) else numpy.asarray(other)
             if self.NDIM == 0:
-                if numpy.isnan(vs1) and bool(numpy.isnan(vs2)):
+                if numpy.isnan(v1) and bool(numpy.isnan(v2)):
                     if callingfunc in ("le", "eq", "ge"):
                         return True
                     return False
-                return comparefunc(vs1, vs2)
+                return comparefunc(v1, v2)
             try:
-                idxs = ~(numpy.isnan(vs1) * numpy.isnan(vs2))
+                idxs = ~(numpy.isnan(v1) * numpy.isnan(v2))
             except BaseException as exc:
                 if callingfunc == "eq":
                     return False
@@ -2125,7 +2119,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 if callingfunc in ("le", "eq", "ge"):
                     return True
                 return False
-            return comparefunc(vs1, vs2)[idxs]
+            return comparefunc(v1, v2)[idxs]
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to compare variable {objecttools.elementphrase(self)} "
@@ -2510,7 +2504,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
         if variable is None:
             super().__setattr__(name, value)
         else:
-            variable._set_value(value)
+            variable.value = value
 
     def __iter__(self) -> Iterator[TypeVariable_co]:
         yield from self._name2variable.values()

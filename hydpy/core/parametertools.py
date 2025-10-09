@@ -1577,7 +1577,7 @@ parameter and a simulation time step size first.
 
     def _update_newbie(self, *, value: float, version: str) -> None:
         if not exceptiontools.attrready(self, "value"):
-            self._set_value(value)
+            self.value = value
             warnings.warn(
                 f"The value of parameter `{self.name}` (introduced in HydPy "
                 f"{version}), has not been explicitly defined and is automatically "
@@ -2029,7 +2029,7 @@ valid.
         landtype(SOIL, WATER, 3, GLACIER)
         """
         if hydpy.pub.options.trimvariables:
-            if any(value not in self._possible_values for value in self._get_value()):
+            if any(value not in self._possible_values for value in self.value):
                 raise ValueError(
                     f"At least one value of parameter "
                     f"{objecttools.elementphrase(self)} is not valid."
@@ -2346,8 +2346,8 @@ index parameter.
 
     def _own_call(self, kwargs: dict[str, Any]) -> None:
         mask = self.mask
-        self._set_value(numpy.nan)
-        values = self._get_value()
+        self.value = numpy.nan
+        values = self.value
         allidxs = mask.refindices.values
         relidxs = mask.narrow_relevant(relevant=self.relevant)
         counter = 0
@@ -2830,16 +2830,16 @@ broadcast input array from shape (2,) into shape (366,3)
         """
         toy2values = self._toy2values_unprotected
         if not toy2values:
-            self._set_value(0.0)
+            self.value = 0.0
         elif len(self) == 1:
             self.values[:] = self.apply_timefactor(toy2values[0][1])
         else:
             centred = timetools.TOY.centred_timegrid()
-            values = self._get_value()
+            values = self.value
             for idx, (date, rel) in enumerate(zip(*centred)):
                 values[idx] = self.interp(date) if rel else numpy.nan
             values = self.apply_timefactor(values)
-            self._set_value(values)
+            self.value = values
         self.trim()
 
     def interp(self, date: timetools.Date) -> float:
@@ -4782,19 +4782,19 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
         self._has_callback = False
         self._init_callback()
 
-    def _get_value(self):
+    @property
+    def value(self):
         """The fixed value or the value last updated by the callback function."""
         if self._has_callback:
             self.callback(self.subpars.pars.model)
             self._valueready = True
-        return super()._get_value()
+        return super().value
 
-    def _set_value(self, value) -> None:
+    @value.setter
+    def value(self, value) -> None:
         self._init_callback()
         self._has_callback = False
-        super()._set_value(value)
-
-    value = property(fget=_get_value, fset=_set_value)
+        Parameter.value.fset(self, value)  # type: ignore[attr-defined]
 
     def __repr__(self) -> str:
         if self._has_callback:

@@ -101,11 +101,11 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
                 f"{shape} value(s)."
             )
         super().__call__(*args, **kwargs)
-        if min(numpy.diff(self._get_value())) <= 0.0:
+        if min(numpy.diff(self.value)) <= 0.0:
             raise ValueError(
                 f"The values of parameter {objecttools.elementphrase(self)} must be "
                 f"arranged strictly monotonously, which is not the case for the given "
-                f"values `{objecttools.enumeration(self._get_value())}`."
+                f"values `{objecttools.enumeration(self.value)}`."
             )
 
 
@@ -255,7 +255,7 @@ sequence and connect it to the respective outlet nodes properly.
         try:
             names = self.subpars.pars.model.nodenames
             lines = []
-            for idx, (name, values) in enumerate(zip(names, self._get_value())):
+            for idx, (name, values) in enumerate(zip(names, self.value)):
                 line = f"{name}={objecttools.repr_list(values)},"
                 if not idx:
                     lines.append(f"ypoints({line}")

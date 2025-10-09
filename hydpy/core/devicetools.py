@@ -2517,7 +2517,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         >>> figure = lahn_marb.plot_allseries(stepsize="quaterly")
         Traceback (most recent call last):
         ...
-        ValueError: While trying to plot the time series of sequence(s) obs and sim \
+        ValueError: While trying to plot the time series of the sequences obs and sim \
 of node `lahn_marb` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
 following error occurred: While trying to aggregate the given series, the following \
 error occurred: Argument `stepsize` received value `quaterly`, but only the following \
@@ -2529,8 +2529,8 @@ ones are supported: `monthly` (default), `daily`, and `yearly`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to plot the time \
-series of sequence(s) obs and sim of node `lahn_marb` , the following error occurred: \
-Attribute timegrids of module `pub` is not defined at the moment.
+series of the sequences obs and sim of node `lahn_marb`, the following error \
+occurred: Attribute timegrids of module `pub` is not defined at the moment.
         """
 
         t = TypeVar("t", str, int)
@@ -2625,33 +2625,233 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
                     ps.name = label_
-                kwargs = {"label": label_, "ax": pyplot.gca()}
-                if color is not None:
-                    kwargs["color"] = color
-                if linestyle is not None:
-                    kwargs["linestyle"] = linestyle
-                if linewidth is not None:
-                    kwargs["linewidth"] = linewidth
-                ps.plot(**kwargs)
+                kwargs = self._get_kwargs_for_plot(
+                    color=color, label=label_, linestyle=linestyle, linewidth=linewidth
+                )
+                ps.plot(ax=pyplot.gca(), **kwargs)
             pyplot.legend()
             if not focus:
                 pyplot.ylim((0.0, None))
             if pyplot.get_fignums():
-                if (variable := str(self.variable)) == "Q":
-                    variable = "Q [m³/s]"
-                pyplot.ylabel(variable)
+                pyplot.ylabel(self._ylabel)
             return pyplot.gcf()
         except BaseException:
-            if exceptiontools.attrready(hydpy.pub, "timegrids"):
-                tg = hydpy.pub.timegrids.eval_
-                periodstring = f"for the period `{tg.firstdate}` to `{tg.lastdate}`"
+            self._augment_plotexcmessage(sequences, plottype="time series")
+
+    def plot_alldurationcurves(
+        self,
+        *,
+        labels: tuple[str, str] | None = None,
+        colors: str | tuple[str, str] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, LineStyle] | None = None,
+        linewidths: int | tuple[int, int] | None = None,
+        logscale: bool = True,
+    ) -> pyplot.Figure:
+        """Plot the |IOSequence.evalseries| of both the |Sim| and the |Obs| sequence
+        in the form of a (flow) duration curve.
+
+        Method |Node.plot_alldurationcurves| works very similar to method
+        |Node.plot_allseries|.  Hence, we restrict the following examples to their key
+        differences.
+
+        We use the `Lahn` example project in the same way:
+
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
+        >>> hp.simulate()
+        >>> dill_assl = hp.nodes.dill_assl
+        >>> dill_assl.sequences.obs.series = dill_assl.sequences.sim.series + 10.0
+
+        By default, method |Node.plot_alldurationcurves| chooses a logarithmic y-scale
+        and the following graphical settings:
+
+        >>> figure = dill_assl.plot_alldurationcurves()
+        >>> from hydpy.core.testtools import save_autofig
+        >>> save_autofig("Node_plot_alldurationcurves_1.png", figure)
+
+        .. image:: Node_plot_alldurationcurves_1.png
+
+        Despite its option to disable the logarithmic y-scale, the configuration works
+        as for method |Node.plot_allseries|:
+
+        >>> figure = dill_assl.plot_alldurationcurves(
+        ...     labels=("observed", "simulated"),
+        ...     colors=("black", "green"),
+        ...     linestyles=":",
+        ...     linewidths=(1, 2),
+        ...     logscale=False,
+        ... )
+        >>> _ = figure.gca().set_title("Asslar (Dill)")
+        >>> figure.tight_layout()
+        >>> save_autofig("Node_plot_alldurationcurves_2.png", figure)
+
+        .. image:: Node_plot_alldurationcurves_2.png
+
+        Again, you can modify the considered period via the |Timegrids.eval_| time grid
+        and plot the different curves individually via methods
+        |Node.plot_obsdurationcurve| and |Node.plot_simdurationcurve| (in which case the
+        last method call decides whether the y-scale is logarithmic or linear):
+
+        >>> pub.timegrids.eval_.lastdate = "1996-06-01"
+        >>> figure = dill_assl.plot_obsdurationcurve()
+        >>> figure = dill_assl.plot_simdurationcurve(
+        ...     label="observed",
+        ...     color="green",
+        ...     linestyle=":",
+        ...     linewidth=2,
+        ...     logscale=False,
+        ... )
+        >>> save_autofig("Node_plot_alldurationcurves_3.png", figure)
+
+        .. image:: Node_plot_alldurationcurves_3.png
+
+        Misspecifications result in error messages like the following:
+
+        >>> dill_assl.plot_alldurationcurves(linestyles=".")
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to plot the duration curves of the sequences obs and \
+sim of node `dill_assl` for the period `1996-01-01 00:00:00` to `1996-06-01 00:00:00`, \
+the following error occurred: '.' is not a valid value for ls; supported values are \
+'-', '--', '-.', ':', 'None', ' ', '', 'solid', 'dashed', 'dashdot', 'dotted'
+        """
+
+        t = TypeVar("t", str, int)
+
+        def _make_tuple(
+            x: t | None | tuple[t | None, t | None],
+        ) -> tuple[t | None, t | None]:
+            return (x, x) if ((x is None) or isinstance(x, (str, int))) else x
+
+        return self._plot_durationcurves(
+            sequences=(self.sequences.obs, self.sequences.sim),
+            labels=_make_tuple(labels),
+            colors=_make_tuple(colors),
+            linestyles=_make_tuple(linestyles),
+            linewidths=_make_tuple(linewidths),
+            logscale=logscale,
+        )
+
+    def plot_simdurationcurve(
+        self,
+        *,
+        label: str | None = None,
+        color: str | None = None,
+        linestyle: LineStyle | None = None,
+        linewidth: int | None = None,
+        logscale: bool = True,
+    ) -> pyplot.Figure:
+        """Plot the |IOSequence.series| of the |Sim| sequence object.
+
+        See method |Node.plot_allseries| for further information.
+        """
+        return self._plot_durationcurves(
+            sequences=[self.sequences.sim],
+            labels=(label,),
+            colors=(color,),
+            linestyles=(linestyle,),
+            linewidths=(linewidth,),
+            logscale=logscale,
+        )
+
+    def plot_obsdurationcurve(
+        self,
+        *,
+        label: str | None = None,
+        color: str | None = None,
+        linestyle: LineStyle | None = None,
+        linewidth: int | None = None,
+        logscale: bool = True,
+    ) -> pyplot.Figure:
+        """Plot the duration curve of the |IOSequence.series| of the |Obs| sequence object.
+
+        See method |Node.plot_allseries| for further information.
+        """
+        return self._plot_durationcurves(
+            sequences=[self.sequences.obs],
+            labels=(label,),
+            colors=(color,),
+            linestyles=(linestyle,),
+            linewidths=(linewidth,),
+            logscale=logscale,
+        )
+
+    def _plot_durationcurves(
+        self,
+        *,
+        sequences: Sequence[sequencetools.IOSequence],
+        labels: Iterable[str | None],
+        colors: Iterable[str | None],
+        linestyles: Iterable[str | None],
+        linewidths: Iterable[int | None],
+        logscale: bool,
+    ) -> pyplot.Figure:
+        try:
+            fig = pyplot.gcf()
+            ax = fig.gca()
+            for sequence, label, color, linestyle, linewidth in zip(
+                sequences, labels, colors, linestyles, linewidths
+            ):
+                label = label or " ".join((self.name, sequence.name))
+                curve = numpy.sort(sequence.evalseries)[::-1]
+                curve = curve[~numpy.isnan(curve)]
+                n = len(curve)
+                xs = 100.0 * numpy.linspace(1.0 / n, 1.0 - 1.0 / n, n)
+                kwargs = self._get_kwargs_for_plot(
+                    color=color, label=label, linestyle=linestyle, linewidth=linewidth
+                )
+                ax.plot(xs, curve, **kwargs)  # type: ignore[arg-type]
+            if logscale:
+                ax.set_yscale("log")
             else:
-                periodstring = ""
-            objecttools.augment_excmessage(
-                f"While trying to plot the time series of sequence(s) "
-                f"{objecttools.enumeration(sequence.name for sequence in sequences)} "
-                f"of node `{objecttools.devicename(sequences[0])}` {periodstring}"
-            )
+                ax.set_yscale("linear")
+            ax.legend()
+            ax.set_xlabel("exceeding probability [%]")
+            ax.set_ylabel(self._ylabel)
+            fig.tight_layout()
+            return fig
+        except BaseException:
+            self._augment_plotexcmessage(sequences, plottype="duration curve")
+
+    def _get_kwargs_for_plot(
+        self,
+        label: str,
+        color: str | None,
+        linestyle: str | None,
+        linewidth: int | None,
+    ) -> dict[str, str | int]:
+        kwargs: dict[str, str | int] = {"label": label}
+        if color is not None:
+            kwargs["color"] = color
+        if linestyle is not None:
+            kwargs["linestyle"] = linestyle
+        if linewidth is not None:
+            kwargs["linewidth"] = linewidth
+        return kwargs
+
+    @property
+    def _ylabel(self) -> str:
+        ylabel = str(self.variable)
+        if ylabel == "Q":
+            return "Q [m³/s]"
+        return ylabel
+
+    def _augment_plotexcmessage(
+        self, sequences: Sequence[sequencetools.IOSequence], plottype: str
+    ) -> NoReturn:
+        if exceptiontools.attrready(hydpy.pub, "timegrids"):
+            tg = hydpy.pub.timegrids.eval_
+            periodstring = f" for the period `{tg.firstdate}` to `{tg.lastdate}`"
+        else:
+            periodstring = ""
+        p = inflect.engine()
+        n = len(sequences)
+        objecttools.augment_excmessage(
+            f"While trying to plot the {p.plural_noun(plottype, n)} of the "
+            f"{p.plural_noun('sequence', n)} "
+            f"{objecttools.enumeration(s.name for s in sequences)} of node "
+            f"`{objecttools.devicename(sequences[0])}`{periodstring}"
+        )
 
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""

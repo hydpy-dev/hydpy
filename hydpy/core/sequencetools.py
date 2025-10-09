@@ -3626,11 +3626,11 @@ not broadcast input array from shape (3,) into shape (2,)
         step.  It supports testing and debugging of individual |Model| methods but is
         typically irrelevant when scripting *HydPy* workflows.
         """
-        return super()._get_value()
+        return self.value
 
     @new.setter
     def new(self, value):
-        super()._set_value(value)
+        self.value = value
 
     @property
     def old(self):

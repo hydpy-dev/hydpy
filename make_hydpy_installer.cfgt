@@ -46,6 +46,7 @@ pypi_wheels =
 	pathspec==[auto]
 	colorama==[auto]
 	black==[auto]
+	pytokens==[auto]
 	cython==[auto]
 	inflect==[auto]
 	typeguard==[auto]

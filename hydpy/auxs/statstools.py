@@ -675,7 +675,8 @@ def nse_log(
     Zero and negative values can prevent the successful application of |nse_log|:
 
     >>> import warnings
-    >>> with warnings.catch_warnings(action="ignore"):
+    >>> with warnings.catch_warnings():
+    ...     warnings.filterwarnings("ignore")
     ...     round_(nse_log(sim=[-1.0, 1.0, 2.0, 3.0], obs=[1.0, 0.0, 1.0, 2.0]))
     nan
 
@@ -827,7 +828,8 @@ def fdc_nse_log(
     Zero and negative values can prevent the successful application of |fdc_nse_log|:
 
     >>> import warnings
-    >>> with warnings.catch_warnings(action="ignore"):
+    >>> with warnings.catch_warnings():
+    ...     warnings.filterwarnings("ignore")
     ...     round_(fdc_nse_log(sim=[-1.0, 1.0, 2.0, 3.0], obs=[1.0, 0.0, 1.0, 2.0]))
     nan
 

@@ -2832,6 +2832,13 @@ the following error occurred: '.' is not a valid value for ls; supported values 
 
     @property
     def _ylabel(self) -> str:
+        """
+        >>> from hydpy import Node
+        >>> Node("q_node")._ylabel
+        'Q [m³/s]'
+        >>> Node("x_node", variable="X")._ylabel
+        'X'
+        """
         ylabel = str(self.variable)
         if ylabel == "Q":
             return "Q [m³/s]"

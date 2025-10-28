@@ -1296,7 +1296,7 @@ broadcast input array from shape (2,) into shape (2,3)
                 and ((frame2 := frame1.f_back) is not None)
                 and ((frame := frame2.f_back) is not None)
             )
-            while frame:
+            while frame is not None:
                 namespace = frame.f_locals
                 try:
                     subnamespace = {"model": namespace["model"], "focus": self}

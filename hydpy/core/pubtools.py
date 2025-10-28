@@ -162,7 +162,7 @@ class TimegridsProperty(
         try:
             timegrids = timetools.Timegrids(*value)
         except TypeError:
-            timegrids = timetools.Timegrids(value)  # type: ignore
+            timegrids = timetools.Timegrids(value)  # type: ignore[arg-type]
             # this will most likely fail, we just want to reuse
             # the standard error message
         super().call_fset(obj, timegrids)

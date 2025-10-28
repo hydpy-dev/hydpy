@@ -1849,10 +1849,12 @@ class XMLExchange(XMLBase):
         items: list[_TypeGetOrChangeItem] = []
         for itemgroup in self.itemgroups:
             if (
-                issubclass(itemtype, itemtools.GetItem)
+                issubclass(itemtype, itemtools.GetItem)  # type: ignore[redundant-expr]
                 and (itemgroup.name == "getitems")
             ) or (
-                issubclass(itemtype, itemtools.ChangeItem)
+                issubclass(  # type: ignore[redundant-expr]
+                    itemtype, itemtools.ChangeItem
+                )
                 and (itemgroup.name != "getitems")
             ):
                 for var in (

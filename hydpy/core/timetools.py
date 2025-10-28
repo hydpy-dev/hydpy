@@ -982,7 +982,9 @@ twelve (December) but `0` is given
     def __rsub__(self, other: DateConstrArg) -> Period:
         return Period(type(self)(other).datetime - self.datetime)
 
-    def __isub__(self: TypeDate, other: PeriodConstrArg) -> TypeDate:  # type: ignore
+    def __isub__(  # type: ignore[misc]
+        self: TypeDate, other: PeriodConstrArg
+    ) -> TypeDate:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
         # course)
@@ -1612,7 +1614,7 @@ moment.
         # course)
         return self.__add__(other)
 
-    def __iadd__(  # type: ignore
+    def __iadd__(  # type: ignore[misc]
         self: TypePeriod, other: PeriodConstrArg
     ) -> TypePeriod:
         # without more flexible ways to relate types to string patterns, there is
@@ -1625,7 +1627,7 @@ moment.
         return type(self).from_timedelta(self.timedelta - type(self)(other).timedelta)
 
     @overload
-    def __rsub__(  # type: ignore
+    def __rsub__(  # type: ignore[misc]
         self: TypePeriod, other: Date | datetime_.datetime
     ) -> TypePeriod:
         # without more flexible ways to relate types to string patterns, there is
@@ -1634,7 +1636,9 @@ moment.
         """Subtract the |Period| object from a |Date| object."""
 
     @overload
-    def __rsub__(self, other: Period | datetime_.timedelta) -> Date:  # type: ignore
+    def __rsub__(  # type: ignore[misc]
+        self, other: Period | datetime_.timedelta
+    ) -> Date:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
         # course)
@@ -1699,7 +1703,9 @@ moment.
     def __rtruediv__(self, other: PeriodConstrArg) -> float:
         return type(self)(other).seconds / self.seconds
 
-    def __itruediv__(self: TypePeriod, other: float) -> TypePeriod:  # type: ignore
+    def __itruediv__(  # type: ignore[misc]
+        self: TypePeriod, other: float
+    ) -> TypePeriod:
         # without more flexible ways to relate types to string patterns, there is
         # nothing we can do about it (except providing a less flexible interface, of
         # course)

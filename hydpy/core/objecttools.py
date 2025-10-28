@@ -344,7 +344,8 @@ F = TypeVar("F", bound=Callable[..., Any])
 def decorator(wrapper: Callable[..., Any]) -> Callable[[F], F]:
     """Function |decorator| adds type hints to function `decorator` of the site-package
     `wrapt` without changing its functionality."""
-    return wrapt.decorator(wrapper)
+    return wrapt.decorator(wrapper)  # type: ignore[return-value]
+    # ToDo: Wrapt 2.0 includes type hints.  Adjust our code or switch to functools?
 
 
 def excmessage_decorator(

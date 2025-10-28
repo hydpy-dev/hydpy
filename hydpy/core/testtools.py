@@ -1423,7 +1423,7 @@ but for the given `datetime` object it is `999` instead.
 
     class _DateTime(datetime.datetime):
         @classmethod
-        def now(cls, tz=None):
+        def now(cls, tz=None):  # pylint: disable=unused-argument
             return testdatetime
 
     try:

@@ -1,0 +1,14 @@
+.. |evap_ret_fao56| replace:: :mod:`~hydpy.models.evap_ret_fao56`
+.. |meteo_clear_glob_io.DOCNAME.complete| replace:: HydPy-Meteo-Clear-Glob-IO (external clear sky and global radiation data)
+.. |meteo_clear_glob_io| replace:: :mod:`~hydpy.models.meteo_clear_glob_io`
+.. |meteo_glob_io| replace:: :mod:`~hydpy.models.meteo_glob_io`
+
+.. _meteo_clear_glob_io:
+
+meteo_clear_glob_io
+===================
+
+.. automodule:: hydpy.models.meteo_clear_glob_io
+    :members:
+    :show-inheritance:
+    :exclude-members: TypeVarTuple, Concatenate, assert_type, override, Buffer, List, seqs, Writer, INTERFACE_METHODS, cast, Protocol, deprecated, RECEIVER_METHODS, NoExtraItems, get_annotations, SUBMODELINTERFACES, is_protocol, FactorSequences, Tuple, DERIVEDPARAMETERS, Container, AsyncIterable, final, Collection, NoReturn, TextIO, subpars, Any, SUBMETHODS, ValuesView, fastaccess, AsyncGenerator, SupportsRound, pars, assert_never, Sentinel, type_repr, LogSequences, Counter, SupportsIndex, SOLVERSEQUENCES, Set, Generic, Reversible, Self, ObserverSequences, SupportsBytes, ByteString, Format, Required, PART_ODE_METHODS, Type, SUBMODELS, NoDefault, Sized, TYPE_CHECKING, NamedTuple, Coroutine, is_typeddict, RESULTSEQUENCES, ParamSpec, Sequence, MutableSet, AideSequences, Generator, MappingView, get_type_hints, runtime_checkable, OrderedDict, Mapping, SupportsInt, IntVar, ParamSpecArgs, Union, get_origin, NotRequired, disjoint_base, IO, TypedDict, InletSequences, ContextManager, SupportsComplex, Pattern, no_type_check, Match, AnyStr, Text, SENDER_METHODS, SOLVERPARAMETERS, subseqs, FluxSequences, clear_overloads, get_protocol_members, Hashable, LiteralString, RUN_METHODS, SupportsAbs, CLASSES, get_original_bases, overload, FIXEDPARAMETERS, FrozenSet, ADD_METHODS, ReadOnly, CONTROLPARAMETERS, Never, MutableMapping, Iterator, subvars, UPDATEDSEQUENCES, ForwardRef, TypeAliasType, runtime, ReceiverSequences, Iterable, ChainMap, fastaccess_new, TypeAlias, OUTLET_METHODS, no_type_check_decorator, reveal_type, Optional, FULL_ODE_METHODS, REQUIREDSEQUENCES, Deque, get_overloads, TypeIs, Final, Unpack, DefaultDict, ClassVar, AbstractSet, KeysView, get_args, evaluate_forward_ref, Callable, Annotated, Awaitable, fastaccess_old, TypeForm, MutableSequence, ParamSpecKwargs, CapsuleType, dataclass_transform, AsyncIterator, INLET_METHODS, TypeVar, BinaryIO, Doc, SenderSequences, Literal, AsyncContextManager, Dict, ItemsView, SupportsFloat, TypeGuard, NewType, Reader, StateSequences, OutletSequences

@@ -1,0 +1,391 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.dam_v006 &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam_v006</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.dam_v006</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=line-too-long, wildcard-import, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;Controlled lake version of HydPy-Dam.</span>
+
+<span class="sd">.. _`LARSIM`: http://www.larsim.de/en/the-model/</span>
+
+<span class="sd">Conceptionally, |dam_v006| is similar to the &quot;controlled lake&quot; model of</span>
+<span class="sd">`LARSIM`_ (selectable via the &quot;SEEG&quot; option).  It simulates flood retention</span>
+<span class="sd">processes only and neglects losses due to evaporation.</span>
+
+<span class="sd">One can regard |dam_v006| as controlled in two ways.  First, it allows</span>
+<span class="sd">for seasonal modifications of the rating curve via parameter</span>
+<span class="sd">|WaterLevel2FloodDischarge|; second, it allows to restrict the speed of</span>
+<span class="sd">the water level decrease during periods with little inflow via parameter</span>
+<span class="sd">|AllowedWaterLevelDrop|.</span>
+
+<span class="sd">Like all models of the HydPy-D family, |dam_v006| solves its underlying</span>
+<span class="sd">continuous ordinary differential equations with an error-adaptive numerical</span>
+<span class="sd">integration method.  Hence, simulation speed, robustness, and accuracy</span>
+<span class="sd">depend both on the configuration of the parameters of the model equations</span>
+<span class="sd">and the underlying solver.  We discuss these topics in more detail in the</span>
+<span class="sd">documentation on the application model |dam_v001|.  Before the first usage</span>
+<span class="sd">of any HydPy-Dam model, you should at least read how to set proper</span>
+<span class="sd">smoothing parameter values and how to configure the artificial neural</span>
+<span class="sd">networks used to model the relationships between stage and volume</span>
+<span class="sd">(|WaterVolume2WaterLevel|) and between discharge and stage</span>
+<span class="sd">(|WaterLevel2FloodDischarge|).</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We are going to perform all example calculations over 20 days:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;01.01.2000&quot;, &quot;21.01.2000&quot;, &quot;1d&quot;</span>
+
+<span class="sd">Now, we prepare a |dam_v006| model instance in the usual manner:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.dam_v006 import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+
+<span class="sd">Next, we embed this model instance into an |Element|, being connected</span>
+<span class="sd">to one inlet |Node| (`input_`) and one outlet |Node| (`output`):</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Element</span>
+<span class="sd">&gt;&gt;&gt; element = Element(&quot;element&quot;, inlets=&quot;input_&quot;, outlets=&quot;output&quot;)</span>
+<span class="sd">&gt;&gt;&gt; element.model = model</span>
+
+<span class="sd">To execute the following examples conveniently, we prepare a test function</span>
+<span class="sd">object and change some of its default output settings:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; IntegrationTest.plotting_options.axis1 = fluxes.inflow, fluxes.outflow</span>
+<span class="sd">&gt;&gt;&gt; IntegrationTest.plotting_options.axis2 = states.watervolume</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%d.%m.&quot;</span>
+
+<span class="sd">|WaterVolume| is the only state sequence of |dam_v006|.  We set its initial</span>
+<span class="sd">value for each example to zero:</span>
+
+<span class="sd">&gt;&gt;&gt; test.inits = [(states.watervolume, 0.0)]</span>
+
+<span class="sd">|dam_v006| assumes the relationship between |WaterLevel| and |WaterVolume|</span>
+<span class="sd">to be constant over time.  To allow for maximum flexibility, it uses</span>
+<span class="sd">parameter |WaterVolume2WaterLevel|, which extends the artificial neural</span>
+<span class="sd">network parameter |anntools.ANN|.  For simplicity, we enforce a linear</span>
+<span class="sd">relationship between |WaterLevel| and |WaterVolume| (as shown in the</span>
+<span class="sd">following graph):</span>
+
+<span class="sd">&gt;&gt;&gt; watervolume2waterlevel(</span>
+<span class="sd">...     weights_input=1.0, weights_output=1.0,</span>
+<span class="sd">...     intercepts_hidden=0.0, intercepts_output=0.0,</span>
+<span class="sd">...     activation=0)</span>
+<span class="sd">&gt;&gt;&gt; watervolume2waterlevel.plot(0.0, 1.0)</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import save_autofig</span>
+<span class="sd">&gt;&gt;&gt; save_autofig(&quot;dam_v006_watervolume2waterlevel.png&quot;)</span>
+
+<span class="sd">.. image:: dam_v006_watervolume2waterlevel.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">|dam_v006| uses parameter |WaterLevel2FloodDischarge| (which extends</span>
+<span class="sd">parameter |anntools.SeasonalANN|) to allow for annual changes in the</span>
+<span class="sd">relationship between |FloodDischarge| and |WaterLevel|.  Please read the</span>
+<span class="sd">documentation on class |anntools.SeasonalANN| on how to model seasonal</span>
+<span class="sd">patterns.  Here, we again keep things as simple as possible and define</span>
+<span class="sd">a single linear relationship which applies for the whole year:</span>
+
+<span class="sd">&gt;&gt;&gt; waterlevel2flooddischarge(ann(</span>
+<span class="sd">...     weights_input=1.0, weights_output=10.0,</span>
+<span class="sd">...     intercepts_hidden=0.0, intercepts_output=0.0,</span>
+<span class="sd">...     activation=0))</span>
+<span class="sd">&gt;&gt;&gt; waterlevel2flooddischarge.plot(0.0, 1.0)</span>
+<span class="sd">&gt;&gt;&gt; save_autofig(&quot;dam_v006_waterlevel2flooddischarge.png&quot;)</span>
+
+<span class="sd">.. image:: dam_v006_waterlevel2flooddischarge.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">Additionally, we set the value of the related smoothing parameter</span>
+<span class="sd">|DischargeTolerance| to 0.1 m³/s (this is a value we can recommend</span>
+<span class="sd">for many cases -- see the documentation on application model |dam_v001|</span>
+<span class="sd">on how to fine-tune such smoothing parameter to your needs):</span>
+
+<span class="sd">&gt;&gt;&gt; dischargetolerance(0.1)</span>
+
+<span class="sd">Finally, we define the ingoing flood wave, starting and ending with zero</span>
+<span class="sd">discharge:</span>
+
+<span class="sd">&gt;&gt;&gt; element.inlets.input_.sequences.sim.series = [</span>
+<span class="sd">...     0.0, 1.0, 6.0, 12.0, 10.0, 6.0, 3.0, 2.0, 1.0, 0.0,</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]</span>
+
+<span class="sd">.. _dam_v006_base_scenario:</span>
+
+<span class="sd">base scenario</span>
+<span class="sd">_____________</span>
+
+<span class="sd">For our first example, we set the |AllowedWaterLevelDrop| to |numpy.inf|,</span>
+<span class="sd">to make sure this possible restriction does never affect the calculated</span>
+<span class="sd">lake outflow:</span>
+
+<span class="sd">&gt;&gt;&gt; allowedwaterleveldrop(inf)</span>
+
+<span class="sd">The only purpose of parameter |CatchmentArea| is to determine reasonable</span>
+<span class="sd">default values for the parameter |AbsErrorMax| automatically, controlling</span>
+<span class="sd">the accuracy of the numerical integration process:</span>
+
+<span class="sd">&gt;&gt;&gt; catchmentarea(86.4)</span>
+<span class="sd">&gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">&gt;&gt;&gt; round_(solver.abserrormax.INIT)</span>
+<span class="sd">0.01</span>
+<span class="sd">&gt;&gt;&gt; parameters.update()</span>
+<span class="sd">&gt;&gt;&gt; solver.abserrormax</span>
+<span class="sd">abserrormax(0.01)</span>
+
+<span class="sd">The following test results show the expected storage retention pattern.</span>
+<span class="sd">The sums of inflow and outflow are nearly identical, and the maximum of</span>
+<span class="sd">the outflow graph intersects with the falling limb of the inflow graph:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v006_base_scenario&quot;)</span>
+<span class="sd">    |   date | inflow | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="sd">    ---------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 02.01. |    1.0 |       0.329814 | 0.329814 |    0.057904 |    1.0 | 0.329814 |</span>
+<span class="sd">    | 03.01. |    6.0 |       2.370574 | 2.370574 |    0.371486 |    6.0 | 2.370574 |</span>
+<span class="sd">    | 04.01. |   12.0 |       6.452959 | 6.452959 |    0.850751 |   12.0 | 6.452959 |</span>
+<span class="sd">    | 05.01. |   10.0 |       8.999753 | 8.999753 |    0.937172 |   10.0 | 8.999753 |</span>
+<span class="sd">    | 06.01. |    6.0 |       8.257426 | 8.257426 |    0.742131 |    6.0 | 8.257426 |</span>
+<span class="sd">    | 07.01. |    3.0 |        5.96014 |  5.96014 |    0.486374 |    3.0 |  5.96014 |</span>
+<span class="sd">    | 08.01. |    2.0 |       3.917326 | 3.917326 |    0.320717 |    2.0 | 3.917326 |</span>
+<span class="sd">    | 09.01. |    1.0 |       2.477741 | 2.477741 |    0.193041 |    1.0 | 2.477741 |</span>
+<span class="sd">    | 10.01. |    0.0 |       1.293731 | 1.293731 |    0.081262 |    0.0 | 1.293731 |</span>
+<span class="sd">    | 11.01. |    0.0 |       0.544608 | 0.544608 |    0.034208 |    0.0 | 0.544608 |</span>
+<span class="sd">    | 12.01. |    0.0 |       0.227669 | 0.227669 |    0.014537 |    0.0 | 0.227669 |</span>
+<span class="sd">    | 13.01. |    0.0 |       0.096753 | 0.096753 |    0.006178 |    0.0 | 0.096753 |</span>
+<span class="sd">    | 14.01. |    0.0 |       0.042778 | 0.042778 |    0.002482 |    0.0 | 0.042778 |</span>
+<span class="sd">    | 15.01. |    0.0 |       0.017186 | 0.017186 |    0.000997 |    0.0 | 0.017186 |</span>
+<span class="sd">    | 16.01. |    0.0 |       0.005664 | 0.005664 |    0.000508 |    0.0 | 0.005664 |</span>
+<span class="sd">    | 17.01. |    0.0 |       0.002884 | 0.002884 |    0.000259 |    0.0 | 0.002884 |</span>
+<span class="sd">    | 18.01. |    0.0 |       0.001469 | 0.001469 |    0.000132 |    0.0 | 0.001469 |</span>
+<span class="sd">    | 19.01. |    0.0 |       0.000748 | 0.000748 |    0.000067 |    0.0 | 0.000748 |</span>
+<span class="sd">    | 20.01. |    0.0 |       0.000381 | 0.000381 |    0.000034 |    0.0 | 0.000381 |</span>
+
+<span class="sd">|dam_v006| achieves this sufficiently high accuracy with 174 calls to</span>
+<span class="sd">its underlying system of differential equations, which averages to less</span>
+<span class="sd">than nine calls per day:</span>
+
+<span class="sd">&gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">174</span>
+
+<span class="sd">.. _dam_v006_low_accuracy:</span>
+
+<span class="sd">low accuracy</span>
+<span class="sd">____________</span>
+
+<span class="sd">Through increasing the numerical tolerance, e.g. setting |AbsErrorMax|</span>
+<span class="sd">to 0.1 m³/s, we can gain some additional speedups without relevant</span>
+<span class="sd">deteriorations of the results (|dam_v006| usually achieves higher</span>
+<span class="sd">accuracies than indicated by the actual tolerance value):</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; model.numvars.nmb_calls = 0</span>
+<span class="sd">    &gt;&gt;&gt; solver.abserrormax(0.1)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v006_low_accuracy&quot;)</span>
+<span class="sd">    |   date | inflow | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="sd">    ---------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 02.01. |    1.0 |       0.334458 | 0.334458 |    0.057503 |    1.0 | 0.334458 |</span>
+<span class="sd">    | 03.01. |    6.0 |        2.36426 |  2.36426 |    0.371631 |    6.0 |  2.36426 |</span>
+<span class="sd">    | 04.01. |   12.0 |       6.448386 | 6.448386 |     0.85129 |   12.0 | 6.448386 |</span>
+<span class="sd">    | 05.01. |   10.0 |       9.010274 | 9.010274 |    0.936803 |   10.0 | 9.010274 |</span>
+<span class="sd">    | 06.01. |    6.0 |       8.241563 | 8.241563 |    0.743132 |    6.0 | 8.241563 |</span>
+<span class="sd">    | 07.01. |    3.0 |       5.969805 | 5.969805 |     0.48654 |    3.0 | 5.969805 |</span>
+<span class="sd">    | 08.01. |    2.0 |       3.907047 | 3.907047 |    0.321772 |    2.0 | 3.907047 |</span>
+<span class="sd">    | 09.01. |    1.0 |       2.475983 | 2.475983 |    0.194247 |    1.0 | 2.475983 |</span>
+<span class="sd">    | 10.01. |    0.0 |       1.292793 | 1.292793 |    0.082549 |    0.0 | 1.292793 |</span>
+<span class="sd">    | 11.01. |    0.0 |         0.5494 |   0.5494 |    0.035081 |    0.0 |   0.5494 |</span>
+<span class="sd">    | 12.01. |    0.0 |       0.242907 | 0.242907 |    0.014094 |    0.0 | 0.242907 |</span>
+<span class="sd">    | 13.01. |    0.0 |       0.080053 | 0.080053 |    0.007177 |    0.0 | 0.080053 |</span>
+<span class="sd">    | 14.01. |    0.0 |       0.040767 | 0.040767 |    0.003655 |    0.0 | 0.040767 |</span>
+<span class="sd">    | 15.01. |    0.0 |       0.020761 | 0.020761 |    0.001861 |    0.0 | 0.020761 |</span>
+<span class="sd">    | 16.01. |    0.0 |       0.010572 | 0.010572 |    0.000948 |    0.0 | 0.010572 |</span>
+<span class="sd">    | 17.01. |    0.0 |       0.005384 | 0.005384 |    0.000483 |    0.0 | 0.005384 |</span>
+<span class="sd">    | 18.01. |    0.0 |       0.002742 | 0.002742 |    0.000246 |    0.0 | 0.002742 |</span>
+<span class="sd">    | 19.01. |    0.0 |       0.001396 | 0.001396 |    0.000125 |    0.0 | 0.001396 |</span>
+<span class="sd">    | 20.01. |    0.0 |       0.000711 | 0.000711 |    0.000064 |    0.0 | 0.000711 |</span>
+
+<span class="sd">&gt;&gt;&gt; model.numvars.nmb_calls</span>
+<span class="sd">104</span>
+
+<span class="sd">.. _dam_v006_water_level_drop:</span>
+
+<span class="sd">water level drop</span>
+<span class="sd">________________</span>
+
+<span class="sd">When setting |AllowedWaterLevelDrop| to 0.1 m/d, the resulting outflow</span>
+<span class="sd">hydrograph shows a plateau in its falling limb.  This plateau is placed in</span>
+<span class="sd">the period where little inflow occurs, but the potential outflow</span>
+<span class="sd">(|FloodDischarge|) is still high due to large amounts of stored water:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; allowedwaterleveldrop(0.1)</span>
+<span class="sd">    &gt;&gt;&gt; solver.abserrormax(0.01)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v006_water_level_drop&quot;)</span>
+<span class="sd">    |   date | inflow | flooddischarge |  outflow | watervolume | input_ |   output |</span>
+<span class="sd">    ---------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |    0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="sd">    | 02.01. |    1.0 |       0.329814 | 0.329814 |    0.057904 |    1.0 | 0.329814 |</span>
+<span class="sd">    | 03.01. |    6.0 |       2.370574 | 2.370574 |    0.371486 |    6.0 | 2.370574 |</span>
+<span class="sd">    | 04.01. |   12.0 |       6.452959 | 6.452959 |    0.850751 |   12.0 | 6.452959 |</span>
+<span class="sd">    | 05.01. |   10.0 |       8.999753 | 8.999753 |    0.937172 |   10.0 | 8.999753 |</span>
+<span class="sd">    | 06.01. |    6.0 |        8.87243 | 7.155768 |    0.837314 |    6.0 | 7.155768 |</span>
+<span class="sd">    | 07.01. |    3.0 |       7.873846 | 4.155768 |    0.737455 |    3.0 | 4.155768 |</span>
+<span class="sd">    | 08.01. |    2.0 |       6.875262 | 3.155768 |    0.637597 |    2.0 | 3.155768 |</span>
+<span class="sd">    | 09.01. |    1.0 |       5.876679 | 2.155768 |    0.537739 |    1.0 | 2.155768 |</span>
+<span class="sd">    | 10.01. |    0.0 |       4.878095 | 1.155768 |     0.43788 |    0.0 | 1.155768 |</span>
+<span class="sd">    | 11.01. |    0.0 |       3.879512 | 1.155768 |    0.338022 |    0.0 | 1.155768 |</span>
+<span class="sd">    | 12.01. |    0.0 |       2.880928 | 1.155768 |    0.238164 |    0.0 | 1.155768 |</span>
+<span class="sd">    | 13.01. |    0.0 |       1.882449 | 1.155647 |    0.138316 |    0.0 | 1.155647 |</span>
+<span class="sd">    | 14.01. |    0.0 |       0.940746 | 0.908959 |    0.059782 |    0.0 | 0.908959 |</span>
+<span class="sd">    | 15.01. |    0.0 |       0.400649 | 0.400648 |    0.025166 |    0.0 | 0.400648 |</span>
+<span class="sd">    | 16.01. |    0.0 |       0.167488 | 0.167488 |    0.010695 |    0.0 | 0.167488 |</span>
+<span class="sd">    | 17.01. |    0.0 |       0.071178 | 0.071178 |    0.004545 |    0.0 | 0.071178 |</span>
+<span class="sd">    | 18.01. |    0.0 |        0.03147 |  0.03147 |    0.001826 |    0.0 |  0.03147 |</span>
+<span class="sd">    | 19.01. |    0.0 |       0.010371 | 0.010371 |     0.00093 |    0.0 | 0.010371 |</span>
+<span class="sd">    | 20.01. |    0.0 |       0.005282 | 0.005282 |    0.000474 |    0.0 | 0.005282 |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.auxs.anntools</span> <span class="kn">import</span> <span class="n">ann</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span> <span class="nn">hydpy.exe.modelimports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">modeltools</span>
+
+<span class="c1"># ...from dam</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.dam</span> <span class="kn">import</span> <span class="n">dam_model</span>
+<span class="kn">from</span> <span class="nn">hydpy.models.dam</span> <span class="kn">import</span> <span class="n">dam_solver</span>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../../dam_v006.html#hydpy.models.dam_v006.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">ELSModel</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Version 6 of HydPy-Dam.&quot;&quot;&quot;</span>
+
+    <span class="n">SOLVERPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">AbsErrorMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelErrorMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelDTMin</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelDTMax</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SOLVERSEQUENCES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Pic_Inflow_V1</span><span class="p">,)</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Fix_Min1_V1</span><span class="p">,)</span>
+    <span class="n">PART_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pic_Inflow_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_WaterLevel_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_SurfaceArea_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_FloodDischarge_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_AllowedDischarge_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_Outflow_V2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">FULL_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Update_WaterVolume_V1</span><span class="p">,)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Pass_Outflow_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+<span class="n">cythonizer</span><span class="o">.</span><span class="n">finalise</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam_v006</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.filetools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.filetools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.filetools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module provides features for handling the folder structure of *HydPy*  projects</span>
+<span class="sd">as well as loading data from and storing data to files.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">runpy</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">import</span> <span class="nn">types</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span> <span class="nn">hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">netcdftools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">optiontools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">propertytools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">selectiontools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">sequencetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">timetools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="Folder2Path">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.Folder2Path">[docs]</a>
+<span class="k">class</span> <span class="nc">Folder2Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map folder names to their pathnames.</span>
+
+<span class="sd">    You can both pass positional arguments and keyword arguments when initialising</span>
+<span class="sd">    |Folder2Path|.  For positional arguments, the folder and its path are assumed to be</span>
+<span class="sd">    identical.  For keyword arguments, the keyword corresponds to the folder name and</span>
+<span class="sd">    its value to the pathname:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.filetools import Folder2Path</span>
+<span class="sd">    &gt;&gt;&gt; Folder2Path()</span>
+<span class="sd">    Folder2Path()</span>
+<span class="sd">    &gt;&gt;&gt; f2p = Folder2Path(</span>
+<span class="sd">    ...     &quot;folder1&quot;, &quot;folder2&quot;, folder3=&quot;folder3&quot;, folder4=&quot;path4&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; f2p</span>
+<span class="sd">    Folder2Path(folder1,</span>
+<span class="sd">                folder2,</span>
+<span class="sd">                folder3,</span>
+<span class="sd">                folder4=path4)</span>
+<span class="sd">    &gt;&gt;&gt; print(f2p)</span>
+<span class="sd">    Folder2Path(folder1, folder2, folder3, folder4=path4)</span>
+
+<span class="sd">    To add folders after initialisation is supported:</span>
+
+<span class="sd">    &gt;&gt;&gt; f2p.add(&quot;folder5&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; f2p.add(&quot;folder6&quot;, &quot;path6&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; f2p</span>
+<span class="sd">    Folder2Path(folder1,</span>
+<span class="sd">                folder2,</span>
+<span class="sd">                folder3,</span>
+<span class="sd">                folder5,</span>
+<span class="sd">                folder4=path4,</span>
+<span class="sd">                folder6=path6)</span>
+
+<span class="sd">    Folder names are required to be valid Python identifiers:</span>
+
+<span class="sd">    &gt;&gt;&gt; f2p.add(&quot;folder 7&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The given name string `folder 7` does not define a valid variable \</span>
+<span class="sd">identifier.  Valid identifiers do not contain characters like `-` or empty spaces, do \</span>
+<span class="sd">not start with numbers, cannot be mistaken with Python built-ins like `for`...)</span>
+
+<span class="sd">    You can query the folder and attribute names:</span>
+
+<span class="sd">    &gt;&gt;&gt; f2p.folders</span>
+<span class="sd">    [&#39;folder1&#39;, &#39;folder2&#39;, &#39;folder3&#39;, &#39;folder4&#39;, &#39;folder5&#39;, &#39;folder6&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; f2p.paths</span>
+<span class="sd">    [&#39;folder1&#39;, &#39;folder2&#39;, &#39;folder3&#39;, &#39;path4&#39;, &#39;folder5&#39;, &#39;path6&#39;]</span>
+
+<span class="sd">    Attribute access and iteration are also supported:</span>
+
+<span class="sd">    &gt;&gt;&gt; &quot;folder1&quot; in dir(f2p)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; f2p.folder1</span>
+<span class="sd">    &#39;folder1&#39;</span>
+<span class="sd">    &gt;&gt;&gt; f2p.folder4</span>
+<span class="sd">    &#39;path4&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; for folder, path in f2p:</span>
+<span class="sd">    ...     print(folder, path)</span>
+<span class="sd">    folder1 folder1</span>
+<span class="sd">    folder2 folder2</span>
+<span class="sd">    folder3 folder3</span>
+<span class="sd">    folder4 path4</span>
+<span class="sd">    folder5 folder5</span>
+<span class="sd">    folder6 path6</span>
+
+<span class="sd">    &gt;&gt;&gt; len(f2p)</span>
+<span class="sd">    6</span>
+<span class="sd">    &gt;&gt;&gt; bool(f2p)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; bool(Folder2Path())</span>
+<span class="sd">    False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Folder2Path.add">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.Folder2Path.add">[docs]</a>
+    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a directory and optionally its path.&quot;&quot;&quot;</span>
+        <span class="n">objecttools</span><span class="o">.</span><span class="n">valid_variable_identifier</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">directory</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">folders</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The currently handled folder names.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">folder</span> <span class="k">for</span> <span class="n">folder</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">paths</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The currently handled path names.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">path</span> <span class="k">for</span> <span class="n">folder</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">kwargs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;            </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">,&quot;</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">]</span>
+            <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Folder2Path(&quot;</span> <span class="o">+</span> <span class="n">lines</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">12</span><span class="p">:]</span>
+            <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;Folder2Path()&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="FileManager">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.FileManager">[docs]</a>
+<span class="k">class</span> <span class="nc">FileManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for |NetworkManager|, |ControlManager|, |ConditionManager|, and</span>
+<span class="sd">    |SequenceManager|.&quot;&quot;&quot;</span>
+
+    <span class="n">BASEDIR</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">DEFAULTDIR</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+    <span class="n">_projectdir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">_currentdir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_projectdir</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">projectname</span>
+        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_currentdir</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_get_projectdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The name of the main folder of a project.</span>
+
+<span class="sd">        For the `LahnH` example project, |FileManager.projectdir| is (not surprisingly)</span>
+<span class="sd">        `LahnH` and is queried from the |pub| module.  However, you can define or</span>
+<span class="sd">        change |FileManager.projectdir| interactively, which can be useful for more</span>
+<span class="sd">        complex tasks like copying (parts of) projects:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import FileManager</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.projectname = &quot;project_A&quot;</span>
+<span class="sd">        &gt;&gt;&gt; filemanager = FileManager()</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir</span>
+<span class="sd">        &#39;project_A&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; del filemanager.projectdir</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` of object \</span>
+<span class="sd">`filemanager` has not been prepared so far.</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir = &quot;project_B&quot;</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir</span>
+<span class="sd">        &#39;project_B&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; del pub.projectname</span>
+<span class="sd">        &gt;&gt;&gt; FileManager().projectdir</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` of object \</span>
+<span class="sd">`filemanager` has not been prepared so far.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_projectdir</span>  <span class="c1"># type: ignore[return-value]</span>
+
+    <span class="k">def</span> <span class="nf">_set_projectdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_projectdir</span> <span class="o">=</span> <span class="n">name</span>
+
+    <span class="k">def</span> <span class="nf">_del_projectdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_projectdir</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">projectdir</span> <span class="o">=</span> <span class="n">propertytools</span><span class="o">.</span><span class="n">ProtectedPropertyStr</span><span class="p">(</span>
+        <span class="n">_get_projectdir</span><span class="p">,</span> <span class="n">_set_projectdir</span><span class="p">,</span> <span class="n">_del_projectdir</span>
+    <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">basepath</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The absolute path pointing to the available working directories.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import FileManager</span>
+<span class="sd">        &gt;&gt;&gt; filemanager = FileManager()</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.BASEDIR = &quot;basename&quot;</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir = &quot;projectname&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import repr_, TestIO</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     repr_(filemanager.basepath)   # doctest: +ELLIPSIS</span>
+<span class="sd">        &#39;...hydpy/tests/iotesting/projectname/basename&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">BASEDIR</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">availabledirs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Folder2Path</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The names and paths of the available working directories.</span>
+
+<span class="sd">        All possible working directories must be availablein the base directory of the</span>
+<span class="sd">        respective |FileManager| subclass.  Folders with names starting with an</span>
+<span class="sd">        underscore do not count (use this for directories handling additional data</span>
+<span class="sd">        files, if you like), while zipped directories do count as available directories:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import FileManager</span>
+<span class="sd">        &gt;&gt;&gt; filemanager = FileManager()</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.BASEDIR = &quot;basename&quot;</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir = &quot;projectname&quot;</span>
+<span class="sd">        &gt;&gt;&gt; import os</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import repr_, TestIO</span>
+<span class="sd">        &gt;&gt;&gt; TestIO.clear()</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     os.makedirs(&quot;projectname/basename/folder1&quot;)</span>
+<span class="sd">        ...     os.makedirs(&quot;projectname/basename/folder2&quot;)</span>
+<span class="sd">        ...     open(&quot;projectname/basename/folder3.zip&quot;, &quot;w&quot;).close()</span>
+<span class="sd">        ...     os.makedirs(&quot;projectname/basename/_folder4&quot;)</span>
+<span class="sd">        ...     open(&quot;projectname/basename/folder5.tar&quot;, &quot;w&quot;).close()</span>
+<span class="sd">        ...     filemanager.availabledirs   # doctest: +ELLIPSIS</span>
+<span class="sd">        Folder2Path(folder1=.../projectname/basename/folder1,</span>
+<span class="sd">                    folder2=.../projectname/basename/folder2,</span>
+<span class="sd">                    folder3=.../projectname/basename/folder3.zip)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">directories</span> <span class="o">=</span> <span class="n">Folder2Path</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">directory</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basepath</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">directory</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basepath</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                    <span class="n">directories</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">directory</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.zip&quot;</span><span class="p">):</span>
+                    <span class="n">directories</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">directory</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">],</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">directories</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">currentdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The name of the current working directory containing the relevant files.</span>
+
+<span class="sd">        To show most of the functionality of |property| |FileManager.currentdir| (we</span>
+<span class="sd">        explain unpacking zipped files on the fly in the documentation on function</span>
+<span class="sd">        |FileManager.zip_currentdir|), we first prepare a |FileManager| object with the</span>
+<span class="sd">        default |FileManager.basepath| `projectname/basename`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import FileManager</span>
+<span class="sd">        &gt;&gt;&gt; filemanager = FileManager()</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.BASEDIR = &quot;basename&quot;</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.DEFAULTDIR = None</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir = &quot;projectname&quot;</span>
+<span class="sd">        &gt;&gt;&gt; import os</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import repr_, TestIO</span>
+<span class="sd">        &gt;&gt;&gt; TestIO.clear()</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     os.makedirs(&quot;projectname/basename&quot;)</span>
+<span class="sd">        ...     repr_(filemanager.basepath)    # doctest: +ELLIPSIS</span>
+<span class="sd">        &#39;...hydpy/tests/iotesting/projectname/basename&#39;</span>
+
+<span class="sd">        At first, the base directory is empty and asking for the current working</span>
+<span class="sd">        directory results in the following error:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     filemanager.currentdir   # doctest: +ELLIPSIS</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: The current working directory of the FileManager object has not \</span>
+<span class="sd">been defined manually and cannot be determined automatically: \</span>
+<span class="sd">`.../projectname/basename` does not contain any available directories.</span>
+
+<span class="sd">        If only one directory exists, it is considered as the current working directory</span>
+<span class="sd">        automatically:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     os.mkdir(&quot;projectname/basename/dir1&quot;)</span>
+<span class="sd">        ...     filemanager.currentdir</span>
+<span class="sd">        &#39;dir1&#39;</span>
+
+<span class="sd">        |property| |FileManager.currentdir| memorises the name of the current working</span>
+<span class="sd">        directory, even if another directory is added later to the base path:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     os.mkdir(&quot;projectname/basename/dir2&quot;)</span>
+<span class="sd">        ...     filemanager.currentdir</span>
+<span class="sd">        &#39;dir1&#39;</span>
+
+<span class="sd">        Set the value of |FileManager.currentdir| to |None| to let it forget the</span>
+<span class="sd">        memorised directory.  After that, to try to query the current working directory</span>
+<span class="sd">        results in another error, as it is not clear which directory to select:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     filemanager.currentdir = None</span>
+<span class="sd">        ...     filemanager.currentdir   # doctest: +ELLIPSIS</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: The current working directory of the FileManager object has not \</span>
+<span class="sd">been defined manually and cannot be determined automatically: \</span>
+<span class="sd">`....../projectname/basename` does contain multiple available directories (dir1 and \</span>
+<span class="sd">dir2).</span>
+
+<span class="sd">        Setting |FileManager.currentdir| manually solves the problem:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     filemanager.currentdir = &quot;dir1&quot;</span>
+<span class="sd">        ...     filemanager.currentdir</span>
+<span class="sd">        &#39;dir1&#39;</span>
+
+<span class="sd">        Remove the current working directory `dir1` with the `del` statement:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     del filemanager.currentdir</span>
+<span class="sd">        ...     os.path.exists(&quot;projectname/basename/dir1&quot;)</span>
+<span class="sd">        False</span>
+
+<span class="sd">        |FileManager| subclasses can define a default directory name.  When many</span>
+<span class="sd">        directories exist and none is selected manually, the default directory is</span>
+<span class="sd">        selected automatically.  The following example shows an error message due to</span>
+<span class="sd">        multiple directories without any having the default name:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     os.mkdir(&quot;projectname/basename/dir1&quot;)</span>
+<span class="sd">        ...     filemanager.DEFAULTDIR = &quot;dir3&quot;</span>
+<span class="sd">        ...     del filemanager.currentdir</span>
+<span class="sd">        ...     filemanager.currentdir   # doctest: +ELLIPSIS</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: The current working directory of the FileManager object has not \</span>
+<span class="sd">been defined manually and cannot be determined automatically: The default directory \</span>
+<span class="sd">(dir3) is not among the available directories (dir1 and dir2).</span>
+
+<span class="sd">        We can fix this by adding the required default directory manually:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     os.mkdir(&quot;projectname/basename/dir3&quot;)</span>
+<span class="sd">        ...     filemanager.currentdir</span>
+<span class="sd">        &#39;dir3&#39;</span>
+
+<span class="sd">        Setting the |FileManager.currentdir| to `dir4` not only overwrites the default</span>
+<span class="sd">        name but also creates the required folder:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     filemanager.currentdir = &quot;dir4&quot;</span>
+<span class="sd">        ...     filemanager.currentdir</span>
+<span class="sd">        &#39;dir4&#39;</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     sorted(os.listdir(&quot;projectname/basename&quot;))</span>
+<span class="sd">        [&#39;dir1&#39;, &#39;dir2&#39;, &#39;dir3&#39;, &#39;dir4&#39;]</span>
+
+<span class="sd">        Failed attempts in removing directories result in error messages like the</span>
+<span class="sd">        following one:</span>
+
+<span class="sd">        &gt;&gt;&gt; import shutil</span>
+<span class="sd">        &gt;&gt;&gt; from unittest.mock import patch</span>
+<span class="sd">        &gt;&gt;&gt; with patch.object(shutil, &quot;rmtree&quot;, side_effect=AttributeError):</span>
+<span class="sd">        ...     with TestIO():</span>
+<span class="sd">        ...         del filemanager.currentdir   # doctest: +ELLIPSIS</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        AttributeError: While trying to delete the current working directory \</span>
+<span class="sd">`.../projectname/basename/dir4` of the FileManager object, the following error \</span>
+<span class="sd">occurred: ...</span>
+
+<span class="sd">        Then, the current working directory still exists and is remembered by property</span>
+<span class="sd">        |FileManager.currentdir|:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     filemanager.currentdir</span>
+<span class="sd">        &#39;dir4&#39;</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     sorted(os.listdir(&quot;projectname/basename&quot;))</span>
+<span class="sd">        [&#39;dir1&#39;, &#39;dir2&#39;, &#39;dir3&#39;, &#39;dir4&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">currentdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_currentdir</span>
+        <span class="k">if</span> <span class="n">currentdir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">directories</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">availabledirs</span><span class="o">.</span><span class="n">folders</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">directories</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">currentdir</span> <span class="o">=</span> <span class="n">directories</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULTDIR</span> <span class="ow">in</span> <span class="n">directories</span><span class="p">:</span>
+                <span class="n">currentdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULTDIR</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prefix</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The current working directory of the </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;object has not been defined manually and cannot be determined &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;automatically:&quot;</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">directories</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2"> `</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basepath</span><span class="p">)</span><span class="si">}</span><span class="s2">` does not &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;contain any available directories.&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">DEFAULTDIR</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2"> `</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basepath</span><span class="p">)</span><span class="si">}</span><span class="s2">` does contain &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;multiple available directories &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">directories</span><span class="p">)</span><span class="si">}</span><span class="s2">).&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2"> The default directory (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">DEFAULTDIR</span><span class="si">}</span><span class="s2">) is not among &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;the available directories &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">directories</span><span class="p">)</span><span class="si">}</span><span class="s2">).&quot;</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="n">currentdir</span>
+        <span class="k">return</span> <span class="n">currentdir</span>
+
+    <span class="nd">@currentdir</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">currentdir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">directory</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_currentdir</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dirpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basepath</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+            <span class="n">zippath</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dirpath</span><span class="si">}</span><span class="s2">.zip&quot;</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">zippath</span><span class="p">):</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">unpack_archive</span><span class="p">(</span>
+                    <span class="n">filename</span><span class="o">=</span><span class="n">zippath</span><span class="p">,</span>
+                    <span class="n">extract_dir</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basepath</span><span class="p">,</span> <span class="n">directory</span><span class="p">),</span>
+                    <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;zip&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">zippath</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dirpath</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dirpath</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_currentdir</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+
+    <span class="nd">@currentdir</span><span class="o">.</span><span class="n">deleter</span>
+    <span class="k">def</span> <span class="nf">currentdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentdir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;While trying to delete the current working directory &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="s2">` of the </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> object&quot;</span>
+                <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_currentdir</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@propertytools</span><span class="o">.</span><span class="n">DefaultPropertyStr</span>
+    <span class="k">def</span> <span class="nf">currentpath</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The absolute path of the current working directory.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import FileManager</span>
+<span class="sd">        &gt;&gt;&gt; filemanager = FileManager()</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.BASEDIR = &quot;basename&quot;</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir = &quot;projectname&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import repr_, TestIO</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     filemanager.currentdir = &quot;testdir&quot;</span>
+<span class="sd">        ...     repr_(filemanager.currentpath)    # doctest: +ELLIPSIS</span>
+<span class="sd">        &#39;...hydpy/tests/iotesting/projectname/basename/testdir&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentdir</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filenames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The names of the files placed in the current working directory, except those</span>
+<span class="sd">        starting with an underscore.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import FileManager</span>
+<span class="sd">        &gt;&gt;&gt; filemanager = FileManager()</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.BASEDIR = &quot;basename&quot;</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir = &quot;projectname&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import TestIO</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     filemanager.currentdir = &quot;testdir&quot;</span>
+<span class="sd">        ...     open(&quot;projectname/basename/testdir/file1.txt&quot;, &quot;w&quot;).close()</span>
+<span class="sd">        ...     open(&quot;projectname/basename/testdir/file2.npy&quot;, &quot;w&quot;).close()</span>
+<span class="sd">        ...     open(&quot;projectname/basename/testdir/_file1.nc&quot;, &quot;w&quot;).close()</span>
+<span class="sd">        ...     filemanager.filenames</span>
+<span class="sd">        [&#39;file1.txt&#39;, &#39;file2.npy&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">fn</span> <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currentpath</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">fn</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filepaths</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The absolute path names of the files returned by property</span>
+<span class="sd">        |FileManager.filenames|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import FileManager</span>
+<span class="sd">        &gt;&gt;&gt; filemanager = FileManager()</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.BASEDIR = &quot;basename&quot;</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir = &quot;projectname&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import repr_, TestIO</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     filemanager.currentdir = &quot;testdir&quot;</span>
+<span class="sd">        ...     open(&quot;projectname/basename/testdir/file1.txt&quot;, &quot;w&quot;).close()</span>
+<span class="sd">        ...     open(&quot;projectname/basename/testdir/file2.npy&quot;, &quot;w&quot;).close()</span>
+<span class="sd">        ...     open(&quot;projectname/basename/testdir/_file1.nc&quot;, &quot;w&quot;).close()</span>
+<span class="sd">        ...     for filepath in filemanager.filepaths:</span>
+<span class="sd">        ...         repr_(filepath)    # doctest: +ELLIPSIS</span>
+<span class="sd">        &#39;...hydpy/tests/iotesting/projectname/basename/testdir/file1.txt&#39;</span>
+<span class="sd">        &#39;...hydpy/tests/iotesting/projectname/basename/testdir/file2.npy&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentpath</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filenames</span><span class="p">]</span>
+
+<div class="viewcode-block" id="FileManager.zip_currentdir">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.FileManager.zip_currentdir">[docs]</a>
+    <span class="k">def</span> <span class="nf">zip_currentdir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pack the current working directory in a `zip` file.</span>
+
+<span class="sd">        |FileManager| subclasses allow for manual packing and automatic unpacking of</span>
+<span class="sd">        working directories.  The only supported format is &quot;zip&quot;.  The original</span>
+<span class="sd">        directories and zip files are removed after packing or unpacking, respectively,</span>
+<span class="sd">        to avoid possible inconsistencies.</span>
+
+<span class="sd">        As an example scenario, we prepare a |FileManager| object with the current</span>
+<span class="sd">        working directory `folder` containing the files `test1.txt` and `text2.txt`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import FileManager</span>
+<span class="sd">        &gt;&gt;&gt; filemanager = FileManager()</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.BASEDIR = &quot;basename&quot;</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.DEFAULTDIR = None</span>
+<span class="sd">        &gt;&gt;&gt; filemanager.projectdir = &quot;projectname&quot;</span>
+<span class="sd">        &gt;&gt;&gt; import os</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import repr_, TestIO</span>
+<span class="sd">        &gt;&gt;&gt; TestIO.clear()</span>
+<span class="sd">        &gt;&gt;&gt; basepath = &quot;projectname/basename&quot;</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     os.makedirs(basepath)</span>
+<span class="sd">        ...     filemanager.currentdir = &quot;folder&quot;</span>
+<span class="sd">        ...     open(f&quot;{basepath}/folder/file1.txt&quot;, &quot;w&quot;).close()</span>
+<span class="sd">        ...     open(f&quot;{basepath}/folder/file2.txt&quot;, &quot;w&quot;).close()</span>
+<span class="sd">        ...     filemanager.filenames</span>
+<span class="sd">        [&#39;file1.txt&#39;, &#39;file2.txt&#39;]</span>
+
+<span class="sd">        The directories existing under the base path are identical with the ones</span>
+<span class="sd">        returned by property |FileManager.availabledirs|:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     sorted(os.listdir(basepath))</span>
+<span class="sd">        ...     filemanager.availabledirs    # doctest: +ELLIPSIS</span>
+<span class="sd">        [&#39;folder&#39;]</span>
+<span class="sd">        Folder2Path(folder=.../projectname/basename/folder)</span>
+
+<span class="sd">        After packing the current working directory manually, it still counts as an</span>
+<span class="sd">        available directory:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     filemanager.zip_currentdir()</span>
+<span class="sd">        ...     sorted(os.listdir(basepath))</span>
+<span class="sd">        ...     filemanager.availabledirs    # doctest: +ELLIPSIS</span>
+<span class="sd">        [&#39;folder.zip&#39;]</span>
+<span class="sd">        Folder2Path(folder=.../projectname/basename/folder.zip)</span>
+
+<span class="sd">        Instead of the complete directory, only the contained files are packed:</span>
+
+<span class="sd">        &gt;&gt;&gt; from zipfile import ZipFile</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     with ZipFile(&quot;projectname/basename/folder.zip&quot;, &quot;r&quot;) as zp:</span>
+<span class="sd">        ...         sorted(zp.namelist())</span>
+<span class="sd">        [&#39;file1.txt&#39;, &#39;file2.txt&#39;]</span>
+
+<span class="sd">        The zip file is unpacked again, as soon as `folder` becomes the current working</span>
+<span class="sd">        directory:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     filemanager.currentdir = &quot;folder&quot;</span>
+<span class="sd">        ...     sorted(os.listdir(basepath))</span>
+<span class="sd">        ...     filemanager.availabledirs</span>
+<span class="sd">        ...     filemanager.filenames    # doctest: +ELLIPSIS</span>
+<span class="sd">        [&#39;folder&#39;]</span>
+<span class="sd">        Folder2Path(folder=.../projectname/basename/folder)</span>
+<span class="sd">        [&#39;file1.txt&#39;, &#39;file2.txt&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">currentpath</span><span class="si">}</span><span class="s2">.zip&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zipfile_</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">filename</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filenames</span><span class="p">):</span>
+                <span class="n">zipfile_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filepath</span><span class="p">,</span> <span class="n">arcname</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentdir</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NetworkManager">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.NetworkManager">[docs]</a>
+<span class="k">class</span> <span class="nc">NetworkManager</span><span class="p">(</span><span class="n">FileManager</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manager for network files.</span>
+
+<span class="sd">    The base and default folder names of class |NetworkManager| are:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.filetools import NetworkManager</span>
+<span class="sd">    &gt;&gt;&gt; NetworkManager.BASEDIR</span>
+<span class="sd">    &#39;network&#39;</span>
+<span class="sd">    &gt;&gt;&gt; NetworkManager.DEFAULTDIR</span>
+<span class="sd">    &#39;default&#39;</span>
+
+<span class="sd">    The documentation of base class |FileManager| explains most aspects of using</span>
+<span class="sd">    |NetworkManager| objects.  The following examples deal with the extended features</span>
+<span class="sd">    of class |NetworkManager|, which are reading, writing, and removing network files.</span>
+<span class="sd">    For this purpose, we prepare the example project `LahnH` in the `iotesting`</span>
+<span class="sd">    directory by calling function |prepare_full_example_1|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.examples import prepare_full_example_1</span>
+<span class="sd">    &gt;&gt;&gt; prepare_full_example_1()</span>
+
+<span class="sd">    You can define the complete network structure of an `HydPy` project by an arbitrary</span>
+<span class="sd">    number of &quot;network files&quot;.  These are valid Python files which define certain |Node|</span>
+<span class="sd">    and |Element| as well as their connections.  Network files are allowed to overlap,</span>
+<span class="sd">    meaning two or more files can define the same objects (in a consistent manner only,</span>
+<span class="sd">    of course).  The primary purpose of class |NetworkManager| is to execute each</span>
+<span class="sd">    network file individually and pass its content to a |Selection| object, which is</span>
+<span class="sd">    done by method |NetworkManager.load_files|:</span>
+
+<span class="sd">    &gt;&gt;&gt; networkmanager = NetworkManager()</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import TestIO</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     networkmanager.projectdir = &quot;LahnH&quot;</span>
+<span class="sd">    ...     selections = networkmanager.load_files()</span>
+
+<span class="sd">    Method |NetworkManager.load_files| takes file names as selection names (without</span>
+<span class="sd">    file endings).  Additionally, it creates a &quot;complete&quot; selection, including the</span>
+<span class="sd">    whole set of |Node| and |Element| objects of the file specific selections:</span>
+
+<span class="sd">    &gt;&gt;&gt; selections</span>
+<span class="sd">    Selections(&quot;complete&quot;, &quot;headwaters&quot;, &quot;nonheadwaters&quot;, &quot;streams&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; selections.headwaters</span>
+<span class="sd">    Selection(&quot;headwaters&quot;,</span>
+<span class="sd">              nodes=(&quot;dill&quot;, &quot;lahn_1&quot;),</span>
+<span class="sd">              elements=(&quot;land_dill&quot;, &quot;land_lahn_1&quot;))</span>
+<span class="sd">    &gt;&gt;&gt; selections.complete</span>
+<span class="sd">    Selection(&quot;complete&quot;,</span>
+<span class="sd">              nodes=(&quot;dill&quot;, &quot;lahn_1&quot;, &quot;lahn_2&quot;, &quot;lahn_3&quot;),</span>
+<span class="sd">              elements=(&quot;land_dill&quot;, &quot;land_lahn_1&quot;, &quot;land_lahn_2&quot;,</span>
+<span class="sd">                        &quot;land_lahn_3&quot;, &quot;stream_dill_lahn_2&quot;,</span>
+<span class="sd">                        &quot;stream_lahn_1_lahn_2&quot;, &quot;stream_lahn_2_lahn_3&quot;))</span>
+
+<span class="sd">    Method |NetworkManager.save_files| writes all |Selection| objects into separate</span>
+<span class="sd">    files.  We first change the current working directory to ensure we do not overwrite</span>
+<span class="sd">    already existing files:</span>
+
+<span class="sd">    &gt;&gt;&gt; import os</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     networkmanager.currentdir = &quot;testdir&quot;</span>
+<span class="sd">    ...     networkmanager.save_files(selections)</span>
+<span class="sd">    ...     sorted(os.listdir(&quot;LahnH/network/testdir&quot;))</span>
+<span class="sd">    [&#39;headwaters.py&#39;, &#39;nonheadwaters.py&#39;, &#39;streams.py&#39;]</span>
+
+<span class="sd">    Reloading and comparing with the still available |Selection| objects proves that</span>
+<span class="sd">    the contents of the original and the new network files are equivalent:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     selections == networkmanager.load_files()</span>
+<span class="sd">    True</span>
+
+<span class="sd">    Method |NetworkManager.delete_files| removes the network files of the given</span>
+<span class="sd">    |Selection| objects:</span>
+
+<span class="sd">    &gt;&gt;&gt; selections -= selections.streams</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     networkmanager.delete_files(selections)</span>
+<span class="sd">    ...     sorted(os.listdir(&quot;LahnH/network/testdir&quot;))</span>
+<span class="sd">    [&#39;streams.py&#39;]</span>
+
+<span class="sd">    When defining network files, many things can go wrong.  In the following, we list</span>
+<span class="sd">    all specialised error messages of what we hope to be concrete enough to aid in</span>
+<span class="sd">    finding the relevant problems:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     networkmanager.delete_files([&quot;headwaters&quot;])   # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    FileNotFoundError: While trying to remove the network files of selections \</span>
+<span class="sd">`[&#39;headwaters&#39;]`, the following error occurred: ...</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;LahnH/network/testdir/streams.py&quot;, &quot;w&quot;) as wrongfile:</span>
+<span class="sd">    ...         _ = wrongfile.write(&quot;x = y&quot;)</span>
+<span class="sd">    ...     networkmanager.load_files()   # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    NameError: While trying to load the network file `...streams.py`, the following \</span>
+<span class="sd">error occurred: name &#39;y&#39; is not defined</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;LahnH/network/testdir/streams.py&quot;, &quot;w&quot;) as wrongfile:</span>
+<span class="sd">    ...         _ = wrongfile.write(&quot;from hydpy import Node&quot;)</span>
+<span class="sd">    ...     networkmanager.load_files()   # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: The class Element cannot be loaded from the network file \</span>
+<span class="sd">`...streams.py`.</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;LahnH/network/testdir/streams.py&quot;, &quot;w&quot;) as wrongfile:</span>
+<span class="sd">    ...         _ = wrongfile.write(&quot;from hydpy import Element&quot;)</span>
+<span class="sd">    ...     networkmanager.load_files()   # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: The class Node cannot be loaded from the network file `...streams.py`.</span>
+
+<span class="sd">    &gt;&gt;&gt; import shutil</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     shutil.rmtree(&quot;LahnH/network/testdir&quot;)</span>
+<span class="sd">    ...     networkmanager.save_files(selections)   # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    FileNotFoundError: While trying to save the selections `Selections(&quot;complete&quot;, \</span>
+<span class="sd">&quot;headwaters&quot;, &quot;nonheadwaters&quot;)` into network files, the following error occurred: ...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;network&quot;</span>
+    <span class="n">DEFAULTDIR</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>
+
+<div class="viewcode-block" id="NetworkManager.load_files">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.NetworkManager.load_files">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">selectiontools</span><span class="o">.</span><span class="n">Selections</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read all network files of the current working directory, structure their</span>
+<span class="sd">        contents in a |selectiontools.Selections| object, and return it.</span>
+
+<span class="sd">        See the main documentation on class |NetworkManager| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+        <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+        <span class="n">selections</span> <span class="o">=</span> <span class="n">selectiontools</span><span class="o">.</span><span class="n">Selections</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">filenames</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The directory `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">currentpath</span><span class="si">}</span><span class="s2">` does not contain any network &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;files.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">filename</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filenames</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">):</span>
+            <span class="c1"># Ensure both `Node` and `Element`start with a `fresh` memory.</span>
+            <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="o">.</span><span class="n">extract_new</span><span class="p">()</span>
+            <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="o">.</span><span class="n">extract_new</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="n">runpy</span><span class="o">.</span><span class="n">run_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;While trying to load the network file `</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">node</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;Node&quot;</span><span class="p">]</span>
+                <span class="n">element</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span> <span class="o">=</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">]</span>
+                <span class="n">selections</span> <span class="o">+=</span> <span class="n">selectiontools</span><span class="o">.</span><span class="n">Selection</span><span class="p">(</span>
+                    <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">node</span><span class="o">.</span><span class="n">extract_new</span><span class="p">(),</span> <span class="n">element</span><span class="o">.</span><span class="n">extract_new</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The class </span><span class="si">{</span><span class="n">exc</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> cannot be loaded from the network file &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span>
+        <span class="n">selections</span> <span class="o">+=</span> <span class="n">selectiontools</span><span class="o">.</span><span class="n">Selection</span><span class="p">(</span>
+            <span class="s2">&quot;complete&quot;</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;Node&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">query_all</span><span class="p">(),</span> <span class="n">info</span><span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">query_all</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">selections</span></div>
+
+
+<div class="viewcode-block" id="NetworkManager.save_files">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.NetworkManager.save_files">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selections</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">selectiontools</span><span class="o">.</span><span class="n">Selection</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the |Selection| objects contained in the given |Selections| instance to</span>
+<span class="sd">        separate network files.</span>
+
+<span class="sd">        See the main documentation on class |NetworkManager| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">currentpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentpath</span>
+            <span class="k">for</span> <span class="n">selection</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">selection</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;complete&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">currentpath</span><span class="p">,</span> <span class="n">selection</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.py&quot;</span><span class="p">)</span>
+                <span class="n">selection</span><span class="o">.</span><span class="n">save_networkfile</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to save the selections `</span><span class="si">{</span><span class="n">selections</span><span class="si">}</span><span class="s2">` &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;into network files&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NetworkManager.delete_files">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.NetworkManager.delete_files">[docs]</a>
+    <span class="k">def</span> <span class="nf">delete_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selections</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">selectiontools</span><span class="o">.</span><span class="n">Selection</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete the network files corresponding to the given selections (e.g. a</span>
+<span class="sd">        |list| of |str| objects or a |Selections| object).</span>
+
+<span class="sd">        See the main documentation on class |NetworkManager| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">currentpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentpath</span>
+            <span class="k">for</span> <span class="n">selection</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;complete&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">):</span>
+                    <span class="n">name</span> <span class="o">+=</span> <span class="s2">&quot;.py&quot;</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">currentpath</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to remove the network files of selections `</span><span class="si">{</span><span class="n">selections</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ControlManager">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.ControlManager">[docs]</a>
+<span class="k">class</span> <span class="nc">ControlManager</span><span class="p">(</span><span class="n">FileManager</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manager for control parameter files.</span>
+
+<span class="sd">    The base and default folder names of class |ControlManager| are:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.filetools import ControlManager</span>
+<span class="sd">    &gt;&gt;&gt; ControlManager.BASEDIR</span>
+<span class="sd">    &#39;control&#39;</span>
+<span class="sd">    &gt;&gt;&gt; ControlManager.DEFAULTDIR</span>
+<span class="sd">    &#39;default&#39;</span>
+
+<span class="sd">    Class |ControlManager| extends the functionalities of class |FileManager| only</span>
+<span class="sd">    slightly, which is why the documentation on class |FileManager| should serve as a</span>
+<span class="sd">    good starting point for understanding class |ControlManager|.  Also see the</span>
+<span class="sd">    documentation on method |HydPy.prepare_models| of class |HydPy|, which relies on</span>
+<span class="sd">    the functionalities of class |ControlManager|.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># The following file path to content mapping is used to circumvent reading</span>
+    <span class="c1"># the same auxiliary control parameter file from disk multiple times.</span>
+    <span class="n">_registry</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">CodeType</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_workingpath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+    <span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;control&quot;</span>
+    <span class="n">DEFAULTDIR</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>
+
+<div class="viewcode-block" id="ControlManager.load_file">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.ControlManager.load_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">element</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">clear_registry</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the namespace of the given file (and eventually of its corresponding</span>
+<span class="sd">        auxiliary subfiles).</span>
+
+<span class="sd">        By default, |ControlManager| clears the internal registry when after having</span>
+<span class="sd">        loaded a control file and all its corresponding auxiliary files.  You can</span>
+<span class="sd">        change this behaviour by passing `False` to the `clear_registry` argument,</span>
+<span class="sd">        which might decrease model initialisation times significantly.  However, then</span>
+<span class="sd">        it is your own responsibility to call the method |ControlManager.clear_registry|</span>
+<span class="sd">        when necessary (usually, before reloading a changed control file).</span>
+
+<span class="sd">        One advantage of using method |ControlManager.load_file| directly is that it</span>
+<span class="sd">        supports reading control files that are yet not correctly integrated into a</span>
+<span class="sd">        complete *HydPy* project by passing its name:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.examples import prepare_full_example_1</span>
+<span class="sd">        &gt;&gt;&gt; prepare_full_example_1()</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import ControlManager</span>
+<span class="sd">        &gt;&gt;&gt; controlmanager = ControlManager()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub, round_, TestIO</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2001-01-01&quot;, &quot;12h&quot;</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     controlmanager.projectdir = &quot;LahnH&quot;</span>
+<span class="sd">        ...     results = controlmanager.load_file(filename=&quot;land_dill&quot;)</span>
+
+
+<span class="sd">        &gt;&gt;&gt; results[&quot;control&quot;]</span>
+<span class="sd">        area(692.3)</span>
+<span class="sd">        nmbzones(12)</span>
+<span class="sd">        sclass(1)</span>
+<span class="sd">        zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST,</span>
+<span class="sd">                 FIELD, FOREST, FIELD, FOREST)</span>
+<span class="sd">        zonearea(14.41, 7.06, 70.83, 84.36, 70.97, 198.0, 27.75, 130.0, 27.28,</span>
+<span class="sd">                 56.94, 1.09, 3.61)</span>
+<span class="sd">        psi(1.0)</span>
+<span class="sd">        zonez(2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0, 7.0, 7.0)</span>
+<span class="sd">        zrelp(3.75)</span>
+<span class="sd">        zrelt(3.75)</span>
+<span class="sd">        zrele(3.665)</span>
+<span class="sd">        pcorr(1.0)</span>
+<span class="sd">        pcalt(0.1)</span>
+<span class="sd">        rfcf(1.04283)</span>
+<span class="sd">        sfcf(1.1)</span>
+<span class="sd">        tcalt(0.6)</span>
+<span class="sd">        ecorr(1.0)</span>
+<span class="sd">        ecalt(0.0)</span>
+<span class="sd">        epf(0.02)</span>
+<span class="sd">        etf(0.1)</span>
+<span class="sd">        ered(0.0)</span>
+<span class="sd">        ttice(nan)</span>
+<span class="sd">        icmax(field=1.0, forest=1.5)</span>
+<span class="sd">        sfdist(1.0)</span>
+<span class="sd">        smax(inf)</span>
+<span class="sd">        sred(0.0)</span>
+<span class="sd">        tt(0.55824)</span>
+<span class="sd">        ttint(2.0)</span>
+<span class="sd">        dttm(0.0)</span>
+<span class="sd">        cfmax(field=4.55853, forest=2.735118)</span>
+<span class="sd">        cfvar(0.0)</span>
+<span class="sd">        gmelt(nan)</span>
+<span class="sd">        gvar(nan)</span>
+<span class="sd">        cfr(0.05)</span>
+<span class="sd">        whc(0.1)</span>
+<span class="sd">        fc(278.0)</span>
+<span class="sd">        lp(0.9)</span>
+<span class="sd">        beta(2.54011)</span>
+<span class="sd">        percmax(1.39636)</span>
+<span class="sd">        cflux(0.0)</span>
+<span class="sd">        resparea(True)</span>
+<span class="sd">        recstep(1200.0)</span>
+<span class="sd">        alpha(1.0)</span>
+<span class="sd">        k(0.005618)</span>
+<span class="sd">        k4(0.05646)</span>
+<span class="sd">        gamma(0.0)</span>
+<span class="sd">        maxbaz(0.36728)</span>
+
+<span class="sd">        &gt;&gt;&gt; results[&quot;percmax&quot;].values</span>
+<span class="sd">        0.69818</span>
+
+<span class="sd">        Passing neither a filename nor an |Element| object raises the following error:</span>
+
+<span class="sd">        &gt;&gt;&gt; controlmanager.load_file()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: When trying to load a control file you must either pass its \</span>
+<span class="sd">name or the responsible Element object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">element</span><span class="p">:</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="s2">&quot;When trying to load a control file you must either pass its name &quot;</span>
+                    <span class="s2">&quot;or the responsible Element object.&quot;</span>
+                <span class="p">)</span>
+        <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_workingpath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentpath</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">element</span><span class="p">:</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;element&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">element</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">read2dict</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_workingpath</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+            <span class="k">if</span> <span class="n">clear_registry</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">info</span></div>
+
+
+<div class="viewcode-block" id="ControlManager.read2dict">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.ControlManager.read2dict">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">read2dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">info</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read the control parameters from the given path (and its</span>
+<span class="sd">        auxiliary paths, where appropriate) and store them in the given</span>
+<span class="sd">        |dict| object `info`.</span>
+
+<span class="sd">        Note that`info` can be used to feed information into the execution</span>
+<span class="sd">        of control files.  Use this method only if you are entirely sure</span>
+<span class="sd">        on how the control parameter import of *HydPy* works.  Otherwise,</span>
+<span class="sd">        you should most probably prefer to use the method</span>
+<span class="sd">        |ControlManager.load_file|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">):</span>
+            <span class="n">filename</span> <span class="o">+=</span> <span class="s2">&quot;.py&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_workingpath</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parameterstep</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">ENCODING</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+                        <span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="nb">compile</span><span class="p">(</span>
+                            <span class="n">source</span><span class="o">=</span><span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span>
+                            <span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;exec&quot;</span><span class="p">,</span>
+                        <span class="p">)</span>
+                <span class="n">exec</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="p">[</span><span class="n">path</span><span class="p">],</span> <span class="p">{},</span> <span class="n">info</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;While trying to load the control file `</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;model&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Model parameters cannot be loaded from control file `</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">`.  &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Please refer to the HydPy documentation on how to prepare control &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;files properly.&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ControlManager.clear_registry">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.ControlManager.clear_registry">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">clear_registry</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear the internal registry from control file information.&quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_registry</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ControlManager.save_file">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.ControlManager.save_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the given text under the given control filename and the current path.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.py&quot;</span><span class="p">):</span>
+            <span class="n">filename</span> <span class="o">+=</span> <span class="s2">&quot;.py&quot;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">currentpath</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ConditionManager">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.ConditionManager">[docs]</a>
+<span class="k">class</span> <span class="nc">ConditionManager</span><span class="p">(</span><span class="n">FileManager</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manager for condition files.</span>
+
+<span class="sd">    The base folder name of class |ConditionManager| is:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.filetools import ConditionManager</span>
+<span class="sd">    &gt;&gt;&gt; ConditionManager.BASEDIR</span>
+<span class="sd">    &#39;conditions&#39;</span>
+
+<span class="sd">    Class |ConditionManager| generally works like class |FileManager|.  The following</span>
+<span class="sd">    examples, based on the `LahnH` example project, explain the additional</span>
+<span class="sd">    functionalities of the |ConditionManager| specific properties</span>
+<span class="sd">    |ConditionManager.inputpath| and |ConditionManager.outputpath|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.examples import prepare_full_example_2</span>
+<span class="sd">    &gt;&gt;&gt; hp, pub, TestIO = prepare_full_example_2()</span>
+
+<span class="sd">    If the current directory named is not defined explicitly, both properties construct</span>
+<span class="sd">    it following the actual simulation start or end date, respectively:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import repr_</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():    # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     repr_(pub.conditionmanager.inputpath)</span>
+<span class="sd">    ...     repr_(pub.conditionmanager.outputpath)</span>
+<span class="sd">    &#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_01_00_00_00&#39;</span>
+<span class="sd">    &#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_05_00_00_00&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.timegrids.sim.firstdate += &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids.sim.lastdate -= &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids</span>
+<span class="sd">    Timegrids(init=Timegrid(&quot;1996-01-01 00:00:00&quot;,</span>
+<span class="sd">                            &quot;1996-01-05 00:00:00&quot;,</span>
+<span class="sd">                            &quot;1d&quot;),</span>
+<span class="sd">              sim=Timegrid(&quot;1996-01-02 00:00:00&quot;,</span>
+<span class="sd">                           &quot;1996-01-04 00:00:00&quot;,</span>
+<span class="sd">                           &quot;1d&quot;),</span>
+<span class="sd">              eval_=Timegrid(&quot;1996-01-01 00:00:00&quot;,</span>
+<span class="sd">                             &quot;1996-01-05 00:00:00&quot;,</span>
+<span class="sd">                             &quot;1d&quot;))</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():    # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     repr_(pub.conditionmanager.inputpath)</span>
+<span class="sd">    ...     repr_(pub.conditionmanager.outputpath)</span>
+<span class="sd">    &#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_02_00_00_00&#39;</span>
+<span class="sd">    &#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_04_00_00_00&#39;</span>
+
+<span class="sd">    Use the property |FileManager.currentdir| to change the values of both properties:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():    # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     pub.conditionmanager.currentdir = &quot;test&quot;</span>
+<span class="sd">    ...     repr_(pub.conditionmanager.inputpath)</span>
+<span class="sd">    ...     repr_(pub.conditionmanager.outputpath)</span>
+<span class="sd">    &#39;.../hydpy/tests/iotesting/LahnH/conditions/test&#39;</span>
+<span class="sd">    &#39;.../hydpy/tests/iotesting/LahnH/conditions/test&#39;</span>
+
+<span class="sd">    After deleting the custom value of property |FileManager.currentdir|, both</span>
+<span class="sd">    properties |ConditionManager.inputpath| and |ConditionManager.outputpath| work as</span>
+<span class="sd">    before:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():    # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     del pub.conditionmanager.currentdir</span>
+<span class="sd">    ...     repr_(pub.conditionmanager.inputpath)</span>
+<span class="sd">    ...     repr_(pub.conditionmanager.outputpath)</span>
+<span class="sd">    &#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_02_00_00_00&#39;</span>
+<span class="sd">    &#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_04_00_00_00&#39;</span>
+
+<span class="sd">    The date based construction of directory names requires a |Timegrids| object</span>
+<span class="sd">    available in module |pub|:</span>
+
+<span class="sd">    &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():    # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     repr_(pub.conditionmanager.inputpath)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: While trying to determine the \</span>
+<span class="sd">currently relevant input path for loading conditions file, the following error \</span>
+<span class="sd">occurred: Attribute timegrids of module `pub` is not defined at the moment.</span>
+
+<span class="sd">    &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():    # doctest: +ELLIPSIS</span>
+<span class="sd">    ...     repr_(pub.conditionmanager.outputpath)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: While trying to determine the \</span>
+<span class="sd">currently relevant output path for saving conditions file, the following error \</span>
+<span class="sd">occurred: Attribute timegrids of module `pub` is not defined at the moment.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;conditions&quot;</span>
+    <span class="n">DEFAULTDIR</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">inputpath</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>  <span class="c1"># type: ignore[return]</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The directory path for loading initial conditions.</span>
+
+<span class="sd">        See the main documentation on class |ConditionManager| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">currentdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_currentdir</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">currentdir</span><span class="p">:</span>
+                <span class="n">to_string</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">firstdate</span><span class="o">.</span><span class="n">to_string</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;init_</span><span class="si">{</span><span class="n">to_string</span><span class="p">(</span><span class="s1">&#39;os&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentpath</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="s2">&quot;While trying to determine the currently relevant input path for &quot;</span>
+                <span class="s2">&quot;loading conditions file&quot;</span>
+            <span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_currentdir</span> <span class="o">=</span> <span class="n">currentdir</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">outputpath</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>  <span class="c1"># type: ignore[return]</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The directory path actual for saving (final) conditions.</span>
+
+<span class="sd">        See the main documentation on class |ConditionManager| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">currentdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_currentdir</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">currentdir</span><span class="p">:</span>
+                <span class="n">to_string</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">lastdate</span><span class="o">.</span><span class="n">to_string</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;init_</span><span class="si">{</span><span class="n">to_string</span><span class="p">(</span><span class="s1">&#39;os&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">currentpath</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="s2">&quot;While trying to determine the currently relevant output path for &quot;</span>
+                <span class="s2">&quot;saving conditions file&quot;</span>
+            <span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_currentdir</span> <span class="o">=</span> <span class="n">currentdir</span></div>
+
+
+
+<div class="viewcode-block" id="SequenceManager">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager">[docs]</a>
+<span class="k">class</span> <span class="nc">SequenceManager</span><span class="p">(</span><span class="n">FileManager</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Manager for sequence files.</span>
+
+<span class="sd">    Usually, there is only one |SequenceManager| used within each *HydPy* project,</span>
+<span class="sd">    stored in module |pub|.  This object is responsible for the actual I/O tasks</span>
+<span class="sd">    related to |IOSequence| objects.</span>
+
+<span class="sd">    Working with a complete *HydPy* project, one often does not use the</span>
+<span class="sd">    |SequenceManager|  directly, except one wishes to load or save time series data in</span>
+<span class="sd">    a way different from the default settings.  The following examples show the</span>
+<span class="sd">    essential features of class |SequenceManager| based on the example project</span>
+<span class="sd">    configuration defined by function |prepare_io_example_1|.</span>
+
+<span class="sd">    We prepare the project and select one 0-dimensional sequence of type |Sim| and one</span>
+<span class="sd">    1-dimensional sequence of type |lland_fluxes.NKor| for the following examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.examples import prepare_io_example_1</span>
+<span class="sd">    &gt;&gt;&gt; nodes, elements = prepare_io_example_1()</span>
+<span class="sd">    &gt;&gt;&gt; sim = nodes.node2.sequences.sim</span>
+<span class="sd">    &gt;&gt;&gt; nkor = elements.element2.model.sequences.fluxes.nkor</span>
+
+<span class="sd">    We store the time series data of both sequences in ASCII files (methods</span>
+<span class="sd">    |SequenceManager.save_file| and |IOSequence.save_series| are interchangeable here.</span>
+<span class="sd">    The last one is only a convenience function for the first one):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.sequencemanager.filetype = &quot;asc&quot;</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import TestIO</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     pub.sequencemanager.save_file(sim)</span>
+<span class="sd">    ...     nkor.save_series()</span>
+
+<span class="sd">    We can load the file content from the output directory defined by</span>
+<span class="sd">    |prepare_io_example_1| and print it to check this was successful:</span>
+
+<span class="sd">    &gt;&gt;&gt; import os</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; def print_file(filename):</span>
+<span class="sd">    ...     path = os.path.join(&quot;project&quot;, &quot;series&quot;, &quot;default&quot;, filename)</span>
+<span class="sd">    ...     with TestIO():</span>
+<span class="sd">    ...         with open(path) as file_:</span>
+<span class="sd">    ...             lines = file_.readlines()</span>
+<span class="sd">    ...     print(&quot;&quot;.join(lines[:3]), end=&quot;&quot;)</span>
+<span class="sd">    ...     for line in lines[3:]:</span>
+<span class="sd">    ...         round_([float(x) for x in line.split()])</span>
+
+<span class="sd">    &gt;&gt;&gt; print_file(&quot;node2_sim_t.asc&quot;)</span>
+<span class="sd">    Timegrid(&quot;2000-01-01 00:00:00+01:00&quot;,</span>
+<span class="sd">             &quot;2000-01-05 00:00:00+01:00&quot;,</span>
+<span class="sd">             &quot;1d&quot;)</span>
+<span class="sd">    64.0</span>
+<span class="sd">    65.0</span>
+<span class="sd">    66.0</span>
+<span class="sd">    67.0</span>
+<span class="sd">    &gt;&gt;&gt; print_file(&quot;element2_flux_nkor.asc&quot;)</span>
+<span class="sd">    Timegrid(&quot;2000-01-01 00:00:00+01:00&quot;,</span>
+<span class="sd">             &quot;2000-01-05 00:00:00+01:00&quot;,</span>
+<span class="sd">             &quot;1d&quot;)</span>
+<span class="sd">    16.0, 17.0</span>
+<span class="sd">    18.0, 19.0</span>
+<span class="sd">    20.0, 21.0</span>
+<span class="sd">    22.0, 23.0</span>
+
+<span class="sd">    To show that reloading the data works, we set the values of the time series of both</span>
+<span class="sd">    objects to zero and recover the original values afterwards:</span>
+
+<span class="sd">    &gt;&gt;&gt; sim.series = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; sim.series</span>
+<span class="sd">    InfoArray([0., 0., 0., 0.])</span>
+<span class="sd">    &gt;&gt;&gt; nkor.series = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; nkor.series</span>
+<span class="sd">    InfoArray([[0., 0.],</span>
+<span class="sd">               [0., 0.],</span>
+<span class="sd">               [0., 0.],</span>
+<span class="sd">               [0., 0.]])</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     pub.sequencemanager.load_file(sim)</span>
+<span class="sd">    ...     nkor.load_series()</span>
+<span class="sd">    &gt;&gt;&gt; sim.series</span>
+<span class="sd">    InfoArray([64., 65., 66., 67.])</span>
+<span class="sd">    &gt;&gt;&gt; nkor.series</span>
+<span class="sd">    InfoArray([[16., 17.],</span>
+<span class="sd">               [18., 19.],</span>
+<span class="sd">               [20., 21.],</span>
+<span class="sd">               [22., 23.]])</span>
+
+<span class="sd">    Wrongly formatted ASCII files and incomplete data should result in understandable</span>
+<span class="sd">    error messages:</span>
+
+<span class="sd">    &gt;&gt;&gt; path = os.path.join(&quot;project&quot;, &quot;series&quot;, &quot;default&quot;, &quot;node2_sim_t.asc&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(path) as file_:</span>
+<span class="sd">    ...         right = file_.read()</span>
+<span class="sd">    ...     wrong = right.replace(&quot;Timegrid&quot;, &quot;timegrid&quot;)</span>
+<span class="sd">    ...     with open(path, &quot;w&quot;) as file_:</span>
+<span class="sd">    ...         _ = file_.write(wrong)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     pub.sequencemanager.load_file(sim)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    NameError: While trying to load the time-series data of sequence `sim` of node \</span>
+<span class="sd">`node2`, the following error occurred: name &#39;timegrid&#39; is not defined</span>
+
+<span class="sd">    &gt;&gt;&gt; sim_series = sim.series.copy()</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     lines = right.split(&quot;\\n&quot;)</span>
+<span class="sd">    ...     lines[5] = &quot;nan&quot;</span>
+<span class="sd">    ...     wrong = &quot;\\n&quot;.join(lines)</span>
+<span class="sd">    ...     with open(path, &quot;w&quot;) as file_:</span>
+<span class="sd">    ...         _ = file_.write(wrong)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     pub.sequencemanager.load_file(sim)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to load the time-series data of sequence `sim` of node \</span>
+<span class="sd">`node2`, the following error occurred: The series array of sequence `sim` of node \</span>
+<span class="sd">`node2` contains 1 nan value.</span>
+<span class="sd">    &gt;&gt;&gt; sim.series = sim_series</span>
+
+<span class="sd">    By default, overwriting existing time series files is disabled:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     sim.save_series()   # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    OSError: While trying to save the time-series data of sequence `sim` of \</span>
+<span class="sd">node `node2`, the following error occurred: Sequence `sim` of node `node2` is \</span>
+<span class="sd">not allowed to overwrite the existing file `...`.</span>
+<span class="sd">    &gt;&gt;&gt; pub.sequencemanager.overwrite = True</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     sim.save_series()</span>
+
+<span class="sd">    When a sequence comes with a weighting parameter referenced by |property|</span>
+<span class="sd">    |Variable.refweights|, one can save the averaged time series by using the method</span>
+<span class="sd">    |IOSequence.save_mean|:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     nkor.save_mean()</span>
+<span class="sd">    &gt;&gt;&gt; print_file(&quot;element2_flux_nkor_mean.asc&quot;)</span>
+<span class="sd">    Timegrid(&quot;2000-01-01 00:00:00+01:00&quot;,</span>
+<span class="sd">             &quot;2000-01-05 00:00:00+01:00&quot;,</span>
+<span class="sd">             &quot;1d&quot;)</span>
+<span class="sd">    16.5</span>
+<span class="sd">    18.5</span>
+<span class="sd">    20.5</span>
+<span class="sd">    22.5</span>
+
+<span class="sd">    Method |IOSequence.save_mean| is strongly related to method</span>
+<span class="sd">    |IOSequence.average_series|, meaning one can pass the same arguments.  We show this</span>
+<span class="sd">    by changing the land use classes of `element2` (parameter |lland_control.Lnk|) to</span>
+<span class="sd">    field (|lland_constants.ACKER|) and water (|lland_constants.WASSER|), and averaging</span>
+<span class="sd">    the values of sequence |lland_fluxes.NKor| for the single area of type field only:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.lland_v1 import ACKER, WASSER</span>
+<span class="sd">    &gt;&gt;&gt; nkor.subseqs.seqs.model.parameters.control.lnk = ACKER, WASSER</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     nkor.save_mean(&quot;acker&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; print_file(&quot;element2_flux_nkor_mean.asc&quot;)</span>
+<span class="sd">    Timegrid(&quot;2000-01-01 00:00:00+01:00&quot;,</span>
+<span class="sd">             &quot;2000-01-05 00:00:00+01:00&quot;,</span>
+<span class="sd">             &quot;1d&quot;)</span>
+<span class="sd">    16.0</span>
+<span class="sd">    18.0</span>
+<span class="sd">    20.0</span>
+<span class="sd">    22.0</span>
+
+<span class="sd">    Another option is to store data using |numpy| binary files, which is a good option</span>
+<span class="sd">    for saving computation times but possibly a problematic option for sharing data</span>
+<span class="sd">    with colleagues:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.sequencemanager.filetype = &quot;npy&quot;</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     sim.save_series()</span>
+<span class="sd">    ...     nkor.save_series()</span>
+
+<span class="sd">    The time information (without time zone information) is available within the first</span>
+<span class="sd">    thirteen entries:</span>
+
+<span class="sd">    &gt;&gt;&gt; path = os.path.join(&quot;project&quot;, &quot;series&quot;, &quot;default&quot;, &quot;node2_sim_t.npy&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import numpy, print_values</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     print_values(numpy.load(path))</span>
+<span class="sd">    2000.0, 1.0, 1.0, 0.0, 0.0, 0.0, 2000.0, 1.0, 5.0, 0.0, 0.0, 0.0,</span>
+<span class="sd">    86400.0, 64.0, 65.0, 66.0, 67.0</span>
+
+<span class="sd">    Reloading the data works as expected:</span>
+
+<span class="sd">    &gt;&gt;&gt; sim.series = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; nkor.series = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     sim.load_series()</span>
+<span class="sd">    ...     nkor.load_series()</span>
+<span class="sd">    &gt;&gt;&gt; sim.series</span>
+<span class="sd">    InfoArray([64., 65., 66., 67.])</span>
+<span class="sd">    &gt;&gt;&gt; nkor.series</span>
+<span class="sd">    InfoArray([[16., 17.],</span>
+<span class="sd">               [18., 19.],</span>
+<span class="sd">               [20., 21.],</span>
+<span class="sd">               [22., 23.]])</span>
+
+<span class="sd">    Writing mean values into |numpy| binary files is also supported:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy</span>
+<span class="sd">    &gt;&gt;&gt; path = os.path.join(</span>
+<span class="sd">    ...     &quot;project&quot;, &quot;series&quot;, &quot;default&quot;, &quot;element2_flux_nkor_mean.npy&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     nkor.save_mean(&quot;wasser&quot;)</span>
+<span class="sd">    ...     numpy.load(path)[-4:]</span>
+<span class="sd">    array([17., 19., 21., 23.])</span>
+
+<span class="sd">    Generally, trying to load data for &quot;deactivated&quot; sequences results in the following</span>
+<span class="sd">    error message:</span>
+
+<span class="sd">    &gt;&gt;&gt; nkor.prepare_series(allocate_ram=False)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO(clear_all=True):</span>
+<span class="sd">    ...     pub.sequencemanager.save_file(nkor)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: Sequence `nkor` of element \</span>
+<span class="sd">`element2` is not requested to make any time-series data available.</span>
+
+<span class="sd">    The third option is to store data in netCDF files, which is explained separately in</span>
+<span class="sd">    the documentation on class |NetCDFInterface|.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUPPORTED_MODES</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span><span class="p">,</span> <span class="s2">&quot;asc&quot;</span><span class="p">,</span> <span class="s2">&quot;nc&quot;</span>
+    <span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;series&quot;</span>
+    <span class="n">DEFAULTDIR</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>
+
+    <span class="n">filetype</span> <span class="o">=</span> <span class="n">optiontools</span><span class="o">.</span><span class="n">OptionPropertySeriesFileType</span><span class="p">(</span>
+        <span class="s2">&quot;asc&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Currently active time-series file type.</span>
+<span class="sd">        </span>
+<span class="sd">        |SequenceManager.filetype| is an option based on |OptionPropertySeriesFileType|.</span>
+<span class="sd">        See its documentation for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">overwrite</span> <span class="o">=</span> <span class="n">optiontools</span><span class="o">.</span><span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">False</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Currently active overwrite flag for time-series files.</span>
+
+<span class="sd">        |SequenceManager.overwrite| is an option based on |OptionPropertyBool|.  See </span>
+<span class="sd">        its documentation for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">aggregation</span> <span class="o">=</span> <span class="n">optiontools</span><span class="o">.</span><span class="n">OptionPropertySeriesAggregation</span><span class="p">(</span>
+        <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Currently active aggregation mode for writing time-series files.</span>
+
+<span class="sd">        |SequenceManager.aggregation| is an option based on </span>
+<span class="sd">        |OptionPropertySeriesAggregation|.  See its documentation for further </span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">_netcdfreader</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">netcdftools</span><span class="o">.</span><span class="n">NetCDFInterface</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_netcdfwriter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">netcdftools</span><span class="o">.</span><span class="n">NetCDFInterface</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_jitaccesshandler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">netcdftools</span><span class="o">.</span><span class="n">JITAccessHandler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="SequenceManager.load_file">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.load_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">IOSequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load data from a data file and pass it to the given |IOSequence|.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sequence</span><span class="o">.</span><span class="n">filetype</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span><span class="p">:</span>
+                <span class="n">sequence</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">adjust_series</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_load_npy</span><span class="p">(</span><span class="n">sequence</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">sequence</span><span class="o">.</span><span class="n">filetype</span> <span class="o">==</span> <span class="s2">&quot;asc&quot;</span><span class="p">:</span>
+                <span class="n">sequence</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">adjust_series</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_load_asc</span><span class="p">(</span><span class="n">sequence</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">sequence</span><span class="o">.</span><span class="n">filetype</span> <span class="o">==</span> <span class="s2">&quot;nc&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_load_nc</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to load the time-series data of sequence &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicephrase</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_load_npy</span><span class="p">(</span>
+        <span class="n">sequence</span><span class="p">:</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">IOSequence</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">Timegrid</span><span class="p">,</span> <span class="n">NDArrayFloat</span><span class="p">]:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sequence</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="n">timegrid_data</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrid</span><span class="o">.</span><span class="n">from_array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">timegrid_data</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="mi">13</span><span class="p">:]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_load_asc</span><span class="p">(</span>
+        <span class="n">sequence</span><span class="p">:</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">IOSequence</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">Timegrid</span><span class="p">,</span> <span class="n">NDArrayFloat</span><span class="p">]:</span>
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">filepath</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">ENCODING</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">file_</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>
+        <span class="n">timegrid_data</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="p">{},</span> <span class="p">{</span><span class="s2">&quot;Timegrid&quot;</span><span class="p">:</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrid</span><span class="p">})</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span>  <span class="c1"># type: ignore[call-overload]</span>
+            <span class="n">filepath</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">sequence</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">sequence</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="n">sequence</span><span class="o">.</span><span class="n">seriesshape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">timegrid_data</span><span class="p">,</span> <span class="n">values</span>
+
+    <span class="k">def</span> <span class="nf">_load_nc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">IOSequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">netcdfreader</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SequenceManager.save_file">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.save_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sequence</span><span class="p">:</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">IOSequence</span><span class="p">,</span>
+        <span class="n">array</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">InfoArray</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the data stored in the |IOSequence.series| property of the given</span>
+<span class="sd">        |IOSequence| into a data file.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">array</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">aggregate_series</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sequence</span><span class="o">.</span><span class="n">filetype</span> <span class="o">==</span> <span class="s2">&quot;nc&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_save_nc</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">array</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">filepath</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">filepath</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">array</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">aggregation</span> <span class="o">!=</span> <span class="s2">&quot;unmodified&quot;</span><span class="p">):</span>
+                    <span class="n">filepath</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">filepath</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">array</span><span class="o">.</span><span class="n">aggregation</span><span class="si">}{</span><span class="n">filepath</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">sequence</span><span class="o">.</span><span class="n">overwrite</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Sequence </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicephrase</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span><span class="si">}</span><span class="s2"> is not allowed &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;to overwrite the existing file `</span><span class="si">{</span><span class="n">sequence</span><span class="o">.</span><span class="n">filepath</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">sequence</span><span class="o">.</span><span class="n">filetype</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_save_npy</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">sequence</span><span class="o">.</span><span class="n">filetype</span> <span class="o">==</span> <span class="s2">&quot;asc&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_save_asc</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to save the time-series data of sequence &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicephrase</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_save_npy</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">NDArrayFloat</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">array2series</span><span class="p">(</span><span class="n">array</span><span class="p">))</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_save_asc</span><span class="p">(</span><span class="n">array</span><span class="p">:</span> <span class="n">NDArrayFloat</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">ENCODING</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">assignrepr</span><span class="p">(</span>
+                    <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s2">&quot;iso2&quot;</span><span class="p">,</span> <span class="n">utcoffset</span><span class="o">=</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span>
+                <span class="p">)</span>
+                <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">array</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">array</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">ENCODING</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">file_</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_save_nc</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">IOSequence</span><span class="p">,</span> <span class="n">array</span><span class="p">:</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">InfoArray</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">netcdfwriter</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="n">array</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">netcdfreader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">netcdftools</span><span class="o">.</span><span class="n">NetCDFInterface</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A |NetCDFInterface| object prepared by method</span>
+<span class="sd">        |SequenceManager.open_netcdfreader| and to be finalised by method</span>
+<span class="sd">        |SequenceManager.close_netcdfreader|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import SequenceManager</span>
+<span class="sd">        &gt;&gt;&gt; sm = SequenceManager()</span>
+<span class="sd">        &gt;&gt;&gt; sm.netcdfreader</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: The sequence file manager does currently handle no NetCDF \</span>
+<span class="sd">reader object.</span>
+
+<span class="sd">        &gt;&gt;&gt; sm.open_netcdfreader()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import classname</span>
+<span class="sd">        &gt;&gt;&gt; classname(sm.netcdfreader)</span>
+<span class="sd">        &#39;NetCDFInterface&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; sm.close_netcdfreader()</span>
+<span class="sd">        &gt;&gt;&gt; sm.netcdfreader</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: The sequence file manager does currently handle no NetCDF \</span>
+<span class="sd">reader object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_netcdfreader</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;The sequence file manager does currently handle no NetCDF reader &quot;</span>
+                <span class="s2">&quot;object.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_netcdfreader</span>
+
+<div class="viewcode-block" id="SequenceManager.open_netcdfreader">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.open_netcdfreader">[docs]</a>
+    <span class="k">def</span> <span class="nf">open_netcdfreader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare a new |NetCDFInterface| object for reading data.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_netcdfreader</span> <span class="o">=</span> <span class="n">netcdftools</span><span class="o">.</span><span class="n">NetCDFInterface</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SequenceManager.close_netcdfreader">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.close_netcdfreader">[docs]</a>
+    <span class="k">def</span> <span class="nf">close_netcdfreader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read data with a prepared |NetCDFInterface| object and delete it</span>
+<span class="sd">        afterwards.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">netcdfreader</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_netcdfreader</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="SequenceManager.netcdfreading">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.netcdfreading">[docs]</a>
+    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">netcdfreading</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare a new |NetCDFInterface| object for collecting data at the beginning</span>
+<span class="sd">        of a with-block and read the data and delete the object at the end of the same</span>
+<span class="sd">        with-block.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open_netcdfreader</span><span class="p">()</span>
+        <span class="k">yield</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close_netcdfreader</span><span class="p">()</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">netcdfwriter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">netcdftools</span><span class="o">.</span><span class="n">NetCDFInterface</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A |NetCDFInterface| object prepared by method</span>
+<span class="sd">        |SequenceManager.open_netcdfwriter| and to be finalised by method</span>
+<span class="sd">        |SequenceManager.close_netcdfwriter|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.filetools import SequenceManager</span>
+<span class="sd">        &gt;&gt;&gt; sm = SequenceManager()</span>
+<span class="sd">        &gt;&gt;&gt; sm.netcdfwriter</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does \</span>
+<span class="sd">currently handle no NetCDF writer object.</span>
+
+<span class="sd">        &gt;&gt;&gt; sm.open_netcdfwriter()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import classname</span>
+<span class="sd">        &gt;&gt;&gt; classname(sm.netcdfwriter)</span>
+<span class="sd">        &#39;NetCDFInterface&#39;</span>
+
+<span class="sd">        &gt;&gt;&gt; sm.close_netcdfwriter()</span>
+<span class="sd">        &gt;&gt;&gt; sm.netcdfwriter</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        hydpy.core.exceptiontools.AttributeNotReady: The sequence file manager does \</span>
+<span class="sd">currently handle no NetCDF writer object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_netcdfwriter</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">(</span>
+                <span class="s2">&quot;The sequence file manager does currently handle no NetCDF writer &quot;</span>
+                <span class="s2">&quot;object.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_netcdfwriter</span>
+
+<div class="viewcode-block" id="SequenceManager.open_netcdfwriter">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.open_netcdfwriter">[docs]</a>
+    <span class="k">def</span> <span class="nf">open_netcdfwriter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare a new |NetCDFInterface| object for writing data.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_netcdfwriter</span> <span class="o">=</span> <span class="n">netcdftools</span><span class="o">.</span><span class="n">NetCDFInterface</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SequenceManager.close_netcdfwriter">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.close_netcdfwriter">[docs]</a>
+    <span class="k">def</span> <span class="nf">close_netcdfwriter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write data with a prepared |NetCDFInterface| object and delete it</span>
+<span class="sd">        afterwards.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">netcdfwriter</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_netcdfwriter</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="SequenceManager.netcdfwriting">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.netcdfwriting">[docs]</a>
+    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">netcdfwriting</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare a new |NetCDFInterface| object for collecting data at the beginning</span>
+<span class="sd">        of a with-block and write the data and delete the object at the end of the same</span>
+<span class="sd">        with-block.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open_netcdfwriter</span><span class="p">()</span>
+        <span class="k">yield</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close_netcdfwriter</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SequenceManager.provide_netcdfjitaccess">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.provide_netcdfjitaccess">[docs]</a>
+    <span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
+    <span class="k">def</span> <span class="nf">provide_netcdfjitaccess</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">deviceorder</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open all required internal NetCDF time-series files.</span>
+
+<span class="sd">        This method is only relevant for reading data from or writing data to NetCDF</span>
+<span class="sd">        files &quot;just in time&quot; during simulation runs.  See the main documentation on</span>
+<span class="sd">        class |HydPy| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">interface</span> <span class="o">=</span> <span class="n">netcdftools</span><span class="o">.</span><span class="n">NetCDFInterface</span><span class="p">()</span>
+            <span class="k">with</span> <span class="n">interface</span><span class="o">.</span><span class="n">provide_jitaccess</span><span class="p">(</span><span class="n">deviceorder</span><span class="p">)</span> <span class="k">as</span> <span class="n">jitaccesshandler</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_jitaccesshandler</span> <span class="o">=</span> <span class="n">jitaccesshandler</span>
+                <span class="k">yield</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_jitaccesshandler</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="SequenceManager.read_netcdfslices">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.read_netcdfslices">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_netcdfslices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read the time slice relevant for the current simulation step.</span>
+
+<span class="sd">        This method is only relevant for reading data from or writing data to NetCDF</span>
+<span class="sd">        files &quot;just in time&quot; during simulation runs.  See the main documentation on</span>
+<span class="sd">        class |HydPy| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jitaccesshandler</span>
+        <span class="k">if</span> <span class="n">handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">handler</span><span class="o">.</span><span class="n">read_slices</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SequenceManager.write_netcdfslices">
+<a class="viewcode-back" href="../../../filetools.html#hydpy.core.filetools.SequenceManager.write_netcdfslices">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_netcdfslices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the time slice relevant for the current simulation step.</span>
+
+<span class="sd">        This method is only relevant for reading data from or writing data to NetCDF</span>
+<span class="sd">        files &quot;just in time&quot; during simulation runs.  See the main documentation on</span>
+<span class="sd">        class |HydPy| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jitaccesshandler</span>
+        <span class="k">if</span> <span class="n">handler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">handler</span><span class="o">.</span><span class="n">write_slices</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.filetools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

@@ -267,7 +267,7 @@ class Parameters:
         hydpy.core.exceptiontools.AttributeNotReady: While trying to update parameter \
 `doy` of element `?`, the following error occurred: An Indexer object has been asked \
 for an `dayofyear` array.  Such an array has neither been determined yet nor can it \
-be determined automatically at the moment.   Either define an `dayofyear` array \
+be determined automatically at the moment.  Either define an `dayofyear` array \
 manually and pass it to the Indexer object, or make a proper Timegrids object \
 available within the pub module.
 

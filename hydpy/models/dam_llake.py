@@ -2,7 +2,7 @@
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 
-Conceptionally, |dam_llake| is similar to the "controlled lake" model of `LARSIM`_
+Conceptually, |dam_llake| is similar to the "controlled lake" model of `LARSIM`_
 (selectable via the "SEEG" option) in its way to simulate flood retention processes.
 However, in contrast to the "SEEG" option, it can include precipitation, evaporation,
 and a (positive or negative) water exchange into the lake's water balance.
@@ -15,7 +15,7 @@ inflow via parameter |AllowedWaterLevelDrop|.
 The (optional) inclusion of precipitation and evaporation requires submodels that
 follow the |PrecipModel_V2| and |PETModel_V1| interfaces.  The latter must provide
 potential evaporation values.  If these reflect, for example, grass reference
-evaporation, they usually show a too-high short-term variability.  Therefore, the
+evaporation, they usually show too high short-term variability.  Therefore, the
 parameter |WeightEvaporation| provides a simple means to damp and delay the given
 potential evaporation values by a simple time weighting approach.
 
@@ -128,7 +128,7 @@ delay and damping, while 0.0 would result in a complete loss of variability):
 >>> weightevaporation(0.8)
 
 |dam_llake| uses the parameter |ThresholdEvaporation| to define the water level around
-which actual evaporation switches from zero to potential evaporation.  As usual but not
+which actual evaporation switches from zero to potential evaporation.  As usual, but not
 mandatory, we set this threshold to 0 m:
 
 >>> thresholdevaporation(0.0)
@@ -140,6 +140,12 @@ we can recommend for many cases -- see the documentation on application model
 
 >>> dischargetolerance(0.1)
 >>> toleranceevaporation(0.001)
+
+In order to consider the construction of artificial lakes and similar structures,
+|dam_llake| provides the parameter |Commission|.  We first set the commission date well
+before the simulation period, ensuring the lake is permanently active:
+
+>>> commission("1900-01-01")
 
 Finally, we define a precipitation series including only a heavy one-day rainfall event
 and a corresponding inflowing flood wave, starting and ending with zero discharge:
@@ -404,6 +410,59 @@ water volumes at the end of the simulation period:
 
 >>> round_(model.check_waterbalance(conditions))
 0.0
+
+.. _dam_llake_commissioning:
+
+commissioning
+_____________
+
+You can activate the previously described lake functionalities at any time during a
+simulation period by specifying a commission date.  Before this date, the lake's net
+input (consisting of inflow, exchange flow, precipitation, and evaporation) is directly
+passed as outflow, so that the lake's water volume does not change (which usually means,
+it should stay close to zero).  In this example, we set the commission date to the
+beginning of January 4th:
+
+>>> commission("2000-01-04")
+
+Additionally, we increase potential evaporation (for educational purposes) to an
+unrealistically high value:
+
+>>> pemodel.sequences.inputs.referenceevapotranspiration.series = 50.0
+
+Now, the first three simulated days are not affected by any lake retention processes.
+Instead, net input becomes outflow immediately.  On January 1st, adjusted evaporation
+exceeds the sum of inflow, exchange flow, and precipitation.  Hence, outflow is zero,
+and actual evaporation is reduced accordingly:
+
+.. integration-test::
+
+    >>> test("dam_llake_commissioning")
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | exchange | flooddischarge |  outflow | watervolume | exchange | inflow |  outflow |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |        0.0 |           0.0 |                   0.0 |                 50.0 |                 0.8 |               0.5 |    0.0 |      0.5 |            0.0 |      0.0 |         0.0 |      0.5 |    0.0 |      0.0 |
+    | 02.01. |        0.0 |          50.0 |                   1.0 |                 50.0 |                0.96 |              0.96 |    0.0 |      0.5 |            0.0 |     0.54 |         0.0 |      0.5 |    0.0 |     0.54 |
+    | 03.01. |        0.0 |           0.0 |                   0.0 |                 50.0 |               0.992 |             0.992 |    6.0 |      0.5 |            0.0 |    5.508 |         0.0 |      0.5 |    6.0 |    5.508 |
+    | 04.01. |   0.665761 |           0.0 |                   0.0 |                 50.0 |              0.9984 |           0.98176 |   12.0 |      0.5 |       3.812676 | 3.812676 |    0.665761 |      0.5 |   12.0 | 3.812676 |
+    | 05.01. |   0.830201 |           0.0 |                   0.0 |                 50.0 |             0.99968 |           0.99968 |   10.0 |      0.5 |       7.597075 | 7.597075 |    0.830201 |      0.5 |   10.0 | 7.597075 |
+    | 06.01. |   0.730343 |           0.0 |                   0.0 |                 50.0 |            0.999936 |          0.999936 |    6.0 |      0.5 |       7.802719 | 6.655832 |    0.730343 |      0.5 |    6.0 | 6.655832 |
+    | 07.01. |   0.630484 |           0.0 |                   0.0 |                 50.0 |            0.999987 |          0.999987 |    3.0 |      0.5 |       6.804136 | 3.655781 |    0.630484 |      0.5 |    3.0 | 3.655781 |
+    | 08.01. |   0.530626 |           0.0 |                   0.0 |                 50.0 |            0.999997 |          0.999997 |    2.0 |      0.5 |       5.805552 | 2.655771 |    0.530626 |      0.5 |    2.0 | 2.655771 |
+    | 09.01. |   0.430768 |           0.0 |                   0.0 |                 50.0 |            0.999999 |          0.999999 |    1.0 |      0.5 |       4.806969 | 1.655769 |    0.430768 |      0.5 |    1.0 | 1.655769 |
+    | 10.01. |   0.330909 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               1.0 |    0.0 |      0.5 |       3.808385 | 0.655768 |    0.330909 |      0.5 |    0.0 | 0.655768 |
+    | 11.01. |   0.201309 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               1.0 |    0.0 |     -0.5 |       2.661093 |      0.0 |    0.201309 |     -0.5 |    0.0 |      0.0 |
+    | 12.01. |   0.071709 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               1.0 |    0.0 |     -0.5 |       1.365093 |      0.0 |    0.071709 |     -0.5 |    0.0 |      0.0 |
+    | 13.01. |  -0.018546 |           0.0 |                   0.0 |                 50.0 |                 1.0 |          0.544622 |    0.0 |     -0.5 |       0.157644 |      0.0 |   -0.018546 |     -0.5 |    0.0 |      0.0 |
+    | 14.01. |  -0.061746 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |     -0.5 |       -0.40146 |      0.0 |   -0.061746 |     -0.5 |    0.0 |      0.0 |
+    | 15.01. |  -0.104946 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |     -0.5 |       -0.83346 |      0.0 |   -0.104946 |     -0.5 |    0.0 |      0.0 |
+    | 16.01. |  -0.148146 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |     -0.5 |       -1.26546 |      0.0 |   -0.148146 |     -0.5 |    0.0 |      0.0 |
+    | 17.01. |  -0.191346 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |     -0.5 |       -1.69746 |      0.0 |   -0.191346 |     -0.5 |    0.0 |      0.0 |
+    | 18.01. |  -0.234546 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |     -0.5 |       -2.12946 |      0.0 |   -0.234546 |     -0.5 |    0.0 |      0.0 |
+    | 19.01. |  -0.277746 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |     -0.5 |       -2.56146 |      0.0 |   -0.277746 |     -0.5 |    0.0 |      0.0 |
+    | 20.01. |  -0.320946 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |     -0.5 |       -2.99346 |      0.0 |   -0.320946 |     -0.5 |    0.0 |      0.0 |
+
+>>> round_(model.check_waterbalance(conditions))
+0.0
 """
 # import...
 # ...from HydPy
@@ -453,7 +512,7 @@ class Model(
         dam_model.Pick_Inflow_V1,
         dam_model.Pick_Exchange_V1,
         dam_model.Calc_WaterLevel_V1,
-        dam_model.Calc_ActualEvaporation_V1,
+        dam_model.Calc_ActualEvaporation_V2,
         dam_model.Calc_SurfaceArea_V1,
         dam_model.Calc_FloodDischarge_V1,
         dam_model.Calc_AllowedDischarge_V1,

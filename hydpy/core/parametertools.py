@@ -1575,9 +1575,10 @@ parameter and a simulation time step size first.
         """To be overridden by those "primary" parameters which need special handling
         and all "secondary" parameters."""
 
-    def _update_newbie(self, *, value: float, version: str) -> None:
+    def _update_newbie(self, *, value: Any, version: str) -> None:
         if not exceptiontools.attrready(self, "value"):
-            self.value = value
+            with hydpy.pub.options.parameterstep("1d"):
+                self(value)
             warnings.warn(
                 f"The value of parameter `{self.name}` (introduced in HydPy "
                 f"{version}), has not been explicitly defined and is automatically "

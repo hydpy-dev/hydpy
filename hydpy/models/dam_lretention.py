@@ -47,6 +47,7 @@ relationship between stage and volume:
 >>> weightevaporation(0.8)
 >>> thresholdevaporation(0.0)
 >>> toleranceevaporation(0.001)
+>>> commission("1900-01-01")
 >>> with model.add_precipmodel_v2("meteo_precip_io") as precipmodel:
 ...     precipitationfactor(1.0)
 >>> precipmodel.prepare_inputseries()
@@ -251,6 +252,46 @@ There is no indication of an error in the water balance:
 
 >>> round_(model.check_waterbalance(conditions))
 0.0
+
+.. _dam_lretention_commissioning:
+
+commissioning
+_____________
+
+This example extends the previous one with the commissioning mechanism shown and
+discussed in the :ref:`analogue example <dam_llake_commissioning>` of application model
+|dam_llake|:
+
+.. integration-test::
+
+    >>> commission("2000-01-04")
+    >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 50.0
+    >>> test("dam_lretention_commissioning")
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |        0.0 |           0.0 |                   0.0 |                 50.0 |                 0.8 |               0.0 |    0.0 |          0.04 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
+    | 02.01. |        0.0 |          50.0 |                   1.0 |                 50.0 |                0.96 |              0.96 |    0.0 |          0.04 |            0.0 |     0.04 |         0.0 |    0.0 |     0.04 |
+    | 03.01. |        0.0 |           0.0 |                   0.0 |                 50.0 |               0.992 |             0.992 |    6.0 |          0.04 |            0.0 |    5.008 |         0.0 |    6.0 |    5.008 |
+    | 04.01. |   0.644932 |           0.0 |                   0.0 |                 50.0 |              0.9984 |          0.998224 |   12.0 |      3.537268 |       0.000016 | 3.537284 |    0.644932 |   12.0 | 3.537284 |
+    | 05.01. |   1.076863 |           0.0 |                   0.0 |                 50.0 |             0.99968 |           0.99968 |   10.0 |           4.0 |       0.001121 | 4.001121 |    1.076863 |   10.0 | 4.001121 |
+    | 06.01. |   1.162599 |           0.0 |                   0.0 |                 50.0 |            0.999936 |          0.999936 |    6.0 |           4.0 |       0.007751 | 4.007751 |    1.162599 |    6.0 | 4.007751 |
+    | 07.01. |   0.989327 |           0.0 |                   0.0 |                 50.0 |            0.999987 |          0.999987 |    3.0 |           4.0 |       0.005478 | 4.005478 |    0.989327 |    3.0 | 4.005478 |
+    | 08.01. |   0.730064 |           0.0 |                   0.0 |                 50.0 |            0.999997 |          0.999997 |    2.0 |           4.0 |       0.000728 | 4.000728 |    0.730064 |    2.0 | 4.000728 |
+    | 09.01. |   0.384458 |           0.0 |                   0.0 |                 50.0 |            0.999999 |          0.999999 |    1.0 |      3.999996 |       0.000079 | 4.000075 |    0.384458 |    1.0 | 4.000075 |
+    | 10.01. |   0.049401 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               1.0 |    0.0 |      2.877964 |       0.000001 | 2.877966 |    0.049401 |    0.0 | 2.877966 |
+    | 11.01. |  -0.002303 |           0.0 |                   0.0 |                 50.0 |                 1.0 |          0.509487 |    0.0 |       0.08894 |            0.0 |  0.08894 |   -0.002303 |    0.0 |  0.08894 |
+    | 12.01. |  -0.005213 |           0.0 |                   0.0 |                 50.0 |                 1.0 |          0.000004 |    0.0 |      0.033683 |            0.0 | 0.033684 |   -0.005213 |    0.0 | 0.033684 |
+    | 13.01. |  -0.007782 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.029734 |            0.0 | 0.029734 |   -0.007782 |    0.0 | 0.029734 |
+    | 14.01. |  -0.010082 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.026612 |            0.0 | 0.026612 |   -0.010082 |    0.0 | 0.026612 |
+    | 15.01. |  -0.012162 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.024081 |            0.0 | 0.024081 |   -0.012162 |    0.0 | 0.024081 |
+    | 16.01. |  -0.014062 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |       0.02199 |            0.0 |  0.02199 |   -0.014062 |    0.0 |  0.02199 |
+    | 17.01. |   -0.01581 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.020232 |            0.0 | 0.020232 |    -0.01581 |    0.0 | 0.020232 |
+    | 18.01. |  -0.017429 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.018734 |            0.0 | 0.018734 |   -0.017429 |    0.0 | 0.018734 |
+    | 19.01. |  -0.018936 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.017442 |            0.0 | 0.017442 |   -0.018936 |    0.0 | 0.017442 |
+    | 20.01. |  -0.020346 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.016316 |            0.0 | 0.016316 |   -0.020346 |    0.0 | 0.016316 |
+
+>>> round_(model.check_waterbalance(conditions))
+0.0
 """
 # import...
 # ...from HydPy
@@ -301,10 +342,10 @@ class Model(
         dam_model.Calc_AdjustedPrecipitation_V1,
         dam_model.Pick_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
-        dam_model.Calc_ActualEvaporation_V1,
+        dam_model.Calc_ActualEvaporation_V3,
         dam_model.Calc_ActualRelease_V2,
         dam_model.Calc_FloodDischarge_V1,
-        dam_model.Calc_Outflow_V1,
+        dam_model.Calc_Outflow_V7,
     )
     FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V1,)
     OUTLET_METHODS = (dam_model.Calc_WaterLevel_V1, dam_model.Pass_Outflow_V1)

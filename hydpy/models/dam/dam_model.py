@@ -321,25 +321,212 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
         )
 
 
+class Calc_ActualEvaporation_V2(modeltools.Method):
+    r"""Calculate the actual evaporation before and after the commission date.
+
+    Basic equation:
+      .. math::
+        ActualEvaporation  = \begin{cases}
+        min(A, \, I + E + P)  &|&  i_{sim} < i_{commission}
+        \\
+        A \cdot f(T- W, \, S)  &|&  i_{sim} \geq i_{commission}
+        \end{cases}
+        \\ \\
+        A = AdjustedEvaporation \\
+        I = Inflow \\
+        E = Exchange \\
+        P = AdjustedPrecipitation \\
+        f = smooth_{logistic1} \\
+        T = ThresholdEvaporation \\
+        W = WaterLevel \\
+        S = SmoothParEvaporation
+
+    Used auxiliary method:
+      |smooth_logistic1|
+
+    Examples:
+
+        After the commission date (when the dam is active), method
+        |Calc_ActualEvaporation_V2| works exactly like method
+        |Calc_ActualEvaporation_V1|.  We demonstrate this by picking a single data
+        point from the second example on method |Calc_ActualEvaporation_V1|:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> commission("2000-01-01")
+        >>> thresholdevaporation(0.004)
+        >>> toleranceevaporation(0.001)
+        >>> derived.smoothparevaporation.update()
+        >>> factors.waterlevel = 0.005
+        >>> fluxes.adjustedevaporation = 2.0
+        >>> model.calc_actualevaporation_v2()
+        >>> fluxes.actualevaporation
+        actualevaporation(1.98)
+
+        Before the commission date, only the current net input, consisting of inflow,
+        (positive) exchange flow, and precipitation, can evaporate:
+
+        >>> commission("2000-01-02")
+        >>> fluxes.inflow = 0.2
+        >>> fluxes.exchange = 0.3
+        >>> fluxes.adjustedprecipitation = 0.5
+        >>> model.calc_actualevaporation_v2()
+        >>> fluxes.actualevaporation
+        actualevaporation(1.0)
+
+        >>> fluxes.inflow = 2.2
+        >>> model.calc_actualevaporation_v2()
+        >>> fluxes.actualevaporation
+        actualevaporation(2.0)
+    """
+
+    CONTROLPARAMETERS = (dam_control.Commission, dam_control.ThresholdEvaporation)
+    DERIVEDPARAMETERS = (dam_derived.SmoothParEvaporation,)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.AdjustedEvaporation,
+        dam_fluxes.AdjustedPrecipitation,
+        dam_fluxes.Inflow,
+        dam_fluxes.Exchange,
+        dam_factors.WaterLevel,
+    )
+    RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        if model.idx_sim < con.commission:
+            flu.actualevaporation = min(
+                flu.adjustedevaporation,
+                flu.inflow + flu.exchange + flu.adjustedprecipitation,
+            )
+        else:
+            flu.actualevaporation = (
+                smoothutils.smooth_logistic1(
+                    fac.waterlevel - con.thresholdevaporation, der.smoothparevaporation
+                )
+                * flu.adjustedevaporation
+            )
+
+
+class Calc_ActualEvaporation_V3(modeltools.Method):
+    r"""Calculate the actual evaporation before and after the commission date.
+
+    Basic equation:
+      .. math::
+        ActualEvaporation  = \begin{cases}
+        min(A, \, I + P)  &|& i_{sim} < i_{commission}
+        \\
+        A \cdot f(T- W, \, S) &|& i_{sim} \geq i_{commission}
+        \end{cases}
+        \\ \\
+        A = AdjustedEvaporation \\
+        I = Inflow \\
+        P = AdjustedPrecipitation \\
+        f = smooth_{logistic1} \\
+        T = ThresholdEvaporation \\
+        W = WaterLevel \\
+        S = SmoothParEvaporation
+
+    Used auxiliary method:
+      |smooth_logistic1|
+
+    Examples:
+
+        Method |Calc_ActualEvaporation_V3| works exactly like method
+        |Calc_ActualEvaporation_V2| except that it does not consider exchange flows with
+        other (dam-like) models.  Hence, we repeat its examples with only a slight
+        modification:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> commission("2000-01-01")
+        >>> thresholdevaporation(0.004)
+        >>> toleranceevaporation(0.001)
+        >>> derived.smoothparevaporation.update()
+        >>> factors.waterlevel = 0.005
+        >>> fluxes.adjustedevaporation = 2.0
+        >>> model.calc_actualevaporation_v3()
+        >>> fluxes.actualevaporation
+        actualevaporation(1.98)
+
+        >>> commission("2000-01-02")
+        >>> fluxes.inflow = 0.2
+        >>> fluxes.adjustedprecipitation = 0.8
+        >>> model.calc_actualevaporation_v3()
+        >>> fluxes.actualevaporation
+        actualevaporation(1.0)
+
+        >>> fluxes.inflow = 2.2
+        >>> model.calc_actualevaporation_v3()
+        >>> fluxes.actualevaporation
+        actualevaporation(2.0)
+    """
+
+    CONTROLPARAMETERS = (dam_control.Commission, dam_control.ThresholdEvaporation)
+    DERIVEDPARAMETERS = (dam_derived.SmoothParEvaporation,)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.AdjustedEvaporation,
+        dam_fluxes.AdjustedPrecipitation,
+        dam_fluxes.Inflow,
+        dam_factors.WaterLevel,
+    )
+    RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        if model.idx_sim < con.commission:
+            flu.actualevaporation = min(
+                flu.adjustedevaporation, flu.inflow + flu.adjustedprecipitation
+            )
+        else:
+            flu.actualevaporation = (
+                smoothutils.smooth_logistic1(
+                    fac.waterlevel - con.thresholdevaporation, der.smoothparevaporation
+                )
+                * flu.adjustedevaporation
+            )
+
+
 class Calc_ActualEvaporation_WaterVolume_V1(modeltools.Method):
     r"""Calculate the actual evaporation and update the stored water volume.
 
     Basic equation:
       .. math::
-        A = min(E, \, V\cdot 1e6 / s)
+        ActualEvaporation  = \begin{cases}
+        min(A, \, I + P)  &|& i_{sim} < i_{commission}
+        \\
+        min(E, \, V \cdot 1e6 / s) &|& i_{sim} \geq i_{commission}
+        \end{cases}
         \\ \\
-        A = ActualEvaporation \\
-        E = AdjustedEvaporation \\
+        A = AdjustedEvaporation \\
+        I = Inflow \\
+        P = AdjustedPrecipitation \\
         V = WaterVolume \\
         s = Seconds
 
     Examples:
 
+        After the commission date, water evaporation losses are taken from the
+        current water volume:
+
         >>> from hydpy.models.dam import *
         >>> parameterstep()
+        >>> commission(0)
         >>> derived.seconds(1e6)
         >>> states.watervolume = 3.0
         >>> fluxes.adjustedevaporation = 2.0
+
         >>> model.calc_actualevaporation_watervolume_v1()
         >>> fluxes.actualevaporation
         actualevaporation(2.0)
@@ -351,26 +538,56 @@ class Calc_ActualEvaporation_WaterVolume_V1(modeltools.Method):
         actualevaporation(1.0)
         >>> states.watervolume
         watervolume(0.0)
+
+        Before the commission date, only the current net input, consisting of inflow
+        and precipitation, can evaporate:
+
+        >>> commission(1)
+        >>> fluxes.inflow = 1.0
+        >>> fluxes.adjustedprecipitation = 2.0
+        >>> model.calc_actualevaporation_watervolume_v1()
+        >>> fluxes.actualevaporation
+        actualevaporation(2.0)
+        >>> states.watervolume
+        watervolume(0.0)
+
+        >>> fluxes.adjustedprecipitation = 0.0
+        >>> model.calc_actualevaporation_watervolume_v1()
+        >>> fluxes.actualevaporation
+        actualevaporation(1.0)
+        >>> states.watervolume
+        watervolume(0.0)
     """
 
+    CONTROLPARAMETERS = (dam_control.Commission,)
     DERIVEDPARAMETERS = (dam_derived.Seconds,)
-    REQUIREDSEQUENCES = (dam_fluxes.AdjustedEvaporation,)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_fluxes.AdjustedPrecipitation,
+        dam_fluxes.AdjustedEvaporation,
+    )
     UPDATEDSEQUENCES = (dam_states.WaterVolume,)
     RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
-        v: float = der.seconds / 1e6 * flu.adjustedevaporation
-        if v < sta.watervolume:
-            flu.actualevaporation = flu.adjustedevaporation
-            sta.watervolume -= v
+        if model.idx_sim < con.commission:
+            flu.actualevaporation = min(
+                flu.adjustedevaporation, flu.inflow + flu.adjustedprecipitation
+            )
         else:
-            flu.actualevaporation = 1e6 / der.seconds * sta.watervolume
-            sta.watervolume = 0.0
+            v: float = der.seconds / 1e6 * flu.adjustedevaporation
+            if v < sta.watervolume:
+                flu.actualevaporation = flu.adjustedevaporation
+                sta.watervolume -= v
+            else:
+                flu.actualevaporation = 1e6 / der.seconds * sta.watervolume
+                sta.watervolume = 0.0
 
 
 class Pick_Inflow_V1(modeltools.Method):
@@ -4298,14 +4515,14 @@ class Calc_FreeDischarge_V1(modeltools.Method):
 
 
 class Calc_Outflow_V1(modeltools.Method):
-    """Calculate the total outflow of the dam.
+    r"""Calculate the total outflow of the dam.
 
     Note that the maximum function is used to prevent from negative outflow
     values, which could otherwise occur within the required level of
     numerical accuracy.
 
     Basic equation:
-      :math:`Outflow = max(ActualRelease + FloodDischarge, 0.)`
+      :math:`Outflow = max(ActualRelease + FloodDischarge, \, 0)`
 
     Example:
 
@@ -4709,9 +4926,13 @@ class Calc_AimedRelease_WaterVolume_V1(modeltools.Method):
 
     Basic equation:
        .. math::
-        A = min \Big( max \big( 1e6 / s \cdot (V - T), \, M \big), \, S, \, D \Big)
+        AimedRelease = \begin{cases}
+        0  &|&  i_{sim} < i_{commission}
+        \\
+        min \Big( max \big( 1e6 / s \cdot (V - T), \, M \big), \, S, \, D \Big)
+        &|&  i_{sim} \geq i_{commission}
+        \end{cases}
         \\ \\
-        A = AimedRelease \\
         s = Seconds \\
         V = WaterVolume \\
         T = TargetVolume \\
@@ -4728,6 +4949,7 @@ class Calc_AimedRelease_WaterVolume_V1(modeltools.Method):
         >>> pub.timegrids = "2001-03-30", "2001-04-03", "1d"
         >>> from hydpy.models.dam import *
         >>> parameterstep()
+        >>> commission("2001-03-30")
         >>> targetvolume(toy_03_31_12=1.0, toy_04_01_12=3.0)
         >>> minimumrelease(0.0)
         >>> derived.seconds(1e6)
@@ -4784,9 +5006,24 @@ class Calc_AimedRelease_WaterVolume_V1(modeltools.Method):
         aimedrelease(4.0)
         >>> states.watervolume
         watervolume(6.0)
+
+        All previous examples assume that the modelled detention basin is already
+        active.  Before its commissioning, |AimedRelease| is generally zero and
+        |WaterVolume| remains constant:
+
+        >>> commission("2001-04-02")
+        >>> model.calc_aimedrelease_watervolume_v1()
+        >>> fluxes.aimedrelease
+        aimedrelease(0.0)
+        >>> states.watervolume
+        watervolume(6.0)
     """
 
-    CONTROLPARAMETERS = (dam_control.TargetVolume, dam_control.MinimumRelease)
+    CONTROLPARAMETERS = (
+        dam_control.TargetVolume,
+        dam_control.MinimumRelease,
+        dam_control.Commission,
+    )
     DERIVEDPARAMETERS = (dam_derived.Seconds, dam_derived.TOY)
     REQUIREDSEQUENCES = (dam_fluxes.SafeRelease, dam_aides.AllowedDischarge)
     UPDATEDSEQUENCES = (dam_states.WaterVolume,)
@@ -4800,16 +5037,19 @@ class Calc_AimedRelease_WaterVolume_V1(modeltools.Method):
         aid = model.sequences.aides.fastaccess
         sta = model.sequences.states.fastaccess
 
-        targetvolume: float = con.targetvolume[der.toy[model.idx_sim]]
-        q: float = 1e6 / der.seconds * (sta.watervolume - targetvolume)
-        q = min(max(q, con.minimumrelease), flu.saferelease, aid.alloweddischarge)
-        v: float = der.seconds / 1e6 * q
-        if v < sta.watervolume:
-            flu.aimedrelease = q
-            sta.watervolume -= v
+        if model.idx_sim < con.commission:
+            flu.aimedrelease = 0.0
         else:
-            flu.aimedrelease = 1e6 / der.seconds * sta.watervolume
-            sta.watervolume = 0.0
+            targetvolume: float = con.targetvolume[der.toy[model.idx_sim]]
+            q: float = 1e6 / der.seconds * (sta.watervolume - targetvolume)
+            q = min(max(q, con.minimumrelease), flu.saferelease, aid.alloweddischarge)
+            v: float = der.seconds / 1e6 * q
+            if v < sta.watervolume:
+                flu.aimedrelease = q
+                sta.watervolume -= v
+            else:
+                flu.aimedrelease = 1e6 / der.seconds * sta.watervolume
+                sta.watervolume = 0.0
 
 
 class Calc_UnavoidableRelease_WaterVolume_V1(modeltools.Method):
@@ -4818,17 +5058,27 @@ class Calc_UnavoidableRelease_WaterVolume_V1(modeltools.Method):
 
     Basic equation:
        .. math::
-        U = 1e6 / s \cdot (V - M)
+        UnavoidableRelease = \begin{cases}
+        I + P - E  &|&  i_{sim} < i_{commission}
+        \\
+        1e6 / s \cdot (V - M)  &|&  i_{sim} \geq i_{commission}
+        \end{cases}
         \\ \\
-        U = UnavoidableRelease \\
+        I = Inflow \\
+        P = AdjustedPrecipitation \\
+        E = ActualEvaporation \\
         s = Seconds \\
         V = WaterVolume \\
         M = MaximumVolume
 
     Examples:
 
+        After the commission date, all water exceeding the available storage volume is
+        released immediately:
+
         >>> from hydpy.models.dam import *
         >>> parameterstep()
+        >>> commission(0)
         >>> maximumvolume(3.0)
         >>> derived.seconds(1e6)
         >>> states.watervolume = 5.0
@@ -4844,10 +5094,29 @@ class Calc_UnavoidableRelease_WaterVolume_V1(modeltools.Method):
         unavoidablerelease(0.0)
         >>> states.watervolume
         watervolume(2.0)
+
+        Before the commission date, the detention basin's water volume remains
+        unchanged.  Hence, we calculate the outflow so that it closes the water balance
+        accordingly:
+
+        >>> commission(1)
+        >>> fluxes.inflow = 4.0
+        >>> fluxes.adjustedprecipitation = 3.0
+        >>> fluxes.actualevaporation = 2.0
+        >>> model.calc_unavoidablerelease_watervolume_v1()
+        >>> fluxes.unavoidablerelease
+        unavoidablerelease(5.0)
+        >>> states.watervolume
+        watervolume(2.0)
     """
 
-    CONTROLPARAMETERS = (dam_control.MaximumVolume,)
+    CONTROLPARAMETERS = (dam_control.MaximumVolume, dam_control.Commission)
     DERIVEDPARAMETERS = (dam_derived.Seconds,)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_fluxes.AdjustedPrecipitation,
+        dam_fluxes.ActualEvaporation,
+    )
     UPDATEDSEQUENCES = (dam_states.WaterVolume,)
     RESULTSEQUENCES = (dam_fluxes.UnavoidableRelease,)
 
@@ -4858,7 +5127,11 @@ class Calc_UnavoidableRelease_WaterVolume_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
-        if sta.watervolume < con.maximumvolume:
+        if model.idx_sim < con.commission:
+            flu.unavoidablerelease = (
+                flu.inflow + flu.adjustedprecipitation - flu.actualevaporation
+            )
+        elif sta.watervolume < con.maximumvolume:
             flu.unavoidablerelease = 0.0
         else:
             flu.unavoidablerelease = (
@@ -4868,19 +5141,52 @@ class Calc_UnavoidableRelease_WaterVolume_V1(modeltools.Method):
 
 
 class Calc_Outflow_V2(modeltools.Method):
-    """Calculate the total outflow of the dam, taking the allowed water discharge into
-    account.
+    r"""Calculate the total outflow of the dam before and after the commission date,
+    taking the allowed water discharge into account.
+
+    Basic equation:
+      .. math::
+        Outflow = \begin{cases}
+        I + X + P - E  &|& i_{sim}  < i_{commission}
+        \\
+        f(F, \, A, \, D)  &|&  i_{sim} \geq i_{commission}
+        \end{cases}
+        \\ \\
+        I = Inflow \\
+        X = Exchange \\
+        P = AdjustedPrecipitation \\
+        E = ActualEvaporation \\
+        f = smooth_{Fix\_Min1\_V1} \\
+        F = FloodDischarge \\
+        A = AllowedDischarge\\
+        D = DischargeSmoothPar
 
     Used additional method:
       |Fix_Min1_V1|
 
-    Basic (discontinuous) equation:
-      :math:`Outflow = min(FloodDischarge, AllowedDischarge)`
-
     Examples:
 
+        Before the commission date, the dam's water volume should not change (neither
+        increase nor decrease).  Hence, we calculate the outflow so that it closes the
+        water balance accordingly:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> from hydpy.models.dam import *
         >>> parameterstep()
+        >>> commission("2000-01-02")
+        >>> fluxes.inflow = 1.0
+        >>> fluxes.exchange = 2.0
+        >>> fluxes.adjustedprecipitation = 3.0
+        >>> fluxes.actualevaporation = 4.0
+        >>> model.calc_outflow_v2()
+        >>> fluxes.outflow
+        outflow(2.0)
+
+        After the commission date, the final outflow is the (eventually smoothed)
+        minimum of |FloodDischarge| and |AllowedDischarge|:
+
+        >>> commission("2000-01-01")
         >>> from hydpy import UnitTest
         >>> test = UnitTest(model,
         ...                 model.calc_outflow_v2,
@@ -4934,18 +5240,35 @@ class Calc_Outflow_V2(modeltools.Method):
         |   8 |            7.0 |     0.0 |
     """
 
+    CONTROLPARAMETERS = (dam_control.Commission,)
     DERIVEDPARAMETERS = (dam_derived.DischargeSmoothPar,)
-    REQUIREDSEQUENCES = (dam_fluxes.FloodDischarge, dam_aides.AllowedDischarge)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_fluxes.Exchange,
+        dam_fluxes.AdjustedPrecipitation,
+        dam_fluxes.ActualEvaporation,
+        dam_fluxes.FloodDischarge,
+        dam_aides.AllowedDischarge,
+    )
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
-        flu.outflow = model.fix_min1_v1(
-            flu.flooddischarge, aid.alloweddischarge, der.dischargesmoothpar, False
-        )
+        if model.idx_sim < con.commission:
+            flu.outflow = (
+                flu.inflow
+                + flu.exchange
+                + flu.adjustedprecipitation
+                - flu.actualevaporation
+            )
+        else:
+            flu.outflow = model.fix_min1_v1(
+                flu.flooddischarge, aid.alloweddischarge, der.dischargesmoothpar, False
+            )
 
 
 class Calc_Outflow_V3(modeltools.Method):
@@ -5049,6 +5372,78 @@ class Calc_Outflow_V6(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
 
         flu.outflow = flu.aimedrelease + flu.unavoidablerelease
+
+
+class Calc_Outflow_V7(modeltools.Method):
+    r"""Calculate the total outflow of the dam before and after the commission date
+
+    Basic equation:
+      .. math::
+        Outflow = \begin{cases}
+        I + P - E  &|&  i_{sim}  < i_{commission}
+        \\
+        max(R + F, \, 0)  &|&  i_{sim} \geq i_{commission}
+        \end{cases}
+        \\ \\
+        I = Inflow \\
+        P = AdjustedPrecipitation \\
+        E = ActualEvaporation \\
+        f = smooth_{Fix\_Min1\_V1} \\
+        R = AllowedDischarge\\
+        F = FloodDischarge
+
+    Examples:
+
+        Before the commission date, the dam's water volume should not change (neither
+        increase nor decrease).  Hence, we calculate the outflow so that it closes the
+        water balance accordingly:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> commission("2000-01-02")
+        >>> fluxes.inflow = 2.0
+        >>> fluxes.adjustedprecipitation = 3.0
+        >>> fluxes.actualevaporation = 4.0
+        >>> model.calc_outflow_v7()
+        >>> fluxes.outflow
+        outflow(1.0)
+
+        After the commission date, the final outflow is the (never negative) sum of
+        |ActualRelease| and |FloodDischarge|:
+
+        >>> commission("2000-01-01")
+        >>> fluxes.actualrelease = 2.0
+        >>> fluxes.flooddischarge = 3.0
+        >>> model.calc_outflow_v7()
+        >>> fluxes.outflow
+        outflow(5.0)
+
+        >>> fluxes.flooddischarge = -3.0
+        >>> model.calc_outflow_v7()
+        >>> fluxes.outflow
+        outflow(0.0)
+    """
+
+    CONTROLPARAMETERS = (dam_control.Commission,)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.Inflow,
+        dam_fluxes.AdjustedPrecipitation,
+        dam_fluxes.ActualEvaporation,
+        dam_fluxes.ActualRelease,
+        dam_fluxes.FloodDischarge,
+    )
+    RESULTSEQUENCES = (dam_fluxes.Outflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        if model.idx_sim < con.commission:
+            flu.outflow = flu.inflow + flu.adjustedprecipitation - flu.actualevaporation
+        else:
+            flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.0)
 
 
 class Update_WaterVolume_V1(modeltools.Method):
@@ -5254,17 +5649,22 @@ class Update_WaterVolume_V5(modeltools.Method):
         P = AdjustedPrecipitation
     """
 
+    CONTROLPARAMETERS = (dam_control.Commission,)
     DERIVEDPARAMETERS = (dam_derived.Seconds,)
     REQUIREDSEQUENCES = (dam_fluxes.Inflow, dam_fluxes.AdjustedPrecipitation)
     UPDATEDSEQUENCES = (dam_states.WaterVolume,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
-        sta.watervolume += der.seconds / 1e6 * (flu.inflow + flu.adjustedprecipitation)
+        if model.idx_sim >= con.commission:
+            sta.watervolume += (
+                der.seconds / 1e6 * (flu.inflow + flu.adjustedprecipitation)
+            )
 
 
 class Pass_Outflow_V1(modeltools.Method):
@@ -5528,6 +5928,8 @@ class Model(modeltools.ELSModel):
         Calc_PotentialEvaporation_V1,
         Calc_AdjustedEvaporation_V1,
         Calc_ActualEvaporation_V1,
+        Calc_ActualEvaporation_V2,
+        Calc_ActualEvaporation_V3,
         Pick_Inflow_V1,
         Pick_Inflow_V2,
         Calc_NaturalRemoteDischarge_V1,
@@ -5595,6 +5997,7 @@ class Model(modeltools.ELSModel):
         Calc_Outflow_V3,
         Calc_Outflow_V4,
         Calc_Outflow_V5,
+        Calc_Outflow_V7,
     )
     FULL_ODE_METHODS = (
         Update_WaterVolume_V1,

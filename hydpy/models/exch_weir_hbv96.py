@@ -107,6 +107,7 @@ documentation on |dam_llake|.  We will use them in all examples:
 ...     control.toleranceevaporation(0.001)
 ...     control.allowedwaterleveldrop(inf)
 ...     control.watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+...     control.commission(0)
 ...     control.pars.update()
 
 Now, we prepare the exchange model.  We will use common values for the flow coefficient

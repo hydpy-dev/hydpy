@@ -2,8 +2,11 @@
 
 # import...
 # ...from HydPy
+import hydpy
 from hydpy.core import exceptiontools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core import timetools
 from hydpy.auxs import interptools
 
 
@@ -375,3 +378,123 @@ class NmbSafeReleaseModels(parametertools.Parameter):
     def __call__(self, *args, **kwargs):
         super().__call__(*args, **kwargs)
         self.subpars.pars.model.safereleasemodels.number = self.value
+
+
+class Commission(parametertools.Parameter):
+    """Commission date [-].
+
+    Parameter |Commission|  requires a date as input.  It compares this date with the
+    current initialisation period, which must therefore be defined first:
+
+    >>> from hydpy.models.dam import *
+    >>> parameterstep()
+    >>> commission("2000-01-05")
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.AttributeNotReady: While trying to set the commission \
+date via parameter `commission` of element `?`, the following error occurred: \
+Attribute timegrids of module `pub` is not defined at the moment.
+
+    After defining the initialisation period, you can pass the commission data, for
+    example, in the form of a |Date| instance or a suitable string:
+
+    >>> from hydpy import Date, pub
+    >>> pub.timegrids = "2000-01-01", "2000-01-10", "1d"
+
+    >>> commission(Date("2000-01-01"))
+    >>> commission
+    commission("2000-01-01 00:00:00")
+
+    >>> commission("2000-01-05")
+    >>> commission
+    commission("2000-01-05 00:00:00")
+
+    Parameter |Commission| internally transforms the given date into an index value with
+    respect to the initialisation period:
+
+    >>> commission.value
+    4
+
+    Commission dates outside the initialisation period pose no problems:
+
+    >>> commission("1999-12-01")
+    >>> commission
+    commission("1999-12-01 00:00:00")
+    >>> commission.value
+    -31
+
+    >>> commission("2000-02-01")
+    >>> commission
+    commission("2000-02-01 00:00:00")
+    >>> commission.value
+    31
+
+    However, we expect a date that lies precisely at the start or end of one simulation
+    step:
+
+    >>> commission("2000-02-01 12:00")
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the commission date via parameter `commission` of \
+element `?`, the following error occurred: The given date `2000-02-01 12:00:00` is not \
+properly alligned on the indexed timegrid `Timegrid("2000-01-01 00:00:00", \
+"2000-01-10 00:00:00", "1d")`.
+
+    Alternatively, you can set the commission date by passing the mentioned index value:
+
+    >>> commission(4)
+    >>> commission
+    commission("2000-01-05 00:00:00")
+    >>> commission.value
+    4
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    INIT = 0
+
+    def __call__(self, *args, **kwargs) -> None:
+        try:
+            try:
+                super().__call__(*args, **kwargs)
+            except TypeError:
+                self.value = hydpy.pub.timegrids.init[args[0]]
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to set the commission date via parameter "
+                f"{objecttools.elementphrase(self)}"
+            )
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> import warnings
+        >>> warnings.filterwarnings("error")
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> commission.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`commission` (introduced in HydPy 6.2), has not been explicitly defined and is \
+automatically set to `1500-01-01 00:00:00`.  We will remove this fallback mechanism in \
+HydPy 8.0; therefore, please consider updating your model setup.
+
+        >>> commission
+        commission("1500-01-01 00:00:00")
+
+        >>> commission("2000-01-02")
+        >>> commission
+        commission("2000-01-02 00:00:00")
+        >>> commission.value
+        1
+        """
+        tg = hydpy.pub.timegrids.init
+        date = tg[int((timetools.Date("1500-01-01") - tg.firstdate) / tg.stepsize)]
+        self._update_newbie(value=date, version="6.2")
+
+    def __repr__(self) -> str:
+        return f'{self.name}("{hydpy.pub.timegrids.init[self.value]}")'

@@ -112,7 +112,7 @@ following error occurred: The supplied argument must be either an instance of `D
     Traceback (most recent call last):
     ...
     ValueError: While trying to change the hour of the current Date object, the \
-following error occurred: hour must be in 0..23
+following error occurred: hour must be in 0..23, not 24
 
     You can do some math with |Date| objects.  First, you can add |Period| objects to
     shift the date:

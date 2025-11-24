@@ -7,6 +7,7 @@ from __future__ import annotations
 import abc
 import copy
 import dataclasses
+import enum
 import os
 import sys
 import types
@@ -25,10 +26,6 @@ from hydpy.core import propertytools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
-if sys.version_info < (3, 11):
-    from strenum import StrEnum
-else:
-    from enum import StrEnum
 
 if TYPE_CHECKING:
     from hydpy.core import modeltools
@@ -403,7 +400,7 @@ class InfoArray(NDArrayFloat):
             self.aggregation = None
 
 
-class StandardInputNames(StrEnum):
+class StandardInputNames(enum.StrEnum):
     """Standard names for the |InputSequence| subclasses of the various models.
 
     One can use these names instead of the model-specific sequence names for reading

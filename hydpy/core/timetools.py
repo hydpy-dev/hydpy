@@ -108,11 +108,11 @@ following error occurred: The supplied argument must be either an instance of `D
     Unplausible values assigned to property |Date.hour| and its related properties
     result in error messages like the following:
 
-    >>> date.hour = 24
+    >>> date.hour = 24  # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
     ValueError: While trying to change the hour of the current Date object, the \
-following error occurred: hour must be in 0..23
+following error occurred: hour must be in 0...
 
     You can do some math with |Date| objects.  First, you can add |Period| objects to
     shift the date:

@@ -51,6 +51,7 @@ pypi_wheels =
 	inflect==[auto]
 	typeguard==[auto]
 	more_itertools==[auto]
+	packaging==[auto]
 
 local_wheels = dist/*.whl
 

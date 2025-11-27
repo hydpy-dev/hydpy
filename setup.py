@@ -63,6 +63,7 @@ setuptools.setup(
         "netcdf4",
         "networkx",
         "numpy",
+        "packaging",
         "pandas",
         "plotly",
         "scipy",

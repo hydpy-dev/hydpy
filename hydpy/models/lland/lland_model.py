@@ -3,8 +3,10 @@
 # imports...
 # ...from site-packages
 import numpy
+from packaging import version
 
 # ...from HydPy
+import hydpy
 from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import modeltools
@@ -7800,6 +7802,10 @@ class _Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_nmbzones(nhru)
         aetmodel.prepare_zonetypes(lnk)
         aetmodel.prepare_subareas(control.fhru.values * control.ft.value)
+        if version.Version(hydpy.__version__).major < 8:
+            control.gh.update()
+        else:
+            assert False
         aetmodel.prepare_elevations(control.gh.values)
         aetmodel.prepare_leafareaindex(control.lai.values)
         aetmodel.prepare_maxsoilwater(control.wmax.values)

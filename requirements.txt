@@ -11,6 +11,7 @@ netcdf4
 networkx
 nox
 numpy
+packaging
 pandas
 plotly
 pylint

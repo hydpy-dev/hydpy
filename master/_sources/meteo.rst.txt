@@ -1,0 +1,50 @@
+.. |AngstromAlternative| replace:: :class:`~hydpy.models.meteo.meteo_control.AngstromAlternative`
+.. |AngstromConstant| replace:: :class:`~hydpy.models.meteo.meteo_control.AngstromConstant`
+.. |Calc_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_DailyGlobalRadiation_V1`
+.. |Calc_EarthSunDistance_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_EarthSunDistance_V1`
+.. |Calc_ExtraterrestrialRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_ExtraterrestrialRadiation_V1`
+.. |Calc_GlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V1`
+.. |Calc_GlobalRadiation_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V2`
+.. |Calc_PortionDailyRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_PortionDailyRadiation_V1`
+.. |Calc_SolarDeclination_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SolarDeclination_V1`
+.. |Calc_SolarDeclination_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SolarDeclination_V2`
+.. |Calc_SunshineDuration_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SunshineDuration_V1`
+.. |Calc_SunshineDuration_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SunshineDuration_V2`
+.. |Calc_UnadjustedGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_UnadjustedGlobalRadiation_V1`
+.. |Calc_UnadjustedSunshineDuration_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_UnadjustedSunshineDuration_V1`
+.. |DOY| replace:: :class:`~hydpy.models.meteo.meteo_derived.DOY`
+.. |DailyGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.DailyGlobalRadiation`
+.. |DailyPossibleSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.DailyPossibleSunshineDuration`
+.. |DailySunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.DailySunshineDuration`
+.. |ExtraterrestrialRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.ExtraterrestrialRadiation`
+.. |LatitudeRad| replace:: :class:`~hydpy.models.meteo.meteo_derived.LatitudeRad`
+.. |Latitude| replace:: :class:`~hydpy.models.meteo.meteo_control.Latitude`
+.. |LoggedUnadjustedGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedUnadjustedGlobalRadiation`
+.. |Longitude| replace:: :class:`~hydpy.models.meteo.meteo_control.Longitude`
+.. |Model.idx_sim| replace:: :const:`~hydpy.core.modeltools.Model.idx_sim`
+.. |NmbHRU| replace:: :class:`~hydpy.models.meteo.meteo_control.NmbHRU`
+.. |NmbLogEntries| replace:: :class:`~hydpy.models.meteo.meteo_derived.NmbLogEntries`
+.. |PortionDailyRadiation| replace:: :class:`~hydpy.models.meteo.meteo_factors.PortionDailyRadiation`
+.. |Return_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Return_DailyGlobalRadiation_V1`
+.. |Return_SunshineDuration_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Return_SunshineDuration_V1`
+.. |UTCLongitude| replace:: :class:`~hydpy.models.meteo.meteo_derived.UTCLongitude`
+.. |UnadjustedGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.UnadjustedGlobalRadiation`
+.. |meteo.DOCNAME.complete| replace:: HydPy-Meteo (base model)
+.. |meteo.DOCNAME.long| replace:: HydPy-Meteo
+.. |meteo_factors.PossibleSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.PossibleSunshineDuration`
+.. |meteo_factors.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.SunshineDuration`
+.. |meteo_fluxes.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.GlobalRadiation`
+.. |meteo_inputs.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_inputs.GlobalRadiation`
+.. |meteo_inputs.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_inputs.SunshineDuration`
+.. |meteo_parameters.ZipParameter1D| replace:: :class:`~hydpy.models.meteo.meteo_parameters.ZipParameter1D`
+.. |meteo_sequences.FluxSequence1D| replace:: :class:`~hydpy.models.meteo.meteo_sequences.FluxSequence1D`
+
+.. _meteo:
+
+meteo
+=====
+
+.. automodule:: hydpy.models.meteo
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, Sized, LiteralString, ParamSpecKwargs, Doc, FULL_ODE_METHODS, SupportsComplex, SupportsInt, assert_never, Container, BinaryIO, IntVar, NoExtraItems, SupportsAbs, Writer, TypeForm, get_origin, AsyncIterable, Coroutine, fastaccess, Generic, ContextManager, TYPE_CHECKING, Collection, ValuesView, INTERFACE_METHODS, TypeVar, NoReturn, MutableSequence, ParamSpec, NotRequired, SupportsIndex, DERIVEDPARAMETERS, List, no_type_check, type_repr, get_protocol_members, overload, Sentinel, assert_type, no_type_check_decorator, Awaitable, SupportsRound, CapsuleType, cast, ByteString, Reader, seqs, RUN_METHODS, AsyncIterator, ItemsView, NamedTuple, MutableMapping, Self, TextIO, Any, clear_overloads, InletSequences, KeysView, StateSequences, OrderedDict, Deque, Literal, reveal_type, AideSequences, ObserverSequences, NoDefault, SUBMODELS, subpars, deprecated, Format, Pattern, get_original_bases, SupportsFloat, Union, Match, final, AsyncContextManager, get_args, Set, Sequence, ForwardRef, AsyncGenerator, fastaccess_old, Text, pars, disjoint_base, NewType, AnyStr, get_type_hints, FIXEDPARAMETERS, is_typeddict, Unpack, DefaultDict, get_annotations, ParamSpecArgs, fastaccess_new, SOLVERSEQUENCES, UPDATEDSEQUENCES, is_protocol, subseqs, Dict, Type, evaluate_forward_ref, Callable, Reversible, TypeGuard, SUBMETHODS, MutableSet, runtime, ClassVar, Final, Mapping, AbstractSet, SENDER_METHODS, override, Required, SenderSequences, SUBMODELINTERFACES, CONTROLPARAMETERS, Iterable, ReadOnly, Counter, TypeAlias, TypeVarTuple, TypedDict, Iterator, FrozenSet, TypeIs, SOLVERPARAMETERS, RESULTSEQUENCES, get_overloads, dataclass_transform, Tuple, ADD_METHODS, Protocol, OutletSequences, Annotated, Generator, PART_ODE_METHODS, Never, Hashable, SupportsBytes, RECEIVER_METHODS, ChainMap, REQUIREDSEQUENCES, INLET_METHODS, runtime_checkable, OUTLET_METHODS, Optional, IO, TypeAliasType, Buffer, Concatenate, ReceiverSequences, MappingView, subvars

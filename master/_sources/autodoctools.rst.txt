@@ -1,0 +1,68 @@
+.. |Directory| replace:: :class:`~hydpy.core.autodoctools.Directory`
+.. |DocName| replace:: :class:`~hydpy.core.modeltools.DocName`
+.. |Double| replace:: :class:`~hydpy.cythons.autogen.pointerutils.Double`
+.. |False| replace:: :const:`False`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |Masks| replace:: :class:`~hydpy.core.masktools.Masks`
+.. |NDArrayFloat| replace:: :const:`~hydpy.core.typingtools.NDArrayFloat`
+.. |NodeMasks| replace:: :class:`~hydpy.core.masktools.NodeMasks`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |OptionContextBase._new_value| replace:: :attr:`~hydpy.core.optiontools.OptionContextBase._new_value`
+.. |OptionContextBase._old_value| replace:: :attr:`~hydpy.core.optiontools.OptionContextBase._old_value`
+.. |Options.ellipsis| replace:: :const:`~hydpy.core.optiontools.Options.ellipsis`
+.. |Options.reprdigits| replace:: :const:`~hydpy.core.optiontools.Options.reprdigits`
+.. |PPDouble.set_pointer| replace:: :func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`
+.. |RuleIUH.update_parameters| replace:: :attr:`~hydpy.auxs.calibtools.RuleIUH.update_parameters`
+.. |Substituter.add_module| replace:: :func:`~hydpy.core.autodoctools.Substituter.add_module`
+.. |Substituter.consider_member| replace:: :func:`~hydpy.core.autodoctools.Substituter.consider_member`
+.. |Substituter.get_commands| replace:: :func:`~hydpy.core.autodoctools.Substituter.get_commands`
+.. |Substituter.short2long| replace:: :attr:`~hydpy.core.autodoctools.Substituter.short2long`
+.. |Substituter.update_masters| replace:: :func:`~hydpy.core.autodoctools.Substituter.update_masters`
+.. |Substituter.update_slaves| replace:: :func:`~hydpy.core.autodoctools.Substituter.update_slaves`
+.. |Substituter| replace:: :class:`~hydpy.core.autodoctools.Substituter`
+.. |Timegrids.initindices| replace:: :const:`~hydpy.core.timetools.Timegrids.initindices`
+.. |Timegrids.init| replace:: :attr:`~hydpy.core.timetools.Timegrids.init`
+.. |True| replace:: :const:`True`
+.. |autodoc_applicationmodel| replace:: :func:`~hydpy.core.autodoctools.autodoc_applicationmodel`
+.. |autodoc_basemodel| replace:: :func:`~hydpy.core.autodoctools.autodoc_basemodel`
+.. |builtins| replace:: :mod:`~builtins`
+.. |config| replace:: :mod:`~hydpy.config`
+.. |numpy| replace:: :mod:`~numpy`
+.. |optiontools| replace:: :mod:`~hydpy.core.optiontools`
+.. |pointerutils| replace:: :mod:`~hydpy.cythons.autogen.pointerutils`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |typingtools| replace:: :mod:`~hydpy.core.typingtools`
+.. |calibtools.RuleIUH.update_parameters| replace:: :attr:`~hydpy.auxs.calibtools.RuleIUH.update_parameters`
+.. |devicetools.Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |hydpytools.HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |masktools.Masks| replace:: :class:`~hydpy.core.masktools.Masks`
+.. |masktools.NodeMasks| replace:: :class:`~hydpy.core.masktools.NodeMasks`
+.. |numpy.clip| replace:: :func:`~numpy.clip`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |numpy.ndarray.clip| replace:: :func:`~numpy.ndarray.clip`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+.. |optiontools.TypeOption| replace:: :const:`~hydpy.core.optiontools.TypeOption`
+.. |optiontools.l1| replace:: :const:`~hydpy.core.optiontools.l1`
+.. |pointerutils.PPDouble.set_pointer| replace:: :func:`~hydpy.cythons.autogen.pointerutils.PPDouble.set_pointer`
+.. |timetools.Timegrids.initindices| replace:: :const:`~hydpy.core.timetools.Timegrids.initindices`
+.. |timetools.Timegrids.init| replace:: :attr:`~hydpy.core.timetools.Timegrids.init`
+.. |wland.Model.DOCNAME.complete| replace:: HydPy-W (base model)
+.. |wland.Model.DOCNAME.description| replace:: base model
+.. |wland.Model.DOCNAME.family| replace:: HydPy-W
+.. |wland.Model.DOCNAME.long| replace:: HydPy-W
+.. |wland.Model.DOCNAME.short| replace:: W
+.. |wland_wag.Model.DOCNAME.complete| replace:: HydPy-W-Wag (extended version of the original Wageningen WALRUS model)
+.. |wland_wag.Model.DOCNAME.description| replace:: extended version of the original Wageningen WALRUS model
+.. |wland_wag.Model.DOCNAME.family| replace:: HydPy-W
+.. |wland_wag.Model.DOCNAME.long| replace:: HydPy-W-Wag
+.. |wland_wag.Model.DOCNAME.short| replace:: W-Wag
+
+.. _autodoctools:
+
+autodoctools
+============
+
+.. automodule:: hydpy.core.autodoctools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, Sized, LiteralString, ParamSpecKwargs, Doc, FULL_ODE_METHODS, SupportsComplex, SupportsInt, assert_never, Container, BinaryIO, IntVar, NoExtraItems, SupportsAbs, Writer, TypeForm, get_origin, AsyncIterable, Coroutine, fastaccess, Generic, ContextManager, TYPE_CHECKING, Collection, ValuesView, INTERFACE_METHODS, TypeVar, NoReturn, MutableSequence, ParamSpec, NotRequired, SupportsIndex, DERIVEDPARAMETERS, List, no_type_check, type_repr, get_protocol_members, overload, Sentinel, assert_type, no_type_check_decorator, Awaitable, SupportsRound, CapsuleType, cast, ByteString, Reader, seqs, RUN_METHODS, AsyncIterator, ItemsView, NamedTuple, MutableMapping, Self, TextIO, Any, clear_overloads, KeysView, OrderedDict, Deque, Literal, reveal_type, NoDefault, SUBMODELS, subpars, deprecated, Format, Pattern, get_original_bases, SupportsFloat, Union, Match, final, AsyncContextManager, get_args, Set, Sequence, ForwardRef, AsyncGenerator, fastaccess_old, Text, pars, disjoint_base, NewType, AnyStr, get_type_hints, FIXEDPARAMETERS, is_typeddict, Unpack, DefaultDict, get_annotations, ParamSpecArgs, fastaccess_new, SOLVERSEQUENCES, UPDATEDSEQUENCES, is_protocol, subseqs, Dict, Type, evaluate_forward_ref, Callable, Reversible, TypeGuard, SUBMETHODS, MutableSet, runtime, ClassVar, Final, Mapping, AbstractSet, SENDER_METHODS, override, Required, SUBMODELINTERFACES, CONTROLPARAMETERS, Iterable, ReadOnly, Counter, TypeAlias, TypeVarTuple, TypedDict, Iterator, FrozenSet, TypeIs, SOLVERPARAMETERS, RESULTSEQUENCES, get_overloads, dataclass_transform, Tuple, ADD_METHODS, Protocol, Annotated, Generator, PART_ODE_METHODS, Never, Hashable, SupportsBytes, RECEIVER_METHODS, ChainMap, REQUIREDSEQUENCES, INLET_METHODS, runtime_checkable, OUTLET_METHODS, Optional, IO, TypeAliasType, Buffer, Concatenate, MappingView, subvars

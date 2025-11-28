@@ -1,0 +1,464 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>optiontools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="parametertools" href="parametertools.html" />
+    <link rel="prev" title="objecttools" href="objecttools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="parametertools.html" title="parametertools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="objecttools.html" title="objecttools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">optiontools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="optiontools">
+<span id="id1"></span><h1>optiontools<a class="headerlink" href="#optiontools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.optiontools"></span><p>This module implements classes that help to manage global HydPy options.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.optiontools" title="hydpy.core.optiontools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optiontools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TIn</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TOption</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TOrig</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TOut</span></code> Type variable.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.Options" title="hydpy.core.optiontools.Options"><code class="xref py py-class docutils literal notranslate"><span class="pre">Options</span></code></a> Singleton class for <cite>global</cite> options placed in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt id="hydpy.core.optiontools.Options">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></code><code class="sig-name descname"><span class="pre">Options</span></code><a class="reference internal" href="_modules/hydpy/core/optiontools.html#Options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.Options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Singleton class for <cite>global</cite> options placed in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p>
+<p>Note that Most options are simple True/False or 0/1 flags.</p>
+<p>You can change all options in two ways.  By using the <cite>with</cite> statement,
+you make sure that the change is undone after leaving the corresponding
+code block (even if an error occurs):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">)</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>Alternatively, you can change all options via simple assignments:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p>But then you might have to keep in mind to undo the change later:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>When using the <cite>with</cite> statement, you can assign <code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code>, which does not
+change the original setting and resets it after leaving the <cite>with</cite> block:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">)</span>
+<span class="go">0</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">0</span>
+</pre></div>
+</div>
+<p>The delete attribute restores the respective default setting:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.autocompile">
+<code class="sig-name descname"><span class="pre">autocompile</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.autocompile" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for enabling/disabling the automatic conversion of 
+pure Python models to computationally more efficient Cython models 
+whenever a existing Cython model may be outdated.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.checkseries">
+<code class="sig-name descname"><span class="pre">checkseries</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.checkseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>True/False flag for raising an error when trying to load an input
+time series not spanning the whole initialisation period or containing
+<code class="xref py py-const docutils literal notranslate"><span class="pre">nan</span></code> values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.dirverbose">
+<code class="sig-name descname"><span class="pre">dirverbose</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.dirverbose" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for letting the autocompletion textbox include
+all members of an object or only the most relevant ones.  So far, this
+option affects the behaviour of a few implemented classes only.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.ellipsis">
+<code class="sig-name descname"><span class="pre">ellipsis</span></code><em class="property"> <span class="pre">=</span> <span class="pre">-999</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.ellipsis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ellipsis points are used to shorten the string representations of
+iterable HydPy objects containing many entries.  Set a value to define
+the maximum number of entries before and behind ellipsis points.  Set
+it to zero to avoid any ellipsis points.  Set it to -999 to rely on
+the default values of the respective iterable objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.flattennetcdf">
+<code class="sig-name descname"><span class="pre">flattennetcdf</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.flattennetcdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag relevant when working with NetCDF files that 
+decides whether to handle multidimensional time series as a larger 
+number of 1-dimensional time series (True) or to keep the original 
+shape (False) (see the documentation on module <a class="reference internal" href="netcdftools.html#module-hydpy.core.netcdftools" title="hydpy.core.netcdftools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">netcdftools</span></code></a> for 
+further information).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.forcecompiling">
+<code class="sig-name descname"><span class="pre">forcecompiling</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.forcecompiling" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for enabling that each cythonizable model is
+cythonized when imported.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.isolatenetcdf">
+<code class="sig-name descname"><span class="pre">isolatenetcdf</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.isolatenetcdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag relevant when working with NetCDF files that 
+decides whether to handle only the time series of a single sequence 
+type (True) or the time series of multiple sequence types (False)
+in individual NetCDF files (see the documentation on module 
+<a class="reference internal" href="netcdftools.html#module-hydpy.core.netcdftools" title="hydpy.core.netcdftools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">netcdftools</span></code></a> for further information).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.parameterstep">
+<code class="sig-name descname"><span class="pre">parameterstep</span></code><em class="property"> <span class="pre">=</span> <span class="pre">Period(&quot;1d&quot;)</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.parameterstep" title="Permalink to this definition">¶</a></dt>
+<dd><p>The actual parameter time step size.  Change it by passing a <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> 
+object or any valid <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> constructor argument.  The default parameter 
+step is one day.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parameterstep</span>
+<span class="go">Period(&quot;1d&quot;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.printprogress">
+<code class="sig-name descname"><span class="pre">printprogress</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.printprogress" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for printing information about the progress of
+some processes to the standard output.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.printincolor">
+<code class="sig-name descname"><span class="pre">printincolor</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.printincolor" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for printing progress information in colour
+eventually.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.reprcomments">
+<code class="sig-name descname"><span class="pre">reprcomments</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.reprcomments" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for including comments into string representations.
+So far, this option affects the behaviour of a few implemented classes,
+only.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.reprdigits">
+<code class="sig-name descname"><span class="pre">reprdigits</span></code><em class="property"> <span class="pre">=</span> <span class="pre">-1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.reprdigits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required precision of string representations of floating point
+numbers, defined as the minimum number of digits to be reproduced
+by the string representation (see function <a class="reference internal" href="objecttools.html#hydpy.core.objecttools.repr_" title="hydpy.core.objecttools.repr_"><code class="xref py py-const docutils literal notranslate"><span class="pre">repr_</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.simulationstep">
+<code class="sig-name descname"><span class="pre">simulationstep</span></code><em class="property"> <span class="pre">=</span> <span class="pre">Period()</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.simulationstep" title="Permalink to this definition">¶</a></dt>
+<dd><p>The actual simulation time step size.  Change it by passing a <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> 
+object or any valid <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> constructor argument.  <em>HydPy</em> does not 
+define a default simulation step (indicated by an empty <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> object).</p>
+<p>Note that you cannot manually define the <a class="reference internal" href="#hydpy.core.optiontools.Options.simulationstep" title="hydpy.core.optiontools.Options.simulationstep"><code class="xref py py-const docutils literal notranslate"><span class="pre">simulationstep</span></code></a> whenever 
+it is already available via attribute <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.stepsize" title="hydpy.core.timetools.Timegrids.stepsize"><code class="xref py py-const docutils literal notranslate"><span class="pre">stepsize</span></code></a> of the global  
+<a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> (<cite>pub.timegrids</cite>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span> <span class="o">=</span> <span class="s2">&quot;1h&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period(&quot;1h&quot;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period(&quot;1d&quot;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span> <span class="o">=</span> <span class="s2">&quot;1s&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period(&quot;1d&quot;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period(&quot;1s&quot;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.skipdoctests">
+<code class="sig-name descname"><span class="pre">skipdoctests</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.skipdoctests" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for skipping the automatic execution of
+documentation tests.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.timeaxisnetcdf">
+<code class="sig-name descname"><span class="pre">timeaxisnetcdf</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.timeaxisnetcdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>An integer value relevant when working with NetCDF files that 
+determines the axis of the time variable (see the documentation on 
+module <a class="reference internal" href="netcdftools.html#module-hydpy.core.netcdftools" title="hydpy.core.netcdftools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">netcdftools</span></code></a> for further information).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.trimvariables">
+<code class="sig-name descname"><span class="pre">trimvariables</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.trimvariables" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for enabling/disabling function <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.trim" title="hydpy.core.variabletools.trim"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim()</span></code></a>.  Set it
+to <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code> only for good reasons.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.usecython">
+<code class="sig-name descname"><span class="pre">usecython</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.usecython" title="Permalink to this definition">¶</a></dt>
+<dd><p>TA True/False flag for applying cythonized models if possible,
+which are much faster than pure Python models.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.usedefaultvalues">
+<code class="sig-name descname"><span class="pre">usedefaultvalues</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.usedefaultvalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for initialising parameters with standard values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.utclongitude">
+<code class="sig-name descname"><span class="pre">utclongitude</span></code><em class="property"> <span class="pre">=</span> <span class="pre">15</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.utclongitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>Longitude of the centre of the local time zone (see option
+<a class="reference internal" href="#hydpy.core.optiontools.Options.utcoffset" title="hydpy.core.optiontools.Options.utcoffset"><code class="xref py py-const docutils literal notranslate"><span class="pre">utcoffset</span></code></a>).  Defaults to 15,  which corresponds to the 
+central meridian of UTC+01:00.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.utcoffset">
+<code class="sig-name descname"><span class="pre">utcoffset</span></code><em class="property"> <span class="pre">=</span> <span class="pre">60</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.utcoffset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Offset of your local time from UTC in minutes (see option 
+<a class="reference internal" href="#hydpy.core.optiontools.Options.utclongitude" title="hydpy.core.optiontools.Options.utclongitude"><code class="xref py py-const docutils literal notranslate"><span class="pre">utclongitude</span></code></a>.  Defaults to 60, which corresponds to 
+UTC+01:00.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.warnmissingcontrolfile">
+<code class="sig-name descname"><span class="pre">warnmissingcontrolfile</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.warnmissingcontrolfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for only raising a warning instead of an exception
+when a necessary control file is missing.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.warnmissingobsfile">
+<code class="sig-name descname"><span class="pre">warnmissingobsfile</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.warnmissingobsfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for raising a warning when a requested observation
+sequence demanded by a node instance is missing.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.warnmissingsimfile">
+<code class="sig-name descname"><span class="pre">warnmissingsimfile</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.warnmissingsimfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for raising a warning when a requested simulation
+sequence demanded by a node instance is missing.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.warnsimulationstep">
+<code class="sig-name descname"><span class="pre">warnsimulationstep</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.warnsimulationstep" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for raising a warning when function <a class="reference internal" href="importtools.html#hydpy.core.importtools.simulationstep" title="hydpy.core.importtools.simulationstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulationstep()</span></code></a>
+called for the first time directly by the user.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.optiontools.Options.warntrim">
+<code class="sig-name descname"><span class="pre">warntrim</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#hydpy.core.optiontools.Options.warntrim" title="Permalink to this definition">¶</a></dt>
+<dd><p>A True/False flag for raising a warning when a <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> object
+trims its value(s) in order no not violate certain boundaries.
+To cope with the limited precision of floating-point numbers only
+those violations beyond a small tolerance value are reported
+(see function <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.trim" title="hydpy.core.variabletools.trim"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim()</span></code></a>).</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="objecttools.html"
+                        title="previous chapter">objecttools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="parametertools.html"
+                        title="next chapter">parametertools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/optiontools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="parametertools.html" title="parametertools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="objecttools.html" title="objecttools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">optiontools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

@@ -137,6 +137,7 @@ excluded_members = {
     "ADD_METHODS",
     "INLET_METHODS",
     "OUTLET_METHODS",
+    "OBSERVER_METHODS",
     "RECEIVER_METHODS",
     "SENDER_METHODS",
     "PART_ODE_METHODS",

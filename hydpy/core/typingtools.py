@@ -218,6 +218,7 @@ l1: Literal[1] = 1
 MethodGroup = Literal[
     "RECEIVER_METHODS",
     "INLET_METHODS",
+    "OBSERVER_METHODS",
     "RUN_METHODS",
     "PART_ODE_METHODS",
     "FULL_ODE_METHODS",

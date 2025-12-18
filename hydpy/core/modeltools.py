@@ -3323,7 +3323,7 @@ class RunModel(Model):
     |RunModel.RUN_METHODS| tuple."""
 
     RUN_METHODS: ClassVar[tuple[type[Method], ...]]
-    METHOD_GROUPS = (
+    METHOD_GROUPS: ClassVar[tuple[str, ...]] = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
         "OBSERVER_METHODS",
@@ -3655,9 +3655,10 @@ class ELSModel(SolverModel):
     SOLVERSEQUENCES: ClassVar[tuple[type[sequencetools.DependentSequence], ...]]
     PART_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
     FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
-    METHOD_GROUPS = (
+    METHOD_GROUPS: ClassVar[tuple[str, ...]] = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
+        "OBSERVER_METHODS",
         "PART_ODE_METHODS",
         "FULL_ODE_METHODS",
         "ADD_METHODS",

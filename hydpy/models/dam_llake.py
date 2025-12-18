@@ -504,7 +504,7 @@ class Model(
         dam_model.Calc_PotentialEvaporation_V1,
         dam_model.Calc_AdjustedEvaporation_V1,
     )
-    OBSERVER_METHODS = ()
+    OBSERVER_METHODS = (dam_model.Pick_RequiredRelease_V1,)
     RECEIVER_METHODS = ()
     ADD_METHODS = (dam_model.Fix_Min1_V1,)
     PART_ODE_METHODS = (

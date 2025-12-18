@@ -3391,6 +3391,7 @@ class RunModel(Model):
         self.run()
         self.new2old()
         self.update_outlets()
+        self.update_senders(idx)
         self.update_outputs()
 
 
@@ -3686,6 +3687,7 @@ class ELSModel(SolverModel):
         self.update_observers()
         self.solve()
         self.update_outlets()
+        self.update_senders(idx)
         self.update_outputs()
 
     def solve(self) -> bool:

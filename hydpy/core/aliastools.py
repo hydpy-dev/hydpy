@@ -151,6 +151,7 @@ def write_sequencealiases() -> None:
         ("inputs", sequencetools.InputSequence, (0,)),
         ("inlets", sequencetools.InletSequence, (0, 1)),
         ("receivers", sequencetools.ReceiverSequence, (0, 1)),
+        ("observers", sequencetools.ObserverSequence, (0, 1)),
         ("factors", sequencetools.FactorSequence, (0,)),
         ("fluxes", sequencetools.FluxSequence, (0,)),
         ("states", sequencetools.StateSequence, (0,)),

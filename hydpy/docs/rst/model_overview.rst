@@ -238,6 +238,14 @@ of the MORECS model :cite:p:`ref-Thompson1981`, while |evap_aet_hbv96| and
 sub-submodel, to the catchment's wetness as suggested by
 :cite:t:`ref-Lindstrom1997HBV96` and :cite:t:`ref-Minhas1974`.
 
+Snow models
+-----------
+
+Until now, most :ref:`land models <land_models>` possess their own snow module.  We
+plan to provide the same flexibility as for evapotranspiration processes by extracting
+these modules into the :ref:`HydPy-Snow` model family, which currently only provides the
+CemaNeige models |snow_cn| and |snow_cn_minmax|.
+
 Infiltration models
 -------------------
 

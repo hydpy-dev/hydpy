@@ -11,7 +11,7 @@ environment:
       make_exe: false
       python_mode: false
       cython_mode: true
-      numpy_version: 2
+      numpy_version: 1
       threads: 0
     - PYTHON: "C:\\Python312-x64"
       make_exe: false
@@ -23,7 +23,7 @@ environment:
       make_exe: false
       python_mode: false
       cython_mode: true
-      numpy_version: 1
+      numpy_version: 2
       threads: 4
     - PYTHON: "C:\\Python314-x64"
       make_exe: true

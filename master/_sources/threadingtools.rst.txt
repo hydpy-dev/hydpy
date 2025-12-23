@@ -1,0 +1,27 @@
+.. |HydPy.parallelisability| replace:: :const:`~hydpy.core.hydpytools.HydPy.parallelisability`
+.. |HydPy.simulate_multithreaded| replace:: :func:`~hydpy.core.hydpytools.HydPy.simulate_multithreaded`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |Node.deploymode| replace:: :const:`~hydpy.core.devicetools.Node.deploymode`
+.. |Parallelisability.parallel_elements| replace:: :attr:`~hydpy.core.threadingtools.Parallelisability.parallel_elements`
+.. |Parallelisability.parallel_nodes| replace:: :attr:`~hydpy.core.threadingtools.Parallelisability.parallel_nodes`
+.. |Parallelisability.sequential_elements| replace:: :attr:`~hydpy.core.threadingtools.Parallelisability.sequential_elements`
+.. |Parallelisability.sequential_nodes| replace:: :attr:`~hydpy.core.threadingtools.Parallelisability.sequential_nodes`
+.. |Parallelisability.transition_nodes| replace:: :attr:`~hydpy.core.threadingtools.Parallelisability.transition_nodes`
+.. |Parallelisability| replace:: :class:`~hydpy.core.threadingtools.Parallelisability`
+.. |Queue.join| replace:: :func:`~hydpy.core.threadingtools.Queue.join`
+.. |Queue.starters| replace:: :attr:`~hydpy.core.threadingtools.Queue.starters`
+.. |Queue| replace:: :class:`~hydpy.core.threadingtools.Queue`
+.. |Worker.run| replace:: :func:`~hydpy.core.threadingtools.Worker.run`
+.. |Worker| replace:: :class:`~hydpy.core.threadingtools.Worker`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |prepare_receiver_example| replace:: :func:`~hydpy.core.testtools.prepare_receiver_example`
+
+.. _threadingtools:
+
+threadingtools
+==============
+
+.. automodule:: hydpy.core.threadingtools
+    :members:
+    :show-inheritance:
+    :exclude-members: Tuple, CapsuleType, RESULTSEQUENCES, Required, disjoint_base, get_annotations, Final, SupportsRound, LiteralString, NotRequired, Reader, Iterator, Protocol, List, Pattern, Hashable, SupportsComplex, PART_ODE_METHODS, KeysView, SupportsBytes, ReadOnly, Mapping, Counter, TypeVarTuple, reveal_type, NoExtraItems, assert_type, FULL_ODE_METHODS, UPDATEDSEQUENCES, Collection, NamedTuple, AsyncIterable, Generator, FIXEDPARAMETERS, ItemsView, OUTLET_METHODS, Annotated, overload, override, ValuesView, REQUIREDSEQUENCES, MutableSequence, TypeAliasType, get_original_bases, CLASSES, Deque, ClassVar, BinaryIO, ParamSpecKwargs, Reversible, ParamSpecArgs, get_protocol_members, AsyncIterator, SENDER_METHODS, Iterable, MutableMapping, Awaitable, no_type_check, runtime, RECEIVER_METHODS, Generic, SOLVERSEQUENCES, Dict, INLET_METHODS, SOLVERPARAMETERS, OrderedDict, TypedDict, evaluate_forward_ref, fastaccess, AbstractSet, SupportsIndex, cast, runtime_checkable, Doc, ADD_METHODS, Buffer, NoDefault, Any, pars, Literal, AnyStr, assert_never, MutableSet, no_type_check_decorator, Format, Match, AsyncContextManager, TypeGuard, get_type_hints, ParamSpec, get_overloads, seqs, TypeForm, fastaccess_old, is_protocol, IO, AsyncGenerator, Writer, Set, INTERFACE_METHODS, Sentinel, Optional, subpars, SupportsFloat, Container, get_origin, type_repr, ContextManager, RUN_METHODS, SUBMODELS, Text, fastaccess_new, Unpack, clear_overloads, DefaultDict, NewType, SupportsAbs, TypeIs, NoReturn, is_typeddict, Callable, ForwardRef, ChainMap, SupportsInt, Never, MappingView, Union, TypeVar, deprecated, Type, FrozenSet, Sized, IntVar, DERIVEDPARAMETERS, SUBMODELINTERFACES, subseqs, ByteString, Sequence, TypeAlias, get_args, Concatenate, dataclass_transform, CONTROLPARAMETERS, TYPE_CHECKING, SUBMETHODS, TextIO, Coroutine, Self, final, subvars

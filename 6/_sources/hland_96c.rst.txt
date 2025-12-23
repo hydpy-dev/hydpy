@@ -1,0 +1,42 @@
+.. |AETModel_V1| replace:: :class:`~hydpy.interfaces.aetinterfaces.AETModel_V1`
+.. |BW1| replace:: :class:`~hydpy.models.hland.hland_states.BW1`
+.. |BW2| replace:: :class:`~hydpy.models.hland.hland_states.BW2`
+.. |CFMax| replace:: :class:`~hydpy.models.hland.hland_control.CFMax`
+.. |FIELD| replace:: :const:`~hydpy.models.hland.hland_constants.FIELD`
+.. |FOREST| replace:: :const:`~hydpy.models.hland.hland_constants.FOREST`
+.. |GLACIER| replace:: :const:`~hydpy.models.hland.hland_constants.GLACIER`
+.. |GMelt| replace:: :class:`~hydpy.models.hland.hland_control.GMelt`
+.. |H1| replace:: :class:`~hydpy.models.hland.hland_control.H1`
+.. |ILAKE| replace:: :const:`~hydpy.models.hland.hland_constants.ILAKE`
+.. |Indexer.dayofyear| replace:: :const:`~hydpy.core.indextools.Indexer.dayofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |LZ| replace:: :class:`~hydpy.models.hland.hland_states.LZ`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.hland_96c.Model.check_waterbalance`
+.. |QAb1| replace:: :class:`~hydpy.models.hland.hland_fluxes.QAb1`
+.. |QAb2| replace:: :class:`~hydpy.models.hland.hland_fluxes.QAb2`
+.. |RConcModel_V1| replace:: :class:`~hydpy.interfaces.rconcinterfaces.RConcModel_V1`
+.. |SEALED| replace:: :const:`~hydpy.models.hland.hland_constants.SEALED`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |TAb1| replace:: :class:`~hydpy.models.hland.hland_control.TAb1`
+.. |TTM| replace:: :class:`~hydpy.models.hland.hland_derived.TTM`
+.. |TT| replace:: :class:`~hydpy.models.hland.hland_control.TT`
+.. |TVs1| replace:: :class:`~hydpy.models.hland.hland_control.TVs1`
+.. |UZ| replace:: :class:`~hydpy.models.hland.hland_states.UZ`
+.. |hland_96c.DOCNAME.complete| replace:: HydPy-H-HBV96-COSERO (fusion of SMHI-IHMS-HBV96 and COSERO)
+.. |hland_96c| replace:: :mod:`~hydpy.models.hland_96c`
+.. |hland_96p| replace:: :mod:`~hydpy.models.hland_96p`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+.. |hland| replace:: :mod:`~hydpy.models.hland`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |rconc_nash| replace:: :mod:`~hydpy.models.rconc_nash`
+.. |hland_fluxes.Q0| replace:: :class:`~hydpy.models.hland.hland_fluxes.Q0`
+
+.. _hland_96c:
+
+hland_96c
+=========
+
+.. automodule:: hydpy.models.hland_96c
+    :members:
+    :show-inheritance:
+    :exclude-members: Hashable, Match, Text, RECEIVER_METHODS, Union, Iterable, cast, Callable, SupportsAbs, disjoint_base, overload, Sized, ParamSpecArgs, get_original_bases, get_protocol_members, SOLVERPARAMETERS, is_typeddict, Writer, get_overloads, FULL_ODE_METHODS, REQUIREDSEQUENCES, CapsuleType, SupportsRound, ReadOnly, fastaccess_old, evaluate_forward_ref, List, subpars, Required, ForwardRef, Protocol, Format, NoExtraItems, TypeGuard, clear_overloads, seqs, TypeAliasType, CONTROLPARAMETERS, Final, AbstractSet, DefaultDict, ADD_METHODS, SupportsFloat, dataclass_transform, AnyStr, MappingView, Doc, Reversible, assert_never, Concatenate, Dict, OUTLET_METHODS, AsyncIterator, SUBMETHODS, ParamSpec, Annotated, no_type_check_decorator, get_type_hints, CLASSES, NamedTuple, ByteString, Generator, FrozenSet, pars, IO, TypeIs, Set, Deque, INTERFACE_METHODS, type_repr, NoDefault, Literal, Any, DERIVEDPARAMETERS, SupportsBytes, subseqs, Buffer, Reader, deprecated, Sentinel, SOLVERSEQUENCES, Counter, Optional, MutableSequence, OrderedDict, NoReturn, runtime, MutableSet, final, fastaccess_new, reveal_type, Awaitable, Unpack, Container, IntVar, LiteralString, TextIO, KeysView, ChainMap, Mapping, UPDATEDSEQUENCES, ClassVar, fastaccess, override, FIXEDPARAMETERS, SUBMODELINTERFACES, AsyncGenerator, TypeVar, SupportsIndex, NotRequired, AsyncIterable, Iterator, TypeVarTuple, get_args, Never, PART_ODE_METHODS, ValuesView, TYPE_CHECKING, TypedDict, NewType, AsyncContextManager, no_type_check, Pattern, RESULTSEQUENCES, Tuple, runtime_checkable, BinaryIO, ObserverSequences, InletSequences, get_origin, LogSequences, ParamSpecKwargs, Collection, SUBMODELS, ItemsView, TypeAlias, SupportsInt, TypeForm, get_annotations, SENDER_METHODS, Coroutine, ReceiverSequences, Self, Sequence, RUN_METHODS, SenderSequences, subvars, INLET_METHODS, MutableMapping, ContextManager, SupportsComplex, Generic, Type, is_protocol, assert_type

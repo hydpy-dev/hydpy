@@ -1,0 +1,301 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>dummy_interceptedwater &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dummy_soilwater" href="dummy_soilwater.html" />
+    <link rel="prev" title="dummy_node2node" href="dummy_node2node.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dummy_soilwater.html" title="dummy_soilwater"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dummy_node2node.html" title="dummy_node2node"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Dummy.html" accesskey="U">HydPy-Dummy</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dummy_interceptedwater</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="dummy.html">dummy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dummy_node2node.html">dummy_node2node</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">dummy_interceptedwater</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-test">Integration test</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dummy_interceptedwater.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dummy_interceptedwater.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dummy_interceptedwater.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dummy_interceptedwater.Model.prepare_nmbzones"><code class="docutils literal notranslate"><span class="pre">Model.prepare_nmbzones</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dummy_interceptedwater.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dummy_interceptedwater.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dummy_interceptedwater.InputSequences"><code class="docutils literal notranslate"><span class="pre">InputSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="dummy_soilwater.html">dummy_soilwater</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dummy_snowcover.html">dummy_snowcover</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dummy_snowycanopy.html">dummy_snowycanopy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dummy_snowalbedo.html">dummy_snowalbedo</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="dummy_node2node.html"
+                          title="previous chapter">dummy_node2node</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="dummy_soilwater.html"
+                          title="next chapter">dummy_soilwater</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dummy_interceptedwater.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/dummy_interceptedwater.html">6</a></li>
+<li><a href="../master/dummy_interceptedwater.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="dummy-interceptedwater">
+<span id="id1"></span><h1>HydPy-Dummy-InterceptedWater (dummy model supplying main models with intercepted water states)<a class="headerlink" href="#dummy-interceptedwater" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.dummy_interceptedwater"><a class="reference internal" href="#module-hydpy.models.dummy_interceptedwater" title="hydpy.models.dummy_interceptedwater"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dummy_interceptedwater</span></code></a> merely serves testing purposes.  We use it, for example, to
+perform the integration tests for submodels like <a class="reference internal" href="evap_aet_hbv96.html#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a> without the need to
+couple them to complex main models like <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a> for providing interception data.</p>
+<section id="integration-test">
+<h2>Integration test<a class="headerlink" href="#integration-test" title="Link to this heading">¶</a></h2>
+<p>The only functionality of <a class="reference internal" href="#module-hydpy.models.dummy_interceptedwater" title="hydpy.models.dummy_interceptedwater"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dummy_interceptedwater</span></code></a> is reading input time series.
+Hence, configuring and testing it does not require additional explanations:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.dummy_interceptedwater</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;element&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-01-03&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbzones</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;%Y-</span><span class="si">%d</span><span class="s2">-%m&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="o">.</span><span class="n">interceptedwater</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">]]</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_85__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_85__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date |      interceptedwater |</span>
+<span class="go">--------------------------------------</span>
+<span class="go">| 2000-01-01 | 1.0               2.0 |</span>
+<span class="go">| 2000-02-01 | 3.0               4.0 |</span>
+</pre></div></div></div></pre></div></div><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_interceptedwater</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="go">4.0</span>
+</pre></div>
+</div>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dummy_interceptedwater.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dummy_interceptedwater.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/dummy_interceptedwater.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.dummy_interceptedwater.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdHocModel</span></code></a>, <a class="reference internal" href="stateinterfaces.html#hydpy.interfaces.stateinterfaces.IntercModel_V1" title="hydpy.interfaces.stateinterfaces.IntercModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntercModel_V1</span></code></a></p>
+<p>HydPy-Dummy-InterceptedWater (dummy model supplying main models with intercepted water states).</p>
+<dl class="simple">
+<dt>The following interface methods are available to main models using the defined model as a submodel:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dummy.html#hydpy.models.dummy.dummy_model.Get_InterceptedWater_V1" title="hydpy.models.dummy.dummy_model.Get_InterceptedWater_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_InterceptedWater_V1</span></code></a> Get the selected zone’s current amount of intercepted water.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dummy_interceptedwater.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Dummy-InterceptedWater',</span> <span class="pre">'dummy</span> <span class="pre">model</span> <span class="pre">supplying</span> <span class="pre">main</span> <span class="pre">models</span> <span class="pre">with</span> <span class="pre">intercepted</span> <span class="pre">water</span> <span class="pre">states')</span></span><a class="headerlink" href="#hydpy.models.dummy_interceptedwater.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dummy_interceptedwater.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.dummy_interceptedwater.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dummy_interceptedwater.Model.prepare_nmbzones">
+<span class="sig-name descname"><span class="pre">prepare_nmbzones</span></span><a class="headerlink" href="#hydpy.models.dummy_interceptedwater.Model.prepare_nmbzones" title="Link to this definition">¶</a></dt>
+<dd><p>Set the number of zones.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.dummy_interceptedwater</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">prepare_nmbzones</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbzones</span>
+<span class="go">nmbzones(2)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dummy_interceptedwater.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.dummy_interceptedwater.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dummy_interceptedwater.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dummy_interceptedwater.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dummy_interceptedwater.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model dummy_interceptedwater.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbZones()</span></code> The number of separately modelled zones [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dummy_interceptedwater.InputSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dummy_interceptedwater.</span></span><span class="sig-name descname"><span class="pre">InputSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dummy_interceptedwater.InputSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequences" title="hydpy.core.sequencetools.InputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequences</span></code></a></p>
+<p>Input sequences of model dummy_interceptedwater.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dummy.html#hydpy.models.dummy.dummy_inputs.InterceptedWater" title="hydpy.models.dummy.dummy_inputs.InterceptedWater"><code class="xref py py-func docutils literal notranslate"><span class="pre">InterceptedWater()</span></code></a> Intercepted water [mm].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dummy_soilwater.html" title="dummy_soilwater"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dummy_node2node.html" title="dummy_node2node"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Dummy.html" >HydPy-Dummy</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dummy_interceptedwater</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

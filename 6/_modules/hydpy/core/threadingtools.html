@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.threadingtools &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.threadingtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.threadingtools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module implements HydPy&#39;s fundamental features for performing multi-threaded</span>
+<span class="sd">simulation runs.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">hydpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">hydpytools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequencetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">timetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="Parallelisability">
+<a class="viewcode-back" href="../../../threadingtools.html#hydpy.core.threadingtools.Parallelisability">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Parallelisability</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An analyser for the &quot;parallelisability&quot; of a network.</span>
+
+<span class="sd">    We explain the meaning of the members of class |Parallelisability| based on the</span>
+<span class="sd">    small example project created by function |prepare_receiver_example|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.testtools import prepare_receiver_example</span>
+<span class="sd">    &gt;&gt;&gt; hp, pub = prepare_receiver_example()</span>
+
+<span class="sd">    You can initialise |Parallelisability| objects manually, but it usually is</span>
+<span class="sd">    sufficient to access the object made available by property</span>
+<span class="sd">    |HydPy.parallelisability| of class |HydPy|.</span>
+
+<span class="sd">    &gt;&gt;&gt; p = hp.parallelisability</span>
+
+<span class="sd">    The members |Parallelisability.parallel_elements| and</span>
+<span class="sd">    |Parallelisability.sequential_elements| divide those elements that can be simulated</span>
+<span class="sd">    in parallel and those that must be simulated sequentially:</span>
+
+<span class="sd">    &gt;&gt;&gt; p.parallel_elements</span>
+<span class="sd">    Elements(&quot;l1&quot;, &quot;l2&quot;, &quot;l3&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; p.sequential_elements</span>
+<span class="sd">    Elements(&quot;d&quot;, &quot;s12&quot;, &quot;s23&quot;, &quot;s34&quot;)</span>
+
+<span class="sd">    The members |Parallelisability.parallel_nodes| and</span>
+<span class="sd">    |Parallelisability.sequential_nodes| list all nodes connected to at least one</span>
+<span class="sd">    element that is an item of |Parallelisability.parallel_elements| or</span>
+<span class="sd">    |Parallelisability.sequential_elements|, respectively:</span>
+
+<span class="sd">    &gt;&gt;&gt; p.parallel_nodes</span>
+<span class="sd">    Nodes(&quot;n1a&quot;, &quot;n2&quot;, &quot;n3&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; p.sequential_nodes</span>
+<span class="sd">    Nodes(&quot;n1a&quot;, &quot;n1b&quot;, &quot;n2&quot;, &quot;n3&quot;, &quot;n4&quot;)</span>
+
+<span class="sd">    Nodes that mark a transition between the &quot;parallelisable&quot; and &quot;non-parallelisable&quot;</span>
+<span class="sd">    parts of a network, and are thus listed both in |Parallelisability.parallel_nodes|</span>
+<span class="sd">    and |Parallelisability.sequential_nodes|, need special treatment during simulation</span>
+<span class="sd">    runs and are hence separately available via the member</span>
+<span class="sd">    |Parallelisability.transition_nodes|:</span>
+
+<span class="sd">    &gt;&gt;&gt; p.transition_nodes</span>
+<span class="sd">    Nodes(&quot;n1a&quot;, &quot;n2&quot;, &quot;n3&quot;)</span>
+
+<span class="sd">    The reason why the analysed network is not completely parallelisable is the usage</span>
+<span class="sd">    of the receiver node mechanism.  The |dam_v001| model handled by element `d` tries</span>
+<span class="sd">    to prevent low flow situations at a downstream location and therefore gets</span>
+<span class="sd">    information from this place via the receiver node `n2`.  Hence, calculating the</span>
+<span class="sd">    latest water release of `d` requires up-to-date discharge information from `n2`,</span>
+<span class="sd">    which prevents applying the &quot;temporal chunking&quot; strategy, on which HydPy&#39;s</span>
+<span class="sd">    multi-threading approach is grounded:</span>
+
+<span class="sd">    &gt;&gt;&gt; hp.elements.d</span>
+<span class="sd">    Element(&quot;d&quot;,</span>
+<span class="sd">            inlets=&quot;n1a&quot;,</span>
+<span class="sd">            outlets=&quot;n1b&quot;,</span>
+<span class="sd">            receivers=&quot;n2&quot;)</span>
+
+<span class="sd">    However, if we tell node `n2` not to pass freshly simulated but already available</span>
+<span class="sd">    discharge values to `d` by changing its |Node.deploymode|, the need for `d` to wait</span>
+<span class="sd">    for other models to contribute to the total discharge at `n2` disappears, and the</span>
+<span class="sd">    complete network becomes parallelisable:</span>
+
+<span class="sd">    &gt;&gt;&gt; hp.nodes.n2.deploymode</span>
+<span class="sd">    &#39;newsim&#39;</span>
+<span class="sd">    &gt;&gt;&gt; hp.nodes.n2.deploymode = &quot;oldsim&quot;</span>
+<span class="sd">    &gt;&gt;&gt; p = hp.parallelisability</span>
+<span class="sd">    &gt;&gt;&gt; p.parallel_elements</span>
+<span class="sd">    Elements(&quot;d&quot;, &quot;l1&quot;, &quot;l2&quot;, &quot;l3&quot;, &quot;s12&quot;, &quot;s23&quot;, &quot;s34&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; p.sequential_elements</span>
+<span class="sd">    Elements()</span>
+<span class="sd">    &gt;&gt;&gt; p.parallel_nodes</span>
+<span class="sd">    Nodes(&quot;n1a&quot;, &quot;n1b&quot;, &quot;n2&quot;, &quot;n3&quot;, &quot;n4&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; p.sequential_nodes</span>
+<span class="sd">    Nodes()</span>
+<span class="sd">    &gt;&gt;&gt; p.transition_nodes</span>
+<span class="sd">    Nodes()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">parallel_elements</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;All parallelisable elements.&quot;&quot;&quot;</span>
+
+    <span class="n">sequential_elements</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;All non-parallelisable elements.&quot;&quot;&quot;</span>
+
+    <span class="n">parallel_nodes</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;All nodes with a connection to at least one parallelisable element.&quot;&quot;&quot;</span>
+
+    <span class="n">sequential_nodes</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;All nodes with a connection to at least one non-parallelisable element.&quot;&quot;&quot;</span>
+
+    <span class="n">transition_nodes</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;All nodes with a connection to at least one parallelisable and one </span>
+<span class="sd">    non-parallelisable element.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">nodes</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">create_directedgraph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">elements</span><span class="p">)</span>
+        <span class="n">sequential_elements</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">deploymode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;newsim&quot;</span><span class="p">,</span> <span class="s2">&quot;obs_newsim&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">receivers</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">element</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sequential_elements</span><span class="p">:</span>
+                    <span class="n">sequential_elements</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+                    <span class="n">descendants</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">descendants</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span>
+                    <span class="n">sequential_elements</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                        <span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">descendants</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">)</span>
+                    <span class="p">)</span>
+        <span class="n">parallel_elements</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span> <span class="o">-</span> <span class="n">sequential_elements</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_select_nodes</span><span class="p">(</span>
+            <span class="n">relevant_elements</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">],</span> <span class="o">/</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">]:</span>
+            <span class="n">selected_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="n">remaining_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">relevant_elements</span><span class="p">:</span>
+                <span class="n">candidates</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+                    <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+                        <span class="n">e</span><span class="o">.</span><span class="n">inlets</span><span class="p">,</span>
+                        <span class="n">e</span><span class="o">.</span><span class="n">outlets</span><span class="p">,</span>
+                        <span class="n">e</span><span class="o">.</span><span class="n">observers</span><span class="p">,</span>
+                        <span class="n">e</span><span class="o">.</span><span class="n">receivers</span><span class="p">,</span>
+                        <span class="n">e</span><span class="o">.</span><span class="n">senders</span><span class="p">,</span>
+                        <span class="n">e</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span>
+                        <span class="n">e</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">intersection</span> <span class="o">=</span> <span class="n">remaining_nodes</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span>
+                <span class="n">selected_nodes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">intersection</span><span class="p">)</span>
+                <span class="n">remaining_nodes</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">intersection</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">remaining_nodes</span><span class="p">:</span>
+                    <span class="k">break</span>
+            <span class="k">return</span> <span class="n">selected_nodes</span>
+
+        <span class="n">sequential_nodes</span> <span class="o">=</span> <span class="n">_select_nodes</span><span class="p">(</span><span class="n">sequential_elements</span><span class="p">)</span>
+        <span class="n">parallel_nodes</span> <span class="o">=</span> <span class="n">_select_nodes</span><span class="p">(</span><span class="n">parallel_elements</span><span class="p">)</span>
+
+        <span class="n">transition_nodes</span> <span class="o">=</span> <span class="n">sequential_nodes</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">parallel_nodes</span><span class="p">)</span>
+
+        <span class="n">remaining_nodes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">-</span> <span class="n">sequential_nodes</span> <span class="o">-</span> <span class="n">parallel_nodes</span>
+        <span class="n">sequential_nodes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">remaining_nodes</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequential_elements</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">(</span><span class="n">sequential_elements</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parallel_elements</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">(</span><span class="n">parallel_elements</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequential_nodes</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span><span class="n">sequential_nodes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parallel_nodes</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span><span class="n">parallel_nodes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transition_nodes</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span><span class="n">transition_nodes</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Queue">
+<a class="viewcode-back" href="../../../threadingtools.html#hydpy.core.threadingtools.Queue">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Queue</span><span class="p">(</span><span class="n">queue</span><span class="o">.</span><span class="n">LifoQueue</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A &quot;Last In - First Out&quot; queue for executing the parallelisable parts of a</span>
+<span class="sd">    network more efficiently via multi-threading.</span>
+
+<span class="sd">    For most users, |Queue| is more of an implementation detail that is never directly</span>
+<span class="sd">    used.  However, if you intend to quench the last bit of performance out of HydPy,</span>
+<span class="sd">    you can create custom |Queue| instances that fit better to your network and model</span>
+<span class="sd">    configurations at hand, and pass them to method |HydPy.simulate_multithreaded|.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">starters</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">]]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;All nodes and elements that do not have any dependencies.  These can be </span>
+<span class="sd">    processed right at the start of a multi-threaded simulation.&quot;&quot;&quot;</span>
+
+    <span class="n">dependencies</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The number of dependencies of all nodes and elements.  An element with three</span>
+<span class="sd">    dependencies is connected to three nodes that must be processed until itself has</span>
+<span class="sd">    all information required simulation.&quot;&quot;&quot;</span>
+
+    <span class="n">upstream2downstream</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span>
+        <span class="n">Mapping</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">]]</span>
+    <span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A mapping that lists for all nodes and elements, which neighbouring elements or </span>
+<span class="sd">    nodes must wait for their processing completion.   In other words, each key </span>
+<span class="sd">    (node or element) represents one of the dependencies of the corresponding list&#39;s </span>
+<span class="sd">    items (elements or nodes).&quot;&quot;&quot;</span>
+
+    <span class="n">_waiting</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+    <span class="n">_first_exception</span><span class="p">:</span> <span class="ne">BaseException</span> <span class="o">|</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">starters</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">],</span>
+        <span class="n">dependencies</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+        <span class="n">upstream2downstream</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span>
+            <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">]</span>
+        <span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_first_exception</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">upstream2downstream</span> <span class="o">=</span> <span class="n">upstream2downstream</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">starters</span> <span class="o">=</span> <span class="n">starters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dependencies</span> <span class="o">=</span> <span class="n">dependencies</span>
+
+<div class="viewcode-block" id="Queue.from_devices">
+<a class="viewcode-back" href="../../../threadingtools.html#hydpy.core.threadingtools.Queue.from_devices">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_devices</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">nodes</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new |Queue| instance and determine its members from the given</span>
+<span class="sd">        (parallelisable) devices.&quot;&quot;&quot;</span>
+
+        <span class="n">upstream2downstream</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span>
+            <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">successors2starter</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dependencies</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">create_directedgraph</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">elements</span><span class="p">)</span>
+        <span class="n">successors</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">dfs_successors</span>
+
+        <span class="n">forwards_newsim</span> <span class="o">=</span> <span class="s2">&quot;newsim&quot;</span><span class="p">,</span> <span class="s2">&quot;obs_newsim&quot;</span>
+        <span class="n">receives_newsim</span> <span class="o">=</span> <span class="s2">&quot;newsim&quot;</span><span class="p">,</span> <span class="s2">&quot;obs&quot;</span><span class="p">,</span> <span class="s2">&quot;obs_newsim&quot;</span><span class="p">,</span> <span class="s2">&quot;obs_bi&quot;</span>
+
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+            <span class="n">nmb_in</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">deploymode</span> <span class="ow">in</span> <span class="n">forwards_newsim</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">inlets</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">observers</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">receivers</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">inputs</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">nmb_in</span><span class="p">:</span>
+                <span class="n">dependencies</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">=</span> <span class="n">nmb_in</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">successors2starter</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">successors</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">e</span><span class="p">)),</span> <span class="n">e</span><span class="p">))</span>
+            <span class="n">upstream2downstream</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">n</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">outlets</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">senders</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">deploymode</span> <span class="ow">in</span> <span class="n">receives_newsim</span>
+            <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">deploymode</span> <span class="ow">in</span> <span class="n">receives_newsim</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">nmb_in</span> <span class="o">:=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">entries</span><span class="p">):</span>
+                    <span class="n">dependencies</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">nmb_in</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">successors2starter</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">successors</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">n</span><span class="p">)),</span> <span class="n">n</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">deploymode</span> <span class="ow">in</span> <span class="n">forwards_newsim</span><span class="p">:</span>
+                    <span class="n">upstream2downstream</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">n</span><span class="o">.</span><span class="n">exits</span> <span class="k">if</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">starters</span><span class="o">=</span><span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">successors2starter</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])],</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="n">dependencies</span><span class="p">,</span>
+            <span class="n">upstream2downstream</span><span class="o">=</span><span class="n">upstream2downstream</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Queue.from_queue">
+<a class="viewcode-back" href="../../../threadingtools.html#hydpy.core.threadingtools.Queue.from_queue">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_queue</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">queue_</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new |Queue| instance and take its members from the given |Queue|</span>
+<span class="sd">        instance.</span>
+
+<span class="sd">        This copy-like mechanism makes the information contained by old |Queue|</span>
+<span class="sd">        instances already used in a multi-threaded simulation run reusable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">starters</span><span class="o">=</span><span class="n">queue_</span><span class="o">.</span><span class="n">starters</span><span class="p">,</span>
+            <span class="n">dependencies</span><span class="o">=</span><span class="n">queue_</span><span class="o">.</span><span class="n">dependencies</span><span class="p">,</span>
+            <span class="n">upstream2downstream</span><span class="o">=</span><span class="n">queue_</span><span class="o">.</span><span class="n">upstream2downstream</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Queue.register">
+<a class="viewcode-back" href="../../../threadingtools.html#hydpy.core.threadingtools.Queue.register">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Put all |Queue.starters| into the queue.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_first_exception</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_waiting</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dependencies</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">starter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">starters</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">starter</span><span class="p">)</span></div>
+
+
+    <span class="c1"># This incorrect override is on purpose (wrapping instead of sublassing `Queue`</span>
+    <span class="c1"># seems like unnecessary overhead and we want `task_done` only used this way):</span>
+<div class="viewcode-block" id="Queue.task_done">
+<a class="viewcode-back" href="../../../threadingtools.html#hydpy.core.threadingtools.Queue.task_done">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">task_done</span><span class="p">(</span>  <span class="c1"># type: ignore[override]</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">upstream</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span> <span class="o">|</span> <span class="ne">BaseException</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Take the given readily processed node or element, determine which elements</span>
+<span class="sd">        or nodes become ready for processing, and put them into the queue.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">downstream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">upstream2downstream</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="p">()):</span>
+                <span class="n">nmb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_waiting</span><span class="p">[</span><span class="n">downstream</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">nmb</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">downstream</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_waiting</span><span class="p">[</span><span class="n">downstream</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_exception</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_first_exception</span> <span class="o">=</span> <span class="n">upstream</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span></div>
+
+
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">13</span><span class="p">):</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">shutdown</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;For compatibility with Python 3.12 and earlier.&quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">threads</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+
+<div class="viewcode-block" id="Queue.join">
+<a class="viewcode-back" href="../../../threadingtools.html#hydpy.core.threadingtools.Queue.join">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">join</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Block the queue until all nodes and elements have been processed.</span>
+
+<span class="sd">        If something is wrong, method |Queue.join| tries (with the help of method</span>
+<span class="sd">        |Worker.run| of class |Worker|) to report the first error that occurred in one</span>
+<span class="sd">        of the threads:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.testtools import prepare_full_example_2</span>
+<span class="sd">        &gt;&gt;&gt; hp, pub, TestIO = prepare_full_example_2()</span>
+<span class="sd">        &gt;&gt;&gt; for element in hp.elements:</span>
+<span class="sd">        ...     element.model.simulate_period = None</span>
+<span class="sd">        &gt;&gt;&gt; with pub.options.threads(4):</span>
+<span class="sd">        ...     hp.simulate()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        TypeError: &#39;NoneType&#39; object is not callable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">exception</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_first_exception</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_first_exception</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">raise</span> <span class="n">exception</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Worker">
+<a class="viewcode-back" href="../../../threadingtools.html#hydpy.core.threadingtools.Worker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Worker</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A worker that interacts with the current |Queue| instance and is responsible</span>
+<span class="sd">    for processing nodes and elements in an individual thread.&quot;&quot;&quot;</span>
+
+    <span class="n">_queue</span><span class="p">:</span> <span class="n">Queue</span>
+    <span class="n">_elements</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span>
+    <span class="n">_idx_start</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">_idx_end</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queue_</span><span class="p">:</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span> <span class="o">=</span> <span class="n">queue_</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_elements</span> <span class="o">=</span> <span class="n">elements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_idx_start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idx_end</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">simindices</span>
+
+<div class="viewcode-block" id="Worker.run">
+<a class="viewcode-back" href="../../../threadingtools.html#hydpy.core.threadingtools.Worker.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Query the next device from the current |Queue| instance, update the relevant</span>
+<span class="sd">        time series data, and perform a simulation if the device is an element.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">13</span><span class="p">):</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="ne">AttributeError</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">ShutDown</span>  <span class="c1"># pragma: no cover</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                    <span class="c1"># Remove when we stop supporting Python 3.12:</span>
+                    <span class="n">device</span><span class="o">.</span><span class="n">name</span>  <span class="c1"># pylint: disable=pointless-statement</span>
+                <span class="k">except</span> <span class="n">stop</span><span class="p">:</span>
+                    <span class="k">return</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_update_node_series</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">model</span> <span class="o">=</span> <span class="n">device</span><span class="o">.</span><span class="n">model</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_update_all_model_series</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+                    <span class="n">threading_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">threading</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">model</span><span class="o">.</span><span class="n">threading</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="n">model</span><span class="o">.</span><span class="n">simulate_period</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx_start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idx_end</span><span class="p">)</span>
+                    <span class="k">finally</span><span class="p">:</span>
+                        <span class="n">model</span><span class="o">.</span><span class="n">threading</span> <span class="o">=</span> <span class="n">threading_</span>
+
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exception</span><span class="p">:</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">task_done</span><span class="p">(</span><span class="n">exception</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">task_done</span><span class="p">(</span><span class="n">device</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_node_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idx_start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idx_end</span>
+        <span class="n">seq_node</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+        <span class="n">seq_node</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">entries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">element</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elements</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">submodel</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">find_submodels</span><span class="p">(</span>
+                <span class="n">include_mainmodel</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">seqs</span> <span class="o">=</span> <span class="n">submodel</span><span class="o">.</span><span class="n">sequences</span>
+                <span class="k">for</span> <span class="n">seq_model</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+                    <span class="n">seqs</span><span class="o">.</span><span class="n">outlets</span><span class="p">,</span> <span class="n">seqs</span><span class="o">.</span><span class="n">senders</span><span class="p">,</span> <span class="n">seqs</span><span class="o">.</span><span class="n">factors</span><span class="p">,</span> <span class="n">seqs</span><span class="o">.</span><span class="n">fluxes</span><span class="p">,</span> <span class="n">seqs</span><span class="o">.</span><span class="n">states</span>
+                <span class="p">):</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">j</span> <span class="o">:=</span> <span class="n">seq_model</span><span class="o">.</span><span class="n">node2idx</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">j</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">seq_node</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">seq_model</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">seq_node</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">seq_model</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_all_model_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">submodel</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">find_submodels</span><span class="p">(</span><span class="n">include_mainmodel</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">seqs</span> <span class="o">=</span> <span class="n">submodel</span><span class="o">.</span><span class="n">sequences</span>
+            <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
+                <span class="n">seqs</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span> <span class="n">seqs</span><span class="o">.</span><span class="n">inlets</span><span class="p">,</span> <span class="n">seqs</span><span class="o">.</span><span class="n">observers</span><span class="p">,</span> <span class="n">seqs</span><span class="o">.</span><span class="n">receivers</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_update_one_model_series</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_one_model_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">ModelIOSequence</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sequence</span><span class="o">.</span><span class="n">node2idx</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">i0</span><span class="p">,</span> <span class="n">i1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idx_start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idx_end</span>
+        <span class="n">series_model</span> <span class="o">=</span> <span class="n">sequence</span><span class="o">.</span><span class="n">series</span>
+        <span class="n">series_model</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">sequence</span><span class="o">.</span><span class="n">node2idx</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">deploymode</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">deploymode</span>
+            <span class="k">if</span> <span class="n">deploymode</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;newsim&quot;</span><span class="p">,</span> <span class="s2">&quot;oldsim&quot;</span><span class="p">,</span> <span class="s2">&quot;oldsim_bi&quot;</span><span class="p">):</span>
+                <span class="n">series_node</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">series_node</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">deploymode</span> <span class="o">!=</span> <span class="s2">&quot;obs&quot;</span><span class="p">:</span>
+                    <span class="n">i_nan</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">series_node</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">i_nan</span><span class="p">):</span>
+                        <span class="n">series_node</span><span class="p">[</span><span class="n">i_nan</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">][</span><span class="n">i_nan</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">series_model</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">series_node</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">series_model</span><span class="p">[</span><span class="n">i0</span><span class="p">:</span><span class="n">i1</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">series_node</span></div>
+
+
+
+<div class="viewcode-block" id="check_threading">
+<a class="viewcode-back" href="../../../threadingtools.html#hydpy.core.threadingtools.check_threading">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_threading</span><span class="p">(</span>
+    <span class="n">hp</span><span class="p">:</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">HydPy</span><span class="p">,</span>
+    <span class="n">sequence</span><span class="p">:</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">IOSequence</span><span class="p">,</span>
+    <span class="n">pause</span><span class="p">:</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Date</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute one &quot;sequential&quot;, then two &quot;parallel&quot;, and finally another &quot;sequential&quot;</span>
+<span class="sd">    simulation run, and check if the time series calculated for all nodes are identical</span>
+<span class="sd">    in all cases.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.threadingtools import check_threading</span>
+
+<span class="sd">    Tests based on the HydPy-L-Land example project (with the primary goal of checking</span>
+<span class="sd">    if all deploy modes are properly supported):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.testtools import prepare_full_example_2</span>
+<span class="sd">    &gt;&gt;&gt; hp, pub, TestIO = prepare_full_example_2()</span>
+<span class="sd">    &gt;&gt;&gt; leun = hp.nodes.lahn_leun</span>
+<span class="sd">    &gt;&gt;&gt; kalk = hp.nodes.lahn_kalk</span>
+
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, kalk.sequences.sim)</span>
+<span class="sd">    54.019337, 37.257561, 31.865308, 28.359542</span>
+
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, kalk.sequences.sim, &quot;1996-01-03&quot;)</span>
+<span class="sd">    54.019337, 37.257561, 31.865308, 28.359542</span>
+
+<span class="sd">    &gt;&gt;&gt; leun.deploymode = &quot;oldsim&quot;</span>
+<span class="sd">    &gt;&gt;&gt; leun.sequences.sim.series -= 10.0</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, kalk.sequences.sim)</span>
+<span class="sd">    44.019337, 27.257561, 21.865308, 18.359542</span>
+
+<span class="sd">    &gt;&gt;&gt; leun.deploymode = &quot;obs&quot;</span>
+<span class="sd">    &gt;&gt;&gt; leun.sequences.obs.series = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, kalk.sequences.sim)</span>
+<span class="sd">    11.672862, 10.100089, 8.984317, 8.202706</span>
+
+<span class="sd">    &gt;&gt;&gt; leun.deploymode = &quot;obs&quot;</span>
+<span class="sd">    &gt;&gt;&gt; leun.sequences.obs.series = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, kalk.sequences.sim)</span>
+<span class="sd">    11.672862, 10.100089, 8.984317, 8.202706</span>
+
+<span class="sd">    &gt;&gt;&gt; from numpy import nan</span>
+<span class="sd">    &gt;&gt;&gt; with pub.options.checkseries(False):</span>
+<span class="sd">    ...     leun.sequences.obs.series= 0.0, nan, 0.0, nan</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, kalk.sequences.sim)</span>
+<span class="sd">    11.672862, nan, 8.984317, nan</span>
+
+<span class="sd">    &gt;&gt;&gt; leun.deploymode = &quot;obs_newsim&quot;</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, kalk.sequences.sim)</span>
+<span class="sd">    11.672862, 37.257561, 8.984317, 28.359542</span>
+
+<span class="sd">    &gt;&gt;&gt; leun.deploymode = &quot;obs_oldsim&quot;</span>
+<span class="sd">    &gt;&gt;&gt; leun.sequences.sim.series = 32.3697, 17.210443, 12.930066, 10.20133</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, kalk.sequences.sim)</span>
+<span class="sd">    11.672862, 27.310532, 8.984317, 18.404036</span>
+
+<span class="sd">    &gt;&gt;&gt; leun.deploymode = &quot;newsim&quot;</span>
+<span class="sd">    &gt;&gt;&gt; leun.sequences.sim.series = 32.3697, 17.210443, 12.930066, 10.20133</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, kalk.sequences.sim)</span>
+<span class="sd">    54.019337, 37.257561, 31.865308, 28.359542</span>
+
+<span class="sd">    Tests based on the interpolation example project (with the primary goal of checking</span>
+<span class="sd">    if the input node mechanism is properly supported within the parallelisable part</span>
+<span class="sd">    of a network):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.testtools import prepare_interpolation_example</span>
+<span class="sd">    &gt;&gt;&gt; hp, pub = prepare_interpolation_example()</span>
+
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, hp.nodes.q12.sequences.sim)</span>
+<span class="sd">    0.853716, 0.864633, 1.037645</span>
+
+<span class="sd">    &gt;&gt;&gt; hp.nodes.in1.deploymode = &quot;oldsim&quot;</span>
+<span class="sd">    &gt;&gt;&gt; hp.nodes.in1.sequences.sim.series = hp.nodes.in1.sequences.obs.series</span>
+<span class="sd">    &gt;&gt;&gt; hp.nodes.in1.sequences.obs.series = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, hp.nodes.q12.sequences.sim)</span>
+<span class="sd">    0.853716, 0.864633, 1.037645</span>
+
+<span class="sd">    Tests based on the receiver example project (with the primary goal of checking if</span>
+<span class="sd">    all deploy modes are properly supported around the transitions between the</span>
+<span class="sd">    parallelisable and the non-parallelisable parts of a network):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.testtools import prepare_receiver_example</span>
+<span class="sd">    &gt;&gt;&gt; hp, pub = prepare_receiver_example()</span>
+
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, hp.nodes.n4.sequences.sim)</span>
+<span class="sd">    4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_vector</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(hp.elements.d.model.sequences.receivers.q.series)</span>
+<span class="sd">    2.324939, 2.0521, 1.834626, 1.822902, 1.853202, 1.876488</span>
+
+<span class="sd">    &gt;&gt;&gt; hp.nodes.n2.deploymode = &quot;oldsim&quot;</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, hp.nodes.n4.sequences.sim)</span>
+<span class="sd">    4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707</span>
+
+<span class="sd">    &gt;&gt;&gt; print_vector(hp.elements.d.model.sequences.receivers.q.series)</span>
+<span class="sd">    2.324939, 2.0521, 1.834626, 1.822902, 1.853202, 1.876488</span>
+
+<span class="sd">    &gt;&gt;&gt; hp.nodes.n2.deploymode = &quot;obs&quot;</span>
+<span class="sd">    &gt;&gt;&gt; hp.nodes.n2.sequences.obs.series = hp.nodes.n2.sequences.sim.series</span>
+<span class="sd">    &gt;&gt;&gt; hp.nodes.n2.sequences.sim.series = 0.0</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, hp.nodes.n4.sequences.sim)</span>
+<span class="sd">    4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707</span>
+
+<span class="sd">    &gt;&gt;&gt; hp.nodes.n2.deploymode = &quot;obs_oldsim&quot;</span>
+<span class="sd">    &gt;&gt;&gt; hp.nodes.n2.sequences.obs.series[2] = nan</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, hp.nodes.n4.sequences.sim)</span>
+<span class="sd">    4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707</span>
+
+<span class="sd">    &gt;&gt;&gt; hp.nodes.n2.deploymode = &quot;obs_newsim&quot;</span>
+<span class="sd">    &gt;&gt;&gt; hp.nodes.n2.sequences.obs.series[2] = nan</span>
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, hp.nodes.n4.sequences.sim)</span>
+<span class="sd">    4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707</span>
+
+<span class="sd">    Tests based on the collective example project (with the primary goals of checking</span>
+<span class="sd">    if collective elements and the output node mechanism are properly supported):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.testtools import prepare_collective_example</span>
+<span class="sd">    &gt;&gt;&gt; hp, pub = prepare_collective_example()</span>
+
+<span class="sd">    &gt;&gt;&gt; check_threading(hp, hp.nodes.c3_out.sequences.sim)</span>
+<span class="sd">    0.409196, 0.386017, 0.337494, 0.279784, 0.203433, 0.071322</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">experiments</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">threads</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">experiment</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">hp</span><span class="o">.</span><span class="n">reset_conditions</span><span class="p">()</span>
+        <span class="n">sequence</span><span class="o">.</span><span class="n">series</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">with</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="n">threads</span><span class="p">):</span>
+            <span class="n">timegrids</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+            <span class="k">if</span> <span class="n">pause</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">lastdate</span> <span class="o">=</span> <span class="n">pause</span>
+            <span class="n">hp</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">pause</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">firstdate</span> <span class="o">=</span> <span class="n">pause</span>
+                <span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">lastdate</span> <span class="o">=</span> <span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">lastdate</span>
+                <span class="n">hp</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+                <span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">firstdate</span> <span class="o">=</span> <span class="n">timegrids</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">firstdate</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">experiment</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">experiments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">experiment</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">experiment</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">experiments</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+        <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">experiment</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">assert</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span>
+                <span class="n">experiments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">node</span><span class="p">],</span> <span class="n">series</span><span class="p">,</span> <span class="n">equal_nan</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;experiment `1` vs `</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="si">}</span><span class="s2">`, node </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">objecttools</span><span class="o">.</span><span class="n">print_vector</span><span class="p">(</span><span class="n">sequence</span><span class="o">.</span><span class="n">series</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.threadingtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

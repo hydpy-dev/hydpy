@@ -1,0 +1,50 @@
+.. |Devices.copy| replace:: :func:`~hydpy.core.devicetools.Devices.copy`
+.. |Elements| replace:: :class:`~hydpy.core.devicetools.Elements`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |False| replace:: :const:`False`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |NetworkManager.save_files| replace:: :func:`~hydpy.core.filetools.NetworkManager.save_files`
+.. |NetworkManager| replace:: :class:`~hydpy.core.filetools.NetworkManager`
+.. |Nodes| replace:: :class:`~hydpy.core.devicetools.Nodes`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |Selection.add_remotes| replace:: :func:`~hydpy.core.selectiontools.Selection.add_remotes`
+.. |Selection.deselect_downstream| replace:: :func:`~hydpy.core.selectiontools.Selection.deselect_downstream`
+.. |Selection.deselect_elementnames| replace:: :func:`~hydpy.core.selectiontools.Selection.deselect_elementnames`
+.. |Selection.deselect_nodenames| replace:: :func:`~hydpy.core.selectiontools.Selection.deselect_nodenames`
+.. |Selection.deselect_upstream| replace:: :func:`~hydpy.core.selectiontools.Selection.deselect_upstream`
+.. |Selection.elements| replace:: :attr:`~hydpy.core.selectiontools.Selection.elements`
+.. |Selection.nodes| replace:: :attr:`~hydpy.core.selectiontools.Selection.nodes`
+.. |Selection.save_networkfile| replace:: :func:`~hydpy.core.selectiontools.Selection.save_networkfile`
+.. |Selection.search_downstream| replace:: :func:`~hydpy.core.selectiontools.Selection.search_downstream`
+.. |Selection.search_elementnames| replace:: :func:`~hydpy.core.selectiontools.Selection.search_elementnames`
+.. |Selection.search_modeltypes| replace:: :func:`~hydpy.core.selectiontools.Selection.search_modeltypes`
+.. |Selection.search_nodenames| replace:: :func:`~hydpy.core.selectiontools.Selection.search_nodenames`
+.. |Selection.search_upstream| replace:: :func:`~hydpy.core.selectiontools.Selection.search_upstream`
+.. |Selection.select_downstream| replace:: :func:`~hydpy.core.selectiontools.Selection.select_downstream`
+.. |Selection.select_elementnames| replace:: :func:`~hydpy.core.selectiontools.Selection.select_elementnames`
+.. |Selection.select_modeltypes| replace:: :func:`~hydpy.core.selectiontools.Selection.select_modeltypes`
+.. |Selection.select_nodenames| replace:: :func:`~hydpy.core.selectiontools.Selection.select_nodenames`
+.. |Selection.select_upstream| replace:: :func:`~hydpy.core.selectiontools.Selection.select_upstream`
+.. |Selections.complete| replace:: :const:`~hydpy.core.selectiontools.Selections.complete`
+.. |Selections.print_intersections| replace:: :func:`~hydpy.core.selectiontools.Selections.print_intersections`
+.. |Selections.query_intersections| replace:: :func:`~hydpy.core.selectiontools.Selections.query_intersections`
+.. |Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+.. |Selection| replace:: :class:`~hydpy.core.selectiontools.Selection`
+.. |True| replace:: :const:`True`
+.. |iter| replace:: :func:`iter`
+.. |len| replace:: :func:`len`
+.. |list| replace:: :class:`list`
+.. |prepare_full_example_2| replace:: :func:`~hydpy.core.testtools.prepare_full_example_2`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |repr| replace:: :func:`repr`
+.. |str| replace:: :class:`str`
+
+.. _selectiontools:
+
+selectiontools
+==============
+
+.. automodule:: hydpy.core.selectiontools
+    :members:
+    :show-inheritance:
+    :exclude-members: Tuple, CapsuleType, RESULTSEQUENCES, Required, disjoint_base, get_annotations, Final, SupportsRound, LiteralString, NotRequired, Reader, Iterator, Protocol, List, Pattern, Hashable, SupportsComplex, PART_ODE_METHODS, KeysView, SupportsBytes, ReadOnly, Mapping, Counter, TypeVarTuple, reveal_type, NoExtraItems, assert_type, FULL_ODE_METHODS, UPDATEDSEQUENCES, Collection, NamedTuple, AsyncIterable, Generator, FIXEDPARAMETERS, ItemsView, OUTLET_METHODS, Annotated, overload, override, ValuesView, REQUIREDSEQUENCES, MutableSequence, TypeAliasType, get_original_bases, CLASSES, Deque, ClassVar, BinaryIO, ParamSpecKwargs, Reversible, ParamSpecArgs, get_protocol_members, AsyncIterator, SENDER_METHODS, Iterable, MutableMapping, Awaitable, no_type_check, runtime, RECEIVER_METHODS, Generic, SOLVERSEQUENCES, Dict, INLET_METHODS, SOLVERPARAMETERS, OrderedDict, TypedDict, evaluate_forward_ref, fastaccess, AbstractSet, SupportsIndex, cast, runtime_checkable, Doc, ADD_METHODS, Buffer, NoDefault, Any, pars, Literal, AnyStr, assert_never, MutableSet, no_type_check_decorator, Format, Match, AsyncContextManager, TypeGuard, get_type_hints, ParamSpec, get_overloads, seqs, TypeForm, fastaccess_old, is_protocol, IO, AsyncGenerator, Writer, Set, INTERFACE_METHODS, Sentinel, Optional, subpars, SupportsFloat, Container, get_origin, type_repr, ContextManager, RUN_METHODS, SUBMODELS, Text, fastaccess_new, Unpack, clear_overloads, DefaultDict, NewType, SupportsAbs, TypeIs, NoReturn, is_typeddict, Callable, ForwardRef, ChainMap, SupportsInt, Never, MappingView, Union, TypeVar, deprecated, Type, FrozenSet, Sized, IntVar, DERIVEDPARAMETERS, SUBMODELINTERFACES, subseqs, ByteString, Sequence, TypeAlias, get_args, Concatenate, dataclass_transform, CONTROLPARAMETERS, TYPE_CHECKING, SUBMETHODS, TextIO, Coroutine, Self, final, subvars

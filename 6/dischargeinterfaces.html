@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>dischargeinterfaces &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="petinterfaces" href="petinterfaces.html" />
+    <link rel="prev" title="exchangeinterfaces" href="exchangeinterfaces.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="petinterfaces.html" title="petinterfaces"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="exchangeinterfaces.html" title="exchangeinterfaces"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" accesskey="U">Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dischargeinterfaces</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aetinterfaces.html">aetinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exchangeinterfaces.html">exchangeinterfaces</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">dischargeinterfaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1"><code class="docutils literal notranslate"><span class="pre">DischargeModel_V1</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.typeid"><code class="docutils literal notranslate"><span class="pre">DischargeModel_V1.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.prepare_channeldepth"><code class="docutils literal notranslate"><span class="pre">DischargeModel_V1.prepare_channeldepth()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.prepare_tolerance"><code class="docutils literal notranslate"><span class="pre">DischargeModel_V1.prepare_tolerance()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.calculate_discharge"><code class="docutils literal notranslate"><span class="pre">DischargeModel_V1.calculate_discharge()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2"><code class="docutils literal notranslate"><span class="pre">DischargeModel_V2</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.typeid"><code class="docutils literal notranslate"><span class="pre">DischargeModel_V2.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.prepare_channeldepth"><code class="docutils literal notranslate"><span class="pre">DischargeModel_V2.prepare_channeldepth()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.prepare_tolerance"><code class="docutils literal notranslate"><span class="pre">DischargeModel_V2.prepare_tolerance()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.calculate_discharge"><code class="docutils literal notranslate"><span class="pre">DischargeModel_V2.calculate_discharge()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="petinterfaces.html">petinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="precipinterfaces.html">precipinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="radiationinterfaces.html">radiationinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rconcinterfaces.html">rconcinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="routinginterfaces.html">routinginterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="soilinterfaces.html">soilinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stateinterfaces.html">stateinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tempinterfaces.html">tempinterfaces</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="exchangeinterfaces.html"
+                          title="previous chapter">exchangeinterfaces</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="petinterfaces.html"
+                          title="next chapter">petinterfaces</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dischargeinterfaces.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/dischargeinterfaces.html">6</a></li>
+<li><a href="../master/dischargeinterfaces.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="dischargeinterfaces">
+<span id="id1"></span><h1>dischargeinterfaces<a class="headerlink" href="#dischargeinterfaces" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.interfaces.dischargeinterfaces">This module defines interfaces for calculating discharge based on flow formulas or
+rating curves.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.interfaces.dischargeinterfaces" title="hydpy.interfaces.dischargeinterfaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dischargeinterfaces</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1" title="hydpy.interfaces.dischargeinterfaces.DischargeModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">DischargeModel_V1</span></code></a> Simple interface for calculating discharge in m³/s based on the current water depth.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2" title="hydpy.interfaces.dischargeinterfaces.DischargeModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">DischargeModel_V2</span></code></a> Simple interface for calculating discharge in mm/T based on the current water depth.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.dischargeinterfaces.DischargeModel_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.dischargeinterfaces.</span></span><span class="sig-name descname"><span class="pre">DischargeModel_V1</span></span><a class="reference internal" href="_modules/hydpy/interfaces/dischargeinterfaces.html#DischargeModel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelInterface" title="hydpy.core.modeltools.SubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelInterface</span></code></a></p>
+<p>Simple interface for calculating discharge in m³/s based on the current water
+depth.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1" title="hydpy.interfaces.dischargeinterfaces.DischargeModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">DischargeModel_V1</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.prepare_channeldepth">
+<span class="sig-name descname"><span class="pre">prepare_channeldepth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channeldepth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/dischargeinterfaces.html#DischargeModel_V1.prepare_channeldepth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.prepare_channeldepth" title="Link to this definition">¶</a></dt>
+<dd><p>Set the channel depth in m.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.prepare_tolerance">
+<span class="sig-name descname"><span class="pre">prepare_tolerance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/dischargeinterfaces.html#DischargeModel_V1.prepare_tolerance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.prepare_tolerance" title="Link to this definition">¶</a></dt>
+<dd><p>Set the water depth-related smoothing parameter in m.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.calculate_discharge">
+<span class="sig-name descname"><span class="pre">calculate_discharge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">waterdepth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/dischargeinterfaces.html#DischargeModel_V1.calculate_discharge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V1.calculate_discharge" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the discharge based on the water depth given in m and return it in
+m³/s.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.dischargeinterfaces.DischargeModel_V2">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.dischargeinterfaces.</span></span><span class="sig-name descname"><span class="pre">DischargeModel_V2</span></span><a class="reference internal" href="_modules/hydpy/interfaces/dischargeinterfaces.html#DischargeModel_V2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelInterface" title="hydpy.core.modeltools.SubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelInterface</span></code></a></p>
+<p>Simple interface for calculating discharge in mm/T based on the current water
+depth.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2" title="hydpy.interfaces.dischargeinterfaces.DischargeModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">DischargeModel_V2</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.prepare_channeldepth">
+<span class="sig-name descname"><span class="pre">prepare_channeldepth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channeldepth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/dischargeinterfaces.html#DischargeModel_V2.prepare_channeldepth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.prepare_channeldepth" title="Link to this definition">¶</a></dt>
+<dd><p>Set the channel depth in m.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.prepare_tolerance">
+<span class="sig-name descname"><span class="pre">prepare_tolerance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/dischargeinterfaces.html#DischargeModel_V2.prepare_tolerance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.prepare_tolerance" title="Link to this definition">¶</a></dt>
+<dd><p>Set the water depth-related smoothing parameter in m.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.calculate_discharge">
+<span class="sig-name descname"><span class="pre">calculate_discharge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">waterdepth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/dischargeinterfaces.html#DischargeModel_V2.calculate_discharge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.dischargeinterfaces.DischargeModel_V2.calculate_discharge" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the discharge based on the water depth given in m and return it in
+mm/T.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="petinterfaces.html" title="petinterfaces"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="exchangeinterfaces.html" title="exchangeinterfaces"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" >Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dischargeinterfaces</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

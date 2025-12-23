@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.meteo.meteo_factors &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.meteo.meteo_factors</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.meteo.meteo_factors</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequencetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.meteo</span><span class="w"> </span><span class="kn">import</span> <span class="n">meteo_sequences</span>
+
+
+<div class="viewcode-block" id="EarthSunDistance">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.EarthSunDistance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EarthSunDistance</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The relative inverse distance between the Earth and the sun [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SolarDeclination">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.SolarDeclination">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SolarDeclination</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Solar declination [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SunsetHourAngle">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.SunsetHourAngle">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SunsetHourAngle</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sunset hour angle [rad].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SolarTimeAngle">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.SolarTimeAngle">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SolarTimeAngle</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Solar time angle [rad].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="TimeOfSunrise">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.TimeOfSunrise">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimeOfSunrise</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time of sunrise [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="TimeOfSunset">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.TimeOfSunset">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimeOfSunset</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time of sunset [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="PossibleSunshineDuration">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.PossibleSunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PossibleSunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Astronomically possible sunshine duration [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyPossibleSunshineDuration">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.DailyPossibleSunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyPossibleSunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Astronomically possible daily sunshine duration [h/d].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="UnadjustedSunshineDuration">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.UnadjustedSunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnadjustedSunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Unadjusted sunshine duration [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SunshineDuration">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.SunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual sunshine duration [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailySunshineDuration">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.DailySunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailySunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual daily sunshine duration [h/d].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="PortionDailyRadiation">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.PortionDailyRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PortionDailyRadiation</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Portion of the daily radiation sum [%].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="Temperature">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.Temperature">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Temperature</span><span class="p">(</span><span class="n">meteo_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Temperature [°C].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="MeanTemperature">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_factors.MeanTemperature">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MeanTemperature</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean temperature [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.meteo.meteo_factors</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

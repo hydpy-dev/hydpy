@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.evap.evap_factors &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap.evap_factors</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.evap.evap_factors</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequencetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.evap</span><span class="w"> </span><span class="kn">import</span> <span class="n">evap_sequences</span>
+
+
+<div class="viewcode-block" id="MeanAirTemperature">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.MeanAirTemperature">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MeanAirTemperature</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The basin&#39;s mean air temperature [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="AirTemperature">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.AirTemperature">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AirTemperature</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Air temperature [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyAirTemperature">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.DailyAirTemperature">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyAirTemperature</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The average air temperature in the last 24 hours [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="WindSpeed2m">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.WindSpeed2m">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WindSpeed2m</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wind speed at 2 m above grass-like vegetation [m/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyWindSpeed2m">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.DailyWindSpeed2m">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyWindSpeed2m</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average wind speed 2 meters above ground in the last 24 hours [m/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="WindSpeed10m">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.WindSpeed10m">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WindSpeed10m</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wind speed at 10 m above grass-like vegetation [m/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyRelativeHumidity">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.DailyRelativeHumidity">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyRelativeHumidity</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average relative humidity in the last 24 hours [%].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SunshineDuration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.SunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sunshine duration [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="PossibleSunshineDuration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.PossibleSunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PossibleSunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Astronomically possible sunshine duration [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailySunshineDuration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.DailySunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailySunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The actual sunshine duration in the last 24 hours [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyPossibleSunshineDuration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.DailyPossibleSunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyPossibleSunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The astronomically possible sunshine duration in the last 24 hours [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SaturationVapourPressure">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.SaturationVapourPressure">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SaturationVapourPressure</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Saturation vapour pressure [hPa].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailySaturationVapourPressure">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.DailySaturationVapourPressure">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailySaturationVapourPressure</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average saturation vapour pressure in the last 24 hours [hPa].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SaturationVapourPressureSlope">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.SaturationVapourPressureSlope">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SaturationVapourPressureSlope</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The slope of the saturation vapour pressure curve [hPa/K].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailySaturationVapourPressureSlope">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.DailySaturationVapourPressureSlope">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailySaturationVapourPressureSlope</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average saturation vapour pressure slope in the last 24 hours [hPa/K].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="ActualVapourPressure">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.ActualVapourPressure">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActualVapourPressure</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual vapour pressure [hPa].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyActualVapourPressure">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.DailyActualVapourPressure">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyActualVapourPressure</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The average actual vapour pressure in the last 24 hours [hPa].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DryAirPressure">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.DryAirPressure">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DryAirPressure</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dry air pressure [hPa].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="AirDensity">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.AirDensity">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AirDensity</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Air density [kg/m³].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="PsychrometricConstant">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.PsychrometricConstant">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PsychrometricConstant</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Psychrometric constant [hPa/K].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="CurrentAlbedo">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.CurrentAlbedo">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CurrentAlbedo</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The current albedo of the relevant surface [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="AdjustedCloudCoverage">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.AdjustedCloudCoverage">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AdjustedCloudCoverage</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adjusted degree of cloud coverage [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AerodynamicResistance">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.AerodynamicResistance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AerodynamicResistance</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aerodynamic resistance [s/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SoilSurfaceResistance">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.SoilSurfaceResistance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilSurfaceResistance</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Soil surface resistance [s/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="LanduseSurfaceResistance">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.LanduseSurfaceResistance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LanduseSurfaceResistance</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface resistance for the current moisture conditions of water areas, sealed</span>
+<span class="sd">    areas, and vegetation [s/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="ActualSurfaceResistance">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.ActualSurfaceResistance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActualSurfaceResistance</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual surface resistance [s/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="InterceptedWater">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.InterceptedWater">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InterceptedWater</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Intercepted water [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SoilWater">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.SoilWater">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilWater</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Soil water content [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SnowCover">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.SnowCover">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SnowCover</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Snow cover degree [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SnowyCanopy">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_factors.SnowyCanopy">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SnowyCanopy</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Snow cover degree in the canopies of tree-like vegetation (is for |numpy.nan|</span>
+<span class="sd">    non-tree-like vegetation) [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap.evap_factors</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,333 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>aetinterfaces &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="exchangeinterfaces" href="exchangeinterfaces.html" />
+    <link rel="prev" title="Submodel Interfaces" href="submodel_interfaces.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="exchangeinterfaces.html" title="exchangeinterfaces"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="submodel_interfaces.html" title="Submodel Interfaces"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" accesskey="U">Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">aetinterfaces</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">aetinterfaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1"><code class="docutils literal notranslate"><span class="pre">AETModel_V1</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.typeid"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_nmbzones"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_nmbzones()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_subareas"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_subareas()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_elevations"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_elevations()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_zonetypes"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_zonetypes()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_water"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_water()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_interception"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_interception()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_soil"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_soil()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_plant"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_plant()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_tree"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_tree()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_conifer"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_conifer()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_measuringheightwindspeed"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_measuringheightwindspeed()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_leafareaindex"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_leafareaindex()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_maxsoilwater"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.prepare_maxsoilwater()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_interceptionevaporation"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.determine_interceptionevaporation()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_soilevapotranspiration"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.determine_soilevapotranspiration()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_waterevaporation"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.determine_waterevaporation()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.get_interceptionevaporation"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.get_interceptionevaporation()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.get_soilevapotranspiration"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.get_soilevapotranspiration()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.get_waterevaporation"><code class="docutils literal notranslate"><span class="pre">AETModel_V1.get_waterevaporation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="exchangeinterfaces.html">exchangeinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dischargeinterfaces.html">dischargeinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="petinterfaces.html">petinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="precipinterfaces.html">precipinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="radiationinterfaces.html">radiationinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rconcinterfaces.html">rconcinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="routinginterfaces.html">routinginterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="soilinterfaces.html">soilinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stateinterfaces.html">stateinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tempinterfaces.html">tempinterfaces</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="submodel_interfaces.html"
+                          title="previous chapter">Submodel Interfaces</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="exchangeinterfaces.html"
+                          title="next chapter">exchangeinterfaces</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/aetinterfaces.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/aetinterfaces.html">6</a></li>
+<li><a href="../master/aetinterfaces.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="aetinterfaces">
+<span id="id1"></span><h1>aetinterfaces<a class="headerlink" href="#aetinterfaces" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.interfaces.aetinterfaces">This module defines submodel interfaces for calculating actual evapotranspiration.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.interfaces.aetinterfaces" title="hydpy.interfaces.aetinterfaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">aetinterfaces</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1" title="hydpy.interfaces.aetinterfaces.AETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">AETModel_V1</span></code></a> Interface for calculating interception evaporation, evapotranspiration from soils, evaporation from water areas in separate steps.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.aetinterfaces.</span></span><span class="sig-name descname"><span class="pre">AETModel_V1</span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelInterface" title="hydpy.core.modeltools.SubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelInterface</span></code></a></p>
+<p>Interface for calculating interception evaporation, evapotranspiration from
+soils, evaporation from water areas in separate steps.</p>
+<p>An essential note for model developers: All main models using the <a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1" title="hydpy.interfaces.aetinterfaces.AETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">AETModel_V1</span></code></a>
+interface must first call <a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_interceptionevaporation" title="hydpy.interfaces.aetinterfaces.AETModel_V1.determine_interceptionevaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">determine_interceptionevaporation()</span></code></a> but are
+free to choose the execution order of methods
+<a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_soilevapotranspiration" title="hydpy.interfaces.aetinterfaces.AETModel_V1.determine_soilevapotranspiration"><code class="xref py py-func docutils literal notranslate"><span class="pre">determine_soilevapotranspiration()</span></code></a> and
+<a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_waterevaporation" title="hydpy.interfaces.aetinterfaces.AETModel_V1.determine_waterevaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">determine_waterevaporation()</span></code></a>.  All submodels following the
+<a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1" title="hydpy.interfaces.aetinterfaces.AETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">AETModel_V1</span></code></a> interface must work for both orders.  Additionally, the main model
+must calculate its snow routine (if it has one) before calling any method defined
+by the <a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1" title="hydpy.interfaces.aetinterfaces.AETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">AETModel_V1</span></code></a> interface.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.aetinterfaces.AETModel_V1" title="hydpy.interfaces.aetinterfaces.AETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">AETModel_V1</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_nmbzones">
+<span class="sig-name descname"><span class="pre">prepare_nmbzones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nmbzones</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_nmbzones"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_nmbzones" title="Link to this definition">¶</a></dt>
+<dd><p>Set the number of zones in which the actual calculations take place.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_subareas">
+<span class="sig-name descname"><span class="pre">prepare_subareas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subareas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_subareas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_subareas" title="Link to this definition">¶</a></dt>
+<dd><p>Set the areas of the individual zones in km².</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_elevations">
+<span class="sig-name descname"><span class="pre">prepare_elevations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elevations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_elevations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_elevations" title="Link to this definition">¶</a></dt>
+<dd><p>Set the elevations of the individual zones in m.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_zonetypes">
+<span class="sig-name descname"><span class="pre">prepare_zonetypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">zonetypes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_zonetypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_zonetypes" title="Link to this definition">¶</a></dt>
+<dd><p>Set the types (usually land cover types) of the individual zones.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_water">
+<span class="sig-name descname"><span class="pre">prepare_water</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">water</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_water"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_water" title="Link to this definition">¶</a></dt>
+<dd><p>Set the flags for whether the individual zones are water areas or not.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_interception">
+<span class="sig-name descname"><span class="pre">prepare_interception</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interception</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_interception"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_interception" title="Link to this definition">¶</a></dt>
+<dd><p>Set the flags for whether interception evaporation is relevant for the
+individual zones.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_soil">
+<span class="sig-name descname"><span class="pre">prepare_soil</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">soil</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_soil"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_soil" title="Link to this definition">¶</a></dt>
+<dd><p>Set the flags for whether soil evapotranspiration is relevant for the
+individual zones.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_plant">
+<span class="sig-name descname"><span class="pre">prepare_plant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_plant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_plant" title="Link to this definition">¶</a></dt>
+<dd><p>Set the flags for whether the individual zones contain any vegetation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_tree">
+<span class="sig-name descname"><span class="pre">prepare_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_tree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_tree" title="Link to this definition">¶</a></dt>
+<dd><p>Set the flags for whether the individual zones contain tree-like
+vegetation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_conifer">
+<span class="sig-name descname"><span class="pre">prepare_conifer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">conifer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_conifer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_conifer" title="Link to this definition">¶</a></dt>
+<dd><p>Set the flags for whether the individual zones contain conifer-like
+vegetation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_measuringheightwindspeed">
+<span class="sig-name descname"><span class="pre">prepare_measuringheightwindspeed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">measuringheightwindspeed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_measuringheightwindspeed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_measuringheightwindspeed" title="Link to this definition">¶</a></dt>
+<dd><p>Set the height above the ground of the wind speed measurements in m.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_leafareaindex">
+<span class="sig-name descname"><span class="pre">prepare_leafareaindex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">leafareaindex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_leafareaindex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_leafareaindex" title="Link to this definition">¶</a></dt>
+<dd><p>Set the leaf area index in m²/m².</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_maxsoilwater">
+<span class="sig-name descname"><span class="pre">prepare_maxsoilwater</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maxsoilwater</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.prepare_maxsoilwater"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_maxsoilwater" title="Link to this definition">¶</a></dt>
+<dd><p>Set the maximum soil water content in mm.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.determine_interceptionevaporation">
+<span class="sig-name descname"><span class="pre">determine_interceptionevaporation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.determine_interceptionevaporation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_interceptionevaporation" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the actual interception evaporation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.determine_soilevapotranspiration">
+<span class="sig-name descname"><span class="pre">determine_soilevapotranspiration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.determine_soilevapotranspiration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_soilevapotranspiration" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the actual evapotranspiration from the soil.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.determine_waterevaporation">
+<span class="sig-name descname"><span class="pre">determine_waterevaporation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.determine_waterevaporation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_waterevaporation" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the actual evapotranspiration from open water areas.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.get_interceptionevaporation">
+<span class="sig-name descname"><span class="pre">get_interceptionevaporation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.get_interceptionevaporation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.get_interceptionevaporation" title="Link to this definition">¶</a></dt>
+<dd><p>Get the selected zone’s previously calculated interception evaporation in
+mm/T.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.get_soilevapotranspiration">
+<span class="sig-name descname"><span class="pre">get_soilevapotranspiration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.get_soilevapotranspiration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.get_soilevapotranspiration" title="Link to this definition">¶</a></dt>
+<dd><p>Get the selected zone’s previously calculated soil evapotranspiration in
+mm/T.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.aetinterfaces.AETModel_V1.get_waterevaporation">
+<span class="sig-name descname"><span class="pre">get_waterevaporation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/aetinterfaces.html#AETModel_V1.get_waterevaporation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.aetinterfaces.AETModel_V1.get_waterevaporation" title="Link to this definition">¶</a></dt>
+<dd><p>Get the selected zone’s previously calculated water area evaporation in
+mm/T.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="exchangeinterfaces.html" title="exchangeinterfaces"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="submodel_interfaces.html" title="Submodel Interfaces"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" >Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">aetinterfaces</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,980 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>interptools &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="iuhtools" href="iuhtools.html" />
+    <link rel="prev" title="calibtools" href="calibtools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="iuhtools.html" title="iuhtools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="calibtools.html" title="calibtools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" accesskey="U">Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">interptools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="anntools.html">anntools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="armatools.html">armatools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="calibtools.html">calibtools</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">interptools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.nmb_inputs"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.nmb_inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.inputs"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.nmb_outputs"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.nmb_outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.outputs"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.output_derivatives"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.output_derivatives</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.calculate_values"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.calculate_values()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.calculate_derivatives"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.calculate_derivatives()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.verify"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.verify()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.assignrepr"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.assignrepr()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.print_table"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.print_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.plot"><code class="docutils literal notranslate"><span class="pre">InterpAlgorithm.plot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.interptools.BaseInterpolator"><code class="docutils literal notranslate"><span class="pre">BaseInterpolator</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.BaseInterpolator.NDIM"><code class="docutils literal notranslate"><span class="pre">BaseInterpolator.NDIM</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.BaseInterpolator.TIME"><code class="docutils literal notranslate"><span class="pre">BaseInterpolator.TIME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.BaseInterpolator.SPAN"><code class="docutils literal notranslate"><span class="pre">BaseInterpolator.SPAN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.BaseInterpolator.name"><code class="docutils literal notranslate"><span class="pre">BaseInterpolator.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.TYPE"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.TYPE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.algorithm"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.algorithm</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.nmb_inputs"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.nmb_inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.nmb_outputs"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.nmb_outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.inputs"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.outputs"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.output_derivatives"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.output_derivatives</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.update"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.update()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.verify"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.verify()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.calculate_values"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.calculate_values()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.calculate_derivatives"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.calculate_derivatives()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.print_table"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.print_table()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.plot"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator.name"><code class="docutils literal notranslate"><span class="pre">SimpleInterpolator.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.TYPE"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.TYPE</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.nmb_algorithms"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.nmb_algorithms</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.refresh"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.refresh()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.update"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.update()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.verify"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.verify()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.shape"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.shape</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.name"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.name</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.toys"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.toys</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.algorithms"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.algorithms</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.ratios"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.ratios</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.nmb_inputs"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.nmb_inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.inputs"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.nmb_outputs"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.nmb_outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.outputs"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.calculate_values"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.calculate_values()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.plot"><code class="docutils literal notranslate"><span class="pre">SeasonalInterpolator.plot()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="iuhtools.html">iuhtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="networktools.html">networktools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ppolytools.html">ppolytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quadtools.html">quadtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="roottools.html">roottools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smoothtools.html">smoothtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="statstools.html">statstools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="validtools.html">validtools</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="calibtools.html"
+                          title="previous chapter">calibtools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="iuhtools.html"
+                          title="next chapter">iuhtools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/interptools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/interptools.html">6</a></li>
+<li><a href="../5.0/interptools.html">5.0</a></li>
+<li><a href="../master/interptools.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="interptools">
+<span id="id1"></span><h1>interptools<a class="headerlink" href="#interptools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.auxs.interptools">This module enables model developers to easily include linear and nonlinear
+interpolation techniques into their model methods.</p>
+<p>The implemented classes <a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a> and <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> serve as base
+classes for (very complex) control parameters.  Subclassing them is sufficient for
+making the functionalities of the modules <a class="reference internal" href="#module-hydpy.auxs.interptools" title="hydpy.auxs.interptools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">interptools</span></code></a>, <a class="reference internal" href="anntools.html#module-hydpy.auxs.anntools" title="hydpy.auxs.anntools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">anntools</span></code></a>, and <a class="reference internal" href="ppolytools.html#module-hydpy.auxs.ppolytools" title="hydpy.auxs.ppolytools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ppolytools</span></code></a>
+available to the user.</p>
+<p>The relevant models perform the interpolation during simulation runs, so we implemented
+the related methods in the Cython extension module <code class="xref py py-mod docutils literal notranslate"><span class="pre">interputils</span></code>.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.interptools" title="hydpy.auxs.interptools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">interptools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> Base class for defining interpolation algorithms usable by classes <a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a> and <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.interptools.BaseInterpolator" title="hydpy.auxs.interptools.BaseInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseInterpolator</span></code></a> Base class for <a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a> and <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a> Parameter base class for handling interpolation problems.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> Represent interpolation patterns showing an annual cycle.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.interptools.</span></span><span class="sig-name descname"><span class="pre">InterpAlgorithm</span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#InterpAlgorithm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Labeled</span></code></p>
+<p>Base class for defining interpolation algorithms usable by classes
+<a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a> and <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.nmb_inputs">
+<span class="sig-name descname"><span class="pre">nmb_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.nmb_inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The number of input values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The current input values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.nmb_outputs">
+<span class="sig-name descname"><span class="pre">nmb_outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.nmb_outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The lastly calculated output values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.outputs">
+<span class="sig-name descname"><span class="pre">outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The lastly calculated output values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.output_derivatives">
+<span class="sig-name descname"><span class="pre">output_derivatives</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.output_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>The lastly calculated first-order derivatives.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.calculate_values">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">calculate_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#InterpAlgorithm.calculate_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.calculate_values" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the output values based on the input values defined previously.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.calculate_derivatives">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">calculate_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#InterpAlgorithm.calculate_derivatives"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.calculate_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the derivatives of the output values with respect to the input
+value of the given index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.verify">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">verify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#InterpAlgorithm.verify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.verify" title="Link to this definition">¶</a></dt>
+<dd><p>Raise a <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> if the actual <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> object is
+ill-defined.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.assignrepr">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">assignrepr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#InterpAlgorithm.assignrepr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.assignrepr" title="Link to this definition">¶</a></dt>
+<dd><p>Return a string representation of the actual <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> object
+prefixed with the given string.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.print_table">
+<span class="sig-name descname"><span class="pre">print_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#InterpAlgorithm.print_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.print_table" title="Link to this definition">¶</a></dt>
+<dd><p>Process the given input data and print the interpolated output values as
+well as all partial first-order derivatives.</p>
+<p>The documentation on class <a class="reference internal" href="ppolytools.html#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> includes some examples of a strictly
+univariate interpolator.  Here, we take up some examples discussed for class
+<a class="reference internal" href="anntools.html#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> to show that method <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.print_table" title="hydpy.auxs.interptools.InterpAlgorithm.print_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">print_table()</span></code></a> also correctly reports
+all outputs and derivatives for multivariate interpolators.</p>
+<p>A single-input single-output example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span><span class="p">,</span> <span class="n">nan</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">weights_input</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">weights_output</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">intercepts_hidden</span><span class="o">=-</span><span class="mf">16.0</span><span class="p">,</span> <span class="n">intercepts_output</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">print_table</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">])</span>
+<span class="go">x    y          dy/dx</span>
+<span class="go">0.0  -1.0       0.000001</span>
+<span class="go">1.0  -0.999982  0.000074</span>
+<span class="go">2.0  -0.998994  0.004023</span>
+<span class="go">3.0  -0.946041  0.211952</span>
+<span class="go">4.0  0.5        3.0</span>
+<span class="go">5.0  1.946041   0.211952</span>
+<span class="go">6.0  1.998994   0.004023</span>
+<span class="go">7.0  1.999982   0.000074</span>
+<span class="go">8.0  2.0        0.000001</span>
+</pre></div>
+</div>
+<p>A multivariate example (three input and two output values result in six partial
+derivatives):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_inputs</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_neurons</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_outputs</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span> <span class="o">=</span> <span class="p">[[</span> <span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.7</span><span class="p">,</span>  <span class="mf">0.6</span><span class="p">],</span>
+<span class="gp">... </span>                     <span class="p">[</span> <span class="mf">0.9</span><span class="p">,</span>  <span class="mf">0.2</span><span class="p">,</span>  <span class="mf">0.8</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">],</span>
+<span class="gp">... </span>                     <span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span>  <span class="mf">2.3</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.4</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">weights_output</span> <span class="o">=</span> <span class="p">[[</span> <span class="mf">0.0</span><span class="p">,</span>  <span class="mf">2.0</span><span class="p">],</span>
+<span class="gp">... </span>                      <span class="p">[</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span>  <span class="mf">1.0</span><span class="p">],</span>
+<span class="gp">... </span>                      <span class="p">[</span> <span class="mf">0.4</span><span class="p">,</span>  <span class="mf">2.4</span><span class="p">],</span>
+<span class="gp">... </span>                      <span class="p">[</span> <span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.9</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">intercepts_hidden</span> <span class="o">=</span> <span class="p">[</span> <span class="mf">0.9</span><span class="p">,</span>  <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.4</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">intercepts_output</span> <span class="o">=</span> <span class="p">[</span> <span class="mf">1.3</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">print_table</span><span class="p">([[</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span>  <span class="mf">1.3</span><span class="p">,</span>  <span class="mf">1.6</span><span class="p">]])</span>
+<span class="go">x1    x2   x3   y1        y2        dy1/dx1   dy2/dx1    dy1/dx2   dy2/dx2   dy1/dx3   dy2/dx3</span>
+<span class="go">-0.1  1.3  1.6  1.822222  1.876983  0.099449  -0.103039  -0.01303  0.365739  0.027041  -0.203965</span>
+</pre></div>
+</div>
+<p>A combined example (two inputs, one output):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">weights_input</span><span class="o">=</span><span class="p">[[</span><span class="mf">1000.0</span><span class="p">,</span> <span class="mf">500.0</span><span class="p">],</span>
+<span class="gp">... </span>                   <span class="p">[</span><span class="mf">1000.0</span><span class="p">,</span> <span class="mf">500.0</span><span class="p">]],</span>
+<span class="gp">... </span>    <span class="n">weights_hidden</span><span class="o">=</span><span class="p">[[[</span><span class="mf">1000.0</span><span class="p">],</span>
+<span class="gp">... </span>                     <span class="p">[</span><span class="o">-</span><span class="mf">1000.0</span><span class="p">]]],</span>
+<span class="gp">... </span>    <span class="n">weights_output</span><span class="o">=</span><span class="p">[[</span><span class="mf">1.0</span><span class="p">]],</span>
+<span class="gp">... </span>    <span class="n">intercepts_hidden</span><span class="o">=</span><span class="p">[[</span><span class="o">-</span><span class="mf">750.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">750.0</span><span class="p">],</span>
+<span class="gp">... </span>                       <span class="p">[</span><span class="o">-</span><span class="mf">750.0</span><span class="p">,</span> <span class="n">nan</span><span class="p">]],</span>
+<span class="gp">... </span>    <span class="n">intercepts_output</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">],</span>
+<span class="gp">... </span><span class="p">)</span><span class="o">.</span><span class="n">print_table</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]])</span>
+<span class="go">x1   x2   y    dy/dx1  dy/dx2</span>
+<span class="go">0.0  0.0  0.0  0.0     0.0</span>
+<span class="go">1.0  0.0  1.0  0.0     0.0</span>
+<span class="go">0.0  1.0  1.0  0.0     0.0</span>
+<span class="go">1.0  1.0  0.0  0.0     0.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.InterpAlgorithm.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.10.8)"><span class="pre">Figure</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#InterpAlgorithm.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.InterpAlgorithm.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the relationship between particular input (<cite>idx_input</cite>) and output
+(<cite>idx_output</cite>) values defined by the actual <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> object.</p>
+<p>You need to define the lower and the upper bound of the x-axis via arguments
+<cite>xmin</cite> and <cite>xmax</cite>.  You can increase or decrease the accuracy of the plot by
+changing the number of points evaluated within this interval (default is 100).
+For visual configuration, pass arbitrary <a class="reference external" href="https://matplotlib.org/stable/index.html#module-matplotlib" title="(in Matplotlib v3.10.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code></a> <cite>pyplot</cite> plotting
+arguments as keyword arguments.</p>
+<p>See the documentation on classes <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> and <a class="reference internal" href="ppolytools.html#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> for some examples.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.BaseInterpolator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.interptools.</span></span><span class="sig-name descname"><span class="pre">BaseInterpolator</span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#BaseInterpolator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.BaseInterpolator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Labeled</span></code></p>
+<p>Base class for <a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a> and <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.BaseInterpolator.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#hydpy.auxs.interptools.BaseInterpolator.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.BaseInterpolator.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#hydpy.auxs.interptools.BaseInterpolator.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.BaseInterpolator.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(None,</span> <span class="pre">None)</span></span><a class="headerlink" href="#hydpy.auxs.interptools.BaseInterpolator.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.BaseInterpolator.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#hydpy.auxs.interptools.BaseInterpolator.name" title="Link to this definition">¶</a></dt>
+<dd><p>Class name in lowercase letters.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.interptools.</span></span><span class="sig-name descname"><span class="pre">SimpleInterpolator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SimpleInterpolator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.auxs.interptools.BaseInterpolator" title="hydpy.auxs.interptools.BaseInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseInterpolator</span></code></a></p>
+<p>Parameter base class for handling interpolation problems.</p>
+<p><a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a> serves as a base class for parameter objects that accept
+an <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> object as their “value”, which allows model users to select
+interpolation algorithms and configure them according to the data at hand.  If, for
+example, linear interpolation is sufficient, one can prepare and hand over a
+<a class="reference internal" href="ppolytools.html#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.interptools</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleInterpolator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simpleinterpolator</span> <span class="o">=</span> <span class="n">SimpleInterpolator</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simpleinterpolator</span>
+<span class="go">simpleinterpolator(?)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span><span class="p">,</span> <span class="n">PPoly</span><span class="p">,</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simpleinterpolator</span><span class="p">(</span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simpleinterpolator</span>
+<span class="go">simpleinterpolator(</span>
+<span class="go">    PPoly(</span>
+<span class="go">        Poly(x0=0.0, cs=(0.0, 2.0)),</span>
+<span class="go">    )</span>
+<span class="go">)</span>
+</pre></div>
+</div>
+<p>Besides handling an <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> object and connecting it to its model
+instance, <a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a> provides no own functionalities.  Instead, its
+user-available properties and methods call the identically named properties and
+methods of the handled interpolator, thereby passing all possible arguments without
+modification.  Hence, read the documentation on the subclasses of <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a>
+for further information.</p>
+<p>The following technical checks ensure the proper implementation of all delegations:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">simpleinterpolator</span><span class="p">(</span><span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">nmb_inputs</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">nmb_outputs</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">inputs</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span>
+<span class="go">1.0, 2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">outputs</span> <span class="o">=</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span>
+<span class="go">3.0, 4.0, 5.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">output_derivatives</span> <span class="o">=</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">output_derivatives</span><span class="p">)</span>
+<span class="go">6.0, 7.0, 8.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">unittest.mock</span><span class="w"> </span><span class="kn">import</span> <span class="n">patch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span><span class="n">ANN</span><span class="p">,</span> <span class="s2">&quot;verify&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mock</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span><span class="n">ANN</span><span class="p">,</span> <span class="s2">&quot;calculate_values&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mock</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span><span class="n">ANN</span><span class="p">,</span> <span class="s2">&quot;calculate_derivatives&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mock</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">calculate_derivatives</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span><span class="n">ANN</span><span class="p">,</span> <span class="s2">&quot;print_table&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mock</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">print_table</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">idx_input</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">idx_output</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">opt</span><span class="o">=</span><span class="s2">&quot;?&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span><span class="n">ANN</span><span class="p">,</span> <span class="s2">&quot;plot&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mock</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">mock</span><span class="o">.</span><span class="n">return_value</span> <span class="o">=</span> <span class="s2">&quot;figure&quot;</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">simpleinterpolator</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;figure&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mock</span><span class="o">.</span><span class="n">assert_called_with</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'interputils.SimpleInterpolator'</span></span><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.TYPE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.algorithm">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">algorithm</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><span class="pre">InterpAlgorithm</span></a></span><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.algorithm" title="Link to this definition">¶</a></dt>
+<dd><p>The handled interpolation algorithm.</p>
+<p>Trying to access the “I” object before defining it results in the following
+error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.interptools</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleInterpolator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SimpleInterpolator</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">algorithm</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">For parameter `simpleinterpolator` of element `?`, no interpolator has been defined so far.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.nmb_inputs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.nmb_inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The number of input values.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.nmb_outputs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.nmb_outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The number of output values.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.inputs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The current input values.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.outputs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The current input values.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.output_derivatives">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">output_derivatives</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.output_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>The current input values.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SimpleInterpolator.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.update" title="Link to this definition">¶</a></dt>
+<dd><p>Do nothing (this method only ensures compatibility with <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.verify">
+<span class="sig-name descname"><span class="pre">verify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SimpleInterpolator.verify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.verify" title="Link to this definition">¶</a></dt>
+<dd><p>Raise a <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> if the current <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> object shows
+inconsistencies.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.calculate_values">
+<span class="sig-name descname"><span class="pre">calculate_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SimpleInterpolator.calculate_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.calculate_values" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the output values based on the input values defined previously.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.calculate_derivatives">
+<span class="sig-name descname"><span class="pre">calculate_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SimpleInterpolator.calculate_derivatives"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.calculate_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the derivatives of the output values with respect to the input
+value of the given index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.print_table">
+<span class="sig-name descname"><span class="pre">print_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SimpleInterpolator.print_table"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.print_table" title="Link to this definition">¶</a></dt>
+<dd><p>Process the given input data and print the interpolated output values as
+well as all partial first-order derivatives.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.10.8)"><span class="pre">Figure</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SimpleInterpolator.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the relationship between particular input (<cite>idx_input</cite>) and output
+(<cite>idx_output</cite>) values defined by the actual <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> object.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SimpleInterpolator.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'simpleinterpolator'</span></span><a class="headerlink" href="#hydpy.auxs.interptools.SimpleInterpolator.name" title="Link to this definition">¶</a></dt>
+<dd><p>Class name in lowercase letters.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.interptools.</span></span><span class="sig-name descname"><span class="pre">SeasonalInterpolator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SeasonalInterpolator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.auxs.interptools.BaseInterpolator" title="hydpy.auxs.interptools.BaseInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseInterpolator</span></code></a></p>
+<p>Represent interpolation patterns showing an annual cycle.</p>
+<p>Class <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> is an alternative implementation of class
+<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SeasonalParameter" title="hydpy.core.parametertools.SeasonalParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalParameter</span></code></a> designed for handling multiple <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> objects that
+are valid for different times of the year.  The total output of
+<a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> is the weighted mean of the outputs of its <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a>
+objects.  The required weights depend on the season and are available within the
+<a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.ratios" title="hydpy.auxs.interptools.SeasonalInterpolator.ratios"><code class="xref py py-const docutils literal notranslate"><span class="pre">ratios</span></code></a> matrix.</p>
+<p>To explain this in more detail, we modify an example of the documentatiob on class
+<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SeasonalParameter" title="hydpy.core.parametertools.SeasonalParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalParameter</span></code></a>.  Let us define a <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> object that contains
+interpolators for January 1, March 1, and July 1, two of type <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> and one of type
+<a class="reference internal" href="ppolytools.html#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span><span class="p">,</span> <span class="n">Poly</span><span class="p">,</span> <span class="n">PPoly</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">SeasonalInterpolator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-10-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span> <span class="o">=</span> <span class="n">SeasonalInterpolator</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">_1_1_12</span><span class="o">=</span><span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">weights_input</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">weights_output</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">intercepts_hidden</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">intercepts_output</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">_7_1_12</span><span class="o">=</span><span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">weights_input</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">weights_output</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">intercepts_hidden</span><span class="o">=-</span><span class="mf">16.0</span><span class="p">,</span> <span class="n">intercepts_output</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">_3_1_12</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,))))</span>
+</pre></div>
+</div>
+<p>The confusing time order in the initialisation call above does not pose a problem,
+as class <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> performs time sorting internally:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span>
+<span class="go">seasonalinterpolator(</span>
+<span class="go">    toy_1_1_12_0_0=ANN(</span>
+<span class="go">        weights_input=[[0.0]],</span>
+<span class="go">        weights_output=[[0.0]],</span>
+<span class="go">        intercepts_hidden=[[0.0]],</span>
+<span class="go">        intercepts_output=[1.0],</span>
+<span class="go">    ),</span>
+<span class="go">    toy_3_1_12_0_0=PPoly(</span>
+<span class="go">        Poly(x0=0.0, cs=(-1.0,)),</span>
+<span class="go">    ),</span>
+<span class="go">    toy_7_1_12_0_0=ANN(</span>
+<span class="go">        weights_input=[[4.0]],</span>
+<span class="go">        weights_output=[[3.0]],</span>
+<span class="go">        intercepts_hidden=[[-16.0]],</span>
+<span class="go">        intercepts_output=[-1.0],</span>
+<span class="go">    ),</span>
+<span class="go">)</span>
+</pre></div>
+</div>
+<p>Use method <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.plot" title="hydpy.auxs.interptools.SeasonalInterpolator.plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot()</span></code></a> to visualise all interpolators at once:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="mf">8.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can use the <cite>pyplot</cite> API of <cite>matplotlib</cite> to modify the figure or to save it to
+disk (or print it to the screen, in case the interactive mode of <cite>matplotlib</cite> is
+disabled):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_autofig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_autofig</span><span class="p">(</span><span class="s2">&quot;SeasonalInterpolator_plot.png&quot;</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/SeasonalInterpolator_plot.png" src="_images/SeasonalInterpolator_plot.png" />
+<p>Property <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.shape" title="hydpy.auxs.interptools.SeasonalInterpolator.shape"><code class="xref py py-const docutils literal notranslate"><span class="pre">shape</span></code></a> reflects the number of required weighting
+ratios for each time of year (in this example, 366 days per year) and each
+interpolator (in this example, three):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(366, 3)</span>
+</pre></div>
+</div>
+<p>The following plot shows the <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.ratios" title="hydpy.auxs.interptools.SeasonalInterpolator.ratios"><code class="xref py py-const docutils literal notranslate"><span class="pre">ratios</span></code></a> used for weighting (note
+that the missing values for October, November, and December are irrelevant for the
+initialisation period):</p>
+<p>… image:: SeasonalInterpolator_ratios.png</p>
+<p>For example, on July 1 (which is the 183rd day of a leap year), only the output of
+the third interpolator is relevant:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">ratios</span><span class="p">[</span><span class="mi">182</span><span class="p">])</span>
+<span class="go">0.0, 0.0, 1.0</span>
+</pre></div>
+</div>
+<p>On June 30 and July 2, the second and the first interpolators are also relevant:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">ratios</span><span class="p">[</span><span class="mi">181</span><span class="p">])</span>
+<span class="go">0.0, 0.008197, 0.991803</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">ratios</span><span class="p">[</span><span class="mi">183</span><span class="p">])</span>
+<span class="go">0.005435, 0.0, 0.994565</span>
+</pre></div>
+</div>
+<p>Inserting data, processing this data, and fetching the output works as explained
+for class <a class="reference internal" href="#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a>, except that you must additionally pass the index of
+the actual time of year.  For example, the index value <cite>182</cite> activates the third
+interpolator only, configured as in the first example of the documentation on <a class="reference internal" href="anntools.html#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">input_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_</span>
+<span class="gp">... </span>    <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">(</span><span class="mi">182</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">([</span><span class="n">input_</span><span class="p">,</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+<span class="go">0, -1.0</span>
+<span class="go">1, -0.999982</span>
+<span class="go">2, -0.998994</span>
+<span class="go">3, -0.946041</span>
+<span class="go">4, 0.5</span>
+<span class="go">5, 1.946041</span>
+<span class="go">6, 1.998994</span>
+<span class="go">7, 1.999982</span>
+<span class="go">8, 2.0</span>
+</pre></div>
+</div>
+<p>To demonstrate that the final output values are the weighted mean of the output
+values of the different interpolators, we repeat the above example for January 13.
+For this day of the year, the first and the second interpolator have ratios of 0.8
+and 0.2, respectively:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">ratios</span><span class="p">[</span><span class="mi">12</span><span class="p">])</span>
+<span class="go">0.8, 0.2, 0.0</span>
+</pre></div>
+</div>
+<p>Both interpolators calculate constant values.  The sum of the outputs of the first
+(1.0) and the second interpolator (-1.0) multiplied with their weights for January
+13 is 0.6.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">0.6</span>
+</pre></div>
+</div>
+<p>It is of great importance that all contained interpolators are consistent.  Class
+<a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> performs some related checks:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span> <span class="o">=</span> <span class="n">SeasonalInterpolator</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The parameter `seasonalinterpolator` of element `?` has not been properly prepared so far.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">Type `int` is not (a subclass of) type `InterpAlgorithm`.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="p">(</span><span class="n">_13_1_12</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,))))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to add a season specific interpolator to parameter `seasonalinterpolator` of element `?`, the following error occurred: While trying to initialise a TOY object based on argument value `_13_1_12` of type `str`, the following error occurred: While trying to retrieve the month, the following error occurred: The value of property `month` of TOY (time of year) objects must lie within the range `(1, 12)`, but the given value is `13`.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="p">(</span><span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,))))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span>
+<span class="go">seasonalinterpolator(</span>
+<span class="go">    PPoly(</span>
+<span class="go">        Poly(x0=0.0, cs=(0.0,)),</span>
+<span class="go">    )</span>
+<span class="go">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="p">(</span><span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,))),</span>
+<span class="gp">... </span>                     <span class="n">_7_1_12</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,))),</span>
+<span class="gp">... </span>                     <span class="n">_3_1_12</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,))))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">Type `SeasonalInterpolator` accepts either a single positional argument or an arbitrary number of keyword arguments, but for the corresponding parameter of element `?` 1 positional and 2 keyword arguments have been given.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="p">(</span><span class="n">_1_1_12</span><span class="o">=</span><span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+<span class="gp">... </span>                     <span class="n">_7_1_12</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,))),</span>
+<span class="gp">... </span>                     <span class="n">_3_1_12</span><span class="o">=</span><span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,))))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The number of input and output values of all interpolators handled by parameter `seasonalinterpolator` of element `?` must be defined in advance and be the same, which is not the case for at least two given interpolators.</span>
+</pre></div>
+</div>
+<p>For safety, each failure results in a total loss of the previously defined
+interpolators:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span>
+<span class="go">seasonalinterpolator()</span>
+</pre></div>
+</div>
+<p>You can add interpolators via attribute access:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">toy_1_1_12</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,)))</span>
+</pre></div>
+</div>
+<p>If you set an attribute, everything updates automatically, e.g.:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">ratios</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<p>The mentioned safety checks also apply when adding interpolators via attribute
+access:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">toy_7_1_12</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to assign a new interpolator to parameter `seasonalinterpolator` of element `?` based on the string `toy_7_1_12`, the following error occurred: The number of input and output values of all interpolators handled by parameter `seasonalinterpolator` of element `?` must be defined in advance and be the same, which is not the case for at least two given interpolators.</span>
+</pre></div>
+</div>
+<p>Besides setting new interpolators, getting and deleting them also works:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">toy_1_1_12</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">toy_1_1_12</span>
+<span class="go">PPoly(</span>
+<span class="go">    Poly(x0=0.0, cs=(0.0,)),</span>
+<span class="go">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">toy_1_1_12</span>
+</pre></div>
+</div>
+<p>There are two error messages related to specific attribute access problems:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">toy_1_1_12</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">While trying to look up for an interpolator handled by parameter `seasonalinterpolator` of element `?` based on the string `toy_1_1_12`, the following error occurred: No interpolator is registered under a TOY object named `toy_1_1_12_0_0`.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">toy_1_1_12</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">While trying to remove an interpolator from parameter `seasonalinterpolator` of element `?` based on the string `toy_1_1_12`, the following error occurred: No interpolator is registered under a TOY object named `toy_1_1_12_0_0`.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">toy_1_1_12</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">While trying to assign a new interpolator to parameter `seasonalinterpolator` of element `?` based on the string `toy_1_1_12`, the following error occurred: Value `1` of type `int` has been given, but an object of type `InterpAlgorithm` is required.</span>
+</pre></div>
+</div>
+<p>Setting and deleting “normal” attributes is supported:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">temp</span> <span class="o">=</span> <span class="mi">999</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">temp</span>
+<span class="go">999</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">temp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">temp</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">&#39;SeasonalInterpolator&#39; object has no attribute &#39;temp&#39;</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'interputils.SeasonalInterpolator'</span></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.TYPE" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.nmb_algorithms">
+<span class="sig-name descname"><span class="pre">nmb_algorithms</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.nmb_algorithms" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.refresh">
+<span class="sig-name descname"><span class="pre">refresh</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SeasonalInterpolator.refresh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.refresh" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare the actual <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> object for calculations.</p>
+<p>Class <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> stores its <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> objects by reference.
+Therefore, despite all automated refreshings (explained in the general
+documentation on class <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a>), it is still possible to destroy
+the inner consistency of a <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> instance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span><span class="p">,</span> <span class="n">SeasonalInterpolator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span> <span class="o">=</span> <span class="n">SeasonalInterpolator</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">simulationstep</span> <span class="o">=</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jan</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">weights_input</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">weights_output</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">intercepts_hidden</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">intercepts_output</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="p">(</span><span class="n">_1_1_12</span><span class="o">=</span><span class="n">jan</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jan</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">,</span> <span class="n">jan</span><span class="o">.</span><span class="n">nmb_outputs</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jan</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">,</span> <span class="n">jan</span><span class="o">.</span><span class="n">nmb_outputs</span>
+<span class="go">(2, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">,</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_outputs</span>
+<span class="go">(1, 1)</span>
+</pre></div>
+</div>
+<p>Due to the Cython implementation of the actual interpolation, such an
+inconsistencies might result in a program crash without any informative error
+message.  Therefore, whenever you are think some inconsistency might have crept
+in and you want to repair it, call method <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.refresh" title="hydpy.auxs.interptools.SeasonalInterpolator.refresh"><code class="xref py py-func docutils literal notranslate"><span class="pre">refresh()</span></code></a>
+manually:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jan</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">,</span> <span class="n">jan</span><span class="o">.</span><span class="n">nmb_outputs</span>
+<span class="go">(2, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">,</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_outputs</span>
+<span class="go">(2, 3)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SeasonalInterpolator.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.update" title="Link to this definition">¶</a></dt>
+<dd><p>Do nothing (this method only ensures compatibility with <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.verify">
+<span class="sig-name descname"><span class="pre">verify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SeasonalInterpolator.verify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.verify" title="Link to this definition">¶</a></dt>
+<dd><p>Raise a <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> and remove all handled interpolators if they are
+defined inconsistently.</p>
+<p>Class <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> stores its <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> objects by reference.
+Therefore, despite all automated refreshings (explained in the general
+documentation on class <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a>), it is still possible to destroy
+the inner consistency of a <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> instance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">SeasonalInterpolator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span> <span class="o">=</span> <span class="n">SeasonalInterpolator</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span> <span class="o">=</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jan</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">weights_input</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">weights_output</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">intercepts_hidden</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">intercepts_output</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="p">(</span><span class="n">_1_1_12</span><span class="o">=</span><span class="n">jan</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jan</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">,</span> <span class="n">jan</span><span class="o">.</span><span class="n">nmb_outputs</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">jan</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">,</span> <span class="n">jan</span><span class="o">.</span><span class="n">nmb_outputs</span>
+<span class="go">(2, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">,</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_outputs</span>
+<span class="go">(1, 1)</span>
+</pre></div>
+</div>
+<p>Due to the Cython implementation of the actual interpolation, such an
+inconsistencies might result in a program crash without any informative error
+message.  Therefore, whenever you are think some inconsistency might have crept
+in, and you want to know if your suspicion is correct, call method
+<a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.verify" title="hydpy.auxs.interptools.SeasonalInterpolator.verify"><code class="xref py py-func docutils literal notranslate"><span class="pre">verify()</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The number of input and output values of all interpolators handled by parameter `seasonalinterpolator` of element `?` must be defined in advance and be the same, which is not the case for at least two given interpolators.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span>
+<span class="go">seasonalinterpolator()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">Seasonal interpolators need to handle at least one interpolation algorithm object, but for parameter `seasonalinterpolator` of element `?` none is defined so far.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.shape">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.shape" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of array <a class="reference internal" href="#hydpy.auxs.interptools.SeasonalInterpolator.ratios" title="hydpy.auxs.interptools.SeasonalInterpolator.ratios"><code class="xref py py-const docutils literal notranslate"><span class="pre">ratios</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'seasonalinterpolator'</span></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.name" title="Link to this definition">¶</a></dt>
+<dd><p>Class name in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.toys">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">toys</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="timetools.html#hydpy.core.timetools.TOY" title="hydpy.core.timetools.TOY"><span class="pre">TOY</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.toys" title="Link to this definition">¶</a></dt>
+<dd><p>A sorted <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> of all contained <a class="reference internal" href="timetools.html#hydpy.core.timetools.TOY" title="hydpy.core.timetools.TOY"><code class="xref py py-class docutils literal notranslate"><span class="pre">TOY</span></code></a> objects.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.algorithms">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">algorithms</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><span class="pre">InterpAlgorithm</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.algorithms" title="Link to this definition">¶</a></dt>
+<dd><p>A sorted <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a> of all handled interpolators.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.ratios">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ratios</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.ratios" title="Link to this definition">¶</a></dt>
+<dd><p>The ratios for weighting the interpolator outputs.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.nmb_inputs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.nmb_inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The general number of input values of the interpolators.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.inputs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The general input data for the interpolators.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.nmb_outputs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.nmb_outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The general number of output values of all interpolators.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.outputs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The weighted output of the interpolators.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.calculate_values">
+<span class="sig-name descname"><span class="pre">calculate_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SeasonalInterpolator.calculate_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.calculate_values" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the weighted output values based on the input values defined
+previously for the given index referencing the actual time of year.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.interptools.SeasonalInterpolator.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.10.8)"><span class="pre">Figure</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/interptools.html#SeasonalInterpolator.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.interptools.SeasonalInterpolator.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Call method <a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm.plot" title="hydpy.auxs.interptools.InterpAlgorithm.plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot()</span></code></a> of all currently handled
+<a class="reference internal" href="#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a> objects.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="iuhtools.html" title="iuhtools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="calibtools.html" title="calibtools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" >Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">interptools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

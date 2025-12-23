@@ -1,0 +1,1076 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>optiontools &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="parametertools" href="parametertools.html" />
+    <link rel="prev" title="objecttools" href="objecttools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="parametertools.html" title="parametertools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="objecttools.html" title="objecttools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">optiontools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">optiontools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionContextBase"><code class="docutils literal notranslate"><span class="pre">OptionContextBase</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionContextBool"><code class="docutils literal notranslate"><span class="pre">OptionContextBool</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionContextInt"><code class="docutils literal notranslate"><span class="pre">OptionContextInt</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionContextStr"><code class="docutils literal notranslate"><span class="pre">OptionContextStr</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionContextPeriod"><code class="docutils literal notranslate"><span class="pre">OptionContextPeriod</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase"><code class="docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBool"><code class="docutils literal notranslate"><span class="pre">OptionPropertyBool</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyInt"><code class="docutils literal notranslate"><span class="pre">OptionPropertyInt</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyStr"><code class="docutils literal notranslate"><span class="pre">OptionPropertyStr</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyPeriod"><code class="docutils literal notranslate"><span class="pre">OptionPropertyPeriod</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertySeriesFileType"><code class="docutils literal notranslate"><span class="pre">OptionPropertySeriesFileType</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertySeriesAggregation"><code class="docutils literal notranslate"><span class="pre">OptionPropertySeriesAggregation</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertySeriesConvention"><code class="docutils literal notranslate"><span class="pre">OptionPropertySeriesConvention</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.optiontools.Options"><code class="docutils literal notranslate"><span class="pre">Options</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.checkprojectstructure"><code class="docutils literal notranslate"><span class="pre">Options.checkprojectstructure</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.checkseries"><code class="docutils literal notranslate"><span class="pre">Options.checkseries</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.ellipsis"><code class="docutils literal notranslate"><span class="pre">Options.ellipsis</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.parameterstep"><code class="docutils literal notranslate"><span class="pre">Options.parameterstep</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.printprogress"><code class="docutils literal notranslate"><span class="pre">Options.printprogress</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.reprdigits"><code class="docutils literal notranslate"><span class="pre">Options.reprdigits</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.simulationstep"><code class="docutils literal notranslate"><span class="pre">Options.simulationstep</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.threads"><code class="docutils literal notranslate"><span class="pre">Options.threads</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.timestampleft"><code class="docutils literal notranslate"><span class="pre">Options.timestampleft</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.trimvariables"><code class="docutils literal notranslate"><span class="pre">Options.trimvariables</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.usecython"><code class="docutils literal notranslate"><span class="pre">Options.usecython</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.usedefaultvalues"><code class="docutils literal notranslate"><span class="pre">Options.usedefaultvalues</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.utclongitude"><code class="docutils literal notranslate"><span class="pre">Options.utclongitude</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.utcoffset"><code class="docutils literal notranslate"><span class="pre">Options.utcoffset</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.warnmissingcontrolfile"><code class="docutils literal notranslate"><span class="pre">Options.warnmissingcontrolfile</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.warnmissingobsfile"><code class="docutils literal notranslate"><span class="pre">Options.warnmissingobsfile</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.warnmissingsimfile"><code class="docutils literal notranslate"><span class="pre">Options.warnmissingsimfile</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.warnsimulationstep"><code class="docutils literal notranslate"><span class="pre">Options.warnsimulationstep</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.warntrim"><code class="docutils literal notranslate"><span class="pre">Options.warntrim</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.reset_defaults"><code class="docutils literal notranslate"><span class="pre">Options.reset_defaults()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.optiontools.Options.prepare_testing"><code class="docutils literal notranslate"><span class="pre">Options.prepare_testing()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="threadingtools.html">threadingtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="objecttools.html"
+                          title="previous chapter">objecttools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="parametertools.html"
+                          title="next chapter">parametertools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/optiontools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/optiontools.html">6</a></li>
+<li><a href="../5.0/optiontools.html">5.0</a></li>
+<li><a href="../4.0/optiontools.html">4.0</a></li>
+<li><a href="../master/optiontools.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="optiontools">
+<span id="id1"></span><h1>optiontools<a class="headerlink" href="#optiontools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.core.optiontools">This module implements features for defining local or global <em>HydPy</em> options.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.optiontools" title="hydpy.core.optiontools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">optiontools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TypeOption</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TypeOptionContextBase</span></code> Type variable.</p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">TypeOptionPropertyBase</span></code> Type variable.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionContextBase" title="hydpy.core.optiontools.OptionContextBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextBase</span></code></a> Base class for defining context managers required for the different <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase" title="hydpy.core.optiontools.OptionPropertyBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a> subclasses.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionContextBool" title="hydpy.core.optiontools.OptionContextBool"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextBool</span></code></a> Context manager required by <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBool" title="hydpy.core.optiontools.OptionPropertyBool"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBool</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionContextInt" title="hydpy.core.optiontools.OptionContextInt"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextInt</span></code></a> Context manager required by <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyInt" title="hydpy.core.optiontools.OptionPropertyInt"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyInt</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionContextStr" title="hydpy.core.optiontools.OptionContextStr"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextStr</span></code></a> Context manager required by <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyStr" title="hydpy.core.optiontools.OptionPropertyStr"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyStr</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionContextPeriod" title="hydpy.core.optiontools.OptionContextPeriod"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextPeriod</span></code></a> Context manager required by <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyPeriod" title="hydpy.core.optiontools.OptionPropertyPeriod"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyPeriod</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase" title="hydpy.core.optiontools.OptionPropertyBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a> Base class for defining descriptors that work like regular <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> instances and support the <cite>with</cite> statement to change the property’s value temporarily.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBool" title="hydpy.core.optiontools.OptionPropertyBool"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBool</span></code></a> Descriptor for defining bool-like options.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyInt" title="hydpy.core.optiontools.OptionPropertyInt"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyInt</span></code></a> Descriptor for defining integer-like options.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyStr" title="hydpy.core.optiontools.OptionPropertyStr"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyStr</span></code></a> Descriptor for defining string-like options.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyPeriod" title="hydpy.core.optiontools.OptionPropertyPeriod"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyPeriod</span></code></a> Descriptor for defining options of type <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertySeriesFileType" title="hydpy.core.optiontools.OptionPropertySeriesFileType"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertySeriesFileType</span></code></a> Descriptor for defining options of type <code class="xref py py-const docutils literal notranslate"><span class="pre">SeriesFileType</span></code>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertySeriesAggregation" title="hydpy.core.optiontools.OptionPropertySeriesAggregation"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertySeriesAggregation</span></code></a> Descriptor for defining options of type <code class="xref py py-const docutils literal notranslate"><span class="pre">SeriesAggregationType</span></code>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.OptionPropertySeriesConvention" title="hydpy.core.optiontools.OptionPropertySeriesConvention"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertySeriesConvention</span></code></a> Descriptor for defining options of type <code class="xref py py-const docutils literal notranslate"><span class="pre">SeriesConventionType</span></code>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.optiontools.Options" title="hydpy.core.optiontools.Options"><code class="xref py py-class docutils literal notranslate"><span class="pre">Options</span></code></a> Singleton class for the general options available in the global <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> module.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionContextBase">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionContextBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TypeOption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">TypeOption</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionContextBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionContextBase" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">TypeOption</span></code>]</p>
+<p>Base class for defining context managers required for the different
+<a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase" title="hydpy.core.optiontools.OptionPropertyBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a> subclasses.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionContextBool">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionContextBool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionContextBool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionContextBool" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference internal" href="#hydpy.core.optiontools.OptionContextBase" title="hydpy.core.optiontools.OptionContextBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextBase</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]</p>
+<p>Context manager required by <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBool" title="hydpy.core.optiontools.OptionPropertyBool"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBool</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionContextInt">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionContextInt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionContextInt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionContextInt" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference internal" href="#hydpy.core.optiontools.OptionContextBase" title="hydpy.core.optiontools.OptionContextBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextBase</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</p>
+<p>Context manager required by <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyInt" title="hydpy.core.optiontools.OptionPropertyInt"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyInt</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionContextStr">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionContextStr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TypeOption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">TypeOption</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionContextStr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionContextStr" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#hydpy.core.optiontools.OptionContextBase" title="hydpy.core.optiontools.OptionContextBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextBase</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">TypeOption</span></code>]</p>
+<p>Context manager required by <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyStr" title="hydpy.core.optiontools.OptionPropertyStr"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyStr</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionContextPeriod">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionContextPeriod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">timetools.PeriodConstrArg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">timetools.PeriodConstrArg</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionContextPeriod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionContextPeriod" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a>, <a class="reference internal" href="#hydpy.core.optiontools.OptionContextBase" title="hydpy.core.optiontools.OptionContextBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextBase</span></code></a>[<a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a>]</p>
+<p>Context manager required by <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyPeriod" title="hydpy.core.optiontools.OptionPropertyPeriod"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyPeriod</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionPropertyBase">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionPropertyBase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TypeOption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionPropertyBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionPropertyBase" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseDescriptor" title="hydpy.core.propertytools.BaseDescriptor"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDescriptor</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">TypeOption</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">TypeOptionContextBase</span></code>]</p>
+<p>Base class for defining descriptors that work like regular <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> instances
+and support the <cite>with</cite> statement to change the property’s value temporarily.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionPropertyBool">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionPropertyBool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TypeOption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionPropertyBool"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionPropertyBool" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase" title="hydpy.core.optiontools.OptionPropertyBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <a class="reference internal" href="#hydpy.core.optiontools.OptionContextBool" title="hydpy.core.optiontools.OptionContextBool"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextBool</span></code></a>]</p>
+<p>Descriptor for defining bool-like options.</p>
+<p>Framework developers should implement bool-like options as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.optiontools</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionPropertyBool</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">v</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The given string serves as documentation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="vm">__doc__</span>
+<span class="go">&#39;x&#39;</span>
+</pre></div>
+</div>
+<p>Users can change the current value “normally” by assignments:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">T</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+</pre></div>
+</div>
+<p>Deleting restores the default value:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+</pre></div>
+</div>
+<p>In most cases, the preferred way is to change options “temporarily” for a specific
+code block introduced by the <cite>with</cite> statement:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">False</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">... </span>        <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">... </span>            <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>                <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">... </span>                <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">False</span><span class="p">):</span>
+<span class="gp">... </span>                    <span class="k">assert</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">... </span>                <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>                    <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">... </span>                    <span class="k">assert</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">... </span>                <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">... </span>            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">False</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">... </span>    <span class="k">raise</span> <span class="ne">RuntimeError</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionPropertyInt">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionPropertyInt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TypeOption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionPropertyInt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionPropertyInt" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase" title="hydpy.core.optiontools.OptionPropertyBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference internal" href="#hydpy.core.optiontools.OptionContextInt" title="hydpy.core.optiontools.OptionContextInt"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextInt</span></code></a>]</p>
+<p>Descriptor for defining integer-like options.</p>
+<p>Framework developers should implement integer-like options as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.optiontools</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionPropertyInt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">v</span> <span class="o">=</span> <span class="n">OptionPropertyInt</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The given string serves as documentation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="vm">__doc__</span>
+<span class="go">&#39;x&#39;</span>
+</pre></div>
+</div>
+<p>Users can change the current value “normally” by assignments:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">T</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>Deleting restores the default value:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>In most cases, the prefered way is to change options “temporarily” for a specific
+code block introduced by the <cite>with</cite> statement:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="gp">... </span>        <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="gp">... </span>            <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>                <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="gp">... </span>                <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+<span class="gp">... </span>                    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="gp">... </span>                <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>                    <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">... </span>                    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">4</span>
+<span class="gp">... </span>                <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="gp">... </span>            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">3</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="gp">... </span>    <span class="k">raise</span> <span class="ne">RuntimeError</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionPropertyStr">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionPropertyStr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TypeOption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionPropertyStr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionPropertyStr" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase" title="hydpy.core.optiontools.OptionPropertyBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference internal" href="#hydpy.core.optiontools.OptionContextStr" title="hydpy.core.optiontools.OptionContextStr"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextStr</span></code></a>]</p>
+<p>Descriptor for defining string-like options.</p>
+<p>Framework developers should implement string-like options as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.optiontools</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionPropertyStr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">v</span> <span class="o">=</span> <span class="n">OptionPropertyStr</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The given string serves as documentation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="vm">__doc__</span>
+<span class="go">&#39;x&#39;</span>
+</pre></div>
+</div>
+<p>Users can change the current value “normally” by assignments:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">T</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;2&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span>
+</pre></div>
+</div>
+<p>Deleting restores the default value:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span>
+</pre></div>
+</div>
+<p>In most cases, the prefered way is to change options “temporarily” for a specific
+code block introduced by the <cite>with</cite> statement:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;3&quot;</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span>
+<span class="gp">... </span>        <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span>
+<span class="gp">... </span>            <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>                <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span>
+<span class="gp">... </span>                <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;1&quot;</span><span class="p">):</span>
+<span class="gp">... </span>                    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span>
+<span class="gp">... </span>                <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>                    <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;4&quot;</span>
+<span class="gp">... </span>                    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span>
+<span class="gp">... </span>                <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span>
+<span class="gp">... </span>            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;2&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span>
+<span class="gp">... </span>    <span class="k">raise</span> <span class="ne">RuntimeError</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionPropertyPeriod">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionPropertyPeriod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TypeOption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionPropertyPeriod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionPropertyPeriod" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase" title="hydpy.core.optiontools.OptionPropertyBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a>[<a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a>, <a class="reference internal" href="#hydpy.core.optiontools.OptionContextPeriod" title="hydpy.core.optiontools.OptionContextPeriod"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextPeriod</span></code></a>]</p>
+<p>Descriptor for defining options of type <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a>.</p>
+<p>Framework or model developers should implement options of type <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.optiontools</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionPropertyPeriod</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">v</span> <span class="o">=</span> <span class="n">OptionPropertyPeriod</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The given string serves as documentation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="vm">__doc__</span>
+<span class="go">&#39;x&#39;</span>
+</pre></div>
+</div>
+<p>Users can change the current value “normally” by assignments (note the automatic
+type conversion):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">T</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;2d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Period</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="n">Period</span><span class="p">(</span><span class="s2">&quot;2d&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Deleting restores the default value:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<p>In most cases, the prefered way is to change options “temporarily” for a specific
+code block introduced by the <cite>with</cite> statement:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;2d&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;2d&quot;</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;3d&quot;</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3d&quot;</span>
+<span class="gp">... </span>        <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3d&quot;</span>
+<span class="gp">... </span>            <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>                <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3d&quot;</span>
+<span class="gp">... </span>                <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">):</span>
+<span class="gp">... </span>                    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">... </span>                <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>                    <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;4d&quot;</span>
+<span class="gp">... </span>                    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;4d&quot;</span>
+<span class="gp">... </span>                <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3d&quot;</span>
+<span class="gp">... </span>            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3d&quot;</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;3d&quot;</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;2d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;2d&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;2d&quot;</span>
+<span class="gp">... </span>    <span class="k">raise</span> <span class="ne">RuntimeError</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionPropertySeriesFileType">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionPropertySeriesFileType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TypeOption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionPropertySeriesFileType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionPropertySeriesFileType" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase" title="hydpy.core.optiontools.OptionPropertyBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘npy’, ‘asc’, ‘nc’], <a class="reference internal" href="#hydpy.core.optiontools.OptionContextStr" title="hydpy.core.optiontools.OptionContextStr"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextStr</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘npy’, ‘asc’, ‘nc’]]]</p>
+<p>Descriptor for defining options of type <code class="xref py py-const docutils literal notranslate"><span class="pre">SeriesFileType</span></code>.</p>
+<p><em>HydPy</em> currently supports a simple text format (<cite>asc</cite>), the numpy binary format
+(<cite>npy</cite>) and NetCDF files (<cite>nc</cite>).  Options based on <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertySeriesFileType" title="hydpy.core.optiontools.OptionPropertySeriesFileType"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertySeriesFileType</span></code></a>
+automatically check if the given string is a supported file-ending and raise errors
+if not:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.optiontools</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionPropertySeriesFileType</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">v</span> <span class="o">=</span> <span class="n">OptionPropertySeriesFileType</span><span class="p">(</span><span class="s2">&quot;asc&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="vm">__doc__</span>
+<span class="go">&#39;x&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">T</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;asc&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;abc&quot;</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The given sequence file type `abc` is not implemented.  Please choose one of the following file types: npy, asc, and nc.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;asc&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;nc&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;nc&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;asc&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;asc&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;abc&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The given sequence file type `abc` is not implemented.  Please choose one of the following file types: npy, asc, and nc.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;asc&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;npy&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;nc&quot;</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;nc&quot;</span>
+<span class="gp">... </span>        <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;nc&quot;</span>
+<span class="gp">... </span>        <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>            <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;nc&quot;</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;asc&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionPropertySeriesAggregation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionPropertySeriesAggregation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TypeOption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionPropertySeriesAggregation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionPropertySeriesAggregation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase" title="hydpy.core.optiontools.OptionPropertyBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘none’, ‘mean’], <a class="reference internal" href="#hydpy.core.optiontools.OptionContextStr" title="hydpy.core.optiontools.OptionContextStr"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextStr</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘none’, ‘mean’]]]</p>
+<p>Descriptor for defining options of type <code class="xref py py-const docutils literal notranslate"><span class="pre">SeriesAggregationType</span></code>.</p>
+<p>The only currently supported aggregation is averaging (<cite>mean</cite>).  Use <cite>none</cite> to
+avoid any aggregation.  Options based on <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertySeriesAggregation" title="hydpy.core.optiontools.OptionPropertySeriesAggregation"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertySeriesAggregation</span></code></a>
+automatically check if the given string meets one of these modes and raise errors
+if not:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.optiontools</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionPropertySeriesAggregation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">v</span> <span class="o">=</span> <span class="n">OptionPropertySeriesAggregation</span><span class="p">(</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="vm">__doc__</span>
+<span class="go">&#39;x&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">T</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;sum&quot;</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The given aggregation mode `sum` is not implemented.  Please choose one of the following modes: none and mean.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;sum&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The given aggregation mode `sum` is not implemented.  Please choose one of the following modes: none and mean.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;mean&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.OptionPropertySeriesConvention">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">OptionPropertySeriesConvention</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">TypeOption</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#OptionPropertySeriesConvention"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.OptionPropertySeriesConvention" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.optiontools.OptionPropertyBase" title="hydpy.core.optiontools.OptionPropertyBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionPropertyBase</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘model-specific’, ‘HydPy’], <a class="reference internal" href="#hydpy.core.optiontools.OptionContextStr" title="hydpy.core.optiontools.OptionContextStr"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionContextStr</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘model-specific’, ‘HydPy’]]]</p>
+<p>Descriptor for defining options of type <code class="xref py py-const docutils literal notranslate"><span class="pre">SeriesConventionType</span></code>.</p>
+<p><em>HydPy</em> currently follows two naming conventions when reading input time series.
+The original convention is to rely on the model-specific sequence names in
+lowercase letters (“model-specific”).  The more convenient convention is to rely on
+the standard names defined by the enum <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StandardInputNames" title="hydpy.core.sequencetools.StandardInputNames"><code class="xref py py-class docutils literal notranslate"><span class="pre">StandardInputNames</span></code></a>
+(“HydPy”).  We will likely support more official naming conventions later and
+eventually allow writing time series following other conventions than the
+“model-specific” one:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.optiontools</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionPropertySeriesConvention</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">v</span> <span class="o">=</span> <span class="n">OptionPropertySeriesConvention</span><span class="p">(</span><span class="s2">&quot;model-specific&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">T</span><span class="o">.</span><span class="n">v</span><span class="o">.</span><span class="vm">__doc__</span>
+<span class="go">&#39;x&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">T</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;model-specific&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;WMO&quot;</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The given time series naming convention `WMO` is not implemented.  Please choose one of the following modes: model-specific and HydPy.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;model-specific&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;HydPy&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;HydPy&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="s2">&quot;model-specific&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;model-specific&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;WMO&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The given time series naming convention `WMO` is not implemented.  Please choose one of the following modes: model-specific and HydPy.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;model-specific&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="s2">&quot;HydPy&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;HydPy&quot;</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">():</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;HydPy&quot;</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;HydPy&quot;</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;HydPy&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">t</span><span class="o">.</span><span class="n">v</span> <span class="o">==</span> <span class="s2">&quot;model-specific&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.optiontools.</span></span><span class="sig-name descname"><span class="pre">Options</span></span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#Options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.Options" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Singleton class for the general options available in the global <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> module.</p>
+<p>Most options are simple bool-like flags.</p>
+<p>You can change all options in two ways.  First, using the <cite>with</cite> statement makes
+sure the change is reverted after leaving the corresponding code block (even if an
+error occurs):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">FALSE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">)</span>
+<span class="go">TRUE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="go">FALSE</span>
+</pre></div>
+</div>
+<p>Alternatively, you can change all options via simple assignments:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+</pre></div>
+</div>
+<p>But then you might have to keep in mind to undo the change later:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+</pre></div>
+</div>
+<p>When using the <cite>with</cite> statement, you can pass nothing or <code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code>, which does not
+change the original setting and resets it after leaving the <cite>with</cite> block:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="gp">... </span>    <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+</pre></div>
+</div>
+<p>The delete statement restores the respective default setting:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="kc">False</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.checkprojectstructure">
+<span class="sig-name descname"><span class="pre">checkprojectstructure</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.checkprojectstructure" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for raising a warning when creating a <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> instance for
+a project without the basic project structure on disk.</p>
+<blockquote>
+<div><p>Defaults usually to true but during testing to false:</p>
+</div></blockquote>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">HydPy</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">checkprojectstructure</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">checkprojectstructure</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">checkprojectstructure</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.checkseries">
+<span class="sig-name descname"><span class="pre">checkseries</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.checkseries" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for raising an error when loading an input time series that 
+does not cover the whole initialisation period or contains <code class="xref py py-const docutils literal notranslate"><span class="pre">nan</span></code> 
+values.</p>
+<p>Defaults to true:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">checkseries</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">checkseries</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">checkseries</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.ellipsis">
+<span class="sig-name descname"><span class="pre">ellipsis</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.ellipsis" title="Link to this definition">¶</a></dt>
+<dd><p>The maximum number of collection members shown in string representations 
+before and behind ellipsis points.</p>
+<p>Ellipsis points serve to shorten the string representations of iterable HydPy 
+objects that contain many entries.  Set this option to -999 to rely on the 
+default values of the respective iterable objects or zero to avoid any 
+ellipsis points.  -999 is the default value, but zero is the preferred value 
+during testing:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">ellipsis</span> <span class="o">==</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">ellipsis</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">ellipsis</span> <span class="o">==</span> <span class="o">-</span><span class="mi">999</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.parameterstep">
+<span class="sig-name descname"><span class="pre">parameterstep</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.parameterstep" title="Link to this definition">¶</a></dt>
+<dd><p>The actual parameter time step size.  Change it by passing a <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> object 
+or any valid <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> constructor argument.</p>
+<p>Defaults to one day:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parameterstep</span> <span class="o">==</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parameterstep</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parameterstep</span> <span class="o">==</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.printprogress">
+<span class="sig-name descname"><span class="pre">printprogress</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.printprogress" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for printing information about the progress of some 
+processes to the standard output.</p>
+<p>Defaults usually to true but during testing to false:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.reprdigits">
+<span class="sig-name descname"><span class="pre">reprdigits</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.reprdigits" title="Link to this definition">¶</a></dt>
+<dd><p>The maximum number of decimal places for floating point numbers that are 
+part of HydPy’s string representations (see function <a class="reference internal" href="objecttools.html#hydpy.core.objecttools.repr_" title="hydpy.core.objecttools.repr_"><code class="xref py py-const docutils literal notranslate"><span class="pre">repr_</span></code></a>).</p>
+<p>-1 means printing with the highest available precision.  Defaults usually to 
+-1 but during testing to 6:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span> <span class="o">==</span> <span class="mi">6</span>   
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.simulationstep">
+<span class="sig-name descname"><span class="pre">simulationstep</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.simulationstep" title="Link to this definition">¶</a></dt>
+<dd><p>The actual simulation time step size.</p>
+<p>HydPy does not define a default simulation step, which is indicated by an empty 
+<a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> object).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period()</span>
+</pre></div>
+</div>
+<p>Change it by passing a <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> object or any valid <a class="reference internal" href="timetools.html#hydpy.core.timetools.Period" title="hydpy.core.timetools.Period"><code class="xref py py-class docutils literal notranslate"><span class="pre">Period</span></code></a> constructor 
+argument, but note that you cannot manually define the <a class="reference internal" href="#hydpy.core.optiontools.Options.simulationstep" title="hydpy.core.optiontools.Options.simulationstep"><code class="xref py py-const docutils literal notranslate"><span class="pre">simulationstep</span></code></a> 
+whenever it is already available via attribute <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.stepsize" title="hydpy.core.timetools.Timegrids.stepsize"><code class="xref py py-const docutils literal notranslate"><span class="pre">stepsize</span></code></a> of the 
+global <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> (<cite>pub.timegrids</cite>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span> <span class="o">=</span> <span class="s2">&quot;1h&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period(&quot;1h&quot;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period(&quot;1d&quot;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span> <span class="o">=</span> <span class="s2">&quot;1s&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period(&quot;1d&quot;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period(&quot;1s&quot;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+<span class="go">Period()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.threads">
+<span class="sig-name descname"><span class="pre">threads</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.threads" title="Link to this definition">¶</a></dt>
+<dd><p>The number of additional threads opened during a simulation run.</p>
+<p>Defaults to zero (no multi-threading), but note that all tests work with an 
+arbitrary number of additional threads.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">threads</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">threads</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.timestampleft">
+<span class="sig-name descname"><span class="pre">timestampleft</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.timestampleft" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag telling if assigning interval data (like hourly 
+precipitation) to single time points relies on the start (True, default) or the 
+end (False) of the respective interval.</p>
+<p>HydPy-internally, we usually prevent such potentially problematic assignments 
+by using <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid" title="hydpy.core.timetools.Timegrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrid</span></code></a> objects that define grids of intervals instead of time 
+points.  However, exceptions cannot be avoided, such as when reading or writing 
+NetCDF files.</p>
+<p>Defaults to true:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">timestampleft</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">timestampleft</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">timestampleft</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.trimvariables">
+<span class="sig-name descname"><span class="pre">trimvariables</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.trimvariables" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for enabling/disabling function <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.trim" title="hydpy.core.variabletools.trim"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim()</span></code></a>.  Set it to <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code> 
+only for good reasons.</p>
+<p>Defaults to true:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">trimvariables</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">trimvariables</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">trimvariables</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.usecython">
+<span class="sig-name descname"><span class="pre">usecython</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.usecython" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for applying cythonized models, which are much faster than 
+pure Python models.</p>
+<p>The benefit of using pure Python models is they simplify debugging a lot.  
+Hence, setting this option to false makes sense when implementing a new model
+or when trying to discover why a model does not work as expected.</p>
+<p>Defaults to true, but note that all tests work with this flag being enabled and
+disabled.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usecython</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usecython</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.usedefaultvalues">
+<span class="sig-name descname"><span class="pre">usedefaultvalues</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.usedefaultvalues" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for initialising parameters with standard values.</p>
+<p>Defaults to false:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usedefaultvalues</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usedefaultvalues</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usedefaultvalues</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.utclongitude">
+<span class="sig-name descname"><span class="pre">utclongitude</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.utclongitude" title="Link to this definition">¶</a></dt>
+<dd><p>Longitude of the centre of the local time zone (see option
+<a class="reference internal" href="#hydpy.core.optiontools.Options.utcoffset" title="hydpy.core.optiontools.Options.utcoffset"><code class="xref py py-const docutils literal notranslate"><span class="pre">utcoffset</span></code></a>).</p>
+<p>Defaults to 15, which corresponds to the central meridian of UTC+01:00:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utclongitude</span> <span class="o">==</span> <span class="mi">15</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utclongitude</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utclongitude</span> <span class="o">==</span> <span class="mi">15</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.utcoffset">
+<span class="sig-name descname"><span class="pre">utcoffset</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.utcoffset" title="Link to this definition">¶</a></dt>
+<dd><p>Local time offset from UTC in minutes s(see option <a class="reference internal" href="#hydpy.core.optiontools.Options.utclongitude" title="hydpy.core.optiontools.Options.utclongitude"><code class="xref py py-const docutils literal notranslate"><span class="pre">utclongitude</span></code></a>.</p>
+<p>Defaults to 60, which corresponds to UTC+01:00.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span> <span class="o">==</span> <span class="mi">60</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span> <span class="o">==</span> <span class="mi">60</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.warnmissingcontrolfile">
+<span class="sig-name descname"><span class="pre">warnmissingcontrolfile</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.warnmissingcontrolfile" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for only raising a warning instead of an exception when a 
+necessary control file is missing.</p>
+<p>Defaults to false:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnmissingcontrolfile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnmissingcontrolfile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnmissingcontrolfile</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.warnmissingobsfile">
+<span class="sig-name descname"><span class="pre">warnmissingobsfile</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.warnmissingobsfile" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for raising a warning when a requested observation sequence 
+demanded by a node instance is missing.</p>
+<p>Defaults to true:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnmissingobsfile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnmissingobsfile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnmissingobsfile</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.warnmissingsimfile">
+<span class="sig-name descname"><span class="pre">warnmissingsimfile</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.warnmissingsimfile" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for raising a warning when a requested simulation sequence 
+demanded by a node instance is missing.</p>
+<p>Defaults to true:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnmissingsimfile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnmissingsimfile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnmissingsimfile</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.warnsimulationstep">
+<span class="sig-name descname"><span class="pre">warnsimulationstep</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.warnsimulationstep" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for raising a warning when function <a class="reference internal" href="importtools.html#hydpy.core.importtools.simulationstep" title="hydpy.core.importtools.simulationstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulationstep()</span></code></a> is
+called for the first time directly by the user.</p>
+<p>Defaults usually to true but during testing to false:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnsimulationstep</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnsimulationstep</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warnsimulationstep</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.warntrim">
+<span class="sig-name descname"><span class="pre">warntrim</span></span><a class="headerlink" href="#hydpy.core.optiontools.Options.warntrim" title="Link to this definition">¶</a></dt>
+<dd><p>A bool-like flag for raising a warning when a <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> object trims its
+value(s) not to violate certain boundaries.</p>
+<p>To cope with the limited precision of floating-point numbers, only those 
+violations beyond a small tolerance value are reported (see function <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.trim" title="hydpy.core.variabletools.trim"><code class="xref py py-func docutils literal notranslate"><span class="pre">trim()</span></code></a>).</p>
+<p>Defaults usually to true but during testing to false:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warntrim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warntrim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">warntrim</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.reset_defaults">
+<span class="sig-name descname"><span class="pre">reset_defaults</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#Options.reset_defaults"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.Options.reset_defaults" title="Link to this definition">¶</a></dt>
+<dd><p>Reset all options to their default values.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reset_defaults</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.optiontools.Options.prepare_testing">
+<span class="sig-name descname"><span class="pre">prepare_testing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">usecython</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/optiontools.html#Options.prepare_testing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.optiontools.Options.prepare_testing" title="Link to this definition">¶</a></dt>
+<dd><p>Set all options to the values usually used during testing.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">checkseries</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">threads</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usecython</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">prepare_testing</span><span class="p">(</span><span class="n">usecython</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">checkseries</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span> <span class="o">==</span> <span class="mi">6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">threads</span> <span class="o">==</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usecython</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="parametertools.html" title="parametertools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="objecttools.html" title="objecttools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">optiontools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

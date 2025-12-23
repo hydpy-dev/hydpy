@@ -28,7 +28,7 @@ these development tools runnable on your machine.
 
 First, you need the Python interpreter itself. We do our best to keep
 *HydPy* up-to-date with the development of Python, so please select the
-most recent stable `CPython`_ version (at the time of writing, Python 3.7).
+most recent stable `CPython`_ version.
 
 Second, install all required site-packages listed in `requirements.txt`_.
 These include tools like `Cython`_ for translating Python based model

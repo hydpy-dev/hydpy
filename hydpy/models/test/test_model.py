@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # imports...
@@ -192,6 +191,7 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (Calc_Q_V1, Calc_Q_V2, Calc_QV_V1)

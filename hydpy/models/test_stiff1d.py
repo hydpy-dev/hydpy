@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """|test_stiff1d| similar to |test_stiff0d| but works on 1-dimensional sequences
 instead of 0-dimensional sequences."""
@@ -29,6 +28,7 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (test_model.Calc_QV_V1,)

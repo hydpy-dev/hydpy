@@ -1,36 +1,263 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 # import...
+# ...from site-packages
+import numpy
+
 # ...from HydPy
 from hydpy.core import exceptiontools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 
+# ...from wq
+from hydpy.models.wq import wq_variables
 
-class NmbTrapezes(parametertools.Parameter):
+
+class NmbTrapezes(parametertools.NmbParameter):
     """Number of trapezes defining the cross section [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    SPAN = (1, None)
+
+
+class NmbWidths(parametertools.NmbParameter):
+    """Number of widths that define the cross section [-]."""
+
+    SPAN = (1, None)
+
+    def trim(self, lower=None, upper=None) -> bool:
+        """Check according to :math:`NmbWidths \\geq NmbSectors`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbwidths(5)
+        >>> nmbwidths
+        nmbwidths(5)
+
+        >>> nmbsectors(3)
+        >>> nmbwidths(3)
+        >>> nmbwidths
+        nmbwidths(3)
+
+        >>> nmbwidths(2)
+        Traceback (most recent call last):
+        ...
+        ValueError: The value `2` of parameter `nmbwidths` of element `?` is not \
+valid.
+        """
+
+        lower = exceptiontools.getattr_(self.subpars.nmbsectors, "value", lower)
+        return super().trim(lower, upper)
+
+
+class NmbSectors(parametertools.NmbParameter):
+    """Number of the separately calculated sectors of the cross section [-]."""
+
+    SPAN = (1, None)
+
+    def trim(self, lower=None, upper=None) -> bool:
+        """Check according to :math:`NmbSectors \\leq NmbWidths`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbsectors(2)
+        >>> nmbsectors
+        nmbsectors(2)
+
+        >>> nmbwidths(4)
+        >>> nmbsectors(4)
+        >>> nmbsectors
+        nmbsectors(4)
+
+        >>> nmbsectors(5)
+        Traceback (most recent call last):
+        ...
+        ValueError: The value `5` of parameter `nmbsectors` of element `?` is not \
+valid.
+        """
+
+        upper = exceptiontools.getattr_(self.subpars.nmbwidths, "value", upper)
+        return super().trim(lower, upper)
+
+
+class Heights(wq_variables.MixinWidths, parametertools.SortedParameter):
+    """The measurement heights of the widths defining the cross section [m].
+
+    If water levels are essential, we encourage using the sea level as a reference.  If
+    not (as for common hydrological routing approaches), one could also set the lowest
+    tabulated level to zero.
+    """
+
+    TYPE, TIME, SPAN = float, None, (None, None)
+
+
+class FlowWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
+    """The widths of those subareas of the cross section involved in water routing
+    [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    def trim(self, lower=None, upper=None) -> bool:
+        """Trim according to :math:`FlowWidths \\leq TotalWidths`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbwidths(3)
+        >>> flowwidths(1.0, 2.0, 3.0)
+        >>> flowwidths
+        flowwidths(1.0, 2.0, 3.0)
+
+        >>> totalwidths(3.0, 4.0, 5.0)
+        >>> flowwidths(2.0, 4.0, 6.0)
+        >>> flowwidths
+        flowwidths(2.0, 4.0, 5.0)
+        """
+
+        upper = exceptiontools.getattr_(self.subpars.totalwidths, "values", upper)
+        return super().trim(lower, upper)
+
+
+class TotalWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
+    """The widths of the total cross section [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    def trim(self, lower=None, upper=None) -> bool:
+        """Trim according to :math:`TotalWidths \\geq FlowWidths`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+
+        >>> nmbwidths(3)
+        >>> totalwidths(4.0, 5.0, 6.0)
+        >>> totalwidths
+        totalwidths(4.0, 5.0, 6.0)
+
+        >>> flowwidths(3.0, 4.0, 5.0)
+        >>> totalwidths(2.0, 4.0, 6.0)
+        >>> totalwidths
+        totalwidths(3.0, 4.0, 6.0)
+        """
+
+        lower = exceptiontools.getattr_(self.subpars.flowwidths, "values", lower)
+        return super().trim(lower, upper)
+
+
+class Transitions(parametertools.Parameter):
+    """Indexes that mark the transitions between separately calculated cross-section
+    sectors [m].
+
+    According to the Python convention, the index :math:`0` would mark the first, and
+    the index :math:`n - 1` would mark the last height/width pair.  However, precisely
+    these two values are disallowed for reasons we explain in the following.
+
+    Parameter |Transitions| defines the transitions between all neighbouring sectors.
+    Hence, one does not need to specify any value if there is only one sector:
+
+    >>> from hydpy.models.wq import *
+    >>> parameterstep()
+    >>> nmbsectors(1)
+    >>> transitions
+    transitions()
+
+    In such cases, it is okay to pass nothing when using the usual parameter value
+    setting syntax:
+
+    >>> transitions()
+    >>> transitions
+    transitions()
+
+    The number of the required values depends on |NmbSectors|, while the range of the
+    allowed values depends on |NmbWidths|:
+
+    >>> nmbwidths(7)
+    >>> nmbsectors(4)
+    >>> transitions(1, 4, 5)
+    >>> transitions
+    transitions(1, 4, 5)
+
+    The index value :math:`0` is not allowed because there is no sector below the
+    "lowest" height/width pair:
+
+    >>> transitions(0, 4, 6)
+    Traceback (most recent call last):
+    ...
+    ValueError: The smallest possible index value of parameter `transitions` of \
+element `?` is 1, but 0 is given.
+
+    >>> transitions
+    transitions(-999999)
+
+    The same logic holds for the "highest" height/width pair:
+
+    >>> transitions(1, 4, 6)
+    Traceback (most recent call last):
+    ...
+    ValueError: The largest possible index value of parameter `transitions` of element \
+`?` is 5 (NmbWidths - 2), but 6 is given.
+
+    >>> transitions
+    transitions(-999999)
+
+    Besides this, one must ensure that the index values are correctly sorted:
+
+    >>> transitions(1, 4, 4)
+    Traceback (most recent call last):
+    ...
+    ValueError: The index values given to parameter `transitions` of element `?` are \
+not strictly rising (1, 4, and 4).
+
+    >>> transitions
+    transitions(-999999)
+    """
+
+    NDIM, TYPE, TIME, SPAN = 1, int, None, (1, None)
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        if isinstance(p, NmbSectors):
+            self.__hydpy__change_shape_if_necessary__((p.value - 1,))
 
     def __call__(self, *args, **kwargs) -> None:
-        super().__call__(*args, **kwargs)
+        if (self.shape[0] > 0) or args or kwargs:
+            super().__call__(*args, **kwargs)
+            if self.shape[0] > 0:
+                values = self.values
+                if not numpy.all(values[:-1] < values[1:]):
+                    self.values = variabletools.INT_NAN
+                    raise ValueError(
+                        f"The index values given to parameter "
+                        f"{objecttools.elementphrase(self)} are not strictly rising "
+                        f"({objecttools.enumeration(values)})."
+                    )
+                if values[0] < 1:
+                    self.values = variabletools.INT_NAN
+                    raise ValueError(
+                        f"The smallest possible index value of parameter "
+                        f"{objecttools.elementphrase(self)} is 1, but {values[0]} is "
+                        f"given."
+                    )
+                if values[-1] > (max_ := self.subpars.nmbwidths.value - 2):
+                    self.values = variabletools.INT_NAN
+                    raise ValueError(
+                        f"The largest possible index value of parameter "
+                        f"{objecttools.elementphrase(self)} is {max_} (NmbWidths - 2), "
+                        f"but {values[-1]} is given."
+                    )
 
-        shape = self.value
-        model = self.subpars.pars.model
-        pars, seqs = model.parameters, model.sequences
-        all_subvars: tuple[variabletools.SubVariables, ...] = (
-            pars.control,
-            pars.derived,
-            seqs.factors,
-            seqs.fluxes,
-        )
-        for subvars in all_subvars:
-            for var_ in (v for v in subvars if v.NDIM == 1):
-                if shape != exceptiontools.getattr_(var_, "shape", None):
-                    var_.shape = shape
+    def trim(self, lower=None, upper=None) -> bool:
+        """Regular trimming is disabled in favour of the special checks described in the
+        main documentation of parameter |Transitions|."""
+        return False
+
+    def __repr__(self) -> str:
+        if (self.subpars.nmbsectors == 1) and (self.shape[0] == 0):
+            return f"{self.name}()"
+        return super().__repr__()
 
 
-class BottomLevels(parametertools.Parameter):
+class BottomLevels(wq_variables.MixinTrapezes, parametertools.SortedParameter):
     """The bottom level for each trapeze [m].
 
     If water levels are essential, we encourage using the sea level as a reference.  If
@@ -38,10 +265,10 @@ class BottomLevels(parametertools.Parameter):
     trapeze's bottom level to zero.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE, TIME, SPAN = float, None, (None, None)
 
 
-class BottomWidths(parametertools.Parameter):
+class BottomWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The bottom width for each trapeze [m].
 
 
@@ -50,10 +277,10 @@ class BottomWidths(parametertools.Parameter):
     right sides of the first trapeze.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
 
-class SideSlopes(parametertools.Parameter):
+class SideSlopes(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The side slope for each trapeze[-].
 
     A value of zero corresponds to a rectangular shape.  A value of two corresponds to
@@ -61,17 +288,53 @@ class SideSlopes(parametertools.Parameter):
     trapeze's centre.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
 
-class StricklerCoefficients(parametertools.Parameter):
-    """Manning-Strickler coefficient for each trapeze [m^(1/3)/s].
+class StricklerCoefficients(
+    wq_variables.MixinTrapezesOrSectors, parametertools.Parameter
+):
+    """Manning-Strickler coefficient for each trapeze or sector [m^(1/3)/s].
 
     The higher the coefficient's value, the higher the calculated discharge.  Typical
     values range from 20 to 80.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+
+class CalibrationFactors(wq_variables.MixinTrapezesOrSectors, parametertools.Parameter):
+    """Calibration factor for each trapeze or sector [-]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+    INIT = 1.0
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> import warnings
+        >>> warnings.filterwarnings("error")
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbtrapezes(2)
+        >>> calibrationfactors.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`calibrationfactors` (introduced in HydPy 6.2), has not been explicitly defined and \
+is automatically set to `1.0`.  We will remove this fallback mechanism in HydPy 8.0; \
+therefore, please consider updating your model setup.
+
+        >>> calibrationfactors
+        calibrationfactors(1.0)
+
+        >>> calibrationfactors(2.0)
+        >>> calibrationfactors
+        calibrationfactors(2.0)
+        """
+        self._update_newbie(value=1.0, version="6.2")
 
 
 class BottomSlope(parametertools.Parameter):

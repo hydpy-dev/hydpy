@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
@@ -1566,11 +1565,12 @@ from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.core import importtools
 from hydpy.core import modeltools
+from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import routinginterfaces
 
-# ...from musk
+# ...from sw1d
 from hydpy.models.sw1d import sw1d_control
 from hydpy.models.sw1d import sw1d_derived
 from hydpy.models.sw1d import sw1d_model
@@ -1594,7 +1594,8 @@ class Model(modeltools.SubstepModel, routinginterfaces.ChannelModel_V1):
     )
     __HYDPY_ROOTMODEL__ = True
 
-    INLET_METHODS = (sw1d_model.Trigger_Preprocessing_V1,)
+    INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         sw1d_model.Calc_MaxTimeSteps_V1,
@@ -1606,10 +1607,7 @@ class Model(modeltools.SubstepModel, routinginterfaces.ChannelModel_V1):
     )
     INTERFACE_METHODS = ()
     ADD_METHODS = ()
-    OUTLET_METHODS = (
-        sw1d_model.Trigger_Postprocessing_V1,
-        sw1d_model.Calc_Discharges_V2,
-    )
+    OUTLET_METHODS = (sw1d_model.Calc_Discharges_V2,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
         routinginterfaces.RoutingModel_V1,
@@ -1987,6 +1985,26 @@ as rm2:
                 r.storagemodelupstream = su
                 r.storagemodelupstream_typeid = 1
                 su.routingmodelsdownstream.append_submodel(submodel=r)
+
+    def __hydpy__collect_sequences__(
+        self,
+        group: str,
+        sequences: list[sequencetools.InputSequence | sequencetools.LinkSequence],
+    ) -> None:
+        if group == "inlets":
+            if (routingmodel := self.routingmodels[0]) is not None:
+                routingmodel.__hydpy__collect_sequences__("inlets", sequences)
+            if (storagemodel := self.storagemodels[0]) is not None:
+                storagemodel.__hydpy__collect_sequences__("inlets", sequences)
+        elif group == "outlets":
+            if (routingmodel := self.routingmodels[-1]) is not None:
+                routingmodel.__hydpy__collect_sequences__("outlets", sequences)
+        elif group == "receivers":
+            if (routingmodel := self.routingmodels[-1]) is not None:
+                routingmodel.__hydpy__collect_sequences__("receivers", sequences)
+        elif group == "senders":
+            if (storagemodel := self.storagemodels[0]) is not None:
+                storagemodel.__hydpy__collect_sequences__("senders", sequences)
 
     def _connect_inlets(self, report_noconnect: bool = False) -> None:
         super()._connect_inlets(report_noconnect)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
@@ -1071,6 +1070,7 @@ class Model(kinw_model.BaseModelProfile):
     )
     SOLVERSEQUENCES = (kinw_fluxes.QG, kinw_fluxes.DH)
     INLET_METHODS = (kinw_model.Pick_Q_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = (kinw_model.Return_QF_V1, kinw_model.Return_H_V1)
     PART_ODE_METHODS = (
@@ -1104,8 +1104,8 @@ class Model(kinw_model.BaseModelProfile):
     def calculate_characteristiclength(
         self,
         *,
-        h: Optional[float] = None,
-        q: Optional[float] = None,
+        h: float | None = None,
+        q: float | None = None,
         dx: float = 1e-6,
         lenmin: float = 0.1,
         nmbmax: int = 50,

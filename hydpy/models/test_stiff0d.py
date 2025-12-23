@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """|test_stiff0d| is a simple test model that serves to test numerical integration
 strategies.  It can be seen from two perspectives.  On the one hand, it implements the
@@ -34,6 +33,7 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (test_model.Calc_Q_V1,)

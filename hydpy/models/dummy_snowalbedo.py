@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
 |dummy_snowalbedo| merely serves testing purposes.  We use it, for example, to perform
@@ -59,6 +58,7 @@ class Model(modeltools.AdHocModel, stateinterfaces.SnowAlbedoModel_V1):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (dummy_model.Get_SnowAlbedo_V1,)

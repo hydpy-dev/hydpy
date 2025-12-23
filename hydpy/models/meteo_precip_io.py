@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """Use |meteo_precip_io| as a submodel to supply (relative) main models like
 |evap_pet_hbv96| with externally available precipitation time series.
@@ -55,6 +54,7 @@ class Model(meteo_model.Sub_BaseModel, precipinterfaces.PrecipModel_V2):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         meteo_model.Calc_Precipitation_V1,

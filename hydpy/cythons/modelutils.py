@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ This module provides utilities to build Cython models based on Python models
 automatically.
 
@@ -271,6 +270,7 @@ Traceback (most recent call last):
 ...
 NotImplementedError: NDIM of sequence `q` is higher than expected.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -315,6 +315,9 @@ else:
     build = exceptiontools.OptionalImport("build", ["Cython.Build"], locals())
 
 
+Pegasus_IMPL_EULER = "PegasusImplEuler"
+
+
 def get_dllextension() -> str:
     """Return the DLL file extension for the current operating system.
 
@@ -343,7 +346,7 @@ _dllextension = get_dllextension()
 
 INT = "numpy.int64_t"
 
-TYPE2STR: dict[Union[type[Any], str, None], str] = {  # pylint: disable=duplicate-key
+TYPE2STR: dict[type[Any] | str | None, str] = {  # pylint: disable=duplicate-key
     bool: "numpy.npy_bool",
     "bool": "numpy.npy_bool",
     int: INT,
@@ -570,7 +573,7 @@ Python processes and restart the cythonization afterwards.
                     f"cythonization afterwards.",
                 )
     else:
-        raise IOError(
+        raise OSError(
             f"After trying to cythonize `{pyname}`, the resulting file "
             f"`{cyname}{_dllextension}` could not be found in directory "
             f"`{objecttools.repr_(buildpath)}` nor any of its subdirectories.  The "
@@ -587,7 +590,7 @@ class Cythonizer:
     Sequences: type[sequencetools.Sequences]
     tester: testtools.Tester
     pymodule: str
-    _cymodule: Optional[types.ModuleType]
+    _cymodule: types.ModuleType | None
 
     def __init__(self) -> None:
         self._cymodule = None
@@ -893,8 +896,8 @@ class PyxWriter:
         add(0, "cimport numpy")
         add(
             0,
-            "from libc.math cimport exp, fabs, log, sin, cos, tan, asin, acos, atan, "
-            "isnan, isinf",
+            "from libc.math cimport exp, fabs, log, sin, cos, tan, tanh, asin, acos, "
+            "atan, isnan, isinf",
         )
         add(0, "from libc.math cimport NAN as nan")
         add(0, "from libc.math cimport INFINITY as inf")
@@ -1000,20 +1003,12 @@ class PyxWriter:
                 pyx(1, "pass")
             for seq in subseqs:
                 ctype = f"double{NDIM2STR[seq.NDIM]}"
-                if isinstance(subseqs, sqt.LinkSequences):
-                    if seq.NDIM == 0:
-                        pxd(1, f"cdef double *{seq.name}")
-                    elif seq.NDIM == 1:
-                        pxd(1, f"cdef double **{seq.name}")
-                        pxd(1, f"cdef public {INT} len_{seq.name}")
-                        pxd(1, f"cdef public {TYPE2STR[int]}[:] _{seq.name}_ready")
-                else:
-                    pxd(1, f"cdef public {ctype} {seq.name}")
+                pxd(1, f"cdef public {ctype} {seq.name}")
                 pxd(1, f"cdef public {INT} _{seq.name}_ndim")
                 pxd(1, f"cdef public {INT} _{seq.name}_length")
                 for idx in range(seq.NDIM):
                     pxd(1, f"cdef public {INT} _{seq.name}_length_{idx}")
-                if seq.NUMERIC:
+                if seq.NUMERIC and isinstance(self.model, modeltools.ELSModel):
                     ctype_numeric = "double" + NDIM2STR[seq.NDIM + 1]
                     pxd(1, f"cdef public {ctype_numeric} _{seq.name}_points")
                     pxd(1, f"cdef public {ctype_numeric} _{seq.name}_results")
@@ -1022,13 +1017,20 @@ class PyxWriter:
                         pxd(1, f"cdef public {ctype} _{seq.name}_sum")
                 if isinstance(seq, sqt.IOSequence):
                     self.iosequence(lines, seq)
+                if isinstance(subseqs, sqt.LinkSequences):
+                    if seq.NDIM == 0:
+                        pxd(1, f"cdef double *_{seq.name}_pointer")
+                    elif seq.NDIM == 1:
+                        pxd(1, f"cdef double **_{seq.name}_pointer")
+                        pxd(1, f"cdef public {INT} len_{seq.name}")
+                        pxd(1, f"cdef public {TYPE2STR[int]}[:] _{seq.name}_ready")
             if isinstance(subseqs, sqt.IOSequences):
                 self.load_data(lines, subseqs)
                 self.save_data(lines, subseqs)
             if isinstance(subseqs, sqt.LinkSequences):
                 self.set_pointer(lines, subseqs)
-                self.get_value(lines, subseqs)
-                self.set_value(lines, subseqs)
+                self.get_pointervalue(lines, subseqs)
+                self.set_pointervalue(lines, subseqs)
             if isinstance(subseqs, (sqt.InputSequences, sqt.OutputSequences)):
                 self.set_pointer(lines, subseqs)
             if isinstance(subseqs, sqt.OutputSequences):
@@ -1171,11 +1173,11 @@ class PyxWriter:
     def set_pointer(
         self,
         lines: PyxPxdLines,
-        subseqs: Union[
-            sequencetools.InputSequences,
-            sequencetools.OutputSequences[Any],
-            sequencetools.LinkSequences[Any],
-        ],
+        subseqs: (
+            sequencetools.InputSequences
+            | sequencetools.OutputSequences[Any]
+            | sequencetools.LinkSequences[Any]
+        ),
     ) -> None:
         """Set pointer statements for all input, output, and link sequences."""
         if isinstance(subseqs, sequencetools.InputSequences):
@@ -1186,8 +1188,8 @@ class PyxWriter:
             if any(seq.NDIM == 0 for seq in subseqs):
                 self.set_pointer0d(lines, subseqs)
             if any(seq.NDIM == 1 for seq in subseqs):
-                self.alloc(lines, subseqs)
-                self.dealloc(lines, subseqs)
+                self.alloc_pointers(lines, subseqs)
+                self.dealloc_pointers(lines, subseqs)
                 self.set_pointer1d(lines, subseqs)
 
     @staticmethod
@@ -1203,44 +1205,44 @@ class PyxWriter:
         pyx(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 0):
             pyx(2, f'if name == "{seq.name}":')
-            pyx(3, f"self.{seq.name} = pointer.p_value")
+            pyx(3, f"self._{seq.name}_pointer = pointer.p_value")
 
     @staticmethod
-    def get_value(
+    def get_pointervalue(
         lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
     ) -> None:
-        """Get value statements for link sequences."""
+        """Get pointer value statements for link sequences."""
         print("            . get_value")
         pyx, both = lines.pyx.add, lines.add
-        both(1, "cpdef get_value(self, str name):")
+        both(1, "cpdef get_pointervalue(self, str name):")
         pyx(2, f"cdef {INT} idx")
         for seq in subseqs:
             pyx(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
-                pyx(3, f"return self.{seq.name}[0]")
+                pyx(3, f"return self._{seq.name}_pointer[0]")
             elif seq.NDIM == 1:
                 pyx(3, f"values = numpy.empty(self.len_{seq.name})")
                 pyx(3, f"for idx in range(self.len_{seq.name}):")
                 PyxWriter._check_pointer(lines, seq)
-                pyx(4, f"values[idx] = self.{seq.name}[idx][0]")
+                pyx(4, f"values[idx] = self._{seq.name}_pointer[idx][0]")
                 pyx(3, "return values")
 
     @staticmethod
-    def set_value(
+    def set_pointervalue(
         lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
     ) -> None:
-        """Set value statements for link sequences."""
-        print("            . set_value")
+        """Set pointer value statements for link sequences."""
+        print("            . set_pointervalue")
         pyx, both = lines.pyx.add, lines.add
         both(1, "cpdef set_value(self, str name, value):")
         for seq in subseqs:
             pyx(2, f'if name == "{seq.name}":')
             if seq.NDIM == 0:
-                pyx(3, f"self.{seq.name}[0] = value")
+                pyx(3, f"self._{seq.name}_pointer[0] = value")
             elif seq.NDIM == 1:
                 pyx(3, f"for idx in range(self.len_{seq.name}):")
                 PyxWriter._check_pointer(lines, seq)
-                pyx(4, f"self.{seq.name}[idx][0] = value[idx]")
+                pyx(4, f"self._{seq.name}_pointer[idx][0] = value[idx]")
 
     @staticmethod
     def _check_pointer(lines: PyxPxdLines, seq: sequencetools.LinkSequence) -> None:
@@ -1251,11 +1253,13 @@ class PyxWriter:
         pyx(5, f"pointerutils.check2(self._{seq.name}_ready, idx)")
 
     @staticmethod
-    def alloc(lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]) -> None:
+    def alloc_pointers(
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+    ) -> None:
         """Allocate memory statements for 1-dimensional link sequences."""
         print("            . setlength")
         pyx, both = lines.pyx.add, lines.add
-        both(1, f"cpdef inline alloc(self, name, {TYPE2STR[int]} length):")
+        both(1, f"cpdef inline alloc_pointer(self, name, {TYPE2STR[int]} length):")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
             pyx(2, f'if name == "{seq.name}":')
             pyx(3, f"self._{seq.name}_length_0 = length")
@@ -1266,19 +1270,21 @@ class PyxWriter:
             )
             pyx(
                 3,
-                f"self.{seq.name} = "
+                f"self._{seq.name}_pointer = "
                 f"<double**> PyMem_Malloc(length * sizeof(double*))",
             )
 
     @staticmethod
-    def dealloc(lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]) -> None:
+    def dealloc_pointers(
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+    ) -> None:
         """Deallocate memory statements for 1-dimensional link sequences."""
         print("            . dealloc")
         pyx, both = lines.pyx.add, lines.add
-        both(1, "cpdef inline dealloc(self, name):")
+        both(1, "cpdef inline dealloc_pointer(self, name):")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
             pyx(2, f'if name == "{seq.name}":')
-            pyx(3, f"PyMem_Free(self.{seq.name})")
+            pyx(3, f"PyMem_Free(self._{seq.name}_pointer)")
 
     @staticmethod
     def set_pointer1d(
@@ -1295,7 +1301,7 @@ class PyxWriter:
         pyx(2, "cdef pointerutils.PDouble pointer = pointerutils.PDouble(value)")
         for seq in (seq for seq in subseqs if seq.NDIM == 1):
             pyx(2, f'if name == "{seq.name}":')
-            pyx(3, f"self.{seq.name}[idx] = pointer.p_value")
+            pyx(3, f"self._{seq.name}_pointer[idx] = pointer.p_value")
             pyx(3, f"self._{seq.name}_ready[idx] = 1")
 
     @classmethod
@@ -1387,8 +1393,10 @@ class PyxWriter:
 
     def submodels(self, lines: PyxPxdLines) -> None:
         """Submodel declaration lines."""
+
+        pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
+
         for submodel in self.model.SUBMODELS:
-            pyx, pxd, both = lines.pyx.add, lines.pxd.add, lines.add
             both(0, "@cython.final")
             cls = submodel.CYTHONBASECLASS
             both(
@@ -1402,6 +1410,15 @@ class PyxWriter:
             for idx, method in enumerate(submodel.METHODS):
                 both(1, f"cpdef double apply_method{idx}(self, double x) {_nogil}:")
                 pyx(2, f"return self.model.{method.__name__.lower()}(x)")
+
+        if isinstance(self.model, modeltools.ELSIEModel):
+            both(0, "@cython.final")
+            both(0, f"cdef class {Pegasus_IMPL_EULER}(rootutils.PegasusBase):")
+            pxd(1, "cdef public Model model")
+            pyx(1, "def __init__(self, Model model):")
+            pyx(2, "self.model = model")
+            both(1, f"cpdef double apply_method0(self, double x) {_nogil}:")
+            pyx(2, "return self.model.calculate_backwards_error(x)")
 
     def modeldeclarations(self, lines: PyxPxdLines) -> None:
         """The attribute declarations of the model class."""
@@ -1431,8 +1448,10 @@ class PyxWriter:
             both(0, "cdef class Model:")
         for cls in inspect.getmro(type(self.model)):
             for name, member in vars(cls).items():
-                if isinstance(member, modeltools.IndexProperty):
-                    if (name != "idx_sim") or not follows_interface:
+                if isinstance(member, modeltools.SharedProperty):
+                    if name == "threading":
+                        pxd(1, f"cdef public {TYPE2STR[bool]} {name}")
+                    elif (name != "idx_sim") or not follows_interface:
                         pxd(1, f"cdef public {INT} {name}")
         if isinstance(self.model, modeltools.SubstepModel):
             pxd(1, f"cdef public {TYPE2STR[float]} timeleft")
@@ -1449,6 +1468,8 @@ class PyxWriter:
                 pxd(1, f"cdef public {TYPE2STR[int]} {name}_typeid")
         for submodel in submodeltypes_old:
             pxd(1, f"cdef public {submodel.__name__} {submodel.name}")
+        if isinstance(self.model, modeltools.ELSIEModel):
+            pxd(1, f"cdef public {Pegasus_IMPL_EULER} {Pegasus_IMPL_EULER.lower()}")
         if hasattr(self.model, "numconsts"):
             pxd(1, "cdef public NumConsts numconsts")
         if hasattr(self.model, "numvars"):
@@ -1465,7 +1486,10 @@ class PyxWriter:
                     pyx(2, f"self.{name}_is_mainmodel = False")
             for submodel in submodeltypes_old:
                 pyx(2, f"self.{submodel.name} = {submodel.__name__}(self)")
-        baseinterface = "Optional[masterinterface.MasterInterface]"
+            if isinstance(self.model, modeltools.ELSIEModel):
+                name = Pegasus_IMPL_EULER
+                pyx(2, f"self.{name.lower()} = {name}(self)")
+        baseinterface = "masterinterface.MasterInterface | None"
         for name in submodelnames_new:
             if not name.endswith("_*"):
                 pyx(1, f"def get_{name}(self) -> {baseinterface}:")
@@ -1478,6 +1502,7 @@ class PyxWriter:
     def modelstandardfunctions(self, lines: PyxPxdLines) -> None:
         """The standard functions of the model class."""
         self.simulate(lines)
+        self.simulate_period(lines)
         self.reset_reuseflags(lines)
         self.iofunctions(lines)
         self.new2old(lines)
@@ -1485,6 +1510,7 @@ class PyxWriter:
             self.run(lines, self.model)
         self.update_inlets(lines)
         self.update_outlets(lines)
+        self.update_observers(lines)
         self.update_receivers(lines)
         self.update_senders(lines)
         self.update_outputs_model(lines)
@@ -1492,6 +1518,7 @@ class PyxWriter:
     def modelnumericfunctions(self, lines: PyxPxdLines) -> None:
         """Numerical integration functions of the model class."""
         if isinstance(self.model, modeltools.SolverModel):
+            self.convert_normal_method("stop_els", lines)
             self.solve(lines)
             self.calculate_single_terms(lines, self.model)
             self.calculate_full_terms(lines, self.model)
@@ -1505,33 +1532,83 @@ class PyxWriter:
             self.reset_sum_fluxes(lines)
             self.addup_fluxes(lines)
             self.calculate_error(lines)
-            self.extrapolate_error(lines)
+            self.convert_normal_method("extrapolate_error", lines)
+            if isinstance(self.model, modeltools.ELSIEModel):
+                self.convert_normal_method("apply_implicit_euler_fallback", lines)
+                self.convert_normal_method("determine_ytol", lines)
+                self.convert_normal_method("calculate_backwards_error", lines)
+                self.convert_normal_method("adjust_backwards_error", lines)
+                self.convert_normal_method("get_state_old", lines)
+                self.convert_normal_method("set_state_old", lines)
+                self.convert_normal_method("get_state_new", lines)
+                self.convert_normal_method("set_state_new", lines)
+                self.convert_normal_method("get_state_min", lines)
+                self.convert_normal_method("get_state_max", lines)
+
+    @property
+    def has_submodels(self) -> bool:
+        """Can the model handle any submodels?"""
+        return bool(
+            self.model.find_submodels(
+                include_optional=True,
+                include_subsubmodels=False,
+                aggregate_vectors=True,
+            )
+        )
 
     def simulate(self, lines: PyxPxdLines) -> None:
         """Simulation statements."""
         print("                . simulate")
         pyx, both = lines.pyx.add, lines.add
         both(1, f"cpdef inline void simulate(self, {INT} idx) {_nogil}:")
+        pyx(2, f"cdef {TYPE2STR[float]} state")
         pyx(2, "self.idx_sim = idx")
         if self.model.REUSABLE_METHODS or self.model.find_submodels(
             include_optional=True, include_subsubmodels=False, repeat_sharedmodels=True
         ):
             pyx(2, "self.reset_reuseflags()")
         seqs = self.model.sequences
-        if seqs.inputs or self.model.SUBMODELINTERFACES:
+        if (
+            seqs.inputs
+            or seqs.inlets
+            or seqs.observers
+            or seqs.receivers
+            or self.model.SUBMODELINTERFACES
+        ):
             pyx(2, "self.load_data(idx)")
-        if self.model.INLET_METHODS:
+        if self.model.INLET_METHODS or self.has_submodels:
             pyx(2, "self.update_inlets()")
+        if self.model.OBSERVER_METHODS or self.has_submodels:
+            pyx(2, "self.update_observers()")
         if isinstance(self.model, modeltools.SolverModel):
-            pyx(2, "self.solve()")
+            if isinstance(self.model, modeltools.ELSIEModel):
+                pyx(2, "state = self.get_state_old()")
+                pyx(2, "if not self.solve():")
+                pyx(3, "self.set_state_old(state)")
+                pyx(3, "self.apply_implicit_euler_fallback()")
+                pyx(3, "self.new2old()")
+            else:
+                pyx(2, "self.solve()")
         else:
             pyx(2, "self.run()")
             if seqs.states:
                 pyx(2, "self.new2old()")
-        if self.model.OUTLET_METHODS:
+        if self.model.OUTLET_METHODS or self.has_submodels:
             pyx(2, "self.update_outlets()")
         if seqs.factors or seqs.fluxes or seqs.states:
             pyx(2, "self.update_outputs()")
+
+    def simulate_period(self, lines: PyxPxdLines) -> None:
+        """Simulate period statements."""
+        pyx, both = lines.pyx.add, lines.add
+        both(1, f"cpdef void simulate_period(self, {INT} i0, {INT} i1) {_nogil}:")
+        pyx(2, f"cdef {INT} i")
+        pyx(2, "with nogil:")
+        pyx(3, "for i in range(i0, i1):")
+        pyx(4, "self.simulate(i)")
+        pyx(4, "self.update_senders(i)")
+        pyx(4, "self.update_receivers(i)")
+        pyx(4, "self.save_data(i)")
 
     def _call_submodel_method(self, lines: PyxPxdLines, methodcall: str) -> None:
         name2submodel = self.model.find_submodels(
@@ -1589,6 +1666,7 @@ class PyxWriter:
                 self.sequences.factors.save_data(idx)
                 self.sequences.fluxes.save_data(idx)
                 self.sequences.states.save_data(idx)
+                self.sequences.outlets.save_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.save_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
@@ -1613,6 +1691,7 @@ class PyxWriter:
             cpdef void save_data(self, ...int... idx) noexcept nogil:
                 self.idx_sim = idx
                 self.sequences.inputs.save_data(idx)
+                self.sequences.outlets.save_data(idx)
                 if (self.aetmodel is not None) and not self.aetmodel_is_mainmodel:
                     self.aetmodel.save_data(idx)
                 if (self.rconcmodel is not None) and not self.rconcmodel_is_mainmodel:
@@ -1620,6 +1699,11 @@ class PyxWriter:
         <BLANKLINE>
 
         >>> pyxwriter.model.sequences.inputs = None
+        >>> pyxwriter.model.sequences.inlets = None
+        >>> pyxwriter.model.sequences.outlets = None
+        >>> pyxwriter.model.sequences.observers = None
+        >>> pyxwriter.model.sequences.receivers = None
+        >>> pyxwriter.model.sequences.senders = None
         >>> lines.pyx.clear()
         >>> pyxwriter.iofunctions(lines)
         >>> lines.pyx  # doctest: +ELLIPSIS
@@ -1627,12 +1711,26 @@ class PyxWriter:
         <BLANKLINE>
         """
         seqs = self.model.sequences
-        if not (seqs.inputs or seqs.factors or seqs.fluxes or seqs.states):
+        if not (
+            seqs.inputs
+            or seqs.factors
+            or seqs.fluxes
+            or seqs.states
+            or seqs.inlets
+            or seqs.outlets
+            or seqs.observers
+            or seqs.receivers
+            or seqs.senders
+        ):
             return
         pyx, both = lines.pyx.add, lines.add
         for func in ("load_data", "save_data"):
             if (func == "load_data") and not (
-                seqs.inputs or self.model.SUBMODELINTERFACES
+                seqs.inputs
+                or seqs.inlets
+                or seqs.observers
+                or seqs.receivers
+                or self.model.SUBMODELINTERFACES
             ):
                 continue
             print(f"            . {func}")
@@ -1641,9 +1739,24 @@ class PyxWriter:
             pyx(2, "self.idx_sim = idx")
             for subseqs in seqs:
                 if func == "load_data":
-                    applyfuncs: tuple[str, ...] = ("inputs",)
+                    applyfuncs: tuple[str, ...] = (
+                        "inputs",
+                        "inlets",
+                        "observers",
+                        "receivers",
+                    )
                 else:
-                    applyfuncs = ("inputs", "factors", "fluxes", "states")
+                    applyfuncs = (
+                        "inputs",
+                        "factors",
+                        "fluxes",
+                        "states",
+                        "inlets",
+                        "outlets",
+                        "observers",
+                        "receivers",
+                        "senders",
+                    )
                 if subseqs.name in applyfuncs:
                     pyx(2, f"self.sequences.{subseqs.name}." f"{func}(idx)")
             self._call_submodel_method(lines, f"{func}(idx)")
@@ -1688,14 +1801,18 @@ class PyxWriter:
 
     def _call_methods(
         self,
+        *,
         lines: PyxPxdLines,
         name: str,
         methods: tuple[type[modeltools.Method], ...],
         idx_as_arg: bool = False,
+        inline: bool = True,
     ) -> None:
         if hasattr(self.model, name):
             pyx, both = lines.pyx.add, lines.add
-            both(1, get_methodheader(name, nogil=True, idxarg=idx_as_arg))
+            both(
+                1, get_methodheader(name, nogil=True, idxarg=idx_as_arg, inline=inline)
+            )
             if idx_as_arg:
                 pyx(2, "self.idx_sim = idx")
             anything = False
@@ -1719,13 +1836,66 @@ class PyxWriter:
             for method in methods:
                 pyx(4, f"self.{method.__name__.lower()}()")
 
-    def update_receivers(self, lines: PyxPxdLines) -> None:
-        """Lines of the model method with the same name."""
-        self._call_methods(lines, "update_receivers", self.model.RECEIVER_METHODS, True)
-
     def update_inlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._call_methods(lines, "update_inlets", self.model.INLET_METHODS)
+        self._update_inlets_receivers_observers(
+            lines=lines, group="inlets", idx_as_arg=False
+        )
+
+    def update_observers(self, lines: PyxPxdLines) -> None:
+        """Lines of the model method with the same name."""
+        self._update_inlets_receivers_observers(
+            lines=lines, group="observers", idx_as_arg=False
+        )
+
+    def update_receivers(self, lines: PyxPxdLines) -> None:
+        """Lines of the model method with the same name."""
+        self._update_inlets_receivers_observers(
+            lines=lines, group="receivers", idx_as_arg=True
+        )
+
+    def _update_inlets_receivers_observers(
+        self, lines: PyxPxdLines, group: str, idx_as_arg: bool
+    ) -> None:
+
+        new_lines = PyxPxdLines()
+
+        methods = getattr(self.model, f"{group[:-1].upper()}_METHODS")
+        self._call_methods(
+            lines=new_lines,
+            name=f"update_{group}",
+            methods=methods,
+            idx_as_arg=idx_as_arg,
+            inline=False,
+        )
+
+        lines.pxd.append(new_lines.pxd[0])
+        lines.pyx.extend(new_lines.pyx[: 1 + idx_as_arg])
+        if new_lines.pyx[-1].endswith(" pass") and self.has_submodels:
+            del new_lines.pyx[-1]
+
+        methodcall = f"update_{group}({'idx' if idx_as_arg else ''})"
+        self._call_submodel_method(lines=lines, methodcall=methodcall)
+
+        pyx = lines.pyx.add
+        pyx(2, f"cdef {INT} i")
+        for seq in self.model.sequences[group]:
+            pyx(2, "if not self.threading:")
+            group_ = f"self.sequences.{group}"
+            pointer = f"{group_}._{seq.name}_pointer"
+            value = f"{group_}.{seq.name}"
+            if seq.NDIM == 0:
+                pyx(3, f"{value} = {pointer}[0]")
+            elif seq.NDIM == 1:
+                pyx(3, f"for i in range({group_}._{seq.name}_length_0):")
+                pyx(4, f"if {group_}._{seq.name}_ready[i]:")
+                pyx(5, f"{value}[i] = {pointer}[i][0]")
+                pyx(4, "else:")
+                pyx(5, f"{value}[i] = nan")
+            else:
+                assert False
+
+        lines.pyx.extend(new_lines.pyx[1 + idx_as_arg :])
 
     def run(self, lines: PyxPxdLines, model: modeltools.RunModel) -> None:
         """Return the lines of the model method with the same name."""
@@ -1733,7 +1903,7 @@ class PyxWriter:
             self._call_runmethods_segmentwise(lines, model.RUN_METHODS)
         else:
             nmb = len(lines.pyx)
-            self._call_methods(lines, "run", model.RUN_METHODS)
+            self._call_methods(lines=lines, name="run", methods=model.RUN_METHODS)
             if isinstance(model, modeltools.SubstepModel):
                 pyx = Lines()
                 pyx.extend(lines.pyx[: nmb + 1])
@@ -1749,26 +1919,73 @@ class PyxWriter:
 
     def update_outlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._call_methods(lines, "update_outlets", self.model.OUTLET_METHODS)
+        self._update_outlets_senders(lines=lines, group="outlets", idx_as_arg=False)
 
     def update_senders(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._call_methods(lines, "update_senders", self.model.SENDER_METHODS, True)
+        self._update_outlets_senders(lines=lines, group="senders", idx_as_arg=True)
+
+    def _update_outlets_senders(
+        self, lines: PyxPxdLines, group: str, idx_as_arg: bool
+    ) -> None:
+
+        new_lines = PyxPxdLines()
+
+        methods = getattr(self.model, f"{group[:-1].upper()}_METHODS")
+        self._call_methods(
+            lines=new_lines,
+            name=f"update_{group}",
+            methods=methods,
+            idx_as_arg=idx_as_arg,
+            inline=False,
+        )
+
+        lines.pxd.append(new_lines.pxd[0])
+        lines.pyx.extend(new_lines.pyx[: 1 + idx_as_arg])
+        if new_lines.pyx[-1].endswith(" pass") and self.has_submodels:
+            del new_lines.pyx[-1]
+
+        methodcall = f"update_{group}({'idx' if idx_as_arg else ''})"
+        self._call_submodel_method(lines=lines, methodcall=methodcall)
+
+        lines.pyx.extend(new_lines.pyx[1 + idx_as_arg :])
+
+        pyx = lines.pyx.add
+        pyx(2, f"cdef {INT} i")
+        for seq in self.model.sequences[group]:
+            pyx(2, "if not self.threading:")
+            group_ = f"self.sequences.{group}"
+            pointer = f"{group_}._{seq.name}_pointer"
+            value = f"{group_}.{seq.name}"
+            if seq.NDIM == 0:
+                pyx(3, f"{pointer}[0] = {pointer}[0] + {value}")
+            elif seq.NDIM == 1:
+                pyx(3, f"for i in range({group_}._{seq.name}_length_0):")
+                pyx(4, f"if {group_}._{seq.name}_ready[i]:")
+                pyx(5, f"{pointer}[i][0] = {pointer}[i][0] + {value}[i]")
+            else:
+                assert False
 
     def update_outputs_model(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name (except the `_model` suffix)."""
         pyx, both = lines.pyx.add, lines.add
-        both(1, get_methodheader("update_outputs", nogil=True, idxarg=False))
+        both(
+            1,
+            get_methodheader("update_outputs", nogil=True, idxarg=False, inline=False),
+        )
         factors = self._filter_outputsequences(self.model.sequences.factors)
         fluxes = self._filter_outputsequences(self.model.sequences.fluxes)
         states = self._filter_outputsequences(self.model.sequences.states)
-        if factors:
-            pyx(2, "self.sequences.factors.update_outputs()")
-        if fluxes:
-            pyx(2, "self.sequences.fluxes.update_outputs()")
-        if states:
-            pyx(2, "self.sequences.states.update_outputs()")
-        if not (factors or fluxes or states):
+        if factors or fluxes or states:
+            pyx(2, "if not self.threading:")
+            if factors:
+                pyx(3, "self.sequences.factors.update_outputs()")
+            if fluxes:
+                pyx(3, "self.sequences.fluxes.update_outputs()")
+            if states:
+                pyx(3, "self.sequences.states.update_outputs()")
+            self._call_submodel_method(lines=lines, methodcall="update_outputs()")
+        else:
             pyx(2, "pass")
 
     def update_outputs(
@@ -1791,7 +2008,9 @@ class PyxWriter:
     ) -> None:
         """Return the lines of the model method with the same name."""
         nmb = len(lines.pyx)
-        self._call_methods(lines, "calculate_single_terms", model.PART_ODE_METHODS)
+        self._call_methods(
+            lines=lines, name="calculate_single_terms", methods=model.PART_ODE_METHODS
+        )
         if len(lines.pyx) > nmb:
             lines.pyx.insert(
                 nmb + 1, ("        self.numvars.nmb_calls = self.numvars.nmb_calls + 1")
@@ -1801,7 +2020,9 @@ class PyxWriter:
         self, lines: PyxPxdLines, model: modeltools.SolverModel
     ) -> None:
         """Return the lines of the model method with the same name."""
-        self._call_methods(lines, "calculate_full_terms", model.FULL_ODE_METHODS)
+        self._call_methods(
+            lines=lines, name="calculate_full_terms", methods=model.FULL_ODE_METHODS
+        )
 
     @property
     def name2function_method(self) -> dict[str, types.MethodType]:
@@ -1835,8 +2056,8 @@ class PyxWriter:
     def interfacemethods(self) -> set[str]:
         """The full and abbreviated names of the selected model's interface methods."""
         if hasattr(self.model, "INTERFACE_METHODS"):
-            interfaces = set(m.__name__.lower() for m in self.model.INTERFACE_METHODS)
-            interfaces.update(set(i.rpartition("_")[0] for i in interfaces))
+            interfaces = {m.__name__.lower() for m in self.model.INTERFACE_METHODS}
+            interfaces.update({i.rpartition("_")[0] for i in interfaces})
             return interfaces
         return set()
 
@@ -1920,7 +2141,7 @@ class PyxWriter:
         subseqs: Iterable[sequencetools.IOSequence],
         subseqs_name: str,
         target: str,
-        index: Optional[str],
+        index: str | None,
         load: bool,
     ) -> Iterator[str]:
         subseqs = list(subseqs)
@@ -1932,6 +2153,8 @@ class PyxWriter:
             from1, to1 = to1, from1
         yield from cls._declare_idxs(subseqs)
         for seq in subseqs:
+            if not seq.NUMERIC:
+                continue
             from2 = from1 % seq.name
             to2 = to1 % seq.name
             if seq.NDIM == 0:
@@ -2223,14 +2446,13 @@ class PyxWriter:
                     f"NDIM of sequence `{seq.name}` is higher than expected."
                 )
 
-    def extrapolate_error(self, lines: PyxPxdLines) -> None:
-        """Extrapolate error statements."""
-        extrapolate_error = getattr(self.model, "extrapolate_error", None)
-        if extrapolate_error:
-            print("            . extrapolate_error")
-            funcconverter = FuncConverter(
-                self.model, "extrapolate_error", extrapolate_error
-            )
+    def convert_normal_method(self, name: str, lines: PyxPxdLines) -> None:
+        """Use |FuncConverter| to convert a "normal" method of the current
+        |modeltools.Model| class."""
+        func = getattr(self.model, name, None)
+        if func:
+            print(f"            . {name}")
+            funcconverter = FuncConverter(self.model, name, func)
             pyxlines = tuple(f"    {line}" for line in funcconverter.pyxlines)
             lines.pyx.extend(pyxlines)
             lines.pxd.append(pyxlines[0][:-1])
@@ -2239,9 +2461,9 @@ class PyxWriter:
         """Write a stub file for the actual base or application model.
 
         At the moment, *HydPy* creates model objects quite dynamically.  In many
-        regards, this comes with lots of conveniences.  However, there two critical
-        drawbacks compared to more static approaches: some amount of additional
-        initialisation time and, more important, much opaqueness for code inspection
+        regards, this comes with lots of conveniences.  However, there are two critical
+        drawbacks compared to more static approaches: Some amount of additional
+        initialisation time and, more importantly, much opaqueness for code inspection
         tools.  In this context, we experiment with "stub files" at the moment.  These
         could either contain typing information only or define statically predefined
         model classes.  The following example uses method |PyxWriter.write_stubfile| to
@@ -2269,7 +2491,6 @@ class PyxWriter:
         base = ".".join(self.model.__module__.split(".")[:3])
         with open(filepath, "w", encoding=config.ENCODING) as stubfile:
             stubfile.write(
-                f"# -*- coding: utf-8 -*-\n\n"
                 f"import hydpy\n"
                 f"from {base} import *\n"
                 f"from hydpy.core.parametertools import (\n"
@@ -2359,14 +2580,14 @@ class FuncConverter:
 
     model: modeltools.Model
     funcname: str
-    func: Union[types.MethodType, Callable[[modeltools.Model], None]]
+    func: types.MethodType | Callable[[modeltools.Model], None]
     inline: bool
 
     def __init__(
         self,
         model: modeltools.Model,
         funcname: str,
-        func: Union[types.MethodType, Callable[[modeltools.Model], None]],
+        func: types.MethodType | Callable[[modeltools.Model], None],
         inline: bool = True,
     ) -> None:
         self.model = model
@@ -2510,7 +2731,7 @@ class FuncConverter:
         ]
 
     @property
-    def reusablemethod(self) -> Optional[type[modeltools.ReusableMethod]]:
+    def reusablemethod(self) -> type[modeltools.ReusableMethod] | None:
         """If the currently handled function object is a reusable method, return the
         corresponding subclass of |ReusableMethod|."""
         if isinstance(method_of_model := self.func, types.MethodType):
@@ -2700,11 +2921,9 @@ nogil:
         ...     @staticmethod
         ...     def __call__(model: Model) -> None:
         ...         cast(
-        ...             Union[
-        ...                 routinginterfaces.RoutingModel_V1,
-        ...                 routinginterfaces.RoutingModel_V2,
-        ...             ],
-        ...             model.routingmodels[0],
+        ...              routinginterfaces.RoutingModel_V1
+        ...              | routinginterfaces.RoutingModel_V2,
+        ...              model.routingmodels[0],
         ...         ).get_partialdischargedownstream()
         >>> model.calc_test_v4 = MethodType(Calc_Test_V4.__call__, model)
         >>> FuncConverter(model, "calc_test_v4", model.calc_test_v4).pyxlines
@@ -2772,7 +2991,7 @@ def get_callbackcymodule(
 
     refresh = True
     if os.path.exists(pyfilepath):
-        with open(pyfilepath, "r", encoding=config.ENCODING) as sf:
+        with open(pyfilepath, encoding=config.ENCODING) as sf:
             refresh = pycode != sf.read()
 
     if refresh:
@@ -2854,7 +3073,7 @@ def log(double: float) -> float:
 
 
 def fabs(double: float) -> float:
-    """Cython wrapper for the |math.exp| function of module |math| applied on a single
+    """Cython wrapper for the |math.fabs| function of module |math| applied on a single
     |float| object.
 
     >>> from hydpy.cythons.modelutils import fabs
@@ -2949,6 +3168,20 @@ def atan(double: float) -> float:
     call(123.4)
     """
     return numpy.arctan(double)
+
+
+def tanh(double: float) -> float:
+    """Cython wrapper for the |numpy.tanh| function of module |numpy| applied
+    on a single |float| object.
+
+    >>> from hydpy.cythons.modelutils import tanh
+    >>> from unittest import mock
+    >>> with mock.patch('numpy.tanh') as func:
+    ...     _ = tanh(123.4)
+    >>> func.call_args
+    call(123.4)
+    """
+    return numpy.tanh(double)
 
 
 def isnan(double: float) -> float:

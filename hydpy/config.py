@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module |config| allows the user to configure `HydPy`.
 
 The available options should not be changed during runtime.

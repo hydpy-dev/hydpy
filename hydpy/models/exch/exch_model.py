@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # imports...
@@ -7,18 +6,57 @@ from hydpy.core import modeltools
 from hydpy.models.exch import exch_control
 from hydpy.models.exch import exch_derived
 from hydpy.models.exch import exch_inlets
+from hydpy.models.exch import exch_observers
 from hydpy.models.exch import exch_factors
 from hydpy.models.exch import exch_fluxes
 from hydpy.models.exch import exch_logs
 from hydpy.models.exch import exch_receivers
 from hydpy.models.exch import exch_outlets
+from hydpy.models.exch import exch_senders
 
 
-class Pic_LoggedWaterLevels_V1(modeltools.Method):
+class Pick_LoggedWaterLevel_V1(modeltools.Method):
+    """Pick the logged water level from a single receiver node.
+
+    Basic equation:
+      :math:`LoggedWaterLevel = WaterLevel`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> receivers.waterlevel = 2.0
+        >>> model.pick_loggedwaterlevel_v1()
+        >>> logs.loggedwaterlevel
+        loggedwaterlevel(2.0)
+
+    """
+
+    REQUIREDSEQUENCES = (exch_receivers.WaterLevel,)
+    RESULTSEQUENCES = (exch_logs.LoggedWaterLevel,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        log = model.sequences.logs.fastaccess
+        rec = model.sequences.receivers.fastaccess
+        log.loggedwaterlevel[0] = rec.waterlevel
+
+
+class Pick_LoggedWaterLevels_V1(modeltools.Method):
     """Pic the logged water levels from two receiver nodes.
 
     Basic equation:
       :math:`LoggedWaterLevels = WaterLevels`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> receivers.waterlevels.shape = 2
+        >>> receivers.waterlevels = 2.0, 4.0
+        >>> model.pick_loggedwaterlevels_v1()
+        >>> logs.loggedwaterlevels
+        loggedwaterlevels(2.0, 4.0)
     """
 
     REQUIREDSEQUENCES = (exch_receivers.WaterLevels,)
@@ -29,7 +67,39 @@ class Pic_LoggedWaterLevels_V1(modeltools.Method):
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         for idx in range(2):
-            log.loggedwaterlevels[idx] = rec.waterlevels[idx][0]
+            log.loggedwaterlevels[idx] = rec.waterlevels[idx]
+
+
+class Pick_X_V1(modeltools.Method):
+    r"""Pick the input data from multiple input nodes and sum it up.
+
+    Basic equation:
+      :math:`X_{factors} = \sum X_{observers}`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> observernodes("n1", "n2")
+        >>> observers.x = 1.0, 2.0
+        >>> model.pick_x_v1()
+        >>> factors.x
+        x(3.0)
+    """
+
+    CONTROLPARAMETERS = (exch_control.ObserverNodes,)
+    REQUIREDSEQUENCES = (exch_observers.X,)
+    RESULTSEQUENCES = (exch_factors.X,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        obs = model.sequences.observers.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        fac.x = 0.0
+        for i in range(con.observernodes):
+            fac.x += obs.x[i]
 
 
 class Update_WaterLevels_V1(modeltools.Method):
@@ -224,6 +294,16 @@ class Pass_ActualExchange_V1(modeltools.Method):
 
     Basic equation:
       :math:`Exchange = ActualExchange`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> fluxes.actualexchange = 2.0
+        >>> outlets.exchange.shape = 2
+        >>> model.pass_actualexchange_v1()
+        >>> outlets.exchange
+        exchange(-2.0, 2.0)
     """
 
     REQUIREDSEQUENCES = (exch_fluxes.ActualExchange,)
@@ -233,8 +313,8 @@ class Pass_ActualExchange_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.exchange[0][0] -= flu.actualexchange
-        out.exchange[1][0] += flu.actualexchange
+        out.exchange[0] = -flu.actualexchange
+        out.exchange[1] = flu.actualexchange
 
 
 class Pick_OriginalInput_V1(modeltools.Method):
@@ -242,6 +322,16 @@ class Pick_OriginalInput_V1(modeltools.Method):
 
     Basic equation:
       :math:`OriginalInput = \sum Total`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> inlets.total.shape = 2
+        >>> inlets.total = 2.0, 4.0
+        >>> model.pick_originalinput_v1()
+        >>> fluxes.originalinput
+        originalinput(6.0)
     """
 
     REQUIREDSEQUENCES = (exch_inlets.Total,)
@@ -253,7 +343,7 @@ class Pick_OriginalInput_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu.originalinput = 0.0
         for idx in range(inl.len_total):
-            flu.originalinput += inl.total[idx][0]
+            flu.originalinput += inl.total[idx]
 
 
 class Calc_AdjustedInput_V1(modeltools.Method):
@@ -397,11 +487,52 @@ class Calc_Outputs_V1(modeltools.Method):
             flu.outputs[bdx] = (d_x - d_x0) * d_dy / d_dx + d_y0
 
 
+class Calc_Y_V1(modeltools.Method):
+    """Use an interpolation function to calculate the result.
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> from hydpy import PPoly
+        >>> x2y(PPoly.from_data([0.0, 1.0], [2.0, 4.0]))
+        >>> factors.x = 0.5
+        >>> model.calc_y_v1()
+        >>> factors.y
+        y(3.0)
+    """
+
+    CONTROLPARAMETERS = (exch_control.X2Y,)
+    REQUIREDSEQUENCES = (exch_factors.X,)
+    RESULTSEQUENCES = (exch_factors.Y,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        con.x2y.inputs[0] = fac.x
+        con.x2y.calculate_values()
+        fac.y = con.x2y.outputs[0]
+
+
 class Pass_Outputs_V1(modeltools.Method):
     """Update |Branched| based on |Outputs|.
 
     Basic equation:
       :math:`Branched_i = Outputs_i`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> derived.nmbbranches(2)
+        >>> fluxes.outputs.shape = 2
+        >>> fluxes.outputs = 2.0, 4.0
+        >>> outlets.branched.shape = 2
+        >>> model.pass_outputs_v1()
+        >>> outlets.branched
+        branched(2.0, 4.0)
     """
 
     DERIVEDPARAMETERS = (exch_derived.NmbBranches,)
@@ -414,18 +545,84 @@ class Pass_Outputs_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         for bdx in range(der.nmbbranches):
-            out.branched[bdx][0] += flu.outputs[bdx]
+            out.branched[bdx] = flu.outputs[bdx]
+
+
+class Pass_Y_V1(modeltools.Method):
+    """Pass the result data to an arbitrary number of sender nodes.
+
+    Basic equation:
+      :math:`Y_{senders} = Y_{factors}`
+
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> factors.y = 3.0
+        >>> senders.y.shape = 2
+        >>> model.pass_y_v1()
+        >>> senders.y
+        y(3.0, 3.0)
+    """
+
+    REQUIREDSEQUENCES = (exch_factors.Y,)
+    RESULTSEQUENCES = (exch_senders.Y,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        fac = model.sequences.factors.fastaccess
+        sen = model.sequences.senders.fastaccess
+        for i in range(sen.len_y):
+            sen.y[i] = fac.y
 
 
 class Get_WaterLevel_V1(modeltools.Method):
-    """Pick the water level from a receiver node and return it in m."""
+    """Return the water level in m.
 
-    REQUIREDSEQUENCES = (exch_receivers.WaterLevel,)
+    Example:
+
+        >>> from hydpy.models.exch import *
+        >>> parameterstep()
+        >>> logs.loggedwaterlevel = 2.0
+        >>> from hydpy import round_
+        >>> round_(model.get_waterlevel_v1())
+        2.0
+    """
+
+    REQUIREDSEQUENCES = (exch_logs.LoggedWaterLevel,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> float:
-        rec = model.sequences.receivers.fastaccess
-        return rec.waterlevel[0]
+        log = model.sequences.logs.fastaccess
+        return log.loggedwaterlevel[0]
+
+
+class Determine_Y_V1(modeltools.AutoMethod):
+    """Interface method for determining the result."""
+
+    SUBMETHODS = (Pick_X_V1, Calc_Y_V1)
+    CONTROLPARAMETERS = (exch_control.ObserverNodes, exch_control.X2Y)
+    REQUIREDSEQUENCES = (exch_observers.X,)
+    RESULTSEQUENCES = (exch_factors.X, exch_factors.Y)
+
+
+class Get_Y_V1(modeltools.Method):
+    """Return the result.
+
+    >>> from hydpy.models.exch import *
+    >>> parameterstep()
+    >>> factors.y = 2.0
+    >>> model.get_y_v1()
+    2.0
+    """
+
+    REQUIREDSEQUENCES = (exch_factors.Y,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> float:
+        fac = model.sequences.factors.fastaccess
+
+        return fac.y
 
 
 class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
@@ -435,7 +632,8 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_OriginalInput_V1,)
-    RECEIVER_METHODS = (Pic_LoggedWaterLevels_V1,)
+    OBSERVER_METHODS = (Pick_X_V1,)
+    RECEIVER_METHODS = (Pick_LoggedWaterLevel_V1, Pick_LoggedWaterLevels_V1)
     RUN_METHODS = (
         Update_WaterLevels_V1,
         Calc_DeltaWaterLevel_V1,
@@ -443,10 +641,11 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
         Calc_ActualExchange_V1,
         Calc_AdjustedInput_V1,
         Calc_Outputs_V1,
+        Calc_Y_V1,
     )
-    INTERFACE_METHODS = (Get_WaterLevel_V1,)
+    INTERFACE_METHODS = (Get_WaterLevel_V1, Determine_Y_V1, Get_Y_V1)
     ADD_METHODS = ()
-    OUTLET_METHODS = (Pass_ActualExchange_V1, Pass_Outputs_V1)
+    OUTLET_METHODS = (Pass_ActualExchange_V1, Pass_Outputs_V1, Pass_Y_V1)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = ()
     SUBMODELS = ()

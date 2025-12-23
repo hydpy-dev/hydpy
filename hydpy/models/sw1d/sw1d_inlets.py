@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -16,3 +15,9 @@ class LatQ(sequencetools.InletSequence):
     """The lateral inflow into the first channel segment [m³/s]."""
 
     NDIM, NUMERIC = 1, False
+
+
+class WaterLevel(sequencetools.InletSequence):
+    """Water level [m]."""
+
+    NDIM, NUMERIC = 0, False

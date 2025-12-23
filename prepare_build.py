@@ -30,7 +30,6 @@ def _prepare_cythonoptions(fast_cython: bool, profile_cython: bool) -> list[str]
     # ToDo: do not share code with PyxWriter.cythondistutilsoptions
 
     cythonoptions = [
-        "# -*- coding: utf-8 -*-",
         "# !python",
         "# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION",
         "# cython: language_level=3",
@@ -188,7 +187,7 @@ def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
         for name in [fn.split(".")[0] for fn in sorted(os.listdir(path_))]:
             if not name.startswith("_"):
                 module = importlib.import_module(f"hydpy.models.{name}")
-                cythonizer: Optional[modelutils.Cythonizer]
+                cythonizer: modelutils.Cythonizer | None
                 cythonizer = getattr(module, "cythonizer", None)
                 if cythonizer:
                     cythonizer.pyxwriter.write()

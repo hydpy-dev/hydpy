@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """|rconc_uh| is a submodel that supports its main model by calculating runoff
 concentration using the unit hydrograph approach. It allows for different unit
 hydrograph shapes, which can be configured based on specific geometries or wholly
@@ -7,6 +6,7 @@ customised. One example of a specific geometry is the isosceles triangle of HBV9
 information. Also, see the integration tests of application model |hland_96|, which
 use |rconc_uh| as a submodel.
 """
+
 # import...
 # ...from HydPy
 from hydpy.core import modeltools
@@ -28,6 +28,7 @@ class Model(rconc_model.Sub_RConcModel, rconcinterfaces.RConcModel_V1):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

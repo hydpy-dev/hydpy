@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 The |sw1d.DOCNAME.long| model family member |sw1d_network| allows combining different
@@ -672,7 +671,8 @@ class Model(modeltools.SubstepModel):
     """|sw1d_network| is a composite model.  (One usually only works with it 
     indirectly.)"""
 
-    INLET_METHODS = (sw1d_model.Trigger_Preprocessing_V1,)
+    INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         sw1d_model.Calc_MaxTimeSteps_V1,
@@ -683,7 +683,7 @@ class Model(modeltools.SubstepModel):
     )
     INTERFACE_METHODS = ()
     ADD_METHODS = ()
-    OUTLET_METHODS = (sw1d_model.Trigger_Postprocessing_V1,)
+    OUTLET_METHODS = ()
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
         routinginterfaces.RoutingModel_V1,
@@ -694,7 +694,9 @@ class Model(modeltools.SubstepModel):
     )
     SUBMODELS = ()
 
-    channelmodels = modeltools.SubmodelsProperty(routinginterfaces.ChannelModel_V1)
+    channelmodels = modeltools.SubmodelsProperty(
+        routinginterfaces.ChannelModel_V1, sidemodels=True
+    )
     storagemodels = modeltools.SubmodelsProperty(routinginterfaces.StorageModel_V1)
     routingmodels = modeltools.SubmodelsProperty(
         routinginterfaces.RoutingModel_V1,
@@ -729,9 +731,10 @@ class Model(modeltools.SubstepModel):
         integration tests some examples.
 
         ToDo: So far, |Model.check_waterbalance| works only safely with application
-              models |sw1d_storage|, |sw1d_q_in|, |sw1d_lias|, |sw1d_q_out|, and
-              |sw1d_weir_out| and might fail for other models.  We need to implement a
-              more general solution when we implement incompatible models.
+              models |sw1d_storage|, |sw1d_q_in|, |sw1d_lias|, |sw1d_lias_sluice|,
+              |sw1d_q_out|, |sw1d_weir_out|, and |sw1d_gate_out| and might fail for o
+              ther models.  We need to implement a more general solution when we
+              implement incompatible models.
         """
 
         r1 = routinginterfaces.RoutingModel_V1

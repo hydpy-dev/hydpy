@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """|meteo_sun_fao56| is nearly identical to |meteo_glob_fao56|, except that it expects
 |meteo_inputs.GlobalRadiation| as input and estimates |meteo_factors.SunshineDuration|,
@@ -160,6 +159,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         meteo_model.Calc_EarthSunDistance_V1,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -17,15 +16,37 @@ from hydpy.models.sw1d import sw1d_outlets
 from hydpy.models.sw1d import sw1d_factors
 from hydpy.models.sw1d import sw1d_fluxes
 from hydpy.models.sw1d import sw1d_states
-from hydpy.models.sw1d import sw1d_receivers
 from hydpy.models.sw1d import sw1d_senders
 
 
 # pick data from and pass data to link sequences
 
+RoutingModels_V1_V2: TypeAlias = Union[
+    "routinginterfaces.RoutingModel_V1", "routinginterfaces.RoutingModel_V2"
+]
+RoutingModels_V1_V2_V3: TypeAlias = Union[
+    "routinginterfaces.RoutingModel_V1",
+    "routinginterfaces.RoutingModel_V2",
+    "routinginterfaces.RoutingModel_V3",
+]
+RoutingModels_V2_V3: TypeAlias = Union[
+    "routinginterfaces.RoutingModel_V2", "routinginterfaces.RoutingModel_V3"
+]
+
 
 class Pick_Inflow_V1(modeltools.Method):
-    """Pick the longitudinal inflow from an arbitrary number of inlet sequences."""
+    """Pick the longitudinal inflow from an arbitrary number of inlet sequences.
+
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> inlets.longq.shape = 2
+        >>> inlets.longq = 2.0, 4.0
+        >>> model.pick_inflow_v1()
+        >>> fluxes.inflow
+        inflow(6.0)
+    """
 
     REQUIREDSEQUENCES = (sw1d_inlets.LongQ,)
     RESULTSEQUENCES = (sw1d_fluxes.Inflow,)
@@ -36,26 +57,48 @@ class Pick_Inflow_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.inflow = 0.0
         for i in range(inl.len_longq):
-            flu.inflow += inl.longq[i][0]
+            flu.inflow += inl.longq[i]
 
 
 class Pick_Outflow_V1(modeltools.Method):
-    """Pick the longitudinal outflow from an arbitrary number of outlet sequences."""
+    """Pick the longitudinal outflow from an arbitrary number of outlet sequences.
 
-    REQUIREDSEQUENCES = (sw1d_outlets.LongQ,)
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> inlets.longq.shape = 2
+        >>> inlets.longq = 2.0, 4.0
+        >>> model.pick_outflow_v1()
+        >>> fluxes.outflow
+        outflow(6.0)
+    """
+
+    REQUIREDSEQUENCES = (sw1d_inlets.LongQ,)
     RESULTSEQUENCES = (sw1d_fluxes.Outflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
-        out = model.sequences.outlets.fastaccess
+        inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.outflow = 0.0
-        for i in range(out.len_longq):
-            flu.outflow += out.longq[i][0]
+        for i in range(inl.len_longq):
+            flu.outflow += inl.longq[i]
 
 
 class Pick_LateralFlow_V1(modeltools.Method):
-    """Pick the lateral inflow from an arbitrary number of inlet sequences."""
+    """Pick the lateral inflow from an arbitrary number of inlet sequences.
+
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> inlets.latq.shape = 2
+        >>> inlets.latq = 2.0, 4.0
+        >>> model.pick_lateralflow_v1()
+        >>> fluxes.lateralflow
+        lateralflow(6.0)
+    """
 
     REQUIREDSEQUENCES = (sw1d_inlets.LatQ,)
     RESULTSEQUENCES = (sw1d_fluxes.LateralFlow,)
@@ -66,89 +109,78 @@ class Pick_LateralFlow_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.lateralflow = 0.0
         for i in range(inl.len_latq):
-            flu.lateralflow += inl.latq[i][0]
+            flu.lateralflow += inl.latq[i]
 
 
 class Pick_WaterLevelDownstream_V1(modeltools.Method):
-    """Pick the water level downstream from a receiver sequence."""
+    """Pick the water level downstream from a receiver sequence.
 
-    REQUIREDSEQUENCES = (sw1d_receivers.WaterLevel,)
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> inlets.waterlevel = 2.0
+        >>> model.pick_waterleveldownstream_v1()
+        >>> factors.waterleveldownstream
+        waterleveldownstream(2.0)
+    """
+
+    REQUIREDSEQUENCES = (sw1d_inlets.WaterLevel,)
     RESULTSEQUENCES = (sw1d_factors.WaterLevelDownstream,)
 
     @staticmethod
     def __call__(model: modeltools.SegmentModel) -> None:
+        inl = model.sequences.inlets.fastaccess
         fac = model.sequences.factors.fastaccess
-        rec = model.sequences.receivers.fastaccess
-        fac.waterleveldownstream = rec.waterlevel[0]
+        fac.waterleveldownstream = inl.waterlevel
 
 
 class Pass_Discharge_V1(modeltools.Method):
     """Pass the calculated average discharge of the current simulation step to an
-    arbitrary number of inlet or outlet sequences.
+    arbitrary number of outlet sequences.
 
     Basic equation:
       :math:`QLong = DischargeVolume / Seconds`
 
-    In contrast to typical methods for passing data to nodes, |Pass_Discharge_V1| not
-    only passes data to outlet sequences but also to inlet sequences.  This
-    functionality addresses the rare but allowed setting of a discharge calculating
-    routing model lying at the inlet position of a subchannel, which is necessary for
-    modelling branches.
+    Example:
 
-    Examples:
-
-        Without any node connection, |Pass_Discharge_V1| does nothing:
-
-        >>> from hydpy import Element, Nodes, prepare_model
-        >>> e1 = Element("e1")
-        >>> e1.model = prepare_model("sw1d_lias")
-        >>> e1.model.pass_discharge_v1()
-
-        If any connections exist, |Pass_Discharge_V1| updates all corresponding
-        sequences with the same average discharge value:
-
-        >>> ni, no1, no2 = Nodes("ni", "no1", "no2", defaultvariable="LongQ")
-        >>> ni.sequences.sim = 1.0
-        >>> no1.sequences.sim = 2.0
-        >>> no2.sequences.sim = 3.0
-        >>> e2 = Element("e2", inlets=ni, outlets=(no1, no2))
-        >>> e2.model = prepare_model("sw1d_lias")
-        >>> e2.model.parameters.derived.seconds(60.0)
-        >>> e2.model.sequences.fluxes.dischargevolume = 120.0
-        >>> e2.model.pass_discharge_v1()
-        >>> ni.sequences.sim
-        sim(3.0)
-        >>> no1.sequences.sim
-        sim(4.0)
-        >>> no2.sequences.sim
-        sim(5.0)
-
-        .. testsetup::
-
-            >>> from hydpy import Node
-            >>> Node.clear_all()
-            >>> Element.clear_all()
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> derived.seconds(60.0)
+        >>> fluxes.dischargevolume = 120.0
+        >>> outlets.longq.shape = 2
+        >>> model.pass_discharge_v1()
+        >>> outlets.longq
+        longq(2.0, 2.0)
     """
 
     DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
     REQUIREDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
-    RESULTSEQUENCES = (sw1d_inlets.LongQ, sw1d_outlets.LongQ)
+    RESULTSEQUENCES = (sw1d_outlets.LongQ,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         der = model.parameters.derived.fastaccess
-        inl = model.sequences.inlets.fastaccess
         out = model.sequences.outlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
         discharge: float = flu.dischargevolume / der.seconds
-        for i in range(inl.len_longq):
-            inl.longq[i][0] += discharge
         for i in range(out.len_longq):
-            out.longq[i][0] += discharge
+            out.longq[i] = discharge
 
 
 class Pass_WaterLevel_V1(modeltools.Method):
-    """Pass the calculated water level to an arbitrary number of sender sequences."""
+    """Pass the calculated water level to an arbitrary number of sender sequences.
+
+    Example:
+
+        >>> from hydpy.models.sw1d import *
+        >>> parameterstep()
+        >>> factors.waterlevel = 2.0
+        >>> senders.waterlevel.shape = 3
+        >>> model.pass_waterlevel_v1()
+        >>> senders.waterlevel
+        waterlevel(2.0, 2.0, 2.0)
+    """
 
     REQUIREDSEQUENCES = (sw1d_factors.WaterLevel,)
     RESULTSEQUENCES = (sw1d_senders.WaterLevel,)
@@ -158,124 +190,10 @@ class Pass_WaterLevel_V1(modeltools.Method):
         fac = model.sequences.factors.fastaccess
         sen = model.sequences.senders.fastaccess
         for i in range(sen.len_waterlevel):
-            sen.waterlevel[i][0] = fac.waterlevel
+            sen.waterlevel[i] = fac.waterlevel
 
 
 # calculation methods
-
-
-class Trigger_Preprocessing_V1(modeltools.Method):
-    """Order all submodels following the |StorageModel_V1|, |RoutingModel_V1|,
-    |RoutingModel_V2|, or |RoutingModel_V3| interface to prepare all invariant data for
-    a new internal simulation step.
-
-    Example:
-
-        >>> from hydpy import Element, Node, prepare_model
-        >>> nlong = Node("nlong", variable="LongQ")
-        >>> nlat = Node("nlat", variable="LatQ")
-        >>> e = Element("e", inlets=(nlong, nlat))
-        >>> channel = prepare_model("sw1d_channel")
-        >>> channel.parameters.control.nmbsegments(1)
-        >>> with channel.add_routingmodel_v1("sw1d_q_in", position=0, update=False):
-        ...     pass
-        >>> with channel.add_storagemodel_v1("sw1d_storage", position=0, update=False):
-        ...     pass
-        >>> e.model = channel
-        >>> nlong.sequences.sim = 1.0
-        >>> nlat.sequences.sim = 2.0
-        >>> channel.trigger_preprocessing_v1()
-        >>> channel.routingmodels[0].sequences.fluxes.inflow
-        inflow(1.0)
-        >>> channel.storagemodels[0].sequences.fluxes.lateralflow
-        lateralflow(2.0)
-
-        .. testsetup::
-
-            >>> Node.clear_all()
-            >>> Element.clear_all()
-    """
-
-    SUBMODELINTERFACES = (
-        routinginterfaces.RoutingModel_V1,
-        routinginterfaces.RoutingModel_V2,
-        routinginterfaces.RoutingModel_V3,
-        routinginterfaces.StorageModel_V1,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        for i in range(model.routingmodels.number):
-            if model.routingmodels.typeids[i] in (1, 2, 3):
-                cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
-                ).perform_preprocessing()
-        for i in range(model.storagemodels.number):
-            if model.storagemodels.typeids[i] == 1:
-                cast(
-                    routinginterfaces.StorageModel_V1, model.storagemodels.submodels[i]
-                ).perform_preprocessing()
-
-
-class Trigger_Postprocessing_V1(modeltools.Method):
-    """Order all submodels following the |StorageModel_V1|, |RoutingModel_V1|,
-    |RoutingModel_V2|, or |RoutingModel_V3| interface to execute all tasks relevant at
-    the end of each external simulation step.
-
-    Example:
-
-        >>> from hydpy import Element, Node, prepare_model
-        >>> nw = Node("nw", variable="WaterLevel")
-        >>> e = Element("e", senders=nw)
-        >>> channel = prepare_model("sw1d_channel")
-        >>> channel.parameters.control.nmbsegments(1)
-        >>> with channel.add_routingmodel_v1("sw1d_q_in", position=0, update=False):
-        ...     derived.seconds(60.0)
-        ...     fluxes.inflow = 2.0
-        >>> with channel.add_storagemodel_v1("sw1d_storage", position=0, update=False):
-        ...     factors.waterlevel = 2.0
-        >>> e.model = channel
-        >>> channel.trigger_postprocessing_v1()
-        >>> channel.routingmodels[0].sequences.fluxes.dischargevolume
-        dischargevolume(120.0)
-        >>> nw.sequences.sim
-        sim(2.0)
-
-        .. testsetup::
-
-            >>> Node.clear_all()
-            >>> Element.clear_all()
-    """
-
-    SUBMODELINTERFACES = (
-        routinginterfaces.RoutingModel_V1,
-        routinginterfaces.RoutingModel_V2,
-        routinginterfaces.RoutingModel_V3,
-        routinginterfaces.StorageModel_V1,
-    )
-
-    @staticmethod
-    def __call__(model: modeltools.Model) -> None:
-        for i in range(model.routingmodels.number):
-            if model.routingmodels.typeids[i] in (1, 2, 3):
-                cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
-                ).perform_postprocessing()
-        for i in range(model.storagemodels.number):
-            if model.storagemodels.typeids[i] == 1:
-                cast(
-                    routinginterfaces.StorageModel_V1, model.storagemodels.submodels[i]
-                ).perform_postprocessing()
 
 
 class Calc_MaxTimeStep_V1(modeltools.Method):
@@ -710,12 +628,7 @@ class Calc_MaxTimeSteps_V1(modeltools.Method):
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
+                    RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                 ).determine_maxtimestep()
 
 
@@ -769,12 +682,7 @@ class Calc_TimeStep_V1(modeltools.Method):
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 timestep: float = cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
+                    RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                 ).get_maxtimestep()
                 fac.timestep = min(fac.timestep, timestep)
         if fac.timestep < model.timeleft:
@@ -821,12 +729,7 @@ class Send_TimeStep_V1(modeltools.Method):
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
+                    RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                 ).set_timestep(fac.timestep)
         for i in range(model.storagemodels.number):
             if model.storagemodels.typeids[i] == 1:
@@ -1275,12 +1178,12 @@ class Calc_DischargeUpstream_V1(modeltools.Method):
         >>> e0, e1 = Element("e0", outlets=n012), Element("e1", outlets=n012)
         >>> for element, discharge in ((e0, 1.0), (e1, 3.0)):
         ...     c = prepare_model("sw1d_channel")
-        ...     element.model = c
         ...     c.parameters.control.nmbsegments(1)
         ...     with c.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...         pass
         ...     with c.add_routingmodel_v2("sw1d_lias", position=1, update=False):
         ...         states.discharge = discharge
+        ...     element.model = c
         >>> network = c2.couple_models(nodes=(n012,), elements=(e0, e1, e2))
         >>> r2.calc_dischargeupstream_v1()
         >>> r2.sequences.fluxes.dischargeupstream
@@ -1308,11 +1211,7 @@ class Calc_DischargeUpstream_V1(modeltools.Method):
         for i in range(model.routingmodelsupstream.number):
             if model.routingmodelsupstream.typeids[i] in (1, 2):
                 flu.dischargeupstream += cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                    ],
-                    model.routingmodelsupstream.submodels[i],
+                    RoutingModels_V1_V2, model.routingmodelsupstream.submodels[i]
                 ).get_partialdischargeupstream(sta.discharge)
 
 
@@ -1345,12 +1244,12 @@ class Calc_DischargeDownstream_V1(modeltools.Method):
         >>> e1, e2 = Element("e1", inlets=n012), Element("e2", inlets=n012)
         >>> for element, discharge in ((e1, 1.0), (e2, 3.0)):
         ...     c = prepare_model("sw1d_channel")
-        ...     element.model = c
         ...     c.parameters.control.nmbsegments(1)
         ...     with c.add_routingmodel_v2("sw1d_lias", position=0, update=False):
         ...         states.discharge = discharge
         ...     with c.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...         pass
+        ...     element.model = c
         >>> network = c0.couple_models(nodes=(n012,), elements=(e0, e1, e2))
         >>> r0.calc_dischargedownstream_v1()
         >>> r0.sequences.fluxes.dischargedownstream
@@ -1378,11 +1277,7 @@ class Calc_DischargeDownstream_V1(modeltools.Method):
         for i in range(model.routingmodelsdownstream.number):
             if model.routingmodelsdownstream.typeids[i] in (2, 3):
                 flu.dischargedownstream += cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodelsdownstream.submodels[i],
+                    RoutingModels_V2_V3, model.routingmodelsdownstream.submodels[i]
                 ).get_partialdischargedownstream(sta.discharge)
 
 
@@ -2389,12 +2284,7 @@ class Calc_Discharges_V1(modeltools.Method):
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodels.submodels[i],
+                    RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                 ).determine_discharge()
 
 
@@ -2436,12 +2326,7 @@ class Calc_Discharges_V2(modeltools.Method):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 flu.discharges[i] = (
                     cast(
-                        Union[
-                            routinginterfaces.RoutingModel_V1,
-                            routinginterfaces.RoutingModel_V2,
-                            routinginterfaces.RoutingModel_V3,
-                        ],
-                        model.routingmodels.submodels[i],
+                        RoutingModels_V1_V2_V3, model.routingmodels.submodels[i]
                     ).get_dischargevolume()
                     / der.seconds
                 )
@@ -2477,13 +2362,13 @@ class Calc_NetInflow_V1(modeltools.Method):
         >>> for element, position, discharge in ((e0a, 1, 1.0), (e0b, 1, 2.0),
         ...                                      (e2a, 0, 2.0), (e2b, 0, 3.0)):
         ...     c = prepare_model("sw1d_channel")
-        ...     element.model = c
         ...     c.parameters.control.nmbsegments(1)
         ...     with c.add_routingmodel_v2(
         ...             "sw1d_lias", position=position, update=False):
         ...         states.discharge = discharge
         ...     with c.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...         pass
+        ...     element.model = c
         >>> network = c.couple_models(
         ...     nodes=(n01, n12), elements=(e0a, e0b, e1, e2a, e2b))
         >>> s.calc_netinflow_v1()
@@ -2512,20 +2397,12 @@ class Calc_NetInflow_V1(modeltools.Method):
         for i in range(model.routingmodelsupstream.number):
             if model.routingmodelsupstream.typeids[i] in (1, 2):
                 flu.netinflow += cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V1,
-                        routinginterfaces.RoutingModel_V2,
-                    ],
-                    model.routingmodelsupstream.submodels[i],
+                    RoutingModels_V1_V2, model.routingmodelsupstream.submodels[i]
                 ).get_discharge()
         for i in range(model.routingmodelsdownstream.number):
             if model.routingmodelsdownstream.typeids[i] in (2, 3):
                 flu.netinflow -= cast(
-                    Union[
-                        routinginterfaces.RoutingModel_V2,
-                        routinginterfaces.RoutingModel_V3,
-                    ],
-                    model.routingmodelsdownstream.submodels[i],
+                    RoutingModels_V2_V3, model.routingmodelsdownstream.submodels[i]
                 ).get_discharge()
         flu.netinflow *= fac.timestep / 1e3
 
@@ -2621,94 +2498,6 @@ class Query_WaterLevels_V1(modeltools.Method):
 
 
 # interface methods
-
-
-class Perform_Preprocessing_V1(modeltools.AutoMethod):
-    """Routing model interface method for preprocessing data that is invariant within
-    each external simulation step."""
-
-    SUBMETHODS = (Pick_Inflow_V1,)
-    REQUIREDSEQUENCES = (sw1d_inlets.LongQ,)
-    RESULTSEQUENCES = (sw1d_fluxes.Inflow,)
-
-
-class Perform_Preprocessing_V2(modeltools.AutoMethod):
-    """Routing model interface method for preprocessing data that is invariant within
-    each external simulation step."""
-
-    SUBMETHODS = (Reset_DischargeVolume_V1,)
-    RESULTSEQUENCES = (sw1d_fluxes.DischargeVolume,)
-
-
-class Perform_Preprocessing_V3(modeltools.AutoMethod):
-    """Storage model interface method for preprocessing data that is invariant within
-    each external simulation step."""
-
-    SUBMETHODS = (Pick_LateralFlow_V1, Calc_WaterDepth_WaterLevel_V1)
-    CONTROLPARAMETERS = (sw1d_control.Length,)
-    REQUIREDSEQUENCES = (sw1d_inlets.LatQ, sw1d_states.WaterVolume)
-    RESULTSEQUENCES = (
-        sw1d_factors.WaterDepth,
-        sw1d_factors.WaterLevel,
-        sw1d_fluxes.LateralFlow,
-    )
-
-
-class Perform_Preprocessing_V4(modeltools.AutoMethod):
-    """Routing model interface method for preprocessing data that is invariant within
-    each external simulation step."""
-
-    SUBMETHODS = (Pick_Outflow_V1,)
-    REQUIREDSEQUENCES = (sw1d_outlets.LongQ,)
-    RESULTSEQUENCES = (sw1d_fluxes.Outflow,)
-
-
-class Perform_Preprocessing_V5(modeltools.AutoMethod):
-    """Routing model interface method for preprocessing data that is invariant within
-    each external simulation step."""
-
-    SUBMETHODS = (Pick_WaterLevelDownstream_V1, Reset_DischargeVolume_V1)
-    REQUIREDSEQUENCES = (sw1d_receivers.WaterLevel,)
-    RESULTSEQUENCES = (sw1d_factors.WaterLevelDownstream, sw1d_fluxes.DischargeVolume)
-
-
-class Perform_Postprocessing_V1(modeltools.AutoMethod):
-    """Routing model interface method for executing all tasks necessary at the end of
-    each external simulation step."""
-
-    SUBMETHODS = (Calc_DischargeVolume_V1,)
-    DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
-    REQUIREDSEQUENCES = (sw1d_fluxes.Inflow,)
-    UPDATEDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
-
-
-class Perform_Postprocessing_V2(modeltools.AutoMethod):
-    """Routing model interface method for executing all tasks necessary at the end of
-    each external simulation step."""
-
-    SUBMETHODS = (Pass_Discharge_V1,)
-    DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
-    REQUIREDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
-    RESULTSEQUENCES = (sw1d_inlets.LongQ, sw1d_outlets.LongQ)
-
-
-class Perform_Postprocessing_V3(modeltools.AutoMethod):
-    """Storage model interface method for executing all tasks necessary at the end of
-    each external simulation step."""
-
-    SUBMETHODS = (Pass_WaterLevel_V1,)
-    REQUIREDSEQUENCES = (sw1d_factors.WaterLevel,)
-    RESULTSEQUENCES = (sw1d_senders.WaterLevel,)
-
-
-class Perform_Postprocessing_V4(modeltools.AutoMethod):
-    """Routing model interface method for executing all tasks necessary at the end of
-    each external simulation step."""
-
-    SUBMETHODS = (Calc_DischargeVolume_V2,)
-    DERIVEDPARAMETERS = (sw1d_derived.Seconds,)
-    REQUIREDSEQUENCES = (sw1d_fluxes.Outflow,)
-    UPDATEDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
 
 
 class Determine_MaxTimeStep_V1(modeltools.AutoMethod):
@@ -3082,20 +2871,21 @@ class Get_PartialDischargeUpstream_V1(modeltools.Method):
         >>> e1a = Element("e1a", inlets=n01)
 
         >>> c0 = prepare_model("sw1d_channel")
-        >>> e0.model = c0
         >>> c0.parameters.control.nmbsegments(1)
         >>> with c0.add_routingmodel_v2("sw1d_lias", position=0, update=False) as r0:
         ...     states.discharge = 5.0
         >>> with c0.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...     pass
+        >>> e0.model = c0
 
         >>> c1a = prepare_model("sw1d_channel")
-        >>> e1a.model = c1a
         >>> c1a.parameters.control.nmbsegments(1)
         >>> with c1a.add_routingmodel_v2("sw1d_lias", position=0, update=False) as r1a:
         ...     states.discharge = 3.0
         >>> with c1a.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...     pass
+        >>> e1a.model = c1a
+
         >>> network = c0.couple_models(nodes=[n01], elements=[e0, e1a])
         >>> round_(r0.get_partialdischargeupstream_v1(3.0))
         5.0
@@ -3105,12 +2895,13 @@ class Get_PartialDischargeUpstream_V1(modeltools.Method):
 
         >>> e1b = Element("e1b", inlets=n01)
         >>> c1b = prepare_model("sw1d_channel")
-        >>> e1b.model = c1b
         >>> c1b.parameters.control.nmbsegments(1)
         >>> with c1b.add_routingmodel_v2("sw1d_lias", position=0, update=False) as r1b:
         ...     states.discharge = 1.0
         >>> with c1b.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...     pass
+        >>> e1b.model = c1b
+
         >>> network = c0.couple_models(nodes=[n01], elements=[e0, e1a, e1b])
         >>> round_(r0.get_partialdischargeupstream_v1(3.0))
         3.75
@@ -3146,11 +2937,7 @@ class Get_PartialDischargeUpstream_V1(modeltools.Method):
             if model.routingmodelsdownstream.typeids[i] in (2, 3):
                 dischargedownstream += modelutils.fabs(
                     cast(
-                        Union[
-                            routinginterfaces.RoutingModel_V2,
-                            routinginterfaces.RoutingModel_V3,
-                        ],
-                        model.routingmodelsdownstream.submodels[i],
+                        RoutingModels_V2_V3, model.routingmodelsdownstream.submodels[i]
                     ).get_discharge()
                 )
         if dischargedownstream == 0.0:
@@ -3177,20 +2964,21 @@ class Get_PartialDischargeDownstream_V1(modeltools.Method):
         >>> e0a = Element("e0a", outlets=n01)
 
         >>> c1 = prepare_model("sw1d_channel")
-        >>> e1.model = c1
         >>> c1.parameters.control.nmbsegments(1)
         >>> with c1.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...     pass
         >>> with c1.add_routingmodel_v2("sw1d_lias", position=1, update=False) as r1:
         ...     states.discharge = 5.0
+        >>> e1.model = c1
 
         >>> c0a = prepare_model("sw1d_channel")
-        >>> e0a.model = c0a
         >>> c0a.parameters.control.nmbsegments(1)
         >>> with c0a.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...     pass
         >>> with c0a.add_routingmodel_v2("sw1d_lias", position=1, update=False) as r0a:
         ...     states.discharge = 3.0
+        >>> e0a.model = c0a
+
         >>> network = c1.couple_models(nodes=[n01], elements=[e1, e0a])
         >>> round_(r1.get_partialdischargedownstream_v1(3.0))
         5.0
@@ -3200,12 +2988,13 @@ class Get_PartialDischargeDownstream_V1(modeltools.Method):
 
         >>> e0b = Element("e0b", outlets=n01)
         >>> c0b = prepare_model("sw1d_channel")
-        >>> e0b.model = c0b
         >>> c0b.parameters.control.nmbsegments(1)
         >>> with c0b.add_storagemodel_v1("sw1d_storage", position=0, update=False):
         ...     pass
         >>> with c0b.add_routingmodel_v2("sw1d_lias", position=1, update=False) as r0b:
         ...     states.discharge = 1.0
+        >>> e0b.model = c0b
+
         >>> network = c1.couple_models(nodes=[n01], elements=[e1, e0a, e0b])
         >>> round_(r1.get_partialdischargedownstream_v1(3.0))
         3.75
@@ -3241,11 +3030,7 @@ class Get_PartialDischargeDownstream_V1(modeltools.Method):
             if model.routingmodelsupstream.typeids[i] in (1, 2):
                 dischargeupstream += modelutils.fabs(
                     cast(
-                        Union[
-                            routinginterfaces.RoutingModel_V1,
-                            routinginterfaces.RoutingModel_V2,
-                        ],
-                        model.routingmodelsupstream.submodels[i],
+                        RoutingModels_V1_V2, model.routingmodelsupstream.submodels[i]
                     ).get_discharge()
                 )
         if dischargeupstream == 0.0:
@@ -3282,8 +3067,8 @@ class Model(modeltools.SubstepModel):
         Pick_Outflow_V1,
         Pick_LateralFlow_V1,
         Pick_WaterLevelDownstream_V1,
-        Trigger_Preprocessing_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_MaxTimeSteps_V1,
@@ -3294,15 +3079,6 @@ class Model(modeltools.SubstepModel):
         Query_WaterLevels_V1,
     )
     INTERFACE_METHODS = (
-        Perform_Preprocessing_V1,
-        Perform_Preprocessing_V2,
-        Perform_Preprocessing_V3,
-        Perform_Preprocessing_V4,
-        Perform_Preprocessing_V5,
-        Perform_Postprocessing_V1,
-        Perform_Postprocessing_V2,
-        Perform_Postprocessing_V3,
-        Perform_Postprocessing_V4,
         Determine_MaxTimeStep_V1,
         Determine_MaxTimeStep_V2,
         Determine_MaxTimeStep_V3,
@@ -3362,12 +3138,7 @@ class Model(modeltools.SubstepModel):
         Calc_NetInflow_V1,
         Update_WaterVolume_V1,
     )
-    OUTLET_METHODS = (
-        Pass_Discharge_V1,
-        Pass_WaterLevel_V1,
-        Trigger_Postprocessing_V1,
-        Calc_Discharges_V2,
-    )
+    OUTLET_METHODS = (Pass_Discharge_V1, Pass_WaterLevel_V1, Calc_Discharges_V2)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
         routinginterfaces.CrossSectionModel_V2,

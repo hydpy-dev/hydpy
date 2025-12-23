@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """The primary purpose of |evap_pet_hbv96| is to serve as a submodel that provides
 estimates of potential evapotranspiration corresponding to HBV96
@@ -106,6 +105,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         evap_model.Calc_MeanAirTemperature_V1,

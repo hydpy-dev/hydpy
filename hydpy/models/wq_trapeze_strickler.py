@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
 |wq_trapeze_strickler| is a stateless submodel that requires information on the current
@@ -53,6 +52,7 @@ class Model(wq_model.TrapezeModel, routinginterfaces.CrossSectionModel_V1):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

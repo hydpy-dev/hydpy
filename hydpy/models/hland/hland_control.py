@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 67`: https://github.com/hydpy-dev/hydpy/issues/67
 """
+
 # import...
 # from standard library
 from __future__ import annotations
@@ -452,9 +452,7 @@ arguments are given, which is ambiguous.
 
     def __call__(self, *args, **kwargs) -> None:
         sclass = self.shape[0]
-        idx = self._find_kwargscombination(
-            args, kwargs, (set(("linear",)), set(("lognormal",)))
-        )
+        idx = self._find_kwargscombination(args, kwargs, ({"linear"}, {"lognormal"}))
         if idx is None:
             super().__call__(*args, **kwargs)
         elif idx == 0:
@@ -464,7 +462,7 @@ arguments are given, which is ambiguous.
         self.value /= sum(self.value) / sclass
 
     @staticmethod
-    @functools.lru_cache()
+    @functools.lru_cache
     def _linear(factor, sclass):
         if sclass == 1:
             values = (1.0,)
@@ -475,7 +473,7 @@ arguments are given, which is ambiguous.
         return values
 
     @staticmethod
-    @functools.lru_cache()
+    @functools.lru_cache
     def _lognormal(sclass, scale: float) -> VectorFloat:
         values = numpy.ones(sclass, dtype=config.NP_FLOAT)
         if scale > 0.0:

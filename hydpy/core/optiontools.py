@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 """This module implements features for defining local or global *HydPy* options."""
 
 # import...
 # ...from standard library
 from __future__ import annotations
-import itertools
 import types
 
 # ...from HydPy
@@ -35,13 +33,13 @@ class OptionContextBase(Generic[TypeOption]):
     |OptionPropertyBase| subclasses."""
 
     _old_value: TypeOption
-    _new_value: Optional[TypeOption]
-    _set_value: Optional[tuple[Callable[[Optional[TypeOption]], None]]]
+    _new_value: TypeOption | None
+    _set_value: tuple[Callable[[TypeOption | None], None]] | None
 
     def __init__(
         self,
         value: TypeOption,
-        set_value: Optional[Callable[[Optional[TypeOption]], None]] = None,
+        set_value: Callable[[TypeOption | None], None] | None = None,
     ) -> None:
         self._old_value = value
         self._new_value = None
@@ -51,7 +49,7 @@ class OptionContextBase(Generic[TypeOption]):
             self._set_value = (set_value,)
 
     def __call__(
-        self: TypeOptionContextBase, new_value: Optional[TypeOption] = None
+        self: TypeOptionContextBase, new_value: TypeOption | None = None
     ) -> TypeOptionContextBase:
         self._new_value = new_value
         return self
@@ -75,7 +73,7 @@ class OptionContextBool(int, OptionContextBase[bool]):
     """Context manager required by |OptionPropertyBool|."""
 
     def __new__(  # pylint: disable=unused-argument
-        cls, value: bool, set_value: Optional[Callable[[bool], None]] = None
+        cls, value: bool, set_value: Callable[[bool], None] | None = None
     ) -> OptionContextBool:
         return super().__new__(cls, value)
 
@@ -87,7 +85,7 @@ class OptionContextInt(int, OptionContextBase[int]):
     """Context manager required by |OptionPropertyInt|."""
 
     def __new__(  # pylint: disable=unused-argument
-        cls, value: int, set_value: Optional[Callable[[int], None]] = None
+        cls, value: int, set_value: Callable[[int], None] | None = None
     ) -> OptionContextInt:
         return super().__new__(cls, value)
 
@@ -96,14 +94,14 @@ class _OptionContextEllipsis(int, OptionContextBase[int]):
     def __new__(  # pylint: disable=unused-argument
         cls,
         value: int,
-        set_value: Optional[Callable[[int], None]] = None,
+        set_value: Callable[[int], None] | None = None,
         optional: bool = False,
     ) -> _OptionContextEllipsis:
         return super().__new__(cls, value)
 
     def __call__(
         self: TypeOptionContextBase,
-        new_value: Optional[int] = None,
+        new_value: int | None = None,
         optional: bool = False,
     ) -> TypeOptionContextBase:
         if optional and (self._old_value != -999):
@@ -117,7 +115,7 @@ class OptionContextStr(str, OptionContextBase[TypeOption]):
     """Context manager required by |OptionPropertyStr|."""
 
     def __new__(  # pylint: disable=unused-argument
-        cls, value: TypeOption, set_value: Optional[Callable[[TypeOption], None]] = None
+        cls, value: TypeOption, set_value: Callable[[TypeOption], None] | None = None
     ) -> Self:
         return super().__new__(cls, value)
 
@@ -125,20 +123,17 @@ class OptionContextStr(str, OptionContextBase[TypeOption]):
 class OptionContextPeriod(timetools.Period, OptionContextBase[timetools.Period]):
     """Context manager required by |OptionPropertyPeriod|."""
 
-    _set_value: tuple[Callable[[Optional[timetools.PeriodConstrArg]], None]]
+    _set_value: tuple[Callable[[timetools.PeriodConstrArg | None], None]]
 
     def __new__(  # pylint: disable=unused-argument
         cls,
         value: timetools.PeriodConstrArg,
-        set_value: Optional[
-            Callable[[Optional[timetools.PeriodConstrArg]], None]
-        ] = None,
+        set_value: None | (Callable[[timetools.PeriodConstrArg | None], None]) = None,
     ) -> OptionContextPeriod:
         return super().__new__(cls, value)
 
     def __call__(
-        self: TypeOptionContextBase,
-        new_value: Optional[timetools.PeriodConstrArg] = None,
+        self: TypeOptionContextBase, new_value: timetools.PeriodConstrArg | None = None
     ) -> TypeOptionContextBase:
         self._new_value = new_value
         return self
@@ -167,8 +162,8 @@ class OptionPropertyBase(
     def __get__(self, obj: Hashable, typ: type[Hashable]) -> TypeOptionContextBase: ...
 
     def __get__(
-        self, obj: Optional[Hashable], typ: type[Hashable]
-    ) -> Union[Self, TypeOptionContextBase]:
+        self, obj: Hashable | None, typ: type[Hashable]
+    ) -> Self | TypeOptionContextBase:
         if obj is None:
             return self
         return self._CONTEXT(
@@ -185,7 +180,7 @@ class OptionPropertyBase(
     def _get_value(self, obj: Hashable) -> TypeOption:
         return self._obj2value.get(obj, self._default)
 
-    def _set_value(self, obj: Hashable, value: Optional[TypeOption] = None) -> None:
+    def _set_value(self, obj: Hashable, value: TypeOption | None = None) -> None:
         if value is not None:
             self._obj2value[obj] = self._CONVERTER[0](value)
 
@@ -494,7 +489,7 @@ class OptionPropertyPeriod(OptionPropertyBase[timetools.Period, OptionContextPer
         self._obj2value[obj] = self._CONVERTER[0](value)
 
     def _set_value(
-        self, obj: Hashable, value: Optional[timetools.PeriodConstrArg] = None
+        self, obj: Hashable, value: timetools.PeriodConstrArg | None = None
     ) -> None:
         if value is not None:
             self._obj2value[obj] = self._CONVERTER[0](value)
@@ -883,6 +878,18 @@ class Options:
         Period()
         """,
     )
+    threads = OptionPropertyInt(
+        0,
+        """The number of additional threads opened during a simulation run.
+
+        Defaults to zero (no multi-threading), but note that all tests work with an 
+        arbitrary number of additional threads.
+
+        >>> from hydpy import pub
+        >>> del pub.options.threads
+        >>> assert pub.options.threads == 0
+        """,
+    )
     timestampleft = OptionPropertyBool(
         True,
         """A bool-like flag telling if assigning interval data (like hourly 
@@ -1038,12 +1045,68 @@ class Options:
         """,
     )
 
+    def reset_defaults(self) -> None:
+        """Reset all options to their default values.
+
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> threads = pub.options.threads
+            >>> usecython = pub.options.usecython
+
+        >>> from hydpy import pub
+        >>> pub.options.reprdigits = 2
+        >>> assert pub.options.reprdigits == 2
+        >>> pub.options.reset_defaults()
+        >>> assert pub.options.reprdigits == -1
+
+        .. testsetup::
+
+            >>> pub.options.prepare_testing(usecython=usecython, threads=threads)
+        """
+        for name, member in vars(type(self)).items():
+            if isinstance(member, OptionPropertyBase):
+                delattr(self, name)
+
+    def prepare_testing(self, *, usecython: bool, threads: int) -> None:
+        """Set all options to the values usually used during testing.
+
+        .. testsetup::
+
+            >>> from hydpy import pub
+            >>> threads = pub.options.threads
+            >>> usecython = pub.options.usecython
+
+        >>> from hydpy import pub
+        >>> pub.options.checkseries = False
+        >>> pub.options.reprdigits = 2
+        >>> pub.options.threads = 0
+        >>> pub.options.usecython = True
+        >>> pub.options.prepare_testing(usecython=False, threads=4)
+        >>> assert pub.options.checkseries
+        >>> assert pub.options.reprdigits == 6
+        >>> assert pub.options.threads == 4
+        >>> assert not pub.options.usecython
+
+        .. testsetup::
+
+            >>> pub.options.prepare_testing(usecython=usecython, threads=threads)
+
+        """
+        self.reset_defaults()
+        self.checkprojectstructure = False
+        self.ellipsis = 0
+        self.printprogress = False
+        self.reprdigits = 6
+        self.threads = threads
+        self.usecython = usecython
+        self.warnsimulationstep = False
+        self.warntrim = False
+
     def __repr__(self) -> str:
-        type_ = type(self)
         lines = ["Options("]
-        for option in itertools.chain(vars(type_).keys(), vars(self).keys()):
-            if not option.startswith("_"):
-                value = getattr(self, option)
-                lines.append(f"    {option} -> {repr(value)}")
+        for name, member in vars(type(self)).items():
+            if isinstance(member, OptionPropertyBase):
+                lines.append(f"    {name} -> {repr(getattr(self, name))}")
         lines.append(")")
         return "\n".join(lines)

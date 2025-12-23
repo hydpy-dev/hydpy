@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -76,7 +75,7 @@ not be set based on the given keyword arguments.
     """
 
     _SOIL2VALUE: dict[int, float]
-    _soil: Optional[int]
+    _soil: int | None
 
     def __init__(self, subvars: parametertools.SubParameters):
         super().__init__(subvars)

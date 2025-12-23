@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
@@ -1059,6 +1058,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         hland_model.Calc_TC_V1,

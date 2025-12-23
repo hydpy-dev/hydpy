@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements some main features for using *HydPy* from your command line
 tools via script |hyd|."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -38,7 +38,7 @@ def run_subprocess(
 
 def run_subprocess(
     command: str, *, verbose: bool = True, blocking: bool = True
-) -> Union[subprocess.CompletedProcess[str], subprocess.Popen[str]]:
+) -> subprocess.CompletedProcess[str] | subprocess.Popen[str]:
     """Execute the given command in a new process.
 
     Only when both `verbose` and `blocking` are |True|, |run_subprocess| prints all
@@ -71,8 +71,7 @@ def run_subprocess(
     if blocking:
         result1 = subprocess.run(
             command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             encoding="utf-8",
             shell=True,
             check=False,
@@ -100,11 +99,12 @@ def exec_commands(commands: str, **parameters: Any) -> None:
     """Execute the given Python commands.
 
     Function |exec_commands| is thought for testing purposes only (see the main
-    documentation on module |hyd|).  Separate individual commands by semicolons and
-    replaced whitespaces with underscores:
+    documentation on module |hyd|).
+
+    Separate individual commands by semicolons and replaced whitespaces with
+    underscores:
 
     >>> from hydpy.exe.commandtools import exec_commands
-    >>> import sys
     >>> exec_commands("x_=_1+1;print(x)")
     Start to execute the commands ['x_=_1+1', 'print(x)'] for testing purposes.
     2
@@ -125,13 +125,14 @@ for testing purposes.
     """
     cmdlist = commands.split(";")
     print(f"Start to execute the commands {cmdlist} for testing purposes.")
+    locals_: dict[str, Any] = {}
     for par, value in parameters.items():
-        exec(f"{par} = {value}")
+        exec(f"{par} = {value}", {}, locals_)
     for command in cmdlist:
         command = command.replace("__", "temptemptemp")
         command = command.replace("_", " ")
         command = command.replace("temptemptemp", "_")
-        exec(command)
+        exec(command, {}, locals_)
 
 
 def run_doctests() -> int:  # pylint: disable=inconsistent-return-statements
@@ -156,10 +157,17 @@ def run_doctests() -> int:  # pylint: disable=inconsistent-return-statements
     >>> assert "file_doctests=[]" in str(main.mock_calls)
     >>> assert "python_mode=True" in str(main.mock_calls)
     >>> assert "cython_mode=True" in str(main.mock_calls)
+    >>> assert "threads=0" in str(main.mock_calls)
     """
     try:
         callback = cast(Callable[..., NoReturn], hydpy.tests.run_doctests.main.callback)
-        callback(hydpy_path=None, file_doctests=[], python_mode=True, cython_mode=True)
+        callback(
+            hydpy_path=None,
+            file_doctests=[],
+            python_mode=True,
+            cython_mode=True,
+            threads=0,
+        )
     except SystemExit as exc:
         return code if isinstance(code := exc.code, int) else 999
 
@@ -414,7 +422,7 @@ def _activate_logfile(
         sys.stderr = sys.__stderr__
 
 
-def execute_scriptfunction() -> Optional[int]:
+def execute_scriptfunction() -> int | None:
     """Execute a HydPy script function.
 
     Function |execute_scriptfunction| is indirectly applied and explained in the
@@ -601,7 +609,7 @@ class LogFileInterface:
         return getattr(self.logfile, name)
 
 
-def parse_argument(string: str) -> Union[str, tuple[str, str]]:
+def parse_argument(string: str) -> str | tuple[str, str]:
     """Return a single value for a string understood as a positional argument or a
     |tuple| containing a keyword and its value for a string understood as a keyword
     argument.

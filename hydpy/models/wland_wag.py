@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 r"""|wland_wag| is a slightly modified and extended version of the `WALRUS`_ model,
 specifically designed to simulate surface water fluxes in lowland catchments influenced
@@ -812,8 +811,8 @@ Next, we must add a submodel that complies with the |WaterLevelModel_V1| interfa
 We apply |exch_waterlevel|, which makes the downstream water level available via a
 remote node:
 
->>> with model.add_waterlevelmodel_v1("exch_waterlevel"):
-...     pass
+>>> with model.add_waterlevelmodel_v1("exch_waterlevel") as exchmodel:
+...     exchmodel.sequences.logs.loggedwaterlevel(-0.002)
 
 We create such a node and build the required connections:
 
@@ -1133,6 +1132,7 @@ There is no violation of the water balance:
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.interfaces import dischargeinterfaces
@@ -1140,6 +1140,7 @@ from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import stateinterfaces
 
 # ...from wland
+from hydpy.models.wland import wland_masks
 from hydpy.models.wland import wland_model
 from hydpy.models.wland import wland_solver
 from hydpy.models.wland.wland_constants import *
@@ -1175,6 +1176,7 @@ class Model(
         wland_model.Calc_FR_V1,
         wland_model.Calc_PM_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (wland_model.Pick_HS_V1,)
     INTERFACE_METHODS = (
         wland_model.Get_Temperature_V1,
@@ -1239,6 +1241,12 @@ class Model(
     )
     dischargemodel = modeltools.SubmodelProperty(dischargeinterfaces.DischargeModel_V2)
     waterlevelmodel = modeltools.SubmodelProperty(stateinterfaces.WaterLevelModel_V1)
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |wland_wag|."""
+
+    CLASSES = wland_masks.Masks.CLASSES
 
 
 tester = Tester()

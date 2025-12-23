@@ -21,6 +21,7 @@ available in the :ref:`model_overview` section, which covers all user-relevant m
    :hidden:
 
    aetinterfaces
+   exchangeinterfaces
    dischargeinterfaces
    petinterfaces
    precipinterfaces

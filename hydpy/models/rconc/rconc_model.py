@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 # imports...
 # ...from standard library
@@ -241,6 +240,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -91,7 +90,7 @@ Node("in3", variable="Q"))
             coordinates[idx, :] = values
         self.nodes = tuple(nodes)
         self._set_shape((len(nodes), 2))
-        self._set_value(coordinates)
+        self.value = coordinates
 
     def __repr__(self) -> str:
         prefix = f"{self.name}("
@@ -195,7 +194,7 @@ Node("in3", variable="Q"))
             heights[idx] = value
         self.nodes = tuple(nodes)
         self._set_shape(len(nodes))
-        self._set_value(heights)
+        self.value = heights
 
     def __repr__(self) -> str:
         prefix = f"{self.name}("

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -6,7 +5,7 @@
 from hydpy.core import sequencetools
 
 
-class WaterLevel(sequencetools.ReceiverSequence):
-    """Water level [m]."""
+class Q(sequencetools.OutletSequence):
+    """Runoff [m³/s]."""
 
     NDIM, NUMERIC = 0, False

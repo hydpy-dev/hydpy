@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN
@@ -108,6 +107,7 @@ documentation on |dam_llake|.  We will use them in all examples:
 ...     control.toleranceevaporation(0.001)
 ...     control.allowedwaterleveldrop(inf)
 ...     control.watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
+...     control.commission(0)
 ...     control.pars.update()
 
 Now, we prepare the exchange model.  We will use common values for the flow coefficient
@@ -419,6 +419,7 @@ class Model(modeltools.AdHocModel):
 
     >>> waterlevel1.sequences.sim = 1.0
     >>> waterlevel2.sequences.sim = 2.0
+    >>> model.update_receivers(0)
     >>> receivers.waterlevels
     waterlevels(1.0, 2.0)
 
@@ -426,11 +427,12 @@ class Model(modeltools.AdHocModel):
     |exch_outlets.Exchange| are available to the overflow nodes `lake1` and `lake2`,
     respectively:
 
-    >>> outlets.exchange = 3.0, 4.0
+    >>> fluxes.actualexchange = 3.0
+    >>> model.update_outlets()
     >>> overflow1.sequences.sim
-    sim(3.0)
+    sim(-3.0)
     >>> overflow2.sequences.sim
-    sim(4.0)
+    sim(3.0)
 
     We recreate this configuration multiple times, each time changing one aspect
     (marked by exclamation marks).  First, we connect node `waterlevel2` with èlement
@@ -447,19 +449,21 @@ class Model(modeltools.AdHocModel):
     ...                    outlets=(overflow1, overflow2))
     >>> exchange.model = model
 
-    Due to this swap, the first of the outlet sequence |exch_outlets.Exchange| connects to
-    node `overflow2` and the second one to node `overflow1`:
+    Due to this swap, the first of the outlet sequence |exch_outlets.Exchange| connects
+    to node `overflow2` and the second one to node `overflow1`:
 
     >>> waterlevel1.sequences.sim = 1.0
     >>> waterlevel2.sequences.sim = 2.0
+    >>> model.update_receivers(0)
     >>> receivers.waterlevels
     waterlevels(1.0, 2.0)
 
-    >>> outlets.exchange = 3.0, 4.0
+    >>> fluxes.actualexchange = 3.0
+    >>> model.update_outlets()
     >>> overflow1.sequences.sim
-    sim(4.0)
-    >>> overflow2.sequences.sim
     sim(3.0)
+    >>> overflow2.sequences.sim
+    sim(-3.0)
 
     Swapping the nodes `overflow1` and `overflow2` instead of `waterlevel1` and
     `waterlevel2` leads to the same results (we arbitrarily decided to ground the
@@ -478,14 +482,16 @@ class Model(modeltools.AdHocModel):
 
     >>> waterlevel1.sequences.sim = 1.0
     >>> waterlevel2.sequences.sim = 2.0
+    >>> model.update_receivers(0)
     >>> receivers.waterlevels
     waterlevels(1.0, 2.0)
 
-    >>> outlets.exchange = 3.0, 4.0
+    >>> fluxes.actualexchange = 3.0
+    >>> model.update_outlets()
     >>> overflow1.sequences.sim
-    sim(4.0)
-    >>> overflow2.sequences.sim
     sim(3.0)
+    >>> overflow2.sequences.sim
+    sim(-3.0)
 
     Now, we (accidentally) connect node `waterlevel2` to both lakes.  Therefore,
     |exch_weir_hbv96| cannot find a water level node connected to the same lake model
@@ -554,7 +560,8 @@ overflow2, and waterlevel2.
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
-    RECEIVER_METHODS = (exch_model.Pic_LoggedWaterLevels_V1,)
+    OBSERVER_METHODS = ()
+    RECEIVER_METHODS = (exch_model.Pick_LoggedWaterLevels_V1,)
     RUN_METHODS = (
         exch_model.Update_WaterLevels_V1,
         exch_model.Calc_DeltaWaterLevel_V1,

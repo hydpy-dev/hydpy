@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """Use |meteo_glob_io| as a submodel to supply (relative) main models like
 |evap_ret_tw2002| with externally available global radiation time series.
@@ -55,6 +54,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V2):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (meteo_model.Get_GlobalRadiation_V2,)

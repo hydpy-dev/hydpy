@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
@@ -71,6 +70,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (dummy_model.Pick_Q_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     ADD_METHODS = ()

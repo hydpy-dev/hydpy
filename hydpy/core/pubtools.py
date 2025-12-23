@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
 """This module provides features for handling public (global) project data."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
 import types
 
 # ...from HydPy
+import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import indextools
@@ -29,17 +30,77 @@ class _PubProperty(propertytools.DefaultProperty[T_contra, T_co]):
         )
 
 
+class _ProjectnameProperty(_PubProperty[str, str]):
+    """The name of the current project and the project's root directory.
+
+    One can manually set |Pub.projectname|:
+
+    >>> from hydpy import create_projectstructure, HydPy, pub, TestIO
+    >>> pub.projectname = "project_A"
+
+    However, the usual way is to pass the project name to the constructor of class
+    |HydPy|, which automatically sets |Pub.projectname|:
+
+    >>> hp = HydPy("project_B")
+    >>> pub.projectname
+    'project_B'
+
+    Changing |Pub.projectname| lets all file managers handled by the |pub| module
+    forget their eventually previously memorised but now outdated working directories:
+
+    >>> with TestIO(clear_all=True), pub.options.printprogress(True):
+    ...     create_projectstructure("project_B")
+    ...     for idx, filemanager in enumerate(pub.filemanagers):
+    ...         filemanager.currentdir = f"dir_{idx}"  # doctest: +ELLIPSIS
+    Directory ...project_B...dir_0 has been created.
+    Directory ...project_B...dir_1 has been created.
+    Directory ...project_B...dir_2 has been created.
+    Directory ...project_B...dir_3 has been created.
+
+    >>> pub.projectname = "project_C"
+    >>> import os
+    >>> with TestIO(clear_all=True), pub.options.printprogress(True):
+    ...     create_projectstructure("project_C")
+    ...     os.makedirs("project_C/conditions/test")
+    ...     for filemanager in pub.filemanagers:
+    ...         _ = filemanager.currentdir  # doctest: +ELLIPSIS
+    The name of the network manager's current working directory has not been \
+previously defined and is hence set to `default`.
+    Directory ...project_C...default has been created.
+    The name of the control manager's current working directory has not been \
+previously defined and is hence set to `default`.
+    Directory ...project_C...default has been created.
+    The name of the condition manager's current working directory has not been \
+previously defined and is hence set to `test`.
+    The name of the sequence manager's current working directory has not been \
+previously defined and is hence set to `default`.
+    Directory ...project_C...default has been created.
+
+    .. testsetup::
+
+        >>> del pub.timegrids
+    """
+
+    def call_fset(self, obj: Any, value: str) -> None:
+        try:
+            for filemanager in hydpy.pub.filemanagers:
+                filemanager.currentdir = None
+        except exceptiontools.AttributeNotReady:
+            pass
+        super().call_fset(obj, value)
+
+
 class TimegridsProperty(
     _PubProperty[
-        Union[
-            timetools.Timegrids,
-            timetools.Timegrid,
-            tuple[
+        (
+            timetools.Timegrids
+            | timetools.Timegrid
+            | tuple[
                 timetools.DateConstrArg,
                 timetools.DateConstrArg,
                 timetools.PeriodConstrArg,
-            ],
-        ],
+            ]
+        ),
         timetools.Timegrids,
     ]
 ):
@@ -87,21 +148,21 @@ class TimegridsProperty(
     def call_fset(
         self,
         obj: Any,
-        value: Union[
-            timetools.Timegrids,
-            timetools.Timegrid,
-            tuple[
+        value: (
+            timetools.Timegrids
+            | timetools.Timegrid
+            | tuple[
                 timetools.DateConstrArg,
                 timetools.DateConstrArg,
                 timetools.PeriodConstrArg,
-            ],
-        ],
+            ]
+        ),
     ) -> None:
         """Try to convert the given input value(s)."""
         try:
             timegrids = timetools.Timegrids(*value)
         except TypeError:
-            timegrids = timetools.Timegrids(value)  # type: ignore
+            timegrids = timetools.Timegrids(value)  # type: ignore[arg-type]
             # this will most likely fail, we just want to reuse
             # the standard error message
         super().call_fset(obj, timegrids)
@@ -154,9 +215,9 @@ is not defined at the moment.
 
     options: optiontools.Options
     config: configutils.Config
-    scriptfunctions: dict[str, Callable[..., Optional[int]]]
+    scriptfunctions: dict[str, Callable[..., int | None]]
 
-    projectname = _PubProperty[str, str]()
+    projectname = _ProjectnameProperty()
     indexer = _PubProperty[indextools.Indexer, indextools.Indexer]()
     networkmanager = _PubProperty[filetools.NetworkManager, filetools.NetworkManager]()
     controlmanager = _PubProperty[filetools.ControlManager, filetools.ControlManager]()
@@ -169,7 +230,7 @@ is not defined at the moment.
     timegrids = TimegridsProperty()
     selections = _PubProperty[selectiontools.Selections, selectiontools.Selections]()
 
-    def __init__(self, name: str, doc: Optional[str] = None) -> None:
+    def __init__(self, name: str, doc: str | None = None) -> None:
         super().__init__(name=name, doc=doc)
         self.options = optiontools.Options()
         self.scriptfunctions = {}

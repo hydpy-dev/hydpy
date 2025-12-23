@@ -1,9 +1,11 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+
+# ...from wq
+from hydpy.models.wq import wq_variables
 
 
 class WaterDepth(sequencetools.FactorSequence):
@@ -18,10 +20,10 @@ class WaterLevel(sequencetools.FactorSequence):
     NDIM, SPAN = 0, (None, None)
 
 
-class WettedAreas(sequencetools.FactorSequence):
+class WettedAreas(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
     """Wetted area of each trapeze range [m²]."""
 
-    NDIM, SPAN = 1, (0.0, None)
+    SPAN = (0.0, None)
 
 
 class WettedArea(sequencetools.FactorSequence):
@@ -30,10 +32,43 @@ class WettedArea(sequencetools.FactorSequence):
     NDIM, SPAN = 0, (0.0, None)
 
 
-class WettedPerimeters(sequencetools.FactorSequence):
+class FlowAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
+    """The sector-specific wetted areas of those subareas of the cross section
+    involved in water routing [m²]."""
+
+    SPAN = (0.0, None)
+
+
+class FlowArea(sequencetools.FactorSequence):
+    """The total wetted area of those subareas of the cross section involved in water
+    routing [m²]."""
+
+    NDIM, SPAN = 0, (0.0, None)
+
+
+class TotalAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
+    """The sector-specific wetted areas of the total cross section [m²]."""
+
+    SPAN = (0.0, None)
+
+
+class TotalArea(sequencetools.FactorSequence):
+    """The total wetted area of the total cross section [m²]."""
+
+    NDIM, SPAN = 0, (0.0, None)
+
+
+class WettedPerimeters(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
     """Wetted perimeter of each trapeze range [m]."""
 
-    NDIM, SPAN = 1, (0.0, None)
+    SPAN = (0.0, None)
+
+
+class FlowPerimeters(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
+    """The sector-specific wetted perimeters of those subareas of the cross section
+    involved in water routing [m]."""
+
+    SPAN = (0.0, None)
 
 
 class WettedPerimeter(sequencetools.FactorSequence):
@@ -42,17 +77,28 @@ class WettedPerimeter(sequencetools.FactorSequence):
     NDIM, SPAN = 0, (0.0, None)
 
 
-class WettedPerimeterDerivatives(sequencetools.FactorSequence):
+class WettedPerimeterDerivatives(
+    wq_variables.MixinTrapezes, sequencetools.FactorSequence
+):
     """Change in the wetted perimeter of each trapeze range with respect to a water
     level increase [-]."""
 
-    NDIM, SPAN = 1, (0.0, None)
+    SPAN = (0.0, None)
 
 
-class SurfaceWidths(sequencetools.FactorSequence):
+class FlowPerimeterDerivatives(
+    wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence
+):
+    """The sector-specific wetted perimeters of those subareas of the cross section
+    involved in water routing [m]."""
+
+    SPAN = (0.0, None)
+
+
+class SurfaceWidths(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
     """Surface width of each trapeze range [m]."""
 
-    NDIM, SPAN = 1, (0.0, None)
+    SPAN = (0.0, None)
 
 
 class SurfaceWidth(sequencetools.FactorSequence):
@@ -61,11 +107,32 @@ class SurfaceWidth(sequencetools.FactorSequence):
     NDIM, SPAN = 0, (0.0, None)
 
 
-class DischargeDerivatives(sequencetools.FactorSequence):
+class FlowWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
+    """The sector-specific widths of those subareas of the cross section involved in
+    water routing [m]."""
+
+    SPAN = (0.0, None)
+
+
+class TotalWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
+    """The sector-specific widths of the total cross section [m]."""
+
+    SPAN = (0.0, None)
+
+
+class TotalWidth(sequencetools.FactorSequence):
+    """The total width of the total cross section [m]."""
+
+    NDIM, SPAN = 0, (0.0, None)
+
+
+class DischargeDerivatives(
+    wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence
+):
     """Discharge change of each trapeze range with respect to a water level increase
     [m²/s]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    NUMERIC, SPAN = False, (None, None)
 
 
 class DischargeDerivative(sequencetools.FactorSequence):

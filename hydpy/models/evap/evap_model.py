@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 118`: https://github.com/hydpy-dev/hydpy/issues/118
 """
+
 # imports...
 # ...from standard library
 import contextlib
@@ -1602,6 +1602,7 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
         >>> ft(10.0)
         >>> nhru(3)
         >>> fhru(5.0, 3.0, 2.0)
+        >>> gh(100.0)
         >>> lnk(ACKER, VERS, VERS)
         >>> measuringheightwindspeed(10.0)
         >>> lai(3.0)
@@ -1695,6 +1696,7 @@ class Calc_CurrentAlbedo_V2(modeltools.Method):
         >>> lnk(WASSER, BODEN, ACKER, BAUMB, LAUBW)
         >>> ft(10.0)
         >>> fhru(0.2)
+        >>> gh(100.0)
         >>> wmax(200.0)
         >>> measuringheightwindspeed(10.0)
         >>> lai.acker = 2.0
@@ -3802,7 +3804,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
                 invsrnight: float = lai / 2500.0 + 1.0 / fac.soilsurfaceresistance[k]
                 w: float = fac.possiblesunshineduration / der.hours
                 fac.actualsurfaceresistance[k] = 1.0 / (
-                    (w * invsrday + (1.0 - w) * invsrnight)
+                    w * invsrday + (1.0 - w) * invsrnight
                 )
             else:
                 fac.actualsurfaceresistance[k] = fac.landusesurfaceresistance[k]
@@ -3837,11 +3839,19 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         instance (more precisely, an |evap_pet_ambav1| instance) more easily:
 
         >>> from hydpy.models.lland_dd import *
-        >>> parameterstep()
+        >>> simulationstep("1d")
+        >>> parameterstep("1d")
         >>> nhru(5)
         >>> lnk(WASSER, FLUSS, SEE, BODEN, BODEN)
         >>> ft(10.0)
         >>> fhru(0.2)
+        >>> gh(100.0)
+        >>> atg(-0.65)
+        >>> gsf(2.0)
+        >>> aggh(inf)
+        >>> agsh(inf)
+        >>> feis(0.01)
+        >>> bsf0(0.0)
         >>> wmax(200.0)
         >>> from hydpy import pub
         >>> pub.timegrids = "2000-05-30", "2000-06-03", "1d"
@@ -3933,6 +3943,13 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
         >>> lnk(NADELW)
         >>> fhru(1.0)
         >>> wmax(200.0)
+        >>> bsf0(0.0)
+        >>> gh(100.0)
+        >>> atg(-0.65)
+        >>> gsf(2.0)
+        >>> aggh(inf)
+        >>> agsh(inf)
+        >>> feis(0.01)
         >>> model.update_parameters(ignore_errors=True)
         >>> control.hrutype
         hrutype(NADELW)
@@ -4002,7 +4019,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
                 r_night_inv: float = 1.0 / r_soil + lai / r_leaf_night
                 w_day: float = fac.possiblesunshineduration / der.hours
                 fac.actualsurfaceresistance[k] = 1.0 / (
-                    (w_day * r_day_inv + (1.0 - w_day) * r_night_inv)
+                    w_day * r_day_inv + (1.0 - w_day) * r_night_inv
                 )
             elif con.soil[k]:
                 fac.actualsurfaceresistance[k] = sta.soilresistance[k]
@@ -4199,6 +4216,7 @@ class Calc_SnowyCanopy_V1(modeltools.Method):
         >>> ft(10.0)
         >>> nhru(3)
         >>> fhru(5.0, 3.0, 2.0)
+        >>> gh(100.0)
         >>> lnk(LAUBW, LAUBW, ACKER)
         >>> measuringheightwindspeed(10.0)
         >>> lai(3.0)
@@ -7880,6 +7898,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_AirTemperature_V1,

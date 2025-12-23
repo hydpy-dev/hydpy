@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """|test_discontinous| serves to test numerical integration strategies only.  It can be
 seen from two perspectives.  On the one hand, it implements a simple discontinuous
@@ -33,6 +32,7 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (test_model.Calc_Q_V2,)

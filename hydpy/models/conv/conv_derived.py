@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -142,7 +141,7 @@ class Distances(parametertools.Parameter):
                 numpy.sum((outcoord - incoords) ** 2, axis=1)
             )
         self._set_shape(distances.shape)
-        self._set_value(distances)
+        self.value = distances
 
 
 class ProximityOrder(parametertools.Parameter):
@@ -198,7 +197,7 @@ class ProximityOrder(parametertools.Parameter):
         for idx, distances_ in enumerate(distances):
             idxs[idx, :] = numpy.argsort(distances_)[:nmbinputs]
         self._set_shape(idxs.shape)
-        self._set_value(idxs)
+        self.value = idxs
 
 
 class Weights(parametertools.Parameter):
@@ -269,4 +268,4 @@ class Weights(parametertools.Parameter):
             weights[idx, jdxs] = 1.0 / sorteddistances[jdxs] ** power
             weights[idx, ~jdxs] = numpy.inf
         self._set_shape(weights.shape)
-        self._set_value(weights)
+        self.value = weights

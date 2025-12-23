@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Move, create and modify documentation files before applying `Sphinx`.
 
 Sphinx is to be executed in a freshly created folder named `auto`.  If this folder
@@ -81,7 +80,7 @@ for subpackage in (auxs, core, cythons, exe, interfaces, models):
             and (filename not in ("build", "__pycache__"))
         )
         assert not (is_module and is_package)
-        source: Optional[str] = None
+        source: str | None = None
         if is_module:
             path = os.path.join(subpackagepath, filename)
             with open(path, encoding="utf-8") as file_:

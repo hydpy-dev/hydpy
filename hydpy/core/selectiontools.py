@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements tools for defining subsets of |Node| and |Element| objects of
 large *HydPy* projects, called "selections"."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -22,7 +22,7 @@ from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 
-ModelTypesArg = Union[modeltools.Model, types.ModuleType, str]
+ModelTypesArg: TypeAlias = Union[modeltools.Model, types.ModuleType, str]
 
 
 class Selections:
@@ -139,7 +139,7 @@ identical.  However,  for selection `sel3` the given attribute name is `sel4`.
     >>> smaller - (sel1, sel2, sel3)
     Selections()
 
-    The binary operators do not support other types than the mentioned ones:
+    The binary operators do not support types other than the mentioned ones:
 
     >>> smaller -= "sel3"
     Traceback (most recent call last):
@@ -211,6 +211,51 @@ objects, but the type of the given argument is `str`.
             elements += selection.elements
         return elements
 
+    @property
+    def complete(self) -> Selection:
+        """An automatically created selection that comprises the nodes and elements of
+        all currently available, user-defined selections.
+
+        >>> from hydpy import Selection, Selections
+        >>> selections = Selections(
+        ...     Selection("sel1", ["node1"], ["element1"]),
+        ...     Selection("sel2", ["node1"], ["element2", "element3"]))
+        >>> selections.complete
+        Selection("complete",
+                  nodes="node1",
+                  elements=("element1", "element2", "element3"))
+
+        The selection |Selections.complete| is always freshly created and so reflects
+        the current state |Selections| instance:
+
+        >>> selections.sel1.nodes.add_device("node2")
+        >>> selections.complete
+        Selection("complete",
+                  nodes=("node1", "node2"),
+                  elements=("element1", "element2", "element3"))
+
+        Therefore, changing the |Selection| object returned by property
+        |Selections.complete| does neither change the |Selections| object nor
+        subsequentially returned |Selections.complete| selections:
+
+        >>> selections.complete.nodes.add_device("node3")
+        >>> assert "node3" not in selections.nodes
+        >>> selections.complete
+        Selection("complete",
+                  nodes=("node1", "node2"),
+                  elements=("element1", "element2", "element3"))
+
+        Item access is provided:
+
+        >>> assert selections["complete"] == selections.complete
+
+        Selection |Selections.complete| is ignored when iterating through the
+        user-defined selections:
+
+        >>> assert len(selections) == 2
+        """
+        return Selection("complete", nodes=self.nodes, elements=self.elements)
+
     def add_selections(self, *selections: Selection) -> None:
         """Add the given |Selection| object(s) to the current |Selections| object.
 
@@ -225,9 +270,25 @@ objects, but the type of the given argument is `str`.
         Nodes("node1", "node2")
         >>> selections.elements
         Elements("element1", "element2", "element3")
+
+        |Selections| rejects any |Selection| objects named `complete` to avoid conflicts
+        with the automatically created |Selections.complete| selection:
+
+        >>> selections.add_selections(Selection("complete"))
+        Traceback (most recent call last):
+        ...
+        ValueError: You cannot assign a selection with the name `complete` to a \
+`Selections` object because it would conflict with the selection automatically \
+created by its property `Selections.complete`.
         """
         for selection in selections:
-            self[selection.name] = selection
+            if selection.name == "complete":
+                raise ValueError(
+                    "You cannot assign a selection with the name `complete` to a "
+                    "`Selections` object because it would conflict with the selection "
+                    "automatically created by its property `Selections.complete`."
+                )
+            self.__selections[selection.name] = selection
 
     def remove_selections(self, *selections: Selection) -> None:
         """Remove the given |Selection| object(s) from the current |Selections| object.
@@ -290,10 +351,10 @@ objects, but the type of the given argument is `str`.
 
     def query_intersections(
         self, selection2element: bool = True
-    ) -> Union[
-        dict[Selection, dict[Selection, devicetools.Elements]],
-        dict[devicetools.Element, Selections],
-    ]:
+    ) -> (
+        dict[Selection, dict[Selection, devicetools.Elements]]
+        | dict[devicetools.Element, Selections]
+    ):
         """A dictionary covering all cases where one |Element| object is a member of
         multiple |Selection| objects.
 
@@ -401,6 +462,8 @@ objects, but the type of the given argument is `str`.
             ) from None
 
     def __getitem__(self, key: str) -> Selection:
+        if key == "complete":
+            return self.complete
         try:
             return self.__selections[key]
         except KeyError:
@@ -417,7 +480,7 @@ objects, but the type of the given argument is `str`.
                 f"name must be identical.  However,  for selection `{value.name}` the "
                 f"given attribute name is `{key}`."
             )
-        self.__selections[key] = value
+        self.add_selections(value)
 
     def __delitem__(self, key: str) -> None:
         try:
@@ -428,7 +491,7 @@ objects, but the type of the given argument is `str`.
                 f"called `{key}` that could be deleted."
             ) from None
 
-    def __contains__(self, value: Union[str, Selection]) -> bool:
+    def __contains__(self, value: str | Selection) -> bool:
         if isinstance(value, str):
             return value in self.names
         return value in self.__selections.values()
@@ -454,16 +517,12 @@ objects, but the type of the given argument is `str`.
             ) from None
 
     def __add__(self, other: Mayberable1[Selection]) -> Selections:
-        selections = self.__getiterable(other)
         new = copy.copy(self)
-        for selection in selections:
-            new[selection.name] = selection
+        new.add_selections(*self.__getiterable(other))
         return new
 
     def __iadd__(self, other: Mayberable1[Selection]) -> Selections:
-        selections = self.__getiterable(other)
-        for selection in selections:
-            self[selection.name] = selection
+        self.add_selections(*self.__getiterable(other))
         return self
 
     def __sub__(self, other: Mayberable1[Selection]) -> Selections:
@@ -912,7 +971,7 @@ required as the "inlet device", but the given `device` value is of type `int`.
                   elements="lower")
         >>> test.search_downstream(nodes.inlet1, inclusive=False)
         Selection("downstream",
-                  nodes=("inlet1", "outlet", "output"),
+                  nodes=("inlet1", "outlet", "output", "sender"),
                   elements="lower")
         """
         try:
@@ -1283,7 +1342,7 @@ following error occurred: 'in <string>' requires string as left operand, not lis
                 nodes.add_device(node)
 
     def save_networkfile(
-        self, filepath: Union[str, None] = None, write_defaultnodes: bool = True
+        self, filepath: str | None = None, write_defaultnodes: bool = True
     ) -> None:
         """Save the selection as a network file.
 
@@ -1299,8 +1358,6 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         ...     pub.selections.headwaters.save_networkfile()
         ...     with open("headwaters.py") as networkfile:
         ...         print(networkfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy import Element, Node
         <BLANKLINE>
         <BLANKLINE>
@@ -1325,8 +1382,6 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         ...         "test.py", write_defaultnodes=False)
         ...     with open("test.py") as networkfile:
         ...         print(networkfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy import Element, Node
         <BLANKLINE>
         <BLANKLINE>
@@ -1362,8 +1417,6 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         ...         "test.py", write_defaultnodes=False)
         ...     with open("test.py") as networkfile:
         ...         print(networkfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy import Element, FusedVariable, Node
         from hydpy.aliases import (
             dam_factors_WaterLevel,
@@ -1419,11 +1472,10 @@ following error occurred: 'in <string>' requires string as left operand, not lis
         if filepath is None:
             filepath = self.name + ".py"
         with open(filepath, "w", encoding="utf-8") as file_:
-            file_.write("# -*- coding: utf-8 -*-\n")
             if fusedvariables:
-                file_.write("\nfrom hydpy import Element, FusedVariable, Node")
+                file_.write("from hydpy import Element, FusedVariable, Node")
             else:
-                file_.write("\nfrom hydpy import Element, Node")
+                file_.write("from hydpy import Element, Node")
             if aliases:
                 import_aliases = ", ".join(sorted(aliases))
                 import_aliases = f"from hydpy.aliases import {import_aliases}"

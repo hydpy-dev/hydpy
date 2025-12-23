@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 """This module implements the main features for managing *HydPy* projects.
 
 .. _`NetCDF Climate and Forecast (CF) Metadata Conventions`: http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html  # pylint: disable=line-too-long
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -20,11 +20,13 @@ from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import modeltools
+from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import printtools
 from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
+from hydpy.core import threadingtools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
@@ -340,6 +342,9 @@ required to prepare the model properly.
     >>> model.sequences.fluxes.qt.series
     InfoArray([nan, nan, nan, nan])
 
+    >>> model.sequences.outlets.q.series
+    InfoArray([nan, nan, nan, nan])
+
     >>> hp.nodes.dill_assl.sequences.sim.series
     InfoArray([nan, nan, nan, nan])
 
@@ -376,6 +381,9 @@ required to prepare the model properly.
     >>> round_(model.sequences.fluxes.qt.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
+    >>> round_(model.sequences.fluxes.qt.series)
+    11.757526, 8.865079, 7.101815, 5.994195
+
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
@@ -393,6 +401,9 @@ required to prepare the model properly.
 
     >>> model.sequences.fluxes.qt
     qt(5.994195)
+
+    >>> model.sequences.outlets.q
+    q(5.994195)
 
     >>> hp.nodes.dill_assl.sequences.sim
     sim(5.994195)
@@ -417,13 +428,14 @@ required to prepare the model properly.
     ...     hp.save_factorseries()
     ...     hp.save_fluxseries()
     ...     hp.save_stateseries()
+    ...     hp.save_linkseries()
     ...     hp.save_simseries()
     ...     hp.save_obsseries()
 
     Alternatively, apply |HydPy.save_modelseries| to write the series of all the
-    |InputSequence|, |FactorSequence|, |FluxSequence|, and |StateSequence| objects and
-    |HydPy.save_nodeseries| to write the series of all |Sim| and |Obs| objects in one
-    step:
+    |InputSequence|, |FactorSequence|, |FluxSequence|, |StateSequence|, and
+    |LinkSequence| objects and |HydPy.save_nodeseries| to write the series of all |Sim|
+    and |Obs| objects in one step:
 
     >>> with TestIO():
     ...     hp.save_modelseries()
@@ -439,7 +451,8 @@ required to prepare the model properly.
 
     >>> model.sequences.inputs.t.series = 0.0
     >>> model.sequences.states.sm.series = 0.0
-    >>> model.sequences.inputs.t.series = 0.0
+    >>> model.sequences.fluxes.qt.series = 0.0
+    >>> model.sequences.outlets.q.series = 0.0
     >>> hp.nodes.dill_assl.sequences.sim.series = 0.0
 
     Now, we can reload the time series of all relevant sequences.  However, doing so
@@ -455,6 +468,7 @@ required to prepare the model properly.
     ...     hp.load_factorseries()
     ...     hp.load_fluxseries()
     ...     hp.load_stateseries()
+    ...     hp.load_linkseries()
     ...     hp.load_simseries()
     ...     hp.load_obsseries()
 
@@ -477,6 +491,9 @@ required to prepare the model properly.
     184.958475, 184.763638, 184.610776, 184.553224
 
     >>> round_(model.sequences.fluxes.qt.series)
+    11.757526, 8.865079, 7.101815, 5.994195
+
+    >>> round_(model.sequences.outlets.q.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
@@ -529,6 +546,7 @@ required to prepare the model properly.
     >>> hp.prepare_factorseries(allocate_ram=False, write_jit=True)
     >>> hp.prepare_fluxseries(allocate_ram=False, write_jit=True)
     >>> hp.prepare_stateseries(allocate_ram=False, write_jit=True)
+    >>> hp.prepare_linkseries(allocate_ram=False, write_jit=True)
     >>> hp.prepare_simseries(allocate_ram=False, write_jit=True)
     >>> hp.prepare_obsseries(allocate_ram=False, read_jit=True)
 
@@ -548,13 +566,16 @@ required to prepare the model properly.
     >>> attrready(model.sequences.fluxes.qt, "series")
     False
 
+    >>> attrready(model.sequences.outlets.q, "series")
+    False
+
     >>> attrready(hp.nodes.dill_assl.sequences.sim, "series")
     False
 
     Reloading the initial conditions and starting a new simulation run leads to the
     same results as the simulation run above:
 
-    >>> with TestIO(), pub.options.checkseries(False):
+    >>> with TestIO(), pub.options.checkseries(False), pub.options.threads(0):
     ...     hp.load_conditions()
     ...     hp.simulate()
 
@@ -596,6 +617,9 @@ required to prepare the model properly.
     >>> round_(model.sequences.fluxes.qt.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
+    >>> round_(model.sequences.outlets.q.series)
+    11.757526, 8.865079, 7.101815, 5.994195
+
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
@@ -617,6 +641,9 @@ required to prepare the model properly.
     >>> attrready(model.sequences.fluxes.qt, "series")
     False
 
+    >>> attrready(model.sequences.outlets.q, "series")
+    False
+
     >>> attrready(hp.nodes.dill_assl.sequences.sim, "series")
     False
 
@@ -634,7 +661,7 @@ required to prepare the model properly.
     After another simulation run, all input data (read during simulation) and output
     data (calculated during simulation) are directly available:
 
-    >>> with TestIO(), pub.options.checkseries(False):
+    >>> with TestIO(), pub.options.checkseries(False), pub.options.threads(0):
     ...     hp.load_conditions()
     ...     hp.simulate()
 
@@ -648,6 +675,9 @@ required to prepare the model properly.
     184.958475, 184.763638, 184.610776, 184.553224
 
     >>> round_(model.sequences.fluxes.qt.series)
+    11.757526, 8.865079, 7.101815, 5.994195
+
+    >>> round_(model.sequences.outlets.q.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
@@ -672,6 +702,9 @@ required to prepare the model properly.
     184.958475, 184.763638, 184.610776, 184.553224
 
     >>> round_(model.sequences.fluxes.qt.series)
+    11.757526, 8.865079, 7.101815, 5.994195
+
+    >>> round_(model.sequences.outlets.q.series)
     11.757526, 8.865079, 7.101815, 5.994195
 
     >>> round_(hp.nodes.dill_assl.sequences.sim.series)
@@ -778,7 +811,7 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
     available to both sequences (and leads to the same simulation results):
 
     >>> hland.sequences.inputs.t.series = -777.0
-    >>> with TestIO():
+    >>> with TestIO(), pub.options.threads(0):
     ...     hp.prepare_fluxseries()
     ...     hp.simulate()
     >>> round_(hland.sequences.inputs.t.series)
@@ -789,17 +822,21 @@ directory: '...land_dill_assl_hland_96p_input_p.asc'
     11.757526, 8.865079, 7.101815, 5.994195
     """
 
-    _deviceorder: Optional[tuple[Union[devicetools.Node, devicetools.Element], ...]]
+    _deviceorder: tuple[devicetools.Node | devicetools.Element, ...] | None
+    _parallelisability: threadingtools.Parallelisability | None
+    _queue: threadingtools.Queue | None
 
-    _nodes: Optional[devicetools.Nodes]
-    _elements: Optional[devicetools.Elements]
-    _collectives: Optional[devicetools.Elements]
+    _nodes: devicetools.Nodes | None
+    _elements: devicetools.Elements | None
+    _collectives: devicetools.Elements | None
 
-    def __init__(self, projectname: Optional[str] = None) -> None:
+    def __init__(self, projectname: str | None = None) -> None:
         self._nodes = None
         self._elements = None
         self._collectives = None
         self._deviceorder = None
+        self._parallelisability = None
+        self._queue = None
         if projectname is not None:
             if hydpy.pub.options.checkprojectstructure:
                 filetools.check_projectstructure(projectname)
@@ -976,7 +1013,7 @@ first.
     @printtools.print_progress
     def prepare_network(self) -> None:
         """Load all network files as |Selections| (stored in module |pub|) and assign
-        the "complete" selection to the |HydPy| object.
+        the |Selections.complete| selection to the |HydPy| object.
 
         .. testsetup::
 
@@ -991,7 +1028,7 @@ first.
         >>> prepare_full_example_1()
 
         Directly after initialising class |HydPy|, neither the resulting object nor
-        module |pub| contain any information stemming from the network files:
+        module |pub| contains any information from the network files:
 
         >>> from hydpy import HydPy, pub, TestIO
         >>> hp = HydPy("HydPy-H-Lahn")
@@ -1003,19 +1040,21 @@ first.
 
         By calling the method |HydPy.prepare_network|, one loads all three network
         files into separate |Selection| objects, all handled by the |Selections| object
-        of module |pub|.  Additionally, there is a |Selection| object named `complete`,
-        covering all |Node| and |Element| objects of the other |Selection| objects:
+        of module |pub|:
 
         >>> with TestIO():
         ...     hp.prepare_network()
         >>> pub.selections
-        Selections("complete", "headwaters", "nonheadwaters", "streams")
+        Selections("headwaters", "nonheadwaters", "streams")
 
-        >>> pub.selections.headwaters <= pub.selections.complete
-        True
-        >>> pub.selections.nonheadwaters <= pub.selections.complete
-        True
-        >>> pub.selections.streams <= pub.selections.complete
+        Additionally, a |Selection| object named "complete" that covers all |Node| and
+        |Element| objects of the user-defined selections is automatically creatable
+        by property |Selections.complete| of class |Selections|:
+
+        >>> whole = pub.selections.headwaters.copy("whole")
+        >>> whole += pub.selections.nonheadwaters
+        >>> whole += pub.selections.streams
+        >>> whole == pub.selections.complete
         True
 
         Initially, the |HydPy| object is aware of the complete set of |Node| and
@@ -1030,7 +1069,7 @@ first.
         another selection in the safest manner.
         """
         hydpy.pub.selections = selectiontools.Selections()
-        hydpy.pub.selections += hydpy.pub.networkmanager.load_files()
+        hydpy.pub.selections.add_selections(*hydpy.pub.networkmanager.load_files())
         self.update_devices(selection=hydpy.pub.selections.complete, silent=True)
 
     def prepare_models(self) -> None:
@@ -1154,9 +1193,9 @@ deprecated.  Use method `prepare_models` instead.
 
     def save_controls(
         self,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
+        auxfiler: auxfiletools.Auxfiler | None = None,
     ) -> None:
         """Write the control files of all current |Element| objects.
 
@@ -1209,8 +1248,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "stream_lahn_marb_lahn_leun.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
@@ -1246,8 +1283,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_controls(auxfiler=auxfiler)
         ...     with open(dir_ + "stream_lahn_marb_lahn_leun.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
@@ -1262,8 +1297,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "stream.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
@@ -1281,8 +1314,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "stream_lahn_leun_lahn_kalk.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1d")
@@ -1304,8 +1335,6 @@ deprecated.  Use method `prepare_models` instead.
         ...         auxfiler=auxfiler, parameterstep="2d", simulationstep="1h")
         ...     with open(dir_ + "stream_lahn_marb_lahn_leun.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1h")
@@ -1318,8 +1347,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "stream.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1h")
@@ -1332,8 +1359,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "stream_lahn_leun_lahn_kalk.py") as controlfile:
         ...         print(controlfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.musk_classic import *
         <BLANKLINE>
         simulationstep("1h")
@@ -1352,8 +1377,6 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "land_dill_assl.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.hland_96 import *
         from hydpy.models import evap_aet_hbv96
         from hydpy.models import evap_pet_hbv96
@@ -1393,8 +1416,6 @@ deprecated.  Use method `prepare_models` instead.
         ...         auxfiler=auxfiler, parameterstep="2d", simulationstep="1h")
         ...     with open(dir_ + "evap.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.evap_pet_hbv96 import *
         <BLANKLINE>
         simulationstep("1h")
@@ -1405,7 +1426,7 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(dir_ + "land_dill_assl.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
+        from hydpy.models.hland_96 import *
         ...
         gamma(0.0)
         with model.add_aetmodel_v1(evap_aet_hbv96):
@@ -1460,8 +1481,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_controls()
         ...     with open(dir_ + "my_channel.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_storage
         from hydpy.models import wq_trapeze
@@ -1497,8 +1516,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_controls()
         ...     with open(dir_ + "my_channel.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_lias
         from hydpy.models import sw1d_storage
@@ -1530,8 +1547,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_controls()
         ...     with open(dir_ + "my_channel.py") as controlfile:
         ...         print(controlfile.read())  # doctest: +ELLIPSIS
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_lias
         from hydpy.models import sw1d_q_in
@@ -1566,6 +1581,64 @@ deprecated.  Use method `prepare_models` instead.
             simulationstep=simulationstep,
             auxfiler=auxfiler,
         )
+
+    def update_parameters(self) -> None:
+        """Update the derived parameters of all models managed by the respective
+        elements.
+
+        The following examples demonstrate method |HydPy.update_parameters| based on
+        the :ref:`HydPy-H-Lahn` project:
+
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+
+        We focus on the Dill subcatchment represented by element `land_dill_assl` and
+        an application model instance of type |hland_96|:
+
+        >>> parameters = hp.elements.land_dill_assl.model.parameters
+
+        |hland_96| has the parameter |hland_derived.QFactor|, which serves as a factor
+        for converting runoff height (mm/T) to runoff volume (m³/s):
+
+        >>> parameters.derived.qfactor
+        qfactor(8.012731)
+
+        Such a factor factor obviously depends on the subcatchment's area.  Hence,
+        |hland_derived.QFactor| is implemented as a derived parameter with an
+        |hland_derived.QFactor.update| method that relies on the current value of the
+        control parameter |hland_control.Area|:
+
+        >>> parameters.control.area
+        area(692.3)
+
+        Assume we made an error when transferring the original subcatchment size to our
+        :ref:`HydPy-H-Lahn` project and now want to fix it:
+
+        >>> parameters.control.area(329.6)
+
+        Despite fixing the value of |hland_control.Area|, the value of the
+        |hland_derived.QFactor| instance stays the same:
+
+        >>> parameters.derived.qfactor
+        qfactor(8.012731)
+
+        One now could call method |Model.update_parameters| of the |hland_96| instance
+        to achieve an update of all its derived parameters.  However, if one has
+        changed the control parameter values of multiple models, one might find it more
+        convenient to call the |HydPy.update_parameters| of the |HydPy| instance, which
+        then invokes the |Model.update_parameters| of all handled models:
+
+        >>> hp.update_parameters()
+        >>> parameters.derived.qfactor
+        qfactor(3.814815)
+
+        .. warning::
+
+            Updating derived parameters sometimes requires further action to restore
+            runnable models.  For example, it might cause a reshaping of condition
+            sequences, which makes defining new initial conditions necessary.
+        """
+        self.elements.update_parameters()
 
     def load_conditions(self) -> None:
         """Load all currently relevant initial conditions.
@@ -1610,8 +1683,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[10])
-        ...         print(lines[11])
+        ...         print(lines[8])
+        ...         print(lines[9])
         sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -1652,8 +1725,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[12])
-        ...         print(lines[13])
+        ...         print(lines[10])
+        ...         print(lines[11])
         sm(184.763638, 180.829058, 199.40823, 196.170947, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -1668,8 +1741,8 @@ deprecated.  Use method `prepare_models` instead.
         >>> with TestIO():
         ...     with open(path, "r") as file_:
         ...         lines = file_.read().split("\\n")
-        ...         print(lines[12])
-        ...         print(lines[13])
+        ...         print(lines[10])
+        ...         print(lines[11])
         sm(184.763638, 180.829058, 199.40823, 196.170947, 212.04018, 209.48859,
            222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 
@@ -1713,8 +1786,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_conditions()
         ...     with open(path) as conditionfile:
         ...         print(conditionfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_storage
         <BLANKLINE>
@@ -1751,8 +1822,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_conditions()
         ...     with open(path) as conditionfile:
         ...         print(conditionfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_lias
         from hydpy.models import sw1d_storage
@@ -1789,8 +1858,6 @@ deprecated.  Use method `prepare_models` instead.
         ...     hp.save_conditions()
         ...     with open(path) as conditionfile:
         ...         print(conditionfile.read())
-        # -*- coding: utf-8 -*-
-        <BLANKLINE>
         from hydpy.models.sw1d_channel import *
         from hydpy.models import sw1d_lias
         from hydpy.models import sw1d_q_in
@@ -2025,9 +2092,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
     @property
     def networkproperties(
         self,
-    ) -> dict[
-        str, Union[int, Union[dict[str, int], dict[devicetools.NodeVariableType, int]]]
-    ]:
+    ) -> dict[str, int | dict[str, int] | dict[devicetools.NodeVariableType, int]]:
         """Some properties of the network defined by the currently relevant |Node| and
         |Element| objects.
 
@@ -2069,9 +2134,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         Applied node variables: Q (4)
         Applied model types: hland_96 (4) and musk_classic (3)
         """
-        value: Union[
-            str, int, Union[dict[str, int], dict[devicetools.NodeVariableType, int]]
-        ]
+        value: str | int | dict[str, int] | dict[devicetools.NodeVariableType, int]
         for key, value in self.networkproperties.items():
             if isinstance(value, dict):
                 value = objecttools.enumeration(
@@ -2233,6 +2296,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         element `stream_lahn_leun_lahn_kalk` and the second one with the additional
         element `stream_lahn_marb_nowhere`, which we connect to node `lahn_marb`:
 
+        >>> prepare_full_example_1()
         >>> with TestIO():
         ...     hp = HydPy("HydPy-H-Lahn")
         ...     hp.prepare_network()
@@ -2265,9 +2329,9 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
                   elements="stream_lahn_marb_nowhere")
         """
         sels1, sels2 = selectiontools.Selections(), selectiontools.Selections()
-        complete = selectiontools.Selection("complete", self.nodes, self.elements)
+        whole = selectiontools.Selection("whole", self.nodes, self.elements)
         for node in self.endnodes:
-            sel = complete.search_upstream(device=node, name=node.name, inclusive=False)
+            sel = whole.search_upstream(device=node, name=node.name, inclusive=False)
             sels1.add_selections(sel)
             sels2.add_selections(sel.copy(node.name))
         for sel1, sel2 in itertools.product(sels1, sels2):
@@ -2299,18 +2363,19 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         {'Q': 4, FusedVariable("T", hland_inputs_T): 1}
         """
         variables: collections.defaultdict[
-            Union[
-                str,
-                type[sequencetools.InputSequence],
-                type[sequencetools.InletSequence],
-                type[sequencetools.ReceiverSequence],
-                type[sequencetools.OutputSequence],
-                type[sequencetools.OutletSequence],
-                type[sequencetools.SenderSequence],
-                devicetools.FusedVariable,
-            ],
+            (
+                str
+                | type[sequencetools.InputSequence]
+                | type[sequencetools.InletSequence]
+                | type[sequencetools.ObserverSequence]
+                | type[sequencetools.ReceiverSequence]
+                | type[sequencetools.OutputSequence]
+                | type[sequencetools.OutletSequence]
+                | type[sequencetools.SenderSequence]
+                | devicetools.FusedVariable
+            ),
             int,
-        ] = collections.defaultdict(lambda: 0)
+        ] = collections.defaultdict(int)
         for node in self.nodes:
             variables[node.variable] += 1
         return dict(
@@ -2341,7 +2406,7 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         {'hland_96': 4, 'musk_classic': 3}
         """
         modeltypes: collections.defaultdict[str, int]
-        modeltypes = collections.defaultdict(lambda: 0)
+        modeltypes = collections.defaultdict(int)
         for element in self.elements:
             model = exceptiontools.getattr_(
                 element,
@@ -2361,17 +2426,17 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
     def update_devices(
         self,
         *,
-        nodes: Optional[devicetools.NodesConstrArg] = None,
-        elements: Optional[devicetools.ElementsConstrArg] = None,
+        nodes: devicetools.NodesConstrArg | None = None,
+        elements: devicetools.ElementsConstrArg | None = None,
         silent: bool = False,
     ) -> None: ...
 
     def update_devices(
         self,
         *,
-        selection: Optional[selectiontools.Selection] = None,
-        nodes: Optional[devicetools.NodesConstrArg] = None,
-        elements: Optional[devicetools.ElementsConstrArg] = None,
+        selection: selectiontools.Selection | None = None,
+        nodes: devicetools.NodesConstrArg | None = None,
+        elements: devicetools.ElementsConstrArg | None = None,
         silent: bool = False,
     ) -> None:
         """Determine the order in which method |HydPy.simulate| processes the currently
@@ -2381,15 +2446,14 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         |Selection| object) replace existing ones.
 
         As described in the documentation on the method |HydPy.prepare_network|, a
-        |HydPy| object usually starts with the "complete" network of the considered
+        |HydPy| object usually starts with the complete network of the considered
         project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
 
         The safest approach to "activate" another selection is to use the method
-        |HydPy.update_devices|.  The first option is to pass a complete |Selection|
-        object:
+        |HydPy.update_devices|.  The first option is to pass a |Selection| object:
 
         >>> pub.selections.headwaters
         Selection("headwaters",
@@ -2555,6 +2619,8 @@ prepared so far.
         except exceptiontools.AttributeNotReady as exc:
             self._collectives = None
             self._deviceorder = None
+            self._parallelisability = None
+            self._queue = None
             if not silent:
                 raise exc
         else:
@@ -2563,9 +2629,14 @@ prepared so far.
             names = set(self.nodes.names)
             names.update(self._collectives.names)
             self._deviceorder = tuple(d for d in devices if d.name in names)
+            self._parallelisability = threadingtools.Parallelisability(
+                nodes=self.nodes, elements=self.collectives
+            )
+            self._queue = None
+            devicetools.Node.__hydpy__deploymode_modified__ = False
 
     @property
-    def deviceorder(self) -> tuple[Union[devicetools.Node, devicetools.Element], ...]:
+    def deviceorder(self) -> tuple[devicetools.Node | devicetools.Element, ...]:
         """The simulation order of the currently selected devices.
 
         |HydPy| needs to know the devices before determining their order:
@@ -2593,6 +2664,35 @@ actual HydPy instance does not handle any elements at the moment.
             )
 
     @property
+    def parallelisability(self) -> threadingtools.Parallelisability:
+        """A description of the parallelisability of the currently handled network.
+
+        |HydPy| needs to know the devices before determining their parallelisability:
+
+        >>> from hydpy import HydPy
+        >>> HydPy().parallelisability
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to determine the \
+parallelisability of the current network, the following error occurred: The actual \
+HydPy instance does not handle any elements at the moment.
+
+        See the main documentation on class |Parallelisability| for more information.
+        """
+        try:
+            if (
+                self._parallelisability is None
+            ) or devicetools.Node.__hydpy__deploymode_modified__:
+                self._update_collectives_and_deviceorder(silent=False)
+            assert (parallelisability := self._parallelisability) is not None
+            return parallelisability
+        except BaseException:
+            objecttools.augment_excmessage(
+                "While trying to determine the parallelisability of the current "
+                "network"
+            )
+
+    @property
     def methodorder(self) -> list[Callable[[int], None]]:
         """All methods of the currently relevant |Node| and |Element| objects, which
         are to be processed by method |HydPy.simulate| during a simulation time step,
@@ -2607,11 +2707,14 @@ actual HydPy instance does not handle any elements at the moment.
         if exceptiontools.attrready(hydpy.pub, "sequencemanager"):
             funcs.append(hydpy.pub.sequencemanager.read_netcdfslices)
         for node in self.nodes:
+            dm = node.deploymode
             if (
-                (dm := node.deploymode) == "oldsim"
+                dm == "oldsim"  # pylint: disable=too-many-boolean-expressions
                 or dm == "obs_oldsim"
                 or dm == "oldsim_bi"
                 or dm == "obs_oldsim_bi"
+                or dm == "newsim_update"
+                or dm == "obs_newsim_update"
             ):
                 funcs.append(node.sequences.fastaccess.load_simdata)
             elif dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "obs_bi":
@@ -2626,6 +2729,7 @@ actual HydPy instance does not handle any elements at the moment.
                 (dm := device.deploymode) == "obs_newsim"
                 or dm == "obs_oldsim"
                 or dm == "obs_oldsim_bi"
+                or dm == "obs_newsim_update"
             ):
                 funcs.append(device.sequences.fastaccess.fill_obsdata)
             elif not (
@@ -2634,6 +2738,7 @@ actual HydPy instance does not handle any elements at the moment.
                 or dm == "obs"
                 or dm == "oldsim_bi"
                 or dm == "obs_bi"
+                or dm == "newsim_update"
             ):
                 assert_never(dm)
         elements = self.collectives
@@ -2648,6 +2753,7 @@ actual HydPy instance does not handle any elements at the moment.
                 (dm := node.deploymode) == "obs_newsim"
                 or dm == "obs_oldsim"
                 or dm == "obs_oldsim_bi"
+                or dm == "obs_newsim_update"
             ):
                 funcs.append(node.sequences.fastaccess.reset_obsdata)
             elif not (
@@ -2656,6 +2762,7 @@ actual HydPy instance does not handle any elements at the moment.
                 or dm == "obs"
                 or dm == "oldsim_bi"
                 or dm == "obs_bi"
+                or dm == "newsim_update"
             ):
                 assert_never(dm)
             funcs.append(node.sequences.fastaccess.save_simdata)
@@ -2668,6 +2775,14 @@ actual HydPy instance does not handle any elements at the moment.
     def simulate(self) -> None:
         """Perform a simulation run over the actual simulation period defined by the
         |Timegrids| object stored in module |pub|.
+
+        The general method |HydPy.simulate| either performs a "normal" single-threaded
+        or a high-performance multi-threaded run, depending on the current setting of
+        the option |Options.threads|.  If you long for the highest possible
+        computational efficiency when doing repeated simulation runs under identical
+        network configurations (for example, during parameter calibration), consider
+        using method |HydPy.prepare_multithreading| and |HydPy.simulate_multithreaded|
+        instead.
 
         We let function |prepare_full_example_2| prepare a runnable |HydPy| object
         related to the :ref:`HydPy-H-Lahn` example project:
@@ -2769,7 +2884,6 @@ actual HydPy instance does not handle any elements at the moment.
         receiving the observed instead of the simulated values from upstream:
 
         >>> hp.reset_conditions()
-        >>> hp.nodes.lahn_kalk.sequences.sim.series = 0.0
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_leun.sequences.obs.series)
         0.0, 0.0, 0.0, 0.0
@@ -2789,7 +2903,6 @@ actual HydPy instance does not handle any elements at the moment.
         >>> with pub.options.checkseries(False):
         ...     hp.nodes.lahn_leun.sequences.obs.series= 0.0, nan, 0.0, nan
         >>> hp.reset_conditions()
-        >>> hp.nodes.lahn_kalk.sequences.sim.series = 0.0
         >>> hp.simulate()
         >>> round_(hp.nodes.lahn_leun.sequences.obs.series)
         0.0, nan, 0.0, nan
@@ -2839,6 +2952,12 @@ actual HydPy instance does not handle any elements at the moment.
         >>> round_(hp.nodes.lahn_kalk.sequences.sim.series)
         54.019337, 37.257561, 31.865308, 28.359542
         """
+        if hydpy.pub.options.threads == 0:
+            self._simulate_singlethreaded()
+        else:
+            self.simulate_multithreaded(*self.prepare_multithreading())
+
+    def _simulate_singlethreaded(self) -> None:
         idx_start, idx_end = hydpy.pub.timegrids.simindices
         methodorder = self.methodorder
         cm: AbstractContextManager[None] = contextlib.nullcontext()
@@ -2848,6 +2967,166 @@ actual HydPy instance does not handle any elements at the moment.
             for idx in printtools.progressbar(range(idx_start, idx_end)):
                 for func in methodorder:
                     func(idx)
+
+    def prepare_multithreading(
+        self, *, check_no_jit: bool = True
+    ) -> tuple[threadingtools.Parallelisability, threadingtools.Queue]:
+        """Prepare everything to perform a single or repeated multi-threaded simulation
+        runs via method |HydPy.simulate_multithreaded|.
+
+        Besides returning the required |Parallelisability| and |threadingtools.Queue|
+        objects, method |HydPy.prepare_multithreading| manages some internals, like
+        preparing the required time series.  Hence, it is advisable to call it even
+        when passing more tailor-made and thus more efficient |Parallelisability| and
+        |threadingtools.Queue| instances to |HydPy.simulate_multithreaded|.
+
+        If necessary, method |HydPy.prepare_multithreading| also determines the
+        |HydPy.deviceorder|:
+
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, TestIO = prepare_full_example_2()
+        >>> hp._deviceorder = None
+        >>> with pub.options.threads(4):
+        ...     hp.simulate()
+        >>> from hydpy import print_vector
+        >>> print_vector(hp.nodes.lahn_kalk.sequences.sim.series)
+        54.019337, 37.257561, 31.865308, 28.359542
+
+        Unless this feature is not disabled by the option `check_jit`, method
+        |HydPy.prepare_multithreading| checks if any sequence is requested to handle
+        its time series data via the incompatible NetCDF just-in-time mode:
+
+        >>> sm = hp.elements.land_dill_assl.model.sequences.states.sm
+        >>> sm.prepare_series(write_jit=True)
+        >>> with pub.options.threads(4):
+        ...     hp.simulate()
+        Traceback (most recent call last):
+        ...
+        RuntimeError: Reading or writing time series just-in-time from or to NetCDF \
+files is not possible when doing multi-threaded simulations, but is requested by \
+sequence `sm` of element `land_dill_assl`.
+        """
+
+        if self._deviceorder is None:
+            self._update_collectives_and_deviceorder(silent=True)
+
+        if check_no_jit:
+            for sequence in netcdftools.yield_disksequences(self.deviceorder):
+                if sequence.diskflag:
+                    raise RuntimeError(
+                        "Reading or writing time series just-in-time from or to "
+                        "NetCDF files is not possible when doing multi-threaded "
+                        "simulations, but is requested by sequence "
+                        f"{objecttools.devicephrase(sequence)}."
+                    )
+
+        if devicetools.Node.__hydpy__deploymode_modified__:
+            self._parallelisability = threadingtools.Parallelisability(
+                nodes=self.nodes, elements=self.collectives
+            )
+            self._queue = None
+            devicetools.Node.__hydpy__deploymode_modified__ = False
+
+        parallelisability = self.parallelisability
+
+        for element in parallelisability.parallel_elements:
+            for model in element.model.find_submodels(include_mainmodel=True).values():
+                seqs = model.sequences
+                for sequence in itertools.chain(
+                    seqs.inputs,
+                    seqs.inlets,
+                    seqs.observers,
+                    seqs.receivers,
+                    seqs.outlets,
+                    seqs.senders,
+                    seqs.factors,
+                    seqs.fluxes,
+                    seqs.states,
+                ):
+                    if sequence.node2idx:
+                        sequence.prepare_series()
+        for node in parallelisability.parallel_nodes:
+            node.prepare_simseries()
+
+        if self._queue is None:
+            self._queue = threadingtools.Queue.from_devices(
+                nodes=parallelisability.parallel_nodes,
+                elements=parallelisability.parallel_elements,
+            )
+        else:
+            self._queue = threadingtools.Queue.from_queue(queue_=self._queue)
+
+        return parallelisability, self._queue
+
+    def simulate_multithreaded(
+        self,
+        parallelisability: threadingtools.Parallelisability,
+        queue_: threadingtools.Queue,
+    ) -> None:
+        """Perform a multi-threaded simulation run.
+
+        Usually, it is sufficient to set the option |Options.threads| to a positive
+        value and call the "normal" method |HydPy.simulate| to trigger a multi-threaded
+        simulation run.  However, calling |HydPy.simulate_multithreaded| might
+        bring additional speed improvements.
+
+        First, it does not call method |HydPy.prepare_multithreading| and so helps
+        avoid unnecessary repetitions when doing repeated simulations (for example,
+        during parameter calibration).  But do not forget to invoke method
+        |HydPy.prepare_multithreading| beforehand.
+
+        Further improvements might be possible by preparing a tailor-made
+        |threadingtools.Queue| (and maybe even a tailor-made |Parallelisability|)
+        instance.  |threadingtools.Queue| makes some assumptions when determining the
+        |Element| instances' optimal processing order.  If you know, for example, about
+        high differences between the simulation times of the involved models, you may
+        be able to create a more efficient processing order.
+        """
+
+        # The queue may have already been used, so we must create a new one:
+        queue_ = threadingtools.Queue.from_queue(queue_=queue_)
+
+        # Perform the multi-threaded simulation where possible:
+        try:
+            for _ in range(hydpy.pub.options.threads):
+                threadingtools.Worker(
+                    queue_=queue_, elements=parallelisability.parallel_elements
+                ).start()
+            queue_.register()
+            queue_.join()
+        finally:
+            queue_.shutdown()
+
+        # Update the nodes' current values:
+        idx = hydpy.pub.timegrids.simindices[1] - 1
+        for node in parallelisability.parallel_nodes:
+            sim = node.sequences.sim
+            sim.value = sim.series[idx]
+            if (obs := node.sequences.obs).ramflag:
+                obs.value = obs.series[idx]
+
+        # Perform the single-threaded simulation where necessary:
+        if parallelisability.sequential_elements:
+            nodes, elements = self.nodes, self.elements
+            node2deploymode: dict[devicetools.Node, Literal["newsim", "obs_newsim"]]
+            node2deploymode = {}
+            try:
+                for node in parallelisability.transition_nodes:
+                    if node.deploymode == "newsim":
+                        node2deploymode[node] = "newsim"
+                        node.deploymode = "newsim_update"
+                    elif node.deploymode == "obs_newsim":
+                        node2deploymode[node] = "obs_newsim"
+                        node.deploymode = "obs_newsim_update"
+                self.update_devices(
+                    nodes=parallelisability.sequential_nodes,
+                    elements=parallelisability.sequential_elements,
+                )
+                self._simulate_singlethreaded()
+            finally:
+                for node, deploymode in node2deploymode.items():
+                    node.deploymode = deploymode
+                self.update_devices(nodes=nodes, elements=elements)
 
     def doit(self) -> None:
         """Deprecated! Use method |HydPy.simulate| instead.
@@ -2926,6 +3205,13 @@ method `simulate` instead.
             allocate_ram=allocate_ram, write_jit=write_jit
         )
 
+    def prepare_linkseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """An alternative method for |HydPy.prepare_allseries| specialised for model
+        link sequences."""
+        self.elements.prepare_linkseries(allocate_ram=allocate_ram, write_jit=write_jit)
+
     def prepare_nodeseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
         """An alternative method for |HydPy.prepare_allseries| specialised for node
         sequences."""
@@ -2983,6 +3269,11 @@ method `simulate` instead.
         state sequences."""
         self.elements.save_stateseries()
 
+    def save_linkseries(self) -> None:
+        """An alternative method for |HydPy.save_modelseries| specialised for model
+        link sequences."""
+        self.elements.save_linkseries()
+
     def save_nodeseries(self) -> None:
         """An alternative method for |HydPy.save_modelseries| specialised for node
         sequences."""
@@ -3032,6 +3323,11 @@ method `simulate` instead.
         state sequences."""
         self.elements.load_stateseries()
 
+    def load_linkseries(self) -> None:
+        """An alternative method for |HydPy.load_modelseries| specialised for model
+        link sequences."""
+        self.elements.load_linkseries()
+
     def load_nodeseries(self) -> None:
         """An alternative method for |HydPy.load_modelseries| specialised for node
         sequences."""
@@ -3056,8 +3352,8 @@ def create_directedgraph(
     digraph.add_nodes_from(elements)
     digraph.add_nodes_from(nodes)
     for element in elements:
-        for node in itertools.chain(element.inlets, element.inputs):
+        for node in itertools.chain(element.inlets, element.observers, element.inputs):
             digraph.add_edge(node, element)
-        for node in itertools.chain(element.outlets, element.outputs):
+        for node in itertools.chain(element.outlets, element.senders, element.outputs):
             digraph.add_edge(element, node)
     return digraph

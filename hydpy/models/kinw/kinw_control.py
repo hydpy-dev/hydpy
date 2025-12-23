@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -15,6 +14,12 @@ from hydpy.auxs import interptools
 
 class Laen(parametertools.Parameter):
     """Flusslänge (channel length) [km]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+
+
+class Length(parametertools.Parameter):
+    """Channel length [km]."""
 
     NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
 
@@ -47,6 +52,46 @@ class GTS(parametertools.Parameter):
         for seq in itertools.chain(seqs.fluxes, seqs.states, seqs.aides):
             if seq.NDIM:
                 seq.shape = self.value
+
+
+class NmbSegments(parametertools.NmbParameter):
+    """Number of channel segments [-].
+
+    |NmbSegments| prepares the shape of some 1-dimensional sequences automatically:
+
+    >>> from hydpy.models.kinw import *
+    >>> parameterstep()
+    >>> nmbsegments(2)
+    >>> nmbsegments
+    nmbsegments(2)
+    >>> states.watervolume.shape
+    (2,)
+    >>> factors.waterdepth.shape
+    (2,)
+    >>> fluxes.internalflow.shape
+    (1,)
+
+    |NmbSegments| preserves existing values if the number of segments does not change:
+
+    >>> states.watervolume = 1.0, 2.0
+    >>> nmbsegments(2)
+    >>> states.watervolume
+    watervolume(1.0, 2.0)
+
+    Setting its value to zero is allowed:
+
+    >>> nmbsegments(0)
+    >>> states.watervolume.shape
+    (0,)
+    >>> fluxes.internalflow.shape
+    (0,)
+    """
+
+    SPAN = (0, None)
+
+    def __call__(self, *args, **kwargs) -> None:
+        super().__call__(*args, **kwargs)
+        self.subpars.pars.model.nmb_segments = self.value
 
 
 class HM(parametertools.Parameter):
@@ -208,7 +253,7 @@ class VG2FG(interptools.SimpleInterpolator):
         intercepts_hidden=[[0.0]],
         intercepts_output=[0.0],
     )
-    _keyword: Optional[Literal["velocity", "timedelay"]] = None
+    _keyword: Literal["velocity", "timedelay"] | None = None
 
     @overload
     def __call__(self, *, velocity: float) -> None: ...
@@ -221,9 +266,9 @@ class VG2FG(interptools.SimpleInterpolator):
 
     def __call__(
         self,
-        algorithm: Optional[interptools.InterpAlgorithm] = None,
-        velocity: Optional[float] = None,
-        timedelay: Optional[float] = None,
+        algorithm: interptools.InterpAlgorithm | None = None,
+        velocity: float | None = None,
+        timedelay: float | None = None,
     ) -> None:
         nmb = (algorithm is not None) + (velocity is not None) + (timedelay is not None)
         if nmb != 1:

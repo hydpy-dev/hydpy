@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This subpackage contains the example project data provided by the standard
 distribution of *HydPy*."""
 # import...

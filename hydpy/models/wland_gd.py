@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 r"""|wland_gd| is still under development and is likely to change in the future.
 
@@ -505,8 +504,8 @@ backwater effects
 _________________
 
 >>> del model.dischargemodel
->>> with model.add_waterlevelmodel_v1("exch_waterlevel"):
-...     pass
+>>> with model.add_waterlevelmodel_v1("exch_waterlevel") as exchmodel:
+...     exchmodel.sequences.logs.loggedwaterlevel(-0.002)
 >>> from hydpy import Node
 >>> waterlevel = Node("waterlevel", variable="WaterLevel")
 >>> land = Element("land", outlets="outlet", receivers=waterlevel)
@@ -771,13 +770,15 @@ ____________
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *
+from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.interfaces import dischargeinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import stateinterfaces
 
-# ...from lland
+# ...from wland
+from hydpy.models.wland import wland_masks
 from hydpy.models.wland import wland_model
 from hydpy.models.wland import wland_solver
 from hydpy.models.wland.wland_constants import *
@@ -815,6 +816,7 @@ class Model(
         wland_model.Calc_FR_V1,
         wland_model.Calc_PM_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (wland_model.Pick_HS_V1,)
     INTERFACE_METHODS = (
         wland_model.Get_Temperature_V1,
@@ -883,6 +885,12 @@ class Model(
     )
     dischargemodel = modeltools.SubmodelProperty(dischargeinterfaces.DischargeModel_V2)
     waterlevelmodel = modeltools.SubmodelProperty(stateinterfaces.WaterLevelModel_V1)
+
+
+class Masks(masktools.Masks):
+    """Masks applicable to |wland_gd|."""
+
+    CLASSES = wland_masks.Masks.CLASSES
 
 
 tester = Tester()

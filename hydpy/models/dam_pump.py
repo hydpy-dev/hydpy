@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """|dam_pump| is a simple model for modelling pumping stations draining low-land areas.
 Users can define a relationship between the highest possible pumping rate and the
@@ -182,7 +181,6 @@ There is no indication of an error in the water balance:
 """
 # import...
 # ...from HydPy
-import hydpy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.core import modeltools
@@ -196,7 +194,12 @@ from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 
 
-class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
+class Model(
+    dam_model.ELSIEModel,
+    dam_model.MixinSimpleWaterBalance,
+    dam_model.Main_PrecipModel_V2,
+    dam_model.Main_PEModel_V1,
+):
     """|dam_pump.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Dam-Pump", description="pumping station model")
@@ -207,6 +210,8 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         dam_solver.RelErrorMax,
         dam_solver.RelDTMin,
         dam_solver.RelDTMax,
+        dam_solver.MaxEval,
+        dam_solver.MaxCFL,
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (
@@ -214,6 +219,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         dam_model.Calc_PotentialEvaporation_V1,
         dam_model.Calc_AdjustedEvaporation_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (
         dam_model.Pick_LoggedOuterWaterLevel_V1,
         dam_model.Pick_LoggedRemoteWaterLevel_V1,
@@ -221,7 +227,7 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
     ADD_METHODS = ()
     PART_ODE_METHODS = (
         dam_model.Calc_AdjustedPrecipitation_V1,
-        dam_model.Pic_Inflow_V1,
+        dam_model.Pick_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
         dam_model.Calc_OuterWaterLevel_V1,
         dam_model.Calc_RemoteWaterLevel_V1,
@@ -246,33 +252,6 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         precipinterfaces.PrecipModel_V2, optional=True
     )
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1, optional=True)
-
-    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
-        r"""Determine the water balance error of the previous simulation run in million
-        m³.
-
-        Method |Model.check_waterbalance| calculates the balance error as follows:
-
-        :math:`Seconds \cdot 10^{-6} \cdot \sum_{t=t0}^{t1}
-        \big( AdjustedPrecipitation_t - ActualEvaporation_t + Inflow_t - Outflow_t \big)
-        + \big( WaterVolume_{t0}^k - WaterVolume_{t1}^k \big)`
-
-        The returned error should always be in scale with numerical precision so
-        that it does not affect the simulation results in any relevant manner.
-
-        Pick the required initial conditions before starting the simulation via
-        property |Sequences.conditions|.  See the integration tests of the application
-        model |dam_v001| for some examples.
-        """
-        fluxes = self.sequences.fluxes
-        first = initial_conditions["model"]["states"]
-        last = self.sequences.states
-        return (hydpy.pub.timegrids.stepsize.seconds / 1e6) * (
-            sum(fluxes.adjustedprecipitation.series)
-            - sum(fluxes.actualevaporation.series)
-            + sum(fluxes.inflow.series)
-            - sum(fluxes.outflow.series)
-        ) - (last.watervolume - first["watervolume"])
 
 
 tester = Tester()

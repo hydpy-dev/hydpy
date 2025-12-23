@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module facilitates using *HydPy* as an HTTP server application.
 
 .. _`OpenDA`: https://www.openda.org/
@@ -222,6 +221,7 @@ The above description focussed on coupling *HydPy* to `OpenDA`_.  However, the a
 atomic submethods of class |HydPyServer| also allow coupling *HydPy*  with other
 software products. See the documentation on class |HydPyServer| for further information.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -1403,8 +1403,6 @@ under the id `0`.  There is nothing registered, so far.
     >>> with TestIO(), open("HydPy-H-Lahn/control/calibrated/"
     ...                     "land_dill_assl.py") as file_:
     ...     print(file_.read())  # doctest: +ELLIPSIS
-    # -*- coding: utf-8 -*-
-    <BLANKLINE>
     from hydpy.models.hland_96 import *
     from hydpy.models import evap_aet_hbv96
     from hydpy.models import evap_pet_hbv96
@@ -1768,9 +1766,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         self.GET_register_initialconditionitemvalues()
 
     @staticmethod
-    def _array2output(
-        values: Union[float, VectorInputObject, MatrixInputObject],
-    ) -> str:
+    def _array2output(values: float | VectorInputObject | MatrixInputObject) -> str:
         # duck-typing for simplicity:
         try:
             try:
@@ -2223,13 +2219,13 @@ class _HTTPServerBase(http.server.HTTPServer):
 
 
 def start_server(
-    socket: Union[int, str],
+    socket: int | str,
     projectname: str,
     xmlfilename: str,
     *,
-    load_conditions: Union[bool, str] = True,
-    load_series: Union[bool, str] = True,
-    maxrequests: Union[int, str] = 5,
+    load_conditions: bool | str = True,
+    load_series: bool | str = True,
+    maxrequests: int | str = 5,
     debugging: Literal["enable", "disable"] = "disable",
 ) -> None:
     """Start the *HydPy* server using the given socket.
@@ -2312,7 +2308,7 @@ def start_server(
     server.serve_forever()
 
 
-def await_server(port: Union[int, str], seconds: Union[float, str]) -> None:
+def await_server(port: int | str, seconds: float | str) -> None:
     """Block the current process until either the *HydPy* server is responding on the
     given `port` or the given number of `seconds` elapsed.
 

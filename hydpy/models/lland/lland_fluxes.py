@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 
@@ -59,6 +58,15 @@ class TKor(lland_sequences.Flux1DSequence):
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Complete()
+
+
+class ATKor(lland_sequences.Flux1DSequence):
+    """Lufttemperatur für die Schneeschmelze oberhalb der "alpinitäts-Grenzwerte"
+    |AGGH| und |AGSH| (air temperature for calculating snowmelt above the "alpinity
+    thresholds" |AGGH| and |AGSH|) [°C]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Land()
 
 
 class WindSpeed2m(sequencetools.FluxSequence):
@@ -347,9 +355,44 @@ class WGTF(lland_sequences.Flux1DSequence):
     mask = lland_masks.Land()
 
 
+class USG(lland_sequences.Flux1DSequence):
+    """Umwandlung Schnee in Gletschereis (transformation of snow into glacier ice
+    [mm/T]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Glets()
+
+
+class AWGTF(lland_sequences.Flux1DSequence):
+    """Mit dem Grad-Tag-Verfahren berechneter Wärmeestrom in die Schneedecke oberhalb
+    der "alpinitäts-Grenzwerte" |AGGH| und |AGSH| (heat flux into the snow layer above
+    the "alpinity thresholds" |AGGH| and |AGSH| calculated with the degree-day method)
+    [W/m²].
+
+    With positive values, the snow layer gains heat from the atmosphere and
+    from radiation.
+    """
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Land()
+
+
 class WNied(lland_sequences.Flux1DSequence):
     """Niederschlagsbedingter Wärmestrom in die Schneedecke (heat flux
     into the snow layer due to precipitation) [W/m²].
+
+    With positive values, the snow layer gains heat from precipitation.
+    """
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Land()
+
+
+class AWNied(lland_sequences.Flux1DSequence):
+    """Niederschlagsbedingter Wärmestrom in die Schneedecke oberhalb der
+    "alpinitäts-Grenzwerte" |AGGH| und |AGSH| (heat flux into the snow layer above the
+    "alpinity thresholds" |AGGH| and |AGSH| due to precipitation)
+    [mm/T].
 
     With positive values, the snow layer gains heat from precipitation.
     """
@@ -386,12 +429,26 @@ class SchmPot(lland_sequences.Flux1DSequence):
     mask = lland_masks.Land()
 
 
+class SchmPotGl(lland_sequences.Flux1DSequence):
+    """Potentielle Gletscherschmelze (potential glacier melting) [mm/T]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Glets()
+
+
 class Schm(lland_sequences.Flux1DSequence):
     """Tatsächliche Schneeschmelze (actual amount of water melting within the
     snow cover) [mm/T]."""
 
     NDIM, NUMERIC = 1, False
     mask = lland_masks.Land()
+
+
+class SchmGl(lland_sequences.Flux1DSequence):
+    """Tatsächliche Gletscherschmelze (actual glacier melting) [mm/T]."""
+
+    NDIM, NUMERIC = 1, False
+    mask = lland_masks.Glets()
 
 
 class GefrPot(lland_sequences.Flux1DSequence):

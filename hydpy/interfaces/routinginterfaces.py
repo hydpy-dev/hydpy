@@ -19,6 +19,10 @@ class CrossSectionModel_V1(modeltools.SubmodelInterface):
     def prepare_bottomslope(self, bottomslope: int) -> None:
         """Set the bottom's slope (in the longitudinal direction) [-]."""
 
+    def get_depths_of_discontinuity(self) -> tuple[float, ...]:
+        """Get all water depths that define points of discontinuity (except zero)."""
+        assert False
+
     @modeltools.abstractmodelmethod
     def use_waterdepth(self, waterdepth: float, /) -> None:
         """Set the water depth in m and use it to calculate all other properties."""
@@ -50,6 +54,10 @@ class CrossSectionModel_V2(modeltools.SubmodelInterface):
 
     typeid: ClassVar[Literal[2]] = 2
     """Type identifier for |CrossSectionModel_V2| submodels."""
+
+    def get_depths_of_discontinuity(self) -> tuple[float, ...]:
+        """Get all water depths that define points of discontinuity (except zero)."""
+        assert False
 
     @modeltools.abstractmodelmethod
     def use_waterdepth(self, waterdepth: float, /) -> None:
@@ -85,12 +93,9 @@ class RoutingModelBase(modeltools.SubmodelInterface):
 
     An essential note for model developers: All main models using submodels that follow
     the interface  |RoutingModel_V1|, |RoutingModel_V2|, or |RoutingModel_V3| must call
-    |RoutingModelBase.perform_preprocessing| at the beginning of each external
-    simulation step, call |RoutingModelBase.determine_maxtimestep|,
-    |RoutingModelBase.set_timestep|, and |RoutingModelBase.determine_discharge| in the
-    mentioned order during each internal simulation step, and call
-    |RoutingModelBase.perform_postprocessing| at the end of each simulation step.
-    Before |RoutingModelBase.determine_discharge| is called, methods
+    |RoutingModelBase.determine_maxtimestep|, |RoutingModelBase.set_timestep|, and
+    |RoutingModelBase.determine_discharge| in the mentioned order during each internal
+    simulation step.  Before |RoutingModelBase.determine_discharge| is called, methods
     |RoutingModelBase.get_discharge|, |RoutingModel_V1.get_partialdischargeupstream|,
     and |RoutingModel_V3.get_partialdischargedownstream| (if implemented) must return
     the "old" discharge previously calculated or read from condition files.
@@ -98,17 +103,6 @@ class RoutingModelBase(modeltools.SubmodelInterface):
 
     typeid: ClassVar[int]
     """Type identifier for the respective routing submodels."""
-
-    @modeltools.abstractmodelmethod
-    def perform_preprocessing(self) -> None:
-        """Preprocess all data that is invariant during each external simulation
-        step."""
-        assert False
-
-    @modeltools.abstractmodelmethod
-    def perform_postprocessing(self) -> None:
-        """Execute all tasks necessary at the end of each external simulation step."""
-        assert False
 
     @modeltools.abstractmodelmethod
     def determine_maxtimestep(self) -> None:
@@ -147,9 +141,10 @@ class RoutingModel_V1(RoutingModelBase):
     """Type identifier for |RoutingModel_V1| submodels."""
 
     routingmodelsdownstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V2, RoutingModel_V3]
+        RoutingModel_V2 | RoutingModel_V3
     ]
     """References to the neighbour routing models lying downstream."""
+
     storagemodeldownstream: modeltools.SubmodelProperty[StorageModel_V1]
     """Required reference to the neighbour storage model downstream."""
 
@@ -164,25 +159,24 @@ class RoutingModel_V1(RoutingModelBase):
 
 
 class RoutingModel_V2(RoutingModelBase):
-    """Interface for calculating the discharge between two channel segments.
-
-    The usage instructions described for the |RoutingModel_V1| interface also apply for
-    |RoutingModel_V2|.
-    """
+    """Interface for calculating the discharge between two channel segments."""
 
     typeid: ClassVar[Literal[2]] = 2
     """Type identifier for |RoutingModel_V2| submodels."""
 
     routingmodelsupstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V1, RoutingModel_V2]
+        RoutingModel_V1 | RoutingModel_V2
     ]
     """References to the neighbour routing models lying upstream."""
+
     routingmodelsdownstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V2, RoutingModel_V3]
+        RoutingModel_V2 | RoutingModel_V3
     ]
     """References to the neighbour routing models lying downstream."""
+
     storagemodelupstream: modeltools.SubmodelProperty[StorageModel_V1]
     """Required reference to the neighbour storage model upstream."""
+
     storagemodeldownstream: modeltools.SubmodelProperty[StorageModel_V1]
     """Required reference to the neighbour storage model downstream."""
 
@@ -206,19 +200,16 @@ class RoutingModel_V2(RoutingModelBase):
 
 
 class RoutingModel_V3(RoutingModelBase):
-    """Interface for calculating the outflow of a channel.
-
-    The usage instructions described for the |RoutingModel_V1| interface also apply for
-    |RoutingModel_V2|.
-    """
+    """Interface for calculating the outflow of a channel."""
 
     typeid: ClassVar[Literal[3]] = 3
     """Type identifier for |RoutingModel_V3| submodels."""
 
     routingmodelsupstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V1, RoutingModel_V2]
+        RoutingModel_V1 | RoutingModel_V2
     ]
     """References to the neighbour routing models lying upstream."""
+
     storagemodelupstream: modeltools.SubmodelProperty[StorageModel_V1]
     """Required reference to the neighbour storage model upstream."""
 
@@ -239,24 +230,14 @@ class StorageModel_V1(modeltools.SubmodelInterface):
     """Type identifier for |StorageModel_V1| submodels."""
 
     routingmodelsupstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V1, RoutingModel_V2, RoutingModel_V3]
+        RoutingModel_V1 | RoutingModel_V2 | RoutingModel_V3
     ]
     """Optional reference to the neighbour routing model upstream."""
+
     routingmodelsdownstream: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V1, RoutingModel_V2, RoutingModel_V3]
+        RoutingModel_V1 | RoutingModel_V2 | RoutingModel_V3
     ]
     """Optional reference to the neighbour routing model downstream."""
-
-    @modeltools.abstractmodelmethod
-    def perform_preprocessing(self) -> None:
-        """Preprocess all data that is invariant during each external simulation
-        step."""
-        assert False
-
-    @modeltools.abstractmodelmethod
-    def perform_postprocessing(self) -> None:
-        """Execute all tasks necessary at the end of each external simulation step."""
-        assert False
 
     @modeltools.abstractmodelmethod
     def set_timestep(self, timestep: float) -> None:
@@ -297,8 +278,9 @@ class ChannelModel_V1(modeltools.SubmodelInterface):
     
     There must be one storage model for each channel segment.
     """
+
     routingmodels: modeltools.SubmodelsProperty[
-        Union[RoutingModel_V1, RoutingModel_V2, RoutingModel_V3]
+        RoutingModel_V1 | RoutingModel_V2 | RoutingModel_V3
     ]
     """References to the routing submodels.
 

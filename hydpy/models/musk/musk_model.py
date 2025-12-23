@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -31,7 +30,50 @@ class Pick_Inflow_V1(modeltools.Method):
         flu = model.sequences.fluxes.fastaccess
         flu.inflow = 0.0
         for idx in range(inl.len_q):
-            flu.inflow += inl.q[idx][0]
+            flu.inflow += inl.q[idx]
+
+
+class Adjust_Inflow_V1(modeltools.Method):
+    """Protect against negative inflow.
+
+    Examples:
+
+        Models like |musk_mct| cannot handle negative inflow.  Hence,
+        |Adjust_Inflow_V1| sets all such values to zero:
+
+        >>> from hydpy.models.musk import *
+        >>> parameterstep()
+        >>> fluxes.inflow = -0.1
+        >>> model.adjust_inflow_v1()
+        >>> fluxes.inflow
+        inflow(0.0)
+
+        This behaviour serves well in situations where numerical issues like rounding
+        errors cause slightly negative inflow values but bears the risk of severely
+        violating the water balance in case the upstream models produce strong negative
+        inflow values on purpose.  You can modify the solver parameter
+        |ToleranceNegativeInflow|, below which negative inflows are set to |numpy.nan|
+        instead of zero, to ensure such problems get noticed:
+
+        >>> fluxes.inflow = -0.1
+        >>> solver.tolerancenegativeinflow(-0.01)
+        >>> model.adjust_inflow_v1()
+        >>> fluxes.inflow
+        inflow(nan)
+    """
+
+    SOLVERPARAMETERS = (musk_solver.ToleranceNegativeInflow,)
+    UPDATEDSEQUENCES = (musk_fluxes.Inflow,)
+
+    @staticmethod
+    def __call__(model: modeltools.SegmentModel) -> None:
+        sol = model.parameters.solver.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        if flu.inflow < 0.0:
+            if flu.inflow < sol.tolerancenegativeinflow:
+                flu.inflow = modelutils.nan
+            else:
+                flu.inflow = 0.0
 
 
 class Adjust_Inflow_V1(modeltools.Method):
@@ -295,6 +337,7 @@ class Return_ReferenceDischargeError_V1(modeltools.Method):
         ...     bottomwidths(2.0)
         ...     sideslopes(2.0)
         ...     stricklercoefficients(20.0)
+        ...     calibrationfactors(1.0)
         >>> fluxes.referencedischarge = 50.0
         >>> from hydpy import round_
         >>> round_(model.return_referencedischargeerror_v1(3.0))
@@ -338,6 +381,7 @@ class Calc_ReferenceWaterDepth_V1(modeltools.Method):
         ...     bottomwidths(2.0)
         ...     sideslopes(2.0)
         ...     stricklercoefficients(20.0)
+        ...     calibrationfactors(1.0)
         >>> solver.tolerancewaterdepth.update()
         >>> solver.tolerancedischarge.update()
         >>> fluxes.referencedischarge = -10.0, 0.0, 64.475285, 1000.0, 1000000000.0
@@ -444,6 +488,7 @@ class Calc_WettedArea_SurfaceWidth_Celerity_V1(modeltools.Method):
         ...     bottomwidths(2.0)
         ...     sideslopes(0.0)
         ...     stricklercoefficients(20.0)
+        ...     calibrationfactors(1.0)
         >>> factors.referencewaterdepth = 1.0, 2.0, 3.0
         >>> model.run_segments(model.calc_wettedarea_surfacewidth_celerity_v1)
         >>> factors.wettedarea
@@ -845,7 +890,7 @@ class Pass_Outflow_V1(modeltools.Method):
     def __call__(model: modeltools.SegmentModel) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.outflow
+        out.q = flu.outflow
 
 
 class PegasusReferenceWaterDepth(roottools.Pegasus):
@@ -867,6 +912,7 @@ class Model(modeltools.SegmentModel):
         musk_solver.ToleranceNegativeInflow,
     )
     INLET_METHODS = (Pick_Inflow_V1, Adjust_Inflow_V1, Update_Discharge_V1)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_Discharge_V1,

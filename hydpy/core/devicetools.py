@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This modules implements the fundamental features for structuring *HydPy* projects.
 
 Module |devicetools| provides two |Device| subclasses, |Node| and |Element|.  In this
@@ -69,6 +68,7 @@ True
 >>> nodes.test3 is node3b
 False
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -78,9 +78,12 @@ import contextlib
 import copy
 import itertools
 import operator
+import typing
 import warnings
+import weakref
 
 # ...from site-packages
+import inflect
 import numpy
 
 # ...from HydPy
@@ -110,16 +113,20 @@ else:
 
 TypeDevice = TypeVar("TypeDevice", bound="Device")
 TypeDevices = TypeVar("TypeDevices", bound="Devices[Any]")
-NodeOrElement = Union["Node", "Element"]
+NodeOrElement: TypeAlias = Union["Node", "Element"]
 TypeNodeElement = TypeVar("TypeNodeElement", "Node", "Element", NodeOrElement)
 
-NodesConstrArg = MayNonerable2["Node", str]
-ElementsConstrArg = MayNonerable2["Element", str]
-NodeConstrArg = Union["Node", str]
-ElementConstrArg = Union["Element", str]
-IOSequenceArg = Union[str, sequencetools.IOSequence, type[sequencetools.IOSequence]]
+NodesConstrArg: TypeAlias = MayNonerable2["Node", str]
+ElementsConstrArg: TypeAlias = MayNonerable2["Element", str]
+NodeConstrArg: TypeAlias = Union["Node", str]
+ElementConstrArg: TypeAlias = Union["Element", str]
+IOSequenceArg: TypeAlias = Union[
+    sequencetools.IOSequence, type[sequencetools.IOSequence], str
+]
 
-NodeVariableType = Union[str, sequencetools.InOutSequenceTypes, "FusedVariable"]
+NodeVariableType: TypeAlias = Union[
+    sequencetools.InOutSequenceTypes, "FusedVariable", str
+]
 
 _default_variable: NodeVariableType = "Q"
 
@@ -128,7 +135,7 @@ class Keywords(set[str]):
     """Set of keyword arguments used to describe and search for |Element| and |Node|
     objects."""
 
-    device: Optional[Device]
+    device: Device | None
 
     def __init__(self, *names: str):
         self.device = None
@@ -696,7 +703,7 @@ classes: Node and str.
     def get_contentclass() -> type[TypeDevice]:
         """To be overridden."""
 
-    def add_device(self, device: Union[TypeDevice, str], force: bool = False) -> None:
+    def add_device(self, device: TypeDevice | str, force: bool = False) -> None:
         """Add the given |Node| or |Element| object to the actual |Nodes| or |Elements|
         object.
 
@@ -743,9 +750,7 @@ the following error occurred: Adding devices to immutable Nodes objects is not a
                 f"{type(self).__name__} object"
             )
 
-    def remove_device(
-        self, device: Union[TypeDevice, str], force: bool = False
-    ) -> None:
+    def remove_device(self, device: TypeDevice | str, force: bool = False) -> None:
         """Remove the given |Node| or |Element| object from the actual |Nodes| or
         |Elements| object.
 
@@ -883,12 +888,12 @@ allowed.
         >>> sorted(newgroup.keywords)
         ['group_1', 'group_a', 'group_b']
         """
-        return set(
+        return {
             keyword
             for device in self
             for keyword in device.keywords
             if keyword not in self._shadowed_keywords
-        )
+        }
 
     def search_keywords(self: TypeDevices, *keywords: str) -> TypeDevices:
         """Search for all devices handling at least one of the given keywords and
@@ -994,7 +999,7 @@ conflict with using their names as identifiers.
         devices._shadowed_keywords.add(name)
         return devices
 
-    def __getattr__(self: TypeDevices, name: str) -> Union[TypeDevice, TypeDevices]:
+    def __getattr__(self: TypeDevices, name: str) -> TypeDevice | TypeDevices:
         if name in self._name2device:
             return cast(TypeDevice, self._name2device[name])  # ToDo
         _devices = self.__select_devices_by_keyword(name)
@@ -1030,7 +1035,7 @@ conflict with using their names as identifiers.
                 f"could be removed, and deleting other attributes is not supported."
             ) from None
 
-    def __getitem__(self, name: Union[Literal[0], str]) -> TypeDevice:
+    def __getitem__(self, name: Literal[0] | str) -> TypeDevice:
         if name == 0:
             devices = tuple(self._name2device.values())
             if len(devices) == 1:
@@ -1302,7 +1307,7 @@ class Elements(Devices["Element"]):
         return Element
 
     @property
-    def collectives(self) -> dict[Optional[str], tuple[Element, ...]]:
+    def collectives(self) -> dict[str | None, tuple[Element, ...]]:
         """The names and members of all currently relevant collectives.
 
         Note that all |Element| instances not belonging to any |Element.collective| are
@@ -1320,7 +1325,7 @@ class Elements(Devices["Element"]):
         b ['b1', 'b2']
         d ['d1']
         """
-        collectives = collections.defaultdict(lambda: [])
+        collectives = collections.defaultdict(list)
         for element in self:
             collectives[element.collective].append(element)
         return {c: tuple(e) for c, e in collectives.items()}
@@ -1474,28 +1479,28 @@ a function for coupling models that belong to the same collective.
                 elements.extend(subelements)
             else:
                 try:
-                    outlets = set(
+                    outlets = {
                         outlet
                         for subelement in subelements
                         for outlet in subelement.outlets
-                    )
-                    inlets = set(
+                    }
+                    inlets = {
                         inlet
                         for subelement in subelements
                         for inlet in subelement.inlets
                         if inlet not in outlets
-                    )
-                    outputs = set(
+                    }
+                    outputs = {
                         output
                         for subelement in subelements
                         for output in subelement.outputs
-                    )
-                    inputs = set(
+                    }
+                    inputs = {
                         input_
                         for subelement in subelements
                         for input_ in subelement.inputs
                         if input_ not in outputs
-                    )
+                    }
                     _registry[Element].pop(collective, None)
                     newelement = Element(
                         collective,
@@ -1617,9 +1622,9 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
     @printtools.print_progress
     def save_controls(
         self,
-        parameterstep: Optional[timetools.PeriodConstrArg] = None,
-        simulationstep: Optional[timetools.PeriodConstrArg] = None,
-        auxfiler: Optional[auxfiletools.Auxfiler] = None,
+        parameterstep: timetools.PeriodConstrArg | None = None,
+        simulationstep: timetools.PeriodConstrArg | None = None,
+        auxfiler: auxfiletools.Auxfiler | None = None,
     ) -> None:
         """Save the control parameters of the |Model| object handled by each |Element|
         object and eventually the ones handled by the given |Auxfiler| object."""
@@ -1633,18 +1638,27 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             )
 
     @printtools.print_progress
-    def load_conditions(self) -> None:
-        """Save the initial conditions of the |Model| object handled by each |Element|
-        object."""
+    def update_parameters(self) -> None:
+        """Update the derived parameters of all models managed by the respective
+        elements."""
         for element in printtools.progressbar(self):
-            element.model.load_conditions()
+            element.model.update_parameters()
+
+    @printtools.print_progress
+    def load_conditions(self) -> None:
+        """Load the initial conditions of the |Model| object handled by each |Element|
+        object."""
+        with hydpy.pub.conditionmanager.filter_duplicates():
+            for element in printtools.progressbar(self):
+                element.model.load_conditions()
 
     @printtools.print_progress
     def save_conditions(self) -> None:
         """Save the calculated conditions of the |Model| object handled by each
         |Element| object."""
-        for element in printtools.progressbar(self):
-            element.model.save_conditions()
+        with hydpy.pub.conditionmanager.filter_duplicates():
+            for element in printtools.progressbar(self):
+                element.model.save_conditions()
 
     def trim_conditions(self) -> None:
         """Call method |Model.trim_conditions| of the |Model| object handled by each
@@ -1717,6 +1731,14 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
             element.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
     @printtools.print_progress
+    def prepare_linkseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """Call method |Element.prepare_linkseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.prepare_linkseries(allocate_ram=allocate_ram, write_jit=write_jit)
+
+    @printtools.print_progress
     @netcdftools.add_netcdfreading
     def load_allseries(self) -> None:
         """Call method |Element.load_inputseries| of all handled |Element| objects."""
@@ -1750,6 +1772,13 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
         """Call method |Element.load_stateseries| of all handled |Element| objects."""
         for element in printtools.progressbar(self):
             element.load_stateseries()
+
+    @printtools.print_progress
+    @netcdftools.add_netcdfreading
+    def load_linkseries(self) -> None:
+        """Call method |Element.load_linkseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.load_linkseries()
 
     @printtools.print_progress
     @netcdftools.add_netcdfwriting
@@ -1786,6 +1815,13 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
         for element in printtools.progressbar(self):
             element.save_stateseries()
 
+    @printtools.print_progress
+    @netcdftools.add_netcdfwriting
+    def save_linkseries(self) -> None:
+        """Call method |Element.save_linkseries| of all handled |Element| objects."""
+        for element in printtools.progressbar(self):
+            element.save_linkseries()
+
 
 class Device:
     """Base class for class |Element| and class |Node|."""
@@ -1793,9 +1829,7 @@ class Device:
     _name: str
     _keywords: Keywords
 
-    def __new__(
-        cls, value: Union[Device, str], *args: object, **kwargs: object
-    ) -> Device:
+    def __new__(cls, value: Device | str, *args: object, **kwargs: object) -> Device:
         # pylint: disable=unused-argument
         # required for consistincy with __init__
         name = str(value)
@@ -1808,7 +1842,7 @@ class Device:
             setattr(self, "new_instance", True)
             self._keywords = Keywords()
             self._keywords.device = self
-            _id2devices[self] = {}
+            _id2devices[self] = weakref.WeakValueDictionary()
             _registry[cls][name] = self
         _selection[cls][name] = _registry[cls][name]
         return self
@@ -2006,10 +2040,14 @@ following error occurred: Adding devices to immutable Elements objects is not al
     _variable: NodeVariableType
     _deploymode: DeployMode
 
+    __hydpy__deploymode_modified__: ClassVar[bool] = False
+    """Class variable that keeps track if the deploy mode of any node and so eventually
+    the parallelisability of a whole network has been changed recently. """
+
     def __init__(
         self,
         value: NodeConstrArg,
-        variable: Optional[NodeVariableType] = None,
+        variable: NodeVariableType | None = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
         # pylint: disable=unused-argument
@@ -2110,7 +2148,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         """Defines the kind of information a node offers its exit elements, eventually,
         its entry elements.
 
-        *HydPy* supports the following modes:
+        *HydPy* supports the following user-relevant modes:
 
           * newsim: Deploy the simulated values calculated just recently.  `newsim` is
             the default mode, used, for example, when a node receives a discharge value
@@ -2144,6 +2182,12 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         within the current simulation are not available (e.g. for parameter calibration)
         after the simulation finishes.
 
+        There are also the "update" modes `newsim_update` and `obs_newsim_update`.
+        HydPy sets these modes temporarily when a `newsim` or a `obs_newsim` node
+        represents a transition between a network's parallelisable and
+        non-parallelisable parts.  Users should activate these two modes only for
+        testing purposes.
+
         Please refer to the documentation on method |HydPy.simulate| of class |HydPy|,
         which provides some application examples.
 
@@ -2172,6 +2216,12 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         >>> node.deploymode = "obs_oldsim_bi"
         >>> node.deploymode
         'obs_oldsim_bi'
+        >>> node.deploymode = "newsim_update"
+        >>> node.deploymode
+        'newsim_update'
+        >>> node.deploymode = "obs_newsim_update"
+        >>> node.deploymode
+        'obs_newsim_update'
         >>> node.deploymode = "newsim"
         >>> node.deploymode
         'newsim'
@@ -2180,7 +2230,8 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         ...
         ValueError: When trying to set the routing mode of node `test`, the value \
 `oldobs` was given, but only the following values are allowed: `newsim`, `oldsim`, \
-`obs`, `obs_newsim`, `obs_oldsim`, `obs_bi.`, `oldsim_bi`, and `obs_oldsim_bi`.
+`obs`, `obs_newsim`, `obs_oldsim`, `oldsim_bi`, `obs_bi`, `obs_oldsim_bi`, \
+`newsim_update`, and `obs_newsim_update`.
         """
         return self._deploymode
 
@@ -2191,11 +2242,15 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
                 f"When trying to set the routing mode of node `{self.name}`, the "
                 f"value `{value}` was given, but only the following values are "
                 f"allowed: `newsim`, `oldsim`, `obs`, `obs_newsim`, `obs_oldsim`, "
-                f"`obs_bi.`, `oldsim_bi`, and `obs_oldsim_bi`."
+                f"`oldsim_bi`, `obs_bi`, `obs_oldsim_bi`, `newsim_update`, and "
+                f"`obs_newsim_update`."
             )
 
         # due to https://github.com/python/mypy/issues/9718:
         # pylint: disable=consider-using-in,too-many-boolean-expressions
+
+        if value == self._deploymode:
+            return
 
         if (
             value == "newsim"
@@ -2204,6 +2259,8 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
             or value == "obs_bi"
             or value == "oldsim_bi"
             or value == "obs_oldsim_bi"
+            or value == "newsim_update"
+            or value == "obs_newsim_update"
         ):
             pass
         elif value == "oldsim" or value == "obs_oldsim":
@@ -2211,18 +2268,15 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         else:
             _assert_never(value)
         self._deploymode = value
+        type(self).__hydpy__deploymode_modified__ = True
+
         for element in itertools.chain(self.entries, self.exits):
-            model: Optional[modeltools.Model]
+            model: modeltools.Model | None
             model = exceptiontools.getattr_(element, "model", None)
             if model and not model.COMPOSITE:
                 model.connect()
 
-    def get_double(
-        self,
-        group: Literal[
-            "inlets", "receivers", "inputs", "outlets", "senders", "outputs"
-        ],
-    ) -> pointerutils.Double:
+    def get_double(self, group: LinkInputOutputSequenceGroup) -> pointerutils.Double:
         """Return the |Double| object appropriate for the given |Element| input or
         output group and the actual |Node.deploymode|.
 
@@ -2242,7 +2296,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
 
         >>> def test(deploymode):
         ...     node.deploymode = deploymode
-        ...     for group in ( "inlets", "receivers", "inputs"):
+        ...     for group in ( "inlets", "observers", "receivers", "inputs"):
         ...         end = None if group == "inputs" else ", "
         ...         print(group, node.get_double(group), sep=": ", end=end)
         ...     for group in ("outlets", "senders", "outputs"):
@@ -2253,24 +2307,22 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         |Double| object of sequence |Sim| to all |Element| input and output groups:
 
         >>> test("newsim")
-        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        inlets: 1.0, observers: 1.0, receivers: 1.0, inputs: 1.0
         outlets: 1.0, senders: 1.0, outputs: 1.0
 
         Setting |Node.deploymode| to `obs` means that a node receives simulated values
-        (from group `outlets` or `senders`) but provides observed values (to group
-        `inlets` or `receivers`):
+        but provides observed values:
 
         >>> test("obs")
-        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 1.0, senders: 1.0, outputs: 1.0
 
         With |Node.deploymode| set to `oldsim`, the node provides (previously)
-        simulated values (to group `inlets`, `receivers`, or `inputs`) but does not
-        receive any.  Method |Node.get_double| returns a dummy |Double| object
-        initialised to 0.0 in this case (for group `outlets`, `senders`, or `outputs`):
+        simulated values but does not receive any.  Method |Node.get_double| returns a
+        dummy |Double| object initialised to 0.0 in this case:
 
         >>> test("oldsim")
-        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        inlets: 1.0, observers: 1.0, receivers: 1.0, inputs: 1.0
         outlets: 0.0, senders: 0.0, outputs: 0.0
 
         For `obs_newsim`, the result is like for `obs` because, for missing data,
@@ -2278,47 +2330,51 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         sequence during simulation:
 
         >>> test("obs_newsim")
-        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 1.0, senders: 1.0, outputs: 1.0
 
         Similar holds for the `obs_oldsim` mode, but here |Node.get_double| must ensure
         newly calculated values do not overwrite the "old" ones:
 
         >>> test("obs_oldsim")
-        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 0.0, senders: 0.0, outputs: 0.0
 
         All "bidirectional" modes require symmetrical connections, as they long for
         passing the same information in the downstream and the upstream direction:
 
         >>> test("obs_bi")
-        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 2.0, senders: 2.0, outputs: 2.0
         >>> test("oldsim_bi")
-        inlets: 1.0, receivers: 1.0, inputs: 1.0
+        inlets: 1.0, observers: 1.0, receivers: 1.0, inputs: 1.0
         outlets: 1.0, senders: 1.0, outputs: 1.0
         >>> test("obs_oldsim_bi")
-        inlets: 2.0, receivers: 2.0, inputs: 2.0
+        inlets: 2.0, observers: 2.0, receivers: 2.0, inputs: 2.0
         outlets: 2.0, senders: 2.0, outputs: 2.0
-
-        Other |Element| input or output groups are not supported:
-
-        >>> node.get_double("test")
-        Traceback (most recent call last):
-        ...
-        ValueError: Function `get_double` of class `Node` does not support the given \
-group name `test`.
         """
         # pylint: disable=consider-using-in
+        # pylint: disable=too-many-boolean-expressions
 
         dm = self.deploymode
 
-        if group in ("inlets", "receivers", "inputs"):
-            if dm == "newsim" or dm == "oldsim" or dm == "oldsim_bi":
+        if (
+            group == "inlets"
+            or group == "observers"
+            or group == "receivers"
+            or group == "inputs"
+        ):
+            if (
+                dm == "newsim"
+                or dm == "newsim_update"
+                or dm == "oldsim"
+                or dm == "oldsim_bi"
+            ):
                 return self.sequences.fastaccess.sim
             if (
                 dm == "obs"
                 or dm == "obs_newsim"
+                or dm == "obs_newsim_update"
                 or dm == "obs_oldsim"
                 or dm == "obs_bi"
                 or dm == "obs_oldsim_bi"
@@ -2326,8 +2382,15 @@ group name `test`.
                 return self.sequences.fastaccess.obs
             assert_never(dm)
 
-        if group in ("outlets", "senders", "outputs"):
-            if dm == "newsim" or dm == "obs" or dm == "obs_newsim" or dm == "oldsim_bi":
+        if group == "outlets" or group == "senders" or group == "outputs":
+            if (
+                dm == "newsim"  # pylint: disable=too-many-boolean-expressions
+                or dm == "newsim_update"
+                or dm == "obs"
+                or dm == "obs_newsim"
+                or dm == "obs_newsim_update"
+                or dm == "oldsim_bi"
+            ):
                 return self.sequences.fastaccess.sim
             if dm == "obs_bi" or dm == "obs_oldsim_bi":
                 return self.sequences.fastaccess.obs
@@ -2335,10 +2398,7 @@ group name `test`.
                 return self.__blackhole
             assert_never(dm)
 
-        raise ValueError(
-            f"Function `get_double` of class `Node` does not support the given group "
-            f"name `{group}`."
-        )
+        assert_never(group)
 
     def reset(self, idx: int = 0) -> None:
         """Reset the actual value of the simulation sequence to zero.
@@ -2377,12 +2437,12 @@ group name `test`.
     def plot_allseries(
         self,
         *,
-        labels: Optional[tuple[str, str]] = None,
-        colors: Optional[Union[str, tuple[str, str]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, LineStyle]]] = None,
-        linewidths: Optional[Union[int, tuple[int, int]]] = None,
+        labels: tuple[str, str] | None = None,
+        colors: str | tuple[str, str] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, LineStyle] | None = None,
+        linewidths: int | tuple[int, int] | None = None,
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| data of both the |Sim| and the |Obs| sequence
         object.
@@ -2457,11 +2517,11 @@ group name `test`.
         >>> figure = lahn_marb.plot_allseries(stepsize="quaterly")
         Traceback (most recent call last):
         ...
-        ValueError: While trying to plot the time series of sequence(s) obs and sim \
+        ValueError: While trying to plot the time series of the sequences obs and sim \
 of node `lahn_marb` for the period `1996-10-01 00:00:00` to `1996-11-01 00:00:00`, the \
 following error occurred: While trying to aggregate the given series, the following \
 error occurred: Argument `stepsize` received value `quaterly`, but only the following \
-ones are supported: `monthly` (default) and `daily`.
+ones are supported: `monthly` (default), `daily`, and `yearly`.
 
         >>> from hydpy import pub
         >>> del pub.timegrids
@@ -2469,15 +2529,15 @@ ones are supported: `monthly` (default) and `daily`.
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to plot the time \
-series of sequence(s) obs and sim of node `lahn_marb` , the following error occurred: \
-Attribute timegrids of module `pub` is not defined at the moment.
+series of the sequences obs and sim of node `lahn_marb`, the following error \
+occurred: Attribute timegrids of module `pub` is not defined at the moment.
         """
 
         t = TypeVar("t", str, int)
 
         def _make_tuple(
-            x: Union[Optional[t], tuple[Optional[t], Optional[t]]],
-        ) -> tuple[Optional[t], Optional[t]]:
+            x: t | None | tuple[t | None, t | None],
+        ) -> tuple[t | None, t | None]:
             return (x, x) if ((x is None) or isinstance(x, (str, int))) else x
 
         return self._plot_series(
@@ -2493,12 +2553,12 @@ Attribute timegrids of module `pub` is not defined at the moment.
     def plot_simseries(
         self,
         *,
-        label: Optional[str] = None,
-        color: Optional[str] = None,
-        linestyle: Optional[LineStyle] = None,
-        linewidth: Optional[int] = None,
+        label: str | None = None,
+        color: str | None = None,
+        linestyle: LineStyle | None = None,
+        linewidth: int | None = None,
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
@@ -2517,12 +2577,12 @@ Attribute timegrids of module `pub` is not defined at the moment.
     def plot_obsseries(
         self,
         *,
-        label: Optional[str] = None,
-        color: Optional[str] = None,
-        linestyle: Optional[LineStyle] = None,
-        linewidth: Optional[int] = None,
+        label: str | None = None,
+        color: str | None = None,
+        linestyle: LineStyle | None = None,
+        linewidth: int | None = None,
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         """Plot the |IOSequence.series| of the |Obs| sequence object.
 
@@ -2542,12 +2602,12 @@ Attribute timegrids of module `pub` is not defined at the moment.
         self,
         *,
         sequences: Sequence[sequencetools.IOSequence],
-        labels: Iterable[Optional[str]],
-        colors: Iterable[Optional[str]],
-        linestyles: Iterable[Optional[str]],
-        linewidths: Iterable[Optional[int]],
+        labels: Iterable[str | None],
+        colors: Iterable[str | None],
+        linestyles: Iterable[str | None],
+        linewidths: Iterable[int | None],
         focus: bool = False,
-        stepsize: Optional[StepSize] = None,
+        stepsize: StepSize | None = None,
     ) -> pyplot.Figure:
         try:
             idx0, idx1 = hydpy.pub.timegrids.evalindices
@@ -2564,34 +2624,242 @@ Attribute timegrids of module `pub` is not defined at the moment.
                     )
                     period = "15d" if stepsize.startswith("m") else "12h"
                     ps.index += timetools.Period(period).timedelta
-                    ps = ps.rename(columns={"series": label_})
-                kwargs = {"label": label_, "ax": pyplot.gca()}
-                if color is not None:
-                    kwargs["color"] = color
-                if linestyle is not None:
-                    kwargs["linestyle"] = linestyle
-                if linewidth is not None:
-                    kwargs["linewidth"] = linewidth
-                ps.plot(**kwargs)
+                    ps.name = label_
+                kwargs = self._get_kwargs_for_plot(
+                    color=color, label=label_, linestyle=linestyle, linewidth=linewidth
+                )
+                ps.plot(ax=pyplot.gca(), **kwargs)
             pyplot.legend()
             if not focus:
                 pyplot.ylim((0.0, None))
             if pyplot.get_fignums():
-                if (variable := str(self.variable)) == "Q":
-                    variable = "Q [m³/s]"
-                pyplot.ylabel(variable)
+                pyplot.ylabel(self._ylabel)
             return pyplot.gcf()
         except BaseException:
-            if exceptiontools.attrready(hydpy.pub, "timegrids"):
-                tg = hydpy.pub.timegrids.eval_
-                periodstring = f"for the period `{tg.firstdate}` to `{tg.lastdate}`"
+            self._augment_plotexcmessage(sequences, plottype="time series")
+
+    def plot_alldurationcurves(
+        self,
+        *,
+        labels: tuple[str, str] | None = None,
+        colors: str | tuple[str, str] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, LineStyle] | None = None,
+        linewidths: int | tuple[int, int] | None = None,
+        logscale: bool = True,
+    ) -> pyplot.Figure:
+        """Plot the |IOSequence.evalseries| of both the |Sim| and the |Obs| sequence
+        in the form of a (flow) duration curve.
+
+        Method |Node.plot_alldurationcurves| works very similar to method
+        |Node.plot_allseries|.  Hence, we restrict the following examples to their key
+        differences.
+
+        We use the `Lahn` example project in the same way:
+
+        >>> from hydpy.core.testtools import prepare_full_example_2
+        >>> hp, pub, _ = prepare_full_example_2(lastdate="1997-01-01")
+        >>> hp.simulate()
+        >>> dill_assl = hp.nodes.dill_assl
+        >>> dill_assl.sequences.obs.series = dill_assl.sequences.sim.series + 10.0
+
+        By default, method |Node.plot_alldurationcurves| chooses a logarithmic y-scale
+        and the following graphical settings:
+
+        >>> figure = dill_assl.plot_alldurationcurves()
+        >>> from hydpy.core.testtools import save_autofig
+        >>> save_autofig("Node_plot_alldurationcurves_1.png", figure)
+
+        .. image:: Node_plot_alldurationcurves_1.png
+
+        Despite its option to disable the logarithmic y-scale, the configuration works
+        as for method |Node.plot_allseries|:
+
+        >>> figure = dill_assl.plot_alldurationcurves(
+        ...     labels=("observed", "simulated"),
+        ...     colors=("black", "green"),
+        ...     linestyles=":",
+        ...     linewidths=(1, 2),
+        ...     logscale=False,
+        ... )
+        >>> _ = figure.gca().set_title("Asslar (Dill)")
+        >>> figure.tight_layout()
+        >>> save_autofig("Node_plot_alldurationcurves_2.png", figure)
+
+        .. image:: Node_plot_alldurationcurves_2.png
+
+        Again, you can modify the considered period via the |Timegrids.eval_| time grid
+        and plot the different curves individually via methods
+        |Node.plot_obsdurationcurve| and |Node.plot_simdurationcurve| (in which case the
+        last method call decides whether the y-scale is logarithmic or linear):
+
+        >>> pub.timegrids.eval_.lastdate = "1996-06-01"
+        >>> figure = dill_assl.plot_obsdurationcurve()
+        >>> figure = dill_assl.plot_simdurationcurve(
+        ...     label="observed",
+        ...     color="green",
+        ...     linestyle=":",
+        ...     linewidth=2,
+        ...     logscale=False,
+        ... )
+        >>> save_autofig("Node_plot_alldurationcurves_3.png", figure)
+
+        .. image:: Node_plot_alldurationcurves_3.png
+
+        Misspecifications result in error messages like the following:
+
+        >>> dill_assl.plot_alldurationcurves(linestyles=".")
+        Traceback (most recent call last):
+        ...
+        ValueError: While trying to plot the duration curves of the sequences obs and \
+sim of node `dill_assl` for the period `1996-01-01 00:00:00` to `1996-06-01 00:00:00`, \
+the following error occurred: '.' is not a valid value for ls; supported values are \
+'-', '--', '-.', ':', 'None', ' ', '', 'solid', 'dashed', 'dashdot', 'dotted'
+        """
+
+        t = TypeVar("t", str, int)
+
+        def _make_tuple(
+            x: t | None | tuple[t | None, t | None],
+        ) -> tuple[t | None, t | None]:
+            return (x, x) if ((x is None) or isinstance(x, (str, int))) else x
+
+        return self._plot_durationcurves(
+            sequences=(self.sequences.obs, self.sequences.sim),
+            labels=_make_tuple(labels),
+            colors=_make_tuple(colors),
+            linestyles=_make_tuple(linestyles),
+            linewidths=_make_tuple(linewidths),
+            logscale=logscale,
+        )
+
+    def plot_simdurationcurve(
+        self,
+        *,
+        label: str | None = None,
+        color: str | None = None,
+        linestyle: LineStyle | None = None,
+        linewidth: int | None = None,
+        logscale: bool = True,
+    ) -> pyplot.Figure:
+        """Plot the |IOSequence.series| of the |Sim| sequence object.
+
+        See method |Node.plot_allseries| for further information.
+        """
+        return self._plot_durationcurves(
+            sequences=[self.sequences.sim],
+            labels=(label,),
+            colors=(color,),
+            linestyles=(linestyle,),
+            linewidths=(linewidth,),
+            logscale=logscale,
+        )
+
+    def plot_obsdurationcurve(
+        self,
+        *,
+        label: str | None = None,
+        color: str | None = None,
+        linestyle: LineStyle | None = None,
+        linewidth: int | None = None,
+        logscale: bool = True,
+    ) -> pyplot.Figure:
+        """Plot the duration curve of the |IOSequence.series| of the |Obs| sequence
+        object.
+
+        See method |Node.plot_allseries| for further information.
+        """
+        return self._plot_durationcurves(
+            sequences=[self.sequences.obs],
+            labels=(label,),
+            colors=(color,),
+            linestyles=(linestyle,),
+            linewidths=(linewidth,),
+            logscale=logscale,
+        )
+
+    def _plot_durationcurves(
+        self,
+        *,
+        sequences: Sequence[sequencetools.IOSequence],
+        labels: Iterable[str | None],
+        colors: Iterable[str | None],
+        linestyles: Iterable[str | None],
+        linewidths: Iterable[int | None],
+        logscale: bool,
+    ) -> pyplot.Figure:
+        try:
+            fig = pyplot.gcf()
+            ax = fig.gca()
+            for sequence, label, color, linestyle, linewidth in zip(
+                sequences, labels, colors, linestyles, linewidths
+            ):
+                label = label or " ".join((self.name, sequence.name))
+                curve = numpy.sort(sequence.evalseries)[::-1]
+                curve = curve[~numpy.isnan(curve)]
+                n = len(curve)
+                xs = 100.0 * numpy.linspace(1.0 / n, 1.0 - 1.0 / n, n)
+                kwargs = self._get_kwargs_for_plot(
+                    color=color, label=label, linestyle=linestyle, linewidth=linewidth
+                )
+                ax.plot(xs, curve, **kwargs)  # type: ignore[arg-type]
+            if logscale:
+                ax.set_yscale("log")
             else:
-                periodstring = ""
-            objecttools.augment_excmessage(
-                f"While trying to plot the time series of sequence(s) "
-                f"{objecttools.enumeration(sequence.name for sequence in sequences)} "
-                f"of node `{objecttools.devicename(sequences[0])}` {periodstring}"
-            )
+                ax.set_yscale("linear")
+            ax.legend()
+            ax.set_xlabel("exceeding probability [%]")
+            ax.set_ylabel(self._ylabel)
+            fig.tight_layout()
+            return fig
+        except BaseException:
+            self._augment_plotexcmessage(sequences, plottype="duration curve")
+
+    def _get_kwargs_for_plot(
+        self,
+        label: str,
+        color: str | None,
+        linestyle: str | None,
+        linewidth: int | None,
+    ) -> dict[str, str | int]:
+        kwargs: dict[str, str | int] = {"label": label}
+        if color is not None:
+            kwargs["color"] = color
+        if linestyle is not None:
+            kwargs["linestyle"] = linestyle
+        if linewidth is not None:
+            kwargs["linewidth"] = linewidth
+        return kwargs
+
+    @property
+    def _ylabel(self) -> str:
+        """
+        >>> from hydpy import Node
+        >>> Node("q_node")._ylabel
+        'Q [m³/s]'
+        >>> Node("x_node", variable="X")._ylabel
+        'X'
+        """
+        ylabel = str(self.variable)
+        if ylabel == "Q":
+            return "Q [m³/s]"
+        return ylabel
+
+    def _augment_plotexcmessage(
+        self, sequences: Sequence[sequencetools.IOSequence], plottype: str
+    ) -> NoReturn:
+        if exceptiontools.attrready(hydpy.pub, "timegrids"):
+            tg = hydpy.pub.timegrids.eval_
+            periodstring = f" for the period `{tg.firstdate}` to `{tg.lastdate}`"
+        else:
+            periodstring = ""
+        p = inflect.engine()
+        n = len(sequences)
+        objecttools.augment_excmessage(
+            f"While trying to plot the {p.plural_noun(plottype, n)} of the "
+            f"{p.plural_noun('sequence', n)} "
+            f"{objecttools.enumeration(s.name for s in sequences)} of node "
+            f"`{objecttools.devicename(sequences[0])}`{periodstring}"
+        )
 
     def assignrepr(self, prefix: str = "") -> str:
         """Return a |repr| string with a prefixed assignment."""
@@ -2627,9 +2895,14 @@ class Element(Device):
 
      * |Element.inlets| and |Element.outlets| nodes handle, for example, the inflow to
        and the outflow from the respective element.
-     * |Element.receivers| and |Element.senders| nodes are thought for information flow
-       between arbitrary elements, for example, to inform a |dam| model about the
-       discharge at a gauge downstream.
+     * |Element.receivers|, |Element.observers|, and |Element.senders| nodes are
+       thought for information flow.  |Element.receivers| nodes allow for arbitrarily
+       directed connections, even to downstream locations (for example, to inform a
+       |dam| model about the discharge at a gauge downstream).  In contrast,
+       |Element.observers| nodes do not support such cyclic connections.  However,
+       |Element.observers| nodes offer the advantage of direct information exchange,
+       while |Element.receivers| nodes provide their information with a delay of one
+       simulation time step (to break possible cycles in the spatial simulation order).
      * |Element.inputs| nodes provide optional input information, for example,
        interpolated precipitation that could alternatively be read from files as well.
      * |Element.outputs| nodes query optional output information, for example, the
@@ -2654,6 +2927,7 @@ class Element(Device):
 
     >>> Element("test",
     ...         inlets="inl1",
+    ...         observers="obs1",
     ...         receivers=("rec2", "rec3"),
     ...         senders="sen1",
     ...         inputs="inp1",
@@ -2661,6 +2935,7 @@ class Element(Device):
     Element("test",
             inlets="inl1",
             outlets="outl1",
+            observers="obs1",
             receivers=["rec1", "rec2", "rec3"],
             senders="sen1",
             inputs="inp1",
@@ -2671,6 +2946,7 @@ class Element(Device):
     >>> test = Element("test")
     >>> test.inlets = "inl2"
     >>> test.outlets = None
+    >>> test.observers = "obs1"
     >>> test.receivers = ()
     >>> test.senders = "sen2", Node("sen3")
     >>> test.inputs = []
@@ -2679,156 +2955,90 @@ class Element(Device):
     Element("test",
             inlets=["inl1", "inl2"],
             outlets="outl1",
+            observers="obs1",
             receivers=["rec1", "rec2", "rec3"],
             senders=["sen1", "sen2", "sen3"],
             inputs="inp1",
             outputs=["outp1", "outp2"])
 
     The properties try to verify that all connections make sense.  For example, an
-    element should never handle an `inlet` node that it also handles as an `outlet`,
+    element should never handle an `inlet` node that is also handles as an `outlet`,
     `input`, or `output` node:
 
-    >>> test.inlets = "outl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given inlet node `outl1` is already defined \
-as a(n) outlet node, which is not allowed.
+    >>> def try_impossible_combinations(group, *sequences):
+    ...     for sequence in sequences:
+    ...         try:
+    ...             setattr(test, group, sequence)
+    ...         except ValueError as error:
+    ...             print(error)
+    ...         else:
+    ...             assert False
 
-    >>> test.inlets = "inp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given inlet node `inp1` is already defined as \
-a(n) input node, which is not allowed.
-
-    >>> test.inlets = "outp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given inlet node `outp1` is already defined \
-as a(n) output node, which is not allowed.
+    >>> try_impossible_combinations("inlets", "outl1", "sen1", "outp1")
+    For element `test`, the given inlet node `outl1` is already defined as an outlet \
+node, which is not allowed.
+    For element `test`, the given inlet node `sen1` is already defined as a sender \
+node, which is not allowed.
+    For element `test`, the given inlet node `outp1` is already defined as an output \
+node, which is not allowed.
 
     Similar holds for the `outlet` nodes:
 
-    >>> test.outlets = "inl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given outlet node `inl1` is already defined \
-as a(n) inlet node, which is not allowed.
-
-    >>> test.outlets = "inp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given outlet node `inp1` is already defined \
-as a(n) input node, which is not allowed.
-
-    >>> test.outlets = "outp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given outlet node `outp1` is already defined \
-as a(n) output node, which is not allowed.
+    >>> try_impossible_combinations("outlets", "inl1", "obs1", "inp1", "outp1")
+    For element `test`, the given outlet node `inl1` is already defined as an inlet \
+node, which is not allowed.
+    For element `test`, the given outlet node `obs1` is already defined as an \
+observer node, which is not allowed.
+    For element `test`, the given outlet node `inp1` is already defined as an input \
+node, which is not allowed.
+    For element `test`, the given outlet node `outp1` is already defined as an output \
+node, which is not allowed.
 
     The following restrictions hold for the `sender` nodes:
 
-    >>> test.senders = "rec1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given sender node `rec1` is already defined \
-as a(n) receiver node, which is not allowed.
+    >>> try_impossible_combinations("senders", "inl1", "obs1", "inp1", "outp1")
+    For element `test`, the given sender node `inl1` is already defined as an inlet \
+node, which is not allowed.
+    For element `test`, the given sender node `obs1` is already defined as an \
+observer node, which is not allowed.
+    For element `test`, the given sender node `inp1` is already defined as an input \
+node, which is not allowed.
+    For element `test`, the given sender node `outp1` is already defined as an output \
+node, which is not allowed.
 
-    >>> test.senders = "inp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given sender node `inp1` is already defined \
-as a(n) input node, which is not allowed.
+    The following restrictions hold for the `observer` nodes:
 
-    >>> test.senders = "outp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given sender node `outp1` is already defined \
-as a(n) output node, which is not allowed.
-
-    The following restrictions hold for the `receiver` nodes:
-
-    >>> test.receivers = "sen1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given receiver node `sen1` is already defined \
-as a(n) sender node, which is not allowed.
-
-    >>> test.receivers = "inp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given receiver node `inp1` is already defined \
-as a(n) input node, which is not allowed.
-
-    >>> test.receivers = "outp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given receiver node `outp1` is already \
-defined as a(n) output node, which is not allowed.
+    >>> try_impossible_combinations("observers", "outl1", "sen1", "outp1")
+    For element `test`, the given observer node `outl1` is already defined as an \
+outlet node, which is not allowed.
+    For element `test`, the given observer node `sen1` is already defined as a sender \
+node, which is not allowed.
+    For element `test`, the given observer node `outp1` is already defined as an \
+output node, which is not allowed.
 
     The following restrictions hold for the `input` nodes:
 
-    >>> test.inputs = "outp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given input node `outp1` is already defined \
-as a(n) output node, which is not allowed.
-
-    >>> test.inputs = "inl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given input node `inl1` is already defined as \
-a(n) inlet node, which is not allowed.
-
-    >>> test.inputs = "outl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given input node `outl1` is already defined \
-as a(n) outlet node, which is not allowed.
-
-    >>> test.inputs = "sen1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given input node `sen1` is already defined as \
-a(n) sender node, which is not allowed.
-
-    >>> test.inputs = "rec1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given input node `rec1` is already defined as \
-a(n) receiver node, which is not allowed.
+    >>> try_impossible_combinations("inputs", "outl1", "sen1", "outp1")
+    For element `test`, the given input node `outl1` is already defined as an outlet \
+node, which is not allowed.
+    For element `test`, the given input node `sen1` is already defined as a sender \
+node, which is not allowed.
+    For element `test`, the given input node `outp1` is already defined as an output \
+node, which is not allowed.
 
    The following restrictions hold for the `output` nodes:
 
-    >>> test.outputs = "inp1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given output node `inp1` is already defined \
-as a(n) input node, which is not allowed.
-
-    >>> test.outputs = "inl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given output node `inl1` is already defined \
-as a(n) inlet node, which is not allowed.
-
-    >>> test.outputs = "outl1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given output node `outl1` is already defined \
-as a(n) outlet node, which is not allowed.
-
-    >>> test.outputs = "sen1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given output node `sen1` is already defined \
-as a(n) sender node, which is not allowed.
-
-    >>> test.outputs = "rec1"
-    Traceback (most recent call last):
-    ...
-    ValueError: For element `test`, the given output node `rec1` is already defined \
-as a(n) receiver node, which is not allowed.
+    >>> try_impossible_combinations("outputs", "inl1", "obs1", "inp1", "outl1", "sen1")
+    For element `test`, the given output node `inl1` is already defined as an inlet \
+node, which is not allowed.
+    For element `test`, the given output node `obs1` is already defined as an \
+observer node, which is not allowed.
+    For element `test`, the given output node `inp1` is already defined as an input \
+node, which is not allowed.
+    For element `test`, the given output node `outl1` is already defined as an outlet \
+node, which is not allowed.
+    For element `test`, the given output node `sen1` is already defined as a sender \
+node, which is not allowed.
 
     Note that the discussed |Nodes| objects are immutable by default, disallowing to
     change them in other ways as described above:
@@ -2885,16 +3095,17 @@ following error occurred: Adding devices to immutable Nodes objects is not allow
 already a collective `NileRiver` member.
     """
 
-    collective: Optional[str] = None
+    collective: str | None = None
     """The collective the actual |Element| instance belongs to."""
 
     _inlets: Nodes
     _outlets: Nodes
+    _observers: Nodes
     _receivers: Nodes
     _senders: Nodes
     _inputs: Nodes
     _outputs: Nodes
-    _model: Optional[modeltools.Model]
+    _model: modeltools.Model | None
 
     def __init__(
         self,
@@ -2902,11 +3113,12 @@ already a collective `NileRiver` member.
         *,
         inlets: NodesConstrArg = None,
         outlets: NodesConstrArg = None,
+        observers: NodesConstrArg = None,
         receivers: NodesConstrArg = None,
         senders: NodesConstrArg = None,
         inputs: NodesConstrArg = None,
         outputs: NodesConstrArg = None,
-        collective: Optional[str] = None,
+        collective: str | None = None,
         keywords: MayNonerable1[str] = None,
     ) -> None:
         # pylint: disable=unused-argument
@@ -2922,6 +3134,7 @@ already a collective `NileRiver` member.
         if hasattr(self, "new_instance"):
             self._inlets = Nodes(mutable=False)
             self._outlets = Nodes(mutable=False)
+            self._observers = Nodes(mutable=False)
             self._receivers = Nodes(mutable=False)
             self._senders = Nodes(mutable=False)
             self._inputs = Nodes(mutable=False)
@@ -2929,6 +3142,7 @@ already a collective `NileRiver` member.
             self.__connections = (
                 self.inlets,
                 self.outlets,
+                self.observers,
                 self.receivers,
                 self.senders,
                 self.inputs,
@@ -2941,6 +3155,8 @@ already a collective `NileRiver` member.
             self.inlets = inlets
         if outlets is not None:
             self.outlets = outlets
+        if observers is not None:
+            self.observers = observers
         if receivers is not None:
             self.receivers = receivers
         if senders is not None:
@@ -2959,13 +3175,21 @@ already a collective `NileRiver` member.
         targetelements: str,
         incompatiblenodes: tuple[str, ...],
     ) -> None:
+
+        # incompatibility due to circularity:
+        #     inlets / observers / inputs <-> outlets / senders / outputs
+        # incompatibility due to different updating:
+        #     outlets / senders <-> outputs
+        # other combinations are unlikely but technically possible
+
         elementgroup: Nodes = getattr(self, targetnodes)
         for node in Nodes(values):
             for incomp in incompatiblenodes:
                 if node in getattr(self, incomp):
+                    engine = inflect.engine()
                     raise ValueError(
-                        f"For element `{self}`, the given {targetnodes[1:-1]} "
-                        f"node `{node}` is already defined as a(n) {incomp[1:-1]} "
+                        f"For element `{self}`, the given {targetnodes[1:-1]} node "
+                        f"`{node}` is already defined as {engine.a(incomp[1:-1])} "
                         f"node, which is not allowed."
                     )
             elementgroup.add_device(node, force=True)
@@ -2982,7 +3206,7 @@ already a collective `NileRiver` member.
             values,
             targetnodes="_inlets",
             targetelements="_exits",
-            incompatiblenodes=("_outlets", "_inputs", "_outputs"),
+            incompatiblenodes=("_outlets", "_senders", "_outputs"),
         )
 
     inlets = propertytools.Property(fget=_get_inlets, fset=_set_inlets)
@@ -2997,14 +3221,31 @@ already a collective `NileRiver` member.
             values,
             targetnodes="_outlets",
             targetelements="_entries",
-            incompatiblenodes=("_inlets", "_inputs", "_outputs"),
+            incompatiblenodes=("_inlets", "_observers", "_inputs", "_outputs"),
         )
 
     outlets = propertytools.Property(fget=_get_outlets, fset=_set_outlets)
 
+    def _get_observers(self) -> Nodes:
+        """Group of non-downstream |Node| objects from which the handled |Model|
+        object queries its "remote" information values (e.g. inflow of a side-tributary
+        into a downstream river)."""
+        return self._observers
+
+    def _set_observers(self, values: NodesConstrArg) -> None:
+        self.__update_group(
+            values,
+            targetnodes="_observers",
+            targetelements="_exits",
+            incompatiblenodes=("_outlets", "_inputs", "_outputs", "_senders"),
+        )
+
+    observers = propertytools.Property(fget=_get_observers, fset=_set_observers)
+
     def _get_receivers(self) -> Nodes:
-        """Group of |Node| objects from which the handled |Model| object queries its
-        "remote" information values (e.g. discharge at a remote downstream)."""
+        """Group of arbitrarily placed |Node| objects from which the handled |Model|
+        object queries its "remote" information values (e.g. discharge at a downstream
+        gauge)."""
         return self._receivers
 
     def _set_receivers(self, values: NodesConstrArg) -> None:
@@ -3012,7 +3253,7 @@ already a collective `NileRiver` member.
             values,
             targetnodes="_receivers",
             targetelements="_exits",
-            incompatiblenodes=("_senders", "_inputs", "_outputs"),
+            incompatiblenodes=(),
         )
 
     receivers = propertytools.Property(fget=_get_receivers, fset=_set_receivers)
@@ -3027,7 +3268,7 @@ already a collective `NileRiver` member.
             values,
             targetnodes="_senders",
             targetelements="_entries",
-            incompatiblenodes=("_receivers", "_inputs", "_outputs"),
+            incompatiblenodes=("_inlets", "_observers", "_inputs", "_outputs"),
         )
 
     senders = propertytools.Property(fget=_get_senders, fset=_set_senders)
@@ -3043,13 +3284,7 @@ already a collective `NileRiver` member.
             values,
             targetnodes="_inputs",
             targetelements="_exits",
-            incompatiblenodes=(
-                "_inlets",
-                "_outlets",
-                "_senders",
-                "_receivers",
-                "_outputs",
-            ),
+            incompatiblenodes=("_outlets", "_senders", "_outputs"),
         )
 
     inputs = propertytools.Property(fget=_get_inputs, fset=_set_inputs)
@@ -3067,10 +3302,10 @@ already a collective `NileRiver` member.
             targetelements="_entries",
             incompatiblenodes=(
                 "_inlets",
+                "_observers",
+                "_inputs",
                 "_outlets",
                 "_senders",
-                "_receivers",
-                "_inputs",
             ),
         )
 
@@ -3309,6 +3544,14 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.prepare_stateseries(allocate_ram=allocate_ram, write_jit=write_jit)
 
+    def prepare_linkseries(
+        self, allocate_ram: bool = True, write_jit: bool = False
+    ) -> None:
+        """Call method |Model.prepare_linkseries| of the currently handled |Model|
+        instance and its submodels."""
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.prepare_linkseries(allocate_ram=allocate_ram, write_jit=write_jit)
+
     def load_allseries(self) -> None:
         """Call method |Model.load_allseries| of the currently handled |Model|
         instance and its submodels."""
@@ -3338,6 +3581,12 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         instance and its submodels."""
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.load_stateseries()
+
+    def load_linkseries(self) -> None:
+        """Call method |Model.load_linkseries| of the currently handled |Model|
+        instance and its submodels."""
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.load_linkseries()
 
     def save_allseries(self) -> None:
         """Call method |Model.save_allseries| of the currently handled |Model|
@@ -3369,6 +3618,12 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         for model in self.model.find_submodels(include_mainmodel=True).values():
             model.save_stateseries()
 
+    def save_linkseries(self) -> None:
+        """Call method |Model.save_linkseries| of the currently handled |Model|
+        instance and its submodels."""
+        for model in self.model.find_submodels(include_mainmodel=True).values():
+            model.save_linkseries()
+
     def _plot_series(
         self,
         *,
@@ -3379,15 +3634,15 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         ],
         sequences: tuple[IOSequenceArg, ...],
         average: bool,
-        labels: Optional[tuple[str, ...]],
-        colors: Optional[Union[str, tuple[str, ...]]],
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]],
-        linewidths: Optional[Union[int, tuple[int, ...]]],
+        labels: tuple[str, ...] | None,
+        colors: str | tuple[str, ...] | None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None,
+        linewidths: int | tuple[int, ...] | None,
         focus: bool,
     ) -> pyplot.Figure:
         def _prepare_tuple(
-            input_: Optional[Union[T, tuple[T, ...]]], nmb_entries: int
-        ) -> tuple[Optional[T], ...]:
+            input_: T | tuple[T, ...] | None, nmb_entries: int
+        ) -> tuple[T | None, ...]:
             if isinstance(input_, tuple):
                 return input_
             return nmb_entries * (input_,)
@@ -3405,7 +3660,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         index = _get_pandasindex()[idx0:idx1]
         selseqs = self._query_iosequences(subseqs, sequences)
         nmb_sequences = len(selseqs)
-        labels_: tuple[Optional[str], ...]
+        labels_: tuple[str | None, ...]
         if isinstance(labels, tuple):
             labels_ = labels
         else:
@@ -3465,7 +3720,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         if sequences:
             selseqs = []
             for sequence in sequences:
-                typ: Optional[type[sequencetools.IOSequence]]
+                typ: type[sequencetools.IOSequence] | None
                 if isinstance(sequence, str):
                     name = sequence
                     typ = None
@@ -3497,10 +3752,10 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         self,
         *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot (the selected) |InputSequence| |IOSequence.series| values.
@@ -3601,10 +3856,10 @@ sequence named `xy`.
         self,
         *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `factor` series of the handled model.
@@ -3627,10 +3882,10 @@ sequence named `xy`.
         self,
         *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `flux` series of the handled model.
@@ -3653,10 +3908,10 @@ sequence named `xy`.
         self,
         *sequences: IOSequenceArg,
         average: bool = False,
-        labels: Optional[tuple[str, ...]] = None,
-        colors: Optional[Union[str, tuple[str, ...]]] = None,
-        linestyles: Optional[Union[LineStyle, tuple[LineStyle, ...]]] = None,
-        linewidths: Optional[Union[int, tuple[int, ...]]] = None,
+        labels: tuple[str, ...] | None = None,
+        colors: str | tuple[str, ...] | None = None,
+        linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
+        linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
     ) -> pyplot.Figure:
         """Plot the `state` series of the handled model.
@@ -3683,14 +3938,7 @@ sequence named `xy`.
                 lines = [f'{prefix}Element("{self.name}",']
                 if (collective := self.collective) is not None:
                     lines.append(f'{blanks}collective="{collective}",')
-                for groupname in (
-                    "inlets",
-                    "outlets",
-                    "receivers",
-                    "senders",
-                    "inputs",
-                    "outputs",
-                ):
+                for groupname in typing.get_args(LinkInputOutputSequenceGroup):
                     group = getattr(self, groupname, None)
                     if group:
                         subprefix = f"{blanks}{groupname}="
@@ -3710,7 +3958,7 @@ sequence named `xy`.
         return self.assignrepr("")
 
 
-_id2devices: dict[Device, dict[int, Devices[Device]]] = {}
+_id2devices: dict[Device, weakref.WeakValueDictionary[int, Devices[Device]]] = {}
 _registry: Mapping[type[Device], dict[str, Device]] = {Node: {}, Element: {}}
 _selection: Mapping[type[Device], dict[str, Device]] = {Node: {}, Element: {}}
 

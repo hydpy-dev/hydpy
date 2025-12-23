@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module provides tools for defining and handling different kinds of parameters
 of hydrological models."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -151,7 +151,7 @@ class Constants(dict[str, int]):
         if config.USEAUTODOC:
             assert (filename := inspect.getsourcefile(frame)) is not None
             with open(filename, encoding=config.ENCODING) as file_:
-                sources = file_.read().split('"""')
+                sources = file_.read().split('"""')[2:]
             for code, doc in zip(sources[::2], sources[1::2]):
                 code = code.strip()
                 key = code.split("\n")[-1].split()[0]
@@ -159,15 +159,23 @@ class Constants(dict[str, int]):
                 if value:
                     value.__doc__ = doc
 
-    @property
-    def sortednames(self) -> tuple[str, ...]:
-        """The lowercase constants' names, sorted by the constants' values.
+    def get_sortednames(
+        self, *, relevant: Sequence[int] | None = None
+    ) -> tuple[str, ...]:
+        """Get the lowercase constants' names, sorted by the constants' values.
 
         >>> from hydpy.core.parametertools import Constants
-        >>> Constants(GRASS=2, TREES=0, WATER=1).sortednames
+        >>> Constants(GRASS=2, TREES=0, WATER=1).get_sortednames()
         ('trees', 'water', 'grass')
+
+        You can pass the values of relevant constants to exclude the names of the
+        remaining constants:
+
+        >>> Constants(GRASS=2, TREES=0, WATER=1).get_sortednames(relevant=[0, 2])
+        ('trees', 'grass')
         """
-        return tuple(key.lower() for value, key in sorted(self.value2name.items()))
+        rel = set(self.values()) if relevant is None else set(relevant)
+        return tuple(n.lower() for v, n in sorted(self.value2name.items()) if v in rel)
 
 
 class Parameters:
@@ -259,7 +267,7 @@ class Parameters:
         hydpy.core.exceptiontools.AttributeNotReady: While trying to update parameter \
 `doy` of element `?`, the following error occurred: An Indexer object has been asked \
 for an `dayofyear` array.  Such an array has neither been determined yet nor can it \
-be determined automatically at the moment.   Either define an `dayofyear` array \
+be determined automatically at the moment.  Either define an `dayofyear` array \
 manually and pass it to the Indexer object, or make a proper Timegrids object \
 available within the pub module.
 
@@ -285,7 +293,7 @@ For variable `latitude`, no value has been defined so far.
         moy(0, 0, 1, 1, 1)
         hours(24.0)
         days(1.0)
-        sct(12.0)
+        sct(12.0, 12.0, 12.0, 12.0, 12.0)
         utclongitude(15)
         latituderad(0.872665)
 
@@ -293,6 +301,8 @@ For variable `latitude`, no value has been defined so far.
 
             >>> del pub.timegrids
         """
+        for par in self.control:
+            par.update()
         for subpars in self.secondary_subpars:
             for par in subpars:
                 try:
@@ -462,14 +472,14 @@ class SubParameters(
     '''
 
     pars: Parameters
-    _cymodel: Optional[CyModelProtocol]
+    _cymodel: CyModelProtocol | None
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
 
     def __init__(
         self,
         master: Parameters,
-        cls_fastaccess: Optional[type[FastAccessParameter]] = None,
-        cymodel: Optional[CyModelProtocol] = None,
+        cls_fastaccess: type[FastAccessParameter] | None = None,
+        cymodel: CyModelProtocol | None = None,
     ):
         self.pars = master
         self._cymodel = cymodel
@@ -500,14 +510,14 @@ class Keyword(NamedTuple):
 
     name: str
     """The keyword argument's name."""
-    type_: type[Union[float, int]] = float
+    type_: type[float | int] = float
     """The keyword argument's type (equivalent to the |Variable.TYPE| attribute of 
     class |Variable|)."""
-    time: Optional[bool] = None
+    time: bool | None = None
     """Type of the keyword argument's time dependency (equivalent to the 
     |Parameter.TIME| attribute of class |Parameter|).
     """
-    span: tuple[Optional[float], Optional[float]] = (None, None)
+    span: tuple[float | None, float | None] = (None, None)
     """The keyword argument's lower and upper boundary (equivalent to the 
     |Variable.SPAN| attribute of class |Variable|).
     """
@@ -1211,7 +1221,7 @@ with shape `(2, 3)` and type `float`, the following error occurred: could not \
 broadcast input array from shape (2,) into shape (2,3)
     """
 
-    TIME: Optional[bool]
+    TIME: bool | None
     KEYWORDS: Mapping[str, Keyword] = {}
 
     subvars: SubParameters
@@ -1286,7 +1296,7 @@ broadcast input array from shape (2,) into shape (2,3)
                 and ((frame2 := frame1.f_back) is not None)
                 and ((frame := frame2.f_back) is not None)
             )
-            while frame:
+            while frame is not None:
                 namespace = frame.f_locals
                 try:
                     subnamespace = {"model": namespace["model"], "focus": self}
@@ -1318,7 +1328,7 @@ broadcast input array from shape (2,) into shape (2,3)
         given_args: Sequence[Any],
         given_kwargs: dict[str, Any],
         allowed_combinations: tuple[set[str], ...],
-    ) -> Optional[int]:
+    ) -> int | None:
         if given_kwargs and ("auxfile" not in given_kwargs):
             if given_args:
                 self._raise_args_and_kwargs_error()
@@ -1343,7 +1353,7 @@ broadcast input array from shape (2,) into shape (2,3)
         return
 
     @property
-    def initinfo(self) -> tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> tuple[float | int | bool, bool]:
         """A |tuple| containing the initial value and |True| or a missing
         value and |False|, depending on the actual |Parameter| subclass and
         the actual value of option |Options.usedefaultvalues|.
@@ -1562,26 +1572,21 @@ parameter and a simulation time step size first.
         return values
 
     def update(self) -> None:
-        """To be overridden by all "secondary" parameters.
+        """To be overridden by those "primary" parameters which need special handling
+        and all "secondary" parameters."""
 
-        |Parameter| subclasses to be used as "primary" parameters (control
-        parameters) do not need to implement method |Parameter.update|.
-        For such classes, invoking the method results in the following
-        error message:
-
-        >>> from hydpy.core.parametertools import Parameter
-        >>> class Par(Parameter):
-        ...     pass
-        >>> Par(None).update()
-        Traceback (most recent call last):
-        ...
-        RuntimeError: Parameter `par` of element `?` does not \
-implement method `update`.
-        """
-        raise RuntimeError(
-            f"Parameter {objecttools.elementphrase(self)} does not "
-            f"implement method `update`."
-        )
+    def _update_newbie(self, *, value: Any, version: str) -> None:
+        if not exceptiontools.attrready(self, "value"):
+            with hydpy.pub.options.parameterstep("1d"):
+                self(value)
+            warnings.warn(
+                f"The value of parameter `{self.name}` (introduced in HydPy "
+                f"{version}), has not been explicitly defined and is automatically "
+                f"set to `{value}`.  We will remove this fallback mechanism in HydPy "
+                f"{int(version.split('.')[0]) + 2}.0; therefore, please consider "
+                f"updating your model setup.",
+                category=exceptiontools.HydPyDeprecationWarning,
+            )
 
     @property
     def keywordarguments(self) -> KeywordArguments:
@@ -1641,7 +1646,7 @@ implement method `update`.
                     keywordarguments[name] = value * self.get_timefactor()
         return keywordarguments
 
-    def compress_repr(self) -> Optional[str]:
+    def compress_repr(self) -> str | None:
         """Try to find a compressed parameter value representation and return it.
 
         |Parameter.compress_repr| raises a |NotImplementedError| when failing to find a
@@ -1792,9 +1797,58 @@ implement method `update`.
         return f"{self.name}({objecttools.repr_(value)})"
 
 
+class NmbParameter(Parameter):
+    """Base class for defining "number parameters" that define the shape of other
+    variables.
+
+    We take the parameter |kinw_control.NmbSegments| of application model
+    |kinw_impl_euler| as an example, which automatically prepares the shape of some
+    1-dimensional sequences:
+
+    >>> from hydpy.models.kinw_impl_euler import *
+    >>> parameterstep()
+    >>> nmbsegments(2)
+    >>> nmbsegments
+    nmbsegments(2)
+    >>> states.watervolume.shape
+    (2,)
+    >>> fluxes.internalflow.shape
+    (1,)
+
+    As can be inferred from the different shapes of the involved variables, they must
+    not take the original shape but can modify it.  Likewise, they should but must not
+    preserve existing values if the shape remains unchanged:
+
+    >>> states.watervolume = 1.0, 2.0
+    >>> nmbsegments(2)
+    >>> states.watervolume
+    watervolume(1.0, 2.0)
+
+    In the case of parameter |kinw_control.NmbSegments|, zero values are allowed:
+
+    >>> nmbsegments(0)
+    >>> states.watervolume.shape
+    (0,)
+    >>> fluxes.internalflow.shape
+    (0,)
+    """
+
+    NDIM = 0
+    TYPE = int
+    TIME = None
+
+    def __call__(self, *args, **kwargs) -> None:
+        super().__call__(*args, **kwargs)
+        parameters = self.subpars.pars
+        for vars_ in (parameters, parameters.model.sequences):
+            for subvars in vars_:
+                for var in subvars:
+                    var.__hydpy__let_par_set_shape__(self)
+
+
 class _MixinModifiableParameter(Parameter):
     @classmethod
-    def _reset_after_modification(cls, name: str, value: Optional[object]) -> None:
+    def _reset_after_modification(cls, name: str, value: object | None) -> None:
         if value is None:
             delattr(cls, name)
         else:
@@ -1874,7 +1928,7 @@ class NameParameter(_MixinModifiableParameter, Parameter):
     @classmethod
     @contextlib.contextmanager
     def modify_constants(
-        cls, constants: Optional[Constants]
+        cls, constants: Constants | None
     ) -> Generator[None, None, None]:
         """Modify the relevant constants temporarily.
 
@@ -1976,7 +2030,7 @@ valid.
         landtype(SOIL, WATER, 3, GLACIER)
         """
         if hydpy.pub.options.trimvariables:
-            if any(value not in self._possible_values for value in self._get_value()):
+            if any(value not in self._possible_values for value in self.value):
                 raise ValueError(
                     f"At least one value of parameter "
                     f"{objecttools.elementphrase(self)} is not valid."
@@ -2167,16 +2221,16 @@ convert string to float: 'test'
     NDIM = 1
     constants: dict[str, int]
     """Mapping of the constants' names and values."""
-    refindices: Optional[NameParameter] = None
+    refindices: NameParameter | None = None
     """Optional reference to the relevant index parameter."""
-    relevant: Optional[tuple[int, ...]] = None
+    relevant: tuple[int, ...] | None = None
     """The values of all (potentially) relevant constants."""
     mask: masktools.IndexMask
 
     @classmethod
     @contextlib.contextmanager
     def modify_refindices(
-        cls, refindices: Optional[NameParameter]
+        cls, refindices: NameParameter | None
     ) -> Generator[None, None, None]:
         """Eventually, set or modify the reference to the required index parameter.
 
@@ -2293,8 +2347,8 @@ index parameter.
 
     def _own_call(self, kwargs: dict[str, Any]) -> None:
         mask = self.mask
-        self._set_value(numpy.nan)
-        values = self._get_value()
+        self.value = numpy.nan
+        values = self.value
         allidxs = mask.refindices.values
         relidxs = mask.narrow_relevant(relevant=self.relevant)
         counter = 0
@@ -2379,7 +2433,7 @@ index parameter.
         else:
             refindices = mask.refindices.values.copy()
             refindices[~refinement.values] = variabletools.INT_NAN
-        name2unique = KeywordArguments[Union[float]]()
+        name2unique = KeywordArguments[float]()
         if (relevant := self.relevant) is None:
             relevant = mask.relevant
         for key, value in self.constants.items():
@@ -2616,7 +2670,7 @@ broadcast input array from shape (2,) into shape (366,3)
 
     strict_valuehandling: bool = False
 
-    _toy2values_unprotected: list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]
+    _toy2values_unprotected: list[tuple[timetools.TOY, float | NDArrayFloat]]
     _trimmed_insufficiently: bool
     _trimming_disabled: bool
 
@@ -2627,9 +2681,7 @@ broadcast input array from shape (2,) into shape (366,3)
         self._trimmed_insufficiently = False
 
     @property
-    def _toy2values_protected(
-        self,
-    ) -> list[tuple[timetools.TOY, Union[float, NDArrayFloat]]]:
+    def _toy2values_protected(self) -> list[tuple[timetools.TOY, float | NDArrayFloat]]:
         if self._trimmed_insufficiently and hydpy.pub.options.warntrim:
             warnings.warn(
                 f'The "background values" of parameter '
@@ -2664,7 +2716,7 @@ broadcast input array from shape (2,) into shape (366,3)
                     )
             self.refresh()
 
-    def _add_toyvaluepair(self, name: str, value: Union[float, NDArrayFloat]) -> None:
+    def _add_toyvaluepair(self, name: str, value: float | NDArrayFloat) -> None:
         if self.NDIM == 1:
             value = float(value)
         else:
@@ -2779,16 +2831,16 @@ broadcast input array from shape (2,) into shape (366,3)
         """
         toy2values = self._toy2values_unprotected
         if not toy2values:
-            self._set_value(0.0)
+            self.value = 0.0
         elif len(self) == 1:
             self.values[:] = self.apply_timefactor(toy2values[0][1])
         else:
             centred = timetools.TOY.centred_timegrid()
-            values = self._get_value()
+            values = self.value
             for idx, (date, rel) in enumerate(zip(*centred)):
                 values[idx] = self.interp(date) if rel else numpy.nan
             values = self.apply_timefactor(values)
-            self._set_value(values)
+            self.value = values
         self.trim()
 
     def interp(self, date: timetools.Date) -> float:
@@ -2947,7 +2999,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         """
         return super()._get_shape()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         if isinstance(shape, tuple):
             shape_ = list(shape)
         else:
@@ -3035,7 +3087,7 @@ Using the latter without modification might result in inconsistencies.
     def __iter__(self) -> Iterator[tuple[timetools.TOY, Any]]:
         return iter(self._toy2values_protected)
 
-    def __getattr__(self, name: str) -> Union[float, NDArrayFloat]:
+    def __getattr__(self, name: str) -> float | NDArrayFloat:
         selected = timetools.TOY(name)
         for available, value in self._toy2values_protected:
             if selected == available:
@@ -3045,7 +3097,7 @@ Using the latter without modification might result in inconsistencies.
             f'normal attribute nor does it handle a "time of year" named `{name}`.'
         )
 
-    def __setattr__(self, name: str, value: Union[float, NDArrayFloat]) -> None:
+    def __setattr__(self, name: str, value: float | NDArrayFloat) -> None:
         if name.startswith("toy_"):
             try:
                 self._add_toyvaluepair(name, value)
@@ -3218,9 +3270,7 @@ for axis 0 with size 1
 
     @classmethod
     @contextlib.contextmanager
-    def modify_entries(
-        cls, constants: Optional[Constants]
-    ) -> Generator[None, None, None]:
+    def modify_entries(cls, constants: Constants | None) -> Generator[None, None, None]:
         """Modify the relevant entry names temporarily.
 
         The entry names for defining properties like land-use types are fixed for
@@ -3298,7 +3348,7 @@ for axis 0 with size 1
             old_names = get("entrynames")
             old_min = get("entrymin")
             try:
-                cls.entrynames = constants.sortednames
+                cls.entrynames = constants.get_sortednames()
                 cls.entrymin = min(constants.values())
                 yield
             finally:
@@ -3598,7 +3648,7 @@ attribute nor a row or column related attribute named `wrong`.
 
     @classmethod
     @contextlib.contextmanager
-    def modify_rows(cls, constants: Optional[Constants]) -> Generator[None, None, None]:
+    def modify_rows(cls, constants: Constants | None) -> Generator[None, None, None]:
         """Modify the relevant row names temporarily.
 
         Methods |KeywordParameter2D.modify_rows| and |KeywordParameter2D.modify_columns|
@@ -3705,7 +3755,7 @@ attribute nor a row or column related attribute named `wrong`.
             old_names = get("rownames")
             old_min = get("rowmin")
             try:
-                cls.rownames = constants.sortednames
+                cls.rownames = constants.get_sortednames()
                 cls.rowmin = min(constants.values())
                 yield
             finally:
@@ -3714,9 +3764,7 @@ attribute nor a row or column related attribute named `wrong`.
 
     @classmethod
     @contextlib.contextmanager
-    def modify_columns(
-        cls, constants: Optional[Constants]
-    ) -> Generator[None, None, None]:
+    def modify_columns(cls, constants: Constants | None) -> Generator[None, None, None]:
         """Modify the relevant column names temporarily.
 
         Please see the documentation on method |KeywordParameter2D.modify_rows| for
@@ -3729,7 +3777,7 @@ attribute nor a row or column related attribute named `wrong`.
             old_names = get("columnnames")
             old_min = get("columnmin")
             try:
-                cls.columnnames = constants.sortednames
+                cls.columnnames = constants.get_sortednames()
                 cls.columnmin = min(constants.values())
                 yield
             finally:
@@ -3774,6 +3822,7 @@ attribute nor a row or column related attribute named `wrong`.
                         f"as a keyword, but the following keywords are not: "
                         f"`{objecttools.enumeration(miss)}`."
                     ) from None
+            self.trim()
 
     def __getattr__(self, key: str):
         if key in self.rownames:
@@ -3879,12 +3928,12 @@ attribute nor a row or column related attribute named `wrong`.
 class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     """Base class for handling two values, a left one and a right one.
 
-    The original purpose of class |LeftRightParameter| is to make the
-    handling of river channel related parameters with different values
-    for both river banks a little more convenient.
+    The original purpose of class |LeftRightParameter| is to make the handling of river
+    channel-related parameters with different values for both river banks a little more
+    convenient.
 
-    As an example, we define a parameter class describing the width
-    both of the left and the right flood plain of a river segment:
+    As an example, we define a parameter class describing the width of both the left
+    and the right floodplain of a river segment:
 
     >>> from hydpy.core.parametertools import LeftRightParameter
     >>> class FloodPlainWidth(LeftRightParameter):
@@ -3892,8 +3941,8 @@ class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     ...     TIME = None
     >>> floodplainwidth = FloodPlainWidth(None)
 
-    Here, we need to set the shape of the parameter to 2, which is an
-    automated procedure in full model setups:
+    Here, we need to set the shape of the parameter to 2, which is an automated
+    procedure in full model setups:
 
     >>> floodplainwidth.shape = 2
 
@@ -3903,8 +3952,8 @@ class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     >>> floodplainwidth
     floodplainwidth(3.0)
 
-    Alternatively, use the keywords `left` or `l` and `right` or
-    `r` to define both values individually:
+    Alternatively, use the keywords `left` or `l` and `right` or `r` to define both
+    values individually:
 
     >>> floodplainwidth(left=1.0, right=2.0)
     >>> floodplainwidth
@@ -3918,18 +3967,19 @@ class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     >>> floodplainwidth(left=2.0)
     Traceback (most recent call last):
     ...
-    ValueError: When setting the values of parameter `floodplainwidth` of \
-element `?` via keyword arguments, either `right` or `r` for the "right" \
-parameter value must be given, but is not.
+    ValueError: When setting the values of parameter `floodplainwidth` of element `?` \
+via keyword arguments, either `right` or `r` for the "right" parameter value must be \
+given, but is not.
+
     >>> floodplainwidth(right=1.0)
     Traceback (most recent call last):
     ...
-    ValueError: When setting the values of parameter `floodplainwidth` of \
-element `?` via keyword arguments, either `left` or `l` for the "left" \
-parameter value must be given, but is not.
+    ValueError: When setting the values of parameter `floodplainwidth` of element `?` \
+via keyword arguments, either `left` or `l` for the "left" parameter value must be \
+given, but is not.
 
-    Additionally, one can query and modify the individual values via the
-    attribute names `left` and `right`:
+    Additionally, one can query and modify the individual values via the attribute
+    names `left` and `right`:
 
     >>> floodplainwidth.left
     2.0
@@ -3993,6 +4043,46 @@ parameter value must be given, but is not.
         return f"{self.name}(left={values[0]}, right={values[1]})"
 
 
+class SortedParameter(Parameter):
+    """Base parameter class that checks if given values are sorted in increasing order.
+
+    We take the subclassed parameter |wq_control.Heights| of the base model |wq| as an
+    example:
+
+    >>> from hydpy.models.wq import *
+    >>> parameterstep()
+    >>> nmbwidths(3)
+    >>> heights(1.0 / 3.0, 0.0, 2.0 / 3.0)
+    Traceback (most recent call last):
+    ...
+    ValueError: The values assigned to parameter `heights` of element `?` are not \
+sorted in increasing order (0.333333, 0.0, and 0.666667).
+
+    >>> heights
+    heights(nan)
+
+    Subsequent identical values are allowed:
+
+    >>> heights(1.0 / 3.0, 2.0 / 3.0, 2.0 / 3.0)
+    >>> heights
+    heights(0.333333, 0.666667, 0.666667)
+    """
+
+    NDIM = 1
+    TYPE = float
+
+    def __call__(self, *args, **kwargs) -> None:
+        super().__call__(*args, **kwargs)
+        values = self.values
+        if numpy.any(values[1:] < values[:-1]):
+            self.values = numpy.nan
+            raise ValueError(
+                f"The values assigned to parameter {objecttools.elementphrase(self)} "
+                f"are not sorted in increasing order "
+                f"({objecttools.enumeration(objecttools.repr_(v) for v in values)})."
+            )
+
+
 class FixedParameter(Parameter):
     """Base class for defining parameters with fixed values.
 
@@ -4001,10 +4091,10 @@ class FixedParameter(Parameter):
     whenever possible, even when option |Options.usedefaultvalues| is disabled.
     """
 
-    INIT: Union[int, float, bool]
+    INIT: int | float | bool
 
     @property
-    def initinfo(self) -> tuple[Union[float, int, bool], bool]:
+    def initinfo(self) -> tuple[float | int | bool, bool]:
         """A |tuple| always containing the fixed value and |True|, except
         for time-dependent parameters and incomplete time-information.
 
@@ -4166,8 +4256,8 @@ solver parameter `tol` of element `?` has been defined so far.
     modtol(0.01)
     """
 
-    INIT: Union[int, float, bool]
-    _alternative_initvalue: Optional[float]
+    INIT: int | float | bool
+    _alternative_initvalue: float | None
 
     def __init__(self, subvars):
         super().__init__(subvars)
@@ -4184,12 +4274,12 @@ solver parameter `tol` of element `?` has been defined so far.
         See the main documentation on class |SolverParameter| for more
         information.
         """
-        if self._alternative_initvalue:
-            self.value = self.alternative_initvalue
-        else:
+        if self._alternative_initvalue is None:
             self.value = self.modify_init()
+        else:
+            self.value = self.alternative_initvalue
 
-    def modify_init(self) -> Union[bool, int, float]:
+    def modify_init(self) -> bool | int | float:
         """Return the value of class constant `INIT`.
 
         Override this method to support project-specific solver parameters.
@@ -4199,7 +4289,7 @@ solver parameter `tol` of element `?` has been defined so far.
         return self.INIT
 
     @property
-    def alternative_initvalue(self) -> Union[bool, int, float]:
+    def alternative_initvalue(self) -> bool | int | float:
         """A user-defined value to be used instead of the value of class
         constant `INIT`.
 
@@ -4291,13 +4381,71 @@ class DaysParameter(Parameter):
         self.value = hydpy.pub.options.simulationstep.days
 
 
-class TOYParameter(Parameter):
+class IndexParameter(Parameter):
+    """Base class for parameters that do not allocate RAM for handling their data but
+    reference an index array provided by the instance of class|Indexer| available in
+    module |pub|."""
+
+    NDIM = 1
+    TIME = None
+
+    def compress_repr(self) -> str | None:
+        """Return a compressed parameter value representation that agrees with the
+        current setting of the |Options.ellipsis| option.
+
+        |IndexParameter| instances reference arrays that handle one value per s
+        imulation time step.  Therefore, the usual |Parameter| string representation
+        generation mechanism would often print too much information:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "27.02.2004", "4.03.2004", "1d"
+        >>> from hydpy.core.parametertools import TOYParameter
+        >>> toyparameter = TOYParameter(None)
+        >>> toyparameter.update()
+        >>> toyparameter
+        toyparameter(57, 58, 59, 60, 61, 62)
+
+        Hence, |IndexParameter| makes use of the |Options.ellipsis| option.  By
+        default, it shows only the first and the last value:
+
+        >>> with pub.options.ellipsis(-999):
+        ...     toyparameter
+        toyparameter(57, ..., 62)
+
+        You can increase the number of shown values up to the number of available
+        ones:
+
+        >>> with pub.options.ellipsis(2):
+        ...     toyparameter
+        toyparameter(57, 58, ..., 61, 62)
+
+        >>> with pub.options.ellipsis(3):
+        ...     toyparameter
+        toyparameter(57, 58, 59, 60, 61, 62)
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+        """
+
+        with hydpy.pub.options.ellipsis(1, optional=True):
+            ellipsis_ = hydpy.pub.options.ellipsis
+            if (ellipsis_ == 0) or (2 * ellipsis_ >= self.shape[0]):
+                return None
+            return "".join(
+                (
+                    ", ".join(str(v) for v in self.values[:ellipsis_]),
+                    ", ..., ",
+                    ", ".join(str(v) for v in self.values[-ellipsis_:]),
+                )
+            )
+
+
+class TOYParameter(IndexParameter):
     """References the |Indexer.timeofyear| index array provided by the
     instance of class |Indexer| available in module |pub|. [-]."""
 
-    NDIM = 1
     TYPE = int
-    TIME = None
     SPAN = (0, None)
 
     def update(self) -> None:
@@ -4316,18 +4464,16 @@ class TOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        indexarray = hydpy.pub.indexer.timeofyear
-        self._set_shape(indexarray.shape)
-        self._set_value(indexarray)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.timeofyear)
+        self._shapeready, self._valueready = True, True
 
 
-class MOYParameter(Parameter):
+class MOYParameter(IndexParameter):
     """References the |Indexer.monthofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
 
-    NDIM = 1
     TYPE = int
-    TIME = None
     SPAN = (0, 11)
 
     def update(self) -> None:
@@ -4346,18 +4492,16 @@ class MOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        indexarray = hydpy.pub.indexer.monthofyear
-        self._set_shape(indexarray.shape)
-        self._set_value(indexarray)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.monthofyear)
+        self._shapeready, self._valueready = True, True
 
 
-class DOYParameter(Parameter):
+class DOYParameter(IndexParameter):
     """References the |Indexer.dayofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
 
-    NDIM = 1
     TYPE = int
-    TIME = None
     SPAN = (0, 365)
 
     def update(self) -> None:
@@ -4376,18 +4520,16 @@ class DOYParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        indexarray = hydpy.pub.indexer.dayofyear
-        self._set_shape(indexarray.shape)
-        self._set_value(indexarray)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.dayofyear)
+        self._shapeready, self._valueready = True, True
 
 
-class SCTParameter(Parameter):
+class SCTParameter(IndexParameter):
     """References the |Indexer.standardclocktime| array provided by the
     instance of class |Indexer| available in module |pub| [h]."""
 
-    NDIM = 1
     TYPE = float
-    TIME = None
     SPAN = (0.0, 86400.0)
 
     def update(self) -> None:
@@ -4406,12 +4548,12 @@ class SCTParameter(Parameter):
 
             >>> del pub.timegrids
         """
-        array = hydpy.pub.indexer.standardclocktime
-        self._set_shape(array.shape)
-        self._set_value(array)
+        self._shapeready, self._valueready = False, False
+        setattr(self.fastaccess, self.name, hydpy.pub.indexer.standardclocktime)
+        self._shapeready, self._valueready = True, True
 
 
-class UTCLongitudeParameter(Parameter):
+class UTCLongitudeParameter(IndexParameter):
     """References the current "UTC longitude" defined by option
     |Options.utclongitude|."""
 
@@ -4615,7 +4757,7 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
         self._init_callback()
 
     @property
-    def callback(self) -> Optional[Callable[[modeltools.Model], None]]:
+    def callback(self) -> Callable[[modeltools.Model], None] | None:
         """The currently handled callback function for updating the parameter value."""
         if self._has_callback:
             if get := getattr(self.fastaccess, f"get_{self.name}_callback", None):
@@ -4641,19 +4783,19 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
         self._has_callback = False
         self._init_callback()
 
-    def _get_value(self):
+    @property
+    def value(self):
         """The fixed value or the value last updated by the callback function."""
         if self._has_callback:
             self.callback(self.subpars.pars.model)
             self._valueready = True
-        return super()._get_value()
+        return super().value
 
-    def _set_value(self, value) -> None:
+    @value.setter
+    def value(self, value) -> None:
         self._init_callback()
         self._has_callback = False
-        super()._set_value(value)
-
-    value = property(fget=_get_value, fset=_set_value)
+        Parameter.value.fset(self, value)  # type: ignore[attr-defined]
 
     def __repr__(self) -> str:
         if self._has_callback:

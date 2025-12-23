@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -17,6 +16,16 @@ class Pick_Q_V1(modeltools.Method):
 
     Basic equation:
       :math:`Q_{fluxes} = \sum Q_{inputs}`
+
+    Example:
+
+        >>> from hydpy.models.dummy import *
+        >>> parameterstep()
+        >>> inlets.q.shape = 2
+        >>> inlets.q = 2.0, 4.0
+        >>> model.pick_q_v1()
+        >>> fluxes.q
+        q(6.0)
     """
 
     REQUIREDSEQUENCES = (dummy_inlets.Q,)
@@ -28,7 +37,7 @@ class Pick_Q_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu.q = 0.0
         for idx in range(inl.len_q):
-            flu.q += inl.q[idx][0]
+            flu.q += inl.q[idx]
 
 
 class Pass_Q_V1(modeltools.Method):
@@ -36,6 +45,15 @@ class Pass_Q_V1(modeltools.Method):
 
     Basic equation:
         :math:`Q_{outlets} = Q_{fluxes}`
+
+    Example:
+
+        >>> from hydpy.models.dummy import *
+        >>> parameterstep()
+        >>> fluxes.q = 2.0
+        >>> model.pass_q_v1()
+        >>> outlets.q
+        q(2.0)
     """
 
     REQUIREDSEQUENCES = (dummy_fluxes.Q,)
@@ -45,7 +63,7 @@ class Pass_Q_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.q
+        out.q = flu.q
 
 
 class Get_InterceptedWater_V1(modeltools.Method):
@@ -181,6 +199,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_Q_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

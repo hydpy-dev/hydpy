@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 # import...
 # ...from HydPy
@@ -56,7 +55,7 @@ class NU(parametertools.Parameter):
     def __call__(self, *args, **kwargs) -> None:
         old = exceptiontools.getattr_(self, "value", None)
         super().__call__(*args, **kwargs)
-        new = self._get_value()
+        new = self.value
         if new != old:
             for subpars in self.subpars.pars.model.parameters:
                 for par in subpars:

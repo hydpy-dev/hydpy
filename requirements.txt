@@ -4,18 +4,19 @@ click
 coverage
 Cython
 docutils
+inflect
 lastversion
 matplotlib
 netcdf4
 networkx
 nox
 numpy
+packaging
 pandas
 plotly
 pylint
 pynsist
 setuptools
-strenum; python_version<'3.11'
 types-docutils
 typing_extensions
 scipy

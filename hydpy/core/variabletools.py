@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 """This module implements general features for defining and working with model
 parameters and sequences.
 
 Features more specific to either parameters or sequences are implemented in modules
 |parametertools| and |sequencetools|, respectively.
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -487,15 +487,15 @@ def _warn_trim(self, oldvalue, newvalue):
 
 
 def combine_arrays_to_lower_or_upper_bound(
-    *arrays: Optional[NDArrayFloat], lower: bool
-) -> Optional[NDArrayFloat]:
+    *arrays: NDArrayFloat | None, lower: bool
+) -> NDArrayFloat | None:
     """Helper function for parameter-specific trimming functions that collects all
     available lower or upper bound values.
 
     See function |sw1d_control.BottomLowWaterThreshold.trim| of class
     |sw1d_control.BottomLowWaterThreshold| for an example.
     """
-    result: Optional[NDArrayFloat] = None
+    result: NDArrayFloat | None = None
     for array in arrays:
         if (array is not None) and (array.ndim > 0):
             if result is None:
@@ -520,7 +520,7 @@ class FastAccess:
     def __iter__(self):
         """Iterate over all sequence names."""
         for key in vars(self).keys():
-            if not key.startswith("_"):
+            if not (key.startswith("_") or key.startswith("len_")):
                 yield key
 
     # ToDo: Replace this hack with a Mypy plugin?
@@ -1007,13 +1007,10 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     # Subclasses need to define...
     NDIM: int
-    TYPE: type[Union[float, int, bool]]  # ToDo: is still `str` in some cases
+    TYPE: type[float | int | bool]  # ToDo: is still `str` in some cases
     # ...and optionally...
-    SPAN: tuple[Union[int, float, bool, None], Union[int, float, bool, None]] = (
-        None,
-        None,
-    )
-    INIT: Union[int, float, bool, None] = None
+    SPAN: tuple[int | float | bool | None, int | float | bool | None] = (None, None)
+    INIT: int | float | bool | None = None
 
     _NOT_DEEPCOPYABLE_MEMBERS: Final[frozenset[str]] = frozenset(
         (
@@ -1040,7 +1037,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     subvars: SubVariables
     """The subgroup to which the variable belongs."""
 
-    _refweights: Optional[Union[parametertools.Parameter, VectorFloat]] = None
+    _refweights: parametertools.Parameter | VectorFloat | None = None
 
     mask = masktools.DefaultMask(
         doc="The standard mask used by all variables (if not overwritten)."
@@ -1049,7 +1046,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     @classmethod
     @contextlib.contextmanager
     def modify_refweights(
-        cls, refweights: Optional[parametertools.Parameter]
+        cls, refweights: parametertools.Parameter | None
     ) -> Generator[None, None, None]:
         """Eventually, set or modify the reference to a parameter defining the
         weighting coefficients required for aggregating values.
@@ -1106,7 +1103,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self.subvars = subvars
         self.fastaccess = self._CLS_FASTACCESS_PYTHON()
         self._valueready = False
-        self.__shapeready = False
+        self._shapeready = False
         self._refweights = type(self)._refweights
 
     def __init_subclass__(cls) -> None:
@@ -1139,7 +1136,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
     @property
     @abc.abstractmethod
-    def initinfo(self) -> tuple[Union[float, int, bool, pointerutils.Double], bool]:
+    def initinfo(self) -> tuple[float | int | bool | pointerutils.Double, bool]:
         """To be overridden."""
 
     def __call__(self, *args) -> None:
@@ -1147,7 +1144,8 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
             args = args[0]
         self.values = args
 
-    def _get_value(self):
+    @property
+    def value(self):
         """The actual parameter or sequence value(s).
 
         First, we prepare a simple (not fully functional) |Variable| subclass:
@@ -1254,7 +1252,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         >>> var.value   # doctest: +ELLIPSIS
         array([], shape=(0, 0), dtype=...)
         """
-        if (self.NDIM > 0) and not self.__shapeready:
+        if (self.NDIM > 0) and not self._shapeready:
             self._get_shape()  # raise the proper error
         value = self._prepare_getvalue(
             self._valueready or not self.strict_valuehandling,
@@ -1268,7 +1266,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
             )
         return value
 
-    def _set_value(self, value) -> None:
+    @value.setter
+    def value(self, value) -> None:
         try:
             value = self._prepare_setvalue(value)
             setattr(self.fastaccess, self.name, value)
@@ -1317,16 +1316,14 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
                 ) from None
         return value
 
-    value = property(fget=_get_value, fset=_set_value)
-
     @property
     def values(self):
         """Alias for |Variable.value|."""
-        return self._get_value()
+        return self.value
 
     @values.setter
     def values(self, values):
-        self._set_value(values)
+        self.value = values
 
     def _get_shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
@@ -1465,7 +1462,7 @@ as `var` can only be `()`, but `(2,)` is given.
         -999999
         """
         if self.NDIM:
-            if self.__shapeready:
+            if self._shapeready:
                 shape = getattr(self.fastaccess, self.name).shape
                 return tuple(int(x) for x in shape)
             raise exceptiontools.AttributeNotReady(
@@ -1474,13 +1471,13 @@ as `var` can only be `()`, but `(2,)` is given.
             )
         return ()
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         self._valueready = False
-        self.__shapeready = False
+        self._shapeready = False
         initvalue, initflag = self.initinfo
         if self.NDIM:
             try:
-                array = numpy.full(
+                array: NDArray[Any] = numpy.full(
                     shape, initvalue, dtype=config.TYPES_PY2NP[self.TYPE]
                 )
             except BaseException:
@@ -1497,7 +1494,7 @@ as `var` can only be `()`, but `(2,)` is given.
                     f"shape indicates `{array.ndim}` dimensions."
                 )
             setattr(self.fastaccess, self.name, array)
-            self.__shapeready = True
+            self._shapeready = True
         else:
             if shape:
                 setattr(self.fastaccess, self.name, TYPE2MISSINGVALUE[self.TYPE])
@@ -1514,6 +1511,13 @@ as `var` can only be `()`, but `(2,)` is given.
             f"as {objecttools.devicephrase(self)} can only be `()`, "
             f"but `{shape}` is given."
         )
+
+    def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
+        pass
+
+    def __hydpy__change_shape_if_necessary__(self, new: tuple[int, ...], /) -> None:
+        if new != exceptiontools.getattr_(self, "shape", None):
+            self.shape = new
 
     @property
     def numberofvalues(self) -> int:
@@ -1680,7 +1684,7 @@ its values to a 1-dimensional vector.
         )
 
     @property
-    def refweights(self) -> Union[parametertools.Parameter, VectorFloat]:
+    def refweights(self) -> parametertools.Parameter | VectorFloat:
         """Reference to a |Parameter| object or a simple vector that defines weighting
         coefficients (e.g. fractional areas) for applying function
         |Variable.average_values|.
@@ -1892,7 +1896,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def get_submask(
         self, *args, **kwargs
-    ) -> Union[masktools.CustomMask, masktools.DefaultMask]:
+    ) -> masktools.CustomMask | masktools.DefaultMask:
         """Get a sub-mask of the mask handled by the actual |Variable| object based on
         the given arguments.
 
@@ -1974,10 +1978,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 
     def _do_math(self, other, methodname, description):
         try:
-            if hasattr(type(other), "_get_value"):
-                value = other.value
-            else:
-                value = other
+            value = other.value if isinstance(other, Variable) else other
             result = getattr(self.value, methodname)(value)
             if (result is NotImplemented) and (not self.NDIM) and (self.TYPE is int):
                 result = getattr(float(self.value), methodname)(value)
@@ -2098,19 +2099,16 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         callingfunc: Literal["lt", "le", "eq", "ne", "ge", "gt"],
     ) -> bool:
         try:
-            vs1 = self._get_value()
-            if isinstance(other, Variable):
-                vs2 = other._get_value()  # pylint: disable=protected-access
-            else:
-                vs2 = numpy.asarray(other)
+            v1 = self.value
+            v2 = other.value if isinstance(other, Variable) else numpy.asarray(other)
             if self.NDIM == 0:
-                if numpy.isnan(vs1) and bool(numpy.isnan(vs2)):
+                if numpy.isnan(v1) and bool(numpy.isnan(v2)):
                     if callingfunc in ("le", "eq", "ge"):
                         return True
                     return False
-                return comparefunc(vs1, vs2)
+                return comparefunc(v1, v2)
             try:
-                idxs = ~(numpy.isnan(vs1) * numpy.isnan(vs2))
+                idxs = ~(numpy.isnan(v1) * numpy.isnan(v2))
             except BaseException as exc:
                 if callingfunc == "eq":
                     return False
@@ -2121,14 +2119,14 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 if callingfunc in ("le", "eq", "ge"):
                     return True
                 return False
-            return comparefunc(vs1, vs2)[idxs]
+            return comparefunc(v1, v2)[idxs]
         except BaseException:
             objecttools.augment_excmessage(
                 f"While trying to compare variable {objecttools.elementphrase(self)} "
                 f"with object `{other}` of type `{type(other).__name__}`"
             )
 
-    def __lt__(self, other: Union[Variable, float]) -> bool:
+    def __lt__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2139,7 +2137,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         )
 
-    def __le__(self, other: Union[Variable, float]) -> bool:
+    def __le__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2174,7 +2172,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         )
 
-    def __ge__(self, other: Union[Variable, float]) -> bool:
+    def __ge__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2185,7 +2183,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         )
 
-    def __gt__(self, other: Union[Variable, float]) -> bool:
+    def __gt__(self, other: Variable | float) -> bool:
         return bool(
             numpy.all(
                 self._compare(
@@ -2230,7 +2228,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 class MixinFixedShape:
     """Mixin class for defining variables with a fixed shape."""
 
-    SHAPE: Union[tuple[int, ...]]
+    SHAPE: tuple[int, ...]
     name: str
 
     def _finalise_connections(self) -> None:
@@ -2265,7 +2263,7 @@ this was attempted for element `?`.
         """
         return super()._get_shape()  # type: ignore[misc]
 
-    def _set_shape(self, shape: Union[int, tuple[int, ...]]) -> None:
+    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
         oldshape = exceptiontools.getattr_(self, "shape", None)
         if oldshape is None:
             super()._set_shape(shape)  # type: ignore[misc]
@@ -2291,8 +2289,8 @@ def sort_variables(
 
 
 def sort_variables(
-    values: Iterable[Union[type[TypeVariable], tuple[type[TypeVariable], T]]],
-) -> tuple[Union[type[TypeVariable], tuple[type[TypeVariable], T]], ...]:
+    values: Iterable[type[TypeVariable] | tuple[type[TypeVariable], T]],
+) -> tuple[type[TypeVariable] | tuple[type[TypeVariable], T], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
@@ -2447,13 +2445,13 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
     vars: TypeGroup_co
     _name2variable: dict[str, TypeVariable_co] = {}
     fastaccess: TypeFastAccess_co
-    _cls_fastaccess: Optional[type[TypeFastAccess_co]] = None
-    _CLS_FASTACCESS_PYTHON: ClassVar[type[TypeFastAccess_co]]  # type: ignore[misc]
+    _cls_fastaccess: type[TypeFastAccess_co] | None = None
+    _CLS_FASTACCESS_PYTHON: ClassVar[type[TypeFastAccess_co]]
 
     def __init__(
         self,
         master: TypeGroup_co,
-        cls_fastaccess: Optional[type[TypeFastAccess_co]] = None,
+        cls_fastaccess: type[TypeFastAccess_co] | None = None,
     ):
         self.vars = master
         if cls_fastaccess:
@@ -2506,7 +2504,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
         if variable is None:
             super().__setattr__(name, value)
         else:
-            variable._set_value(value)
+            variable.value = value
 
     def __iter__(self) -> Iterator[TypeVariable_co]:
         yield from self._name2variable.values()

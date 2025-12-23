@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 .. _`WALRUS`: https://www.wur.nl/en/Research-Results/Chair-groups/Environmental-Sciences/Hydrology-and-Quantitative-Water-Management-Group/Research/WALRUS-1.htm  # pylint: disable=line-too-long
 

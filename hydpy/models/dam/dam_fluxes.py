@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -138,6 +137,24 @@ class MissingRemoteRelease(sequencetools.FluxSequence):
 
 class ActualRemoteRelease(sequencetools.FluxSequence):
     """Actual water release thought for arbitrary "remote" purposes [m³/s]."""
+
+    NDIM, NUMERIC = 0, True
+
+
+class SafeRelease(sequencetools.FluxSequence):
+    """Water release that is considered safe in terms of flood protection [m³/s]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class AimedRelease(sequencetools.FluxSequence):
+    """Ideal controlled water release [m³/s]."""
+
+    NDIM, NUMERIC = 0, False
+
+
+class UnavoidableRelease(sequencetools.FluxSequence):
+    """Water release that cannot be avoided due to limited storage capacity [m³/s]."""
 
     NDIM, NUMERIC = 0, True
 

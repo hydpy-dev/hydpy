@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`issue 89`: https://github.com/hydpy-dev/hydpy/issues/89
 """
+
 # imports...
 # ...from site-packages
 import numpy
@@ -2757,6 +2757,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_SurfaceWaterSupply_V1,

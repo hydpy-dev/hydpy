@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 Application model |dam_v004| extends |dam_v003|.  Both models discharge water into the
@@ -603,7 +602,9 @@ from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 
 
-class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
+class Model(
+    dam_model.ELSIEModel, dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1
+):
     """|dam_v004.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="Dam-V4", description="dam model, version 4")
@@ -614,26 +615,29 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         dam_solver.RelErrorMax,
         dam_solver.RelDTMin,
         dam_solver.RelDTMax,
+        dam_solver.MaxEval,
+        dam_solver.MaxCFL,
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (
         dam_model.Calc_Precipitation_V1,
         dam_model.Calc_PotentialEvaporation_V1,
         dam_model.Calc_AdjustedEvaporation_V1,
-        dam_model.Pic_Inflow_V1,
+        dam_model.Pick_Inflow_V1,
         dam_model.Calc_RequiredRemoteRelease_V2,
         dam_model.Calc_AllowedRemoteRelief_V1,
         dam_model.Calc_RequiredRelease_V2,
         dam_model.Calc_TargetedRelease_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (
-        dam_model.Pic_LoggedRequiredRemoteRelease_V2,
-        dam_model.Pic_LoggedAllowedRemoteRelief_V1,
+        dam_model.Pick_LoggedRequiredRemoteRelease_V2,
+        dam_model.Pick_LoggedAllowedRemoteRelief_V1,
     )
     ADD_METHODS = (dam_model.Fix_Min1_V1,)
     PART_ODE_METHODS = (
         dam_model.Calc_AdjustedPrecipitation_V1,
-        dam_model.Pic_Inflow_V1,
+        dam_model.Pick_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
         dam_model.Calc_ActualEvaporation_V1,
         dam_model.Calc_ActualRelease_V1,

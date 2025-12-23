@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements masking features to define which entries of |Parameter| or
 |Sequence_| arrays are relevant and which are not."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -26,7 +26,7 @@ class BaseMask(NDArrayBool):
 
     name: str
 
-    def __new__(cls, array=None, doc: Optional[str] = None, **kwargs) -> Self:
+    def __new__(cls, array=None, doc: str | None = None, **kwargs) -> Self:
         self = cls.array2mask(array, **kwargs)
         self.__doc__ = doc
         return self
@@ -98,12 +98,13 @@ class CustomMask(BaseMask):
     """
 
     def __call__(
-        self, bools: Union[VectorInputBool, MatrixInputBool, TensorInputBool]
+        self, bools: VectorInputBool | MatrixInputBool | TensorInputBool
     ) -> Self:
         return type(self)(bools)
 
     def __contains__(
-        self, other: Union[VectorInputBool, MatrixInputBool, TensorInputBool]
+        self,
+        other: VectorInputBool | MatrixInputBool | TensorInputBool,  # type: ignore[override]  # pylint: disable=line-too-long
     ) -> bool:
         return bool(numpy.all(self[other]))
 
@@ -136,12 +137,12 @@ class DefaultMask(BaseMask):
     DefaultMask([ True,  True])
     """
 
-    variable: Optional[variabletools.Variable]
+    variable: variabletools.Variable | None
 
     def __new__(
         cls,
-        variable: Optional[variabletools.Variable] = None,
-        doc: Optional[str] = None,
+        variable: variabletools.Variable | None = None,
+        doc: str | None = None,
         **kwargs,
     ) -> Self:
         if variable is None:
@@ -154,8 +155,8 @@ class DefaultMask(BaseMask):
 
     def __get__(
         self,
-        obj: Optional[variabletools.Variable],
-        type_: Optional[type[variabletools.Variable]],
+        obj: variabletools.Variable | None,
+        type_: type[variabletools.Variable] | None,
     ) -> Self:
         if (obj is None) or (self.variable is not None):
             return self
@@ -278,18 +279,18 @@ overridden, which is not the case for class `IndexMask`.
     @staticmethod
     def get_refinement(
         variable: variabletools.Variable,  # pylint: disable=unused-argument
-    ) -> Optional[variabletools.Variable]:
+    ) -> variabletools.Variable | None:
         """If available, return a boolean variable for selecting only the relevant
         entries of the considered variable."""
         return None
 
     @property
-    def refinement(self) -> Optional[variabletools.Variable]:
+    def refinement(self) -> variabletools.Variable | None:
         """If available, a boolean variable for selecting only the relevant entries of
         the considered variable."""
         return self.get_refinement(self.variable)
 
-    def narrow_relevant(self, relevant: Optional[tuple[int, ...]] = None) -> set[int]:
+    def narrow_relevant(self, relevant: tuple[int, ...] | None = None) -> set[int]:
         """Return a |set| of all currently relevant constants."""
         if relevant is None:
             relevant = self.relevant
@@ -401,7 +402,7 @@ occurred: The given key is neither a `string` a `mask` type.
         for cls in self.CLASSES:
             yield getattr(self, cls.__name__.lower())
 
-    def __contains__(self, mask: Union[BaseMask, type[BaseMask]]) -> bool:
+    def __contains__(self, mask: BaseMask | type[BaseMask]) -> bool:
         if isinstance(mask, BaseMask):
             mask = type(mask)
         if mask in self.CLASSES:
@@ -416,7 +417,7 @@ occurred: The given key is neither a `string` a `mask` type.
             f"a Mask instance."
         )
 
-    def __getitem__(self, key: Union[str, BaseMask, type[BaseMask]]) -> BaseMask:
+    def __getitem__(self, key: str | BaseMask | type[BaseMask]) -> BaseMask:
         _key = key
         try:
             if inspect.isclass(key):

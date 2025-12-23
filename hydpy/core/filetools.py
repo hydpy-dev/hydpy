@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module provides features for handling the folder structure of *HydPy*  projects
 as well as loading data from and storing data to files."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -23,7 +23,6 @@ from hydpy.core import devicetools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import optiontools
-from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
@@ -111,7 +110,7 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
         for key, value in kwargs.items():
             self.add(key, value)
 
-    def add(self, directory: str, path: Optional[str] = None) -> None:
+    def add(self, directory: str, path: str | None = None) -> None:
         """Add a directory and, optionally, its path."""
         objecttools.valid_variable_identifier(directory)
         if path is None:
@@ -129,8 +128,7 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
         return [path for folder, path in self]
 
     def __iter__(self) -> Iterator[tuple[str, str]]:
-        for key, value in sorted(vars(self).items()):
-            yield key, value
+        yield from sorted(vars(self).items())
 
     def __len__(self) -> int:
         return len(vars(self))
@@ -158,23 +156,20 @@ class FileManager:
     |SequenceManager|."""
 
     BASEDIR: str
-    DEFAULTDIR: Optional[str]
+    DEFAULTDIR: str | None
 
-    _projectdir: Optional[str]
-    _currentdir: Optional[str]
+    _projectdir: str | None
+    _currentdir: str | None
 
     def __init__(self) -> None:
         self._projectdir = None
-        try:
-            self.projectdir = hydpy.pub.projectname
-        except RuntimeError:
-            pass
         self._currentdir = None
 
-    def _get_projectdir(self) -> str:
-        """The name of the main folder of a project.
+    @property
+    def projectdir(self) -> str:
+        """The folder name of a project's root directory.
 
-        For the `HydPy-H-Lahn` example project, |FileManager.projectdir| is (not
+        For the :ref:`HydPy-H-Lahn` example project, |FileManager.projectdir| is (not
         surprisingly) `HydPy-H-Lahn` and is queried from the |pub| module.  However,
         you can define or change |FileManager.projectdir| interactively, which can be
         useful for more complex tasks like copying (parts of) projects:
@@ -186,35 +181,43 @@ class FileManager:
         >>> filemanager.projectdir
         'project_A'
 
-        >>> del filemanager.projectdir
-        >>> filemanager.projectdir
-        Traceback (most recent call last):
-        ...
-        hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` of object \
-`filemanager` has not been prepared so far.
         >>> filemanager.projectdir = "project_B"
         >>> filemanager.projectdir
         'project_B'
 
+        >>> pub.projectname = "project_C"
+        >>> filemanager.projectdir
+        'project_B'
+
+        >>> del filemanager.projectdir
+        >>> filemanager.projectdir
+        'project_C'
+
         >>> del pub.projectname
-        >>> FileManager().projectdir
+        >>> filemanager.projectdir
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Attribute `projectdir` of object \
-`filemanager` has not been prepared so far.
+        hydpy.core.exceptiontools.AttributeNotReady: While trying to automatically \
+determine the file manager's project root directory, the following error occurred: \
+Attribute projectname of module `pub` is not defined at the moment.
         """
-        assert (projectdir := self._projectdir) is not None
+        if (projectdir := self._projectdir) is None:
+            try:
+                return hydpy.pub.projectname
+            except BaseException:
+                objecttools.augment_excmessage(
+                    f"While trying to automatically determine the {self._docname}'s "
+                    f"project root directory"
+                )
         return projectdir
 
-    def _set_projectdir(self, name: str) -> None:
+    @projectdir.setter
+    def projectdir(self, name: str) -> None:
         self._projectdir = name
 
-    def _del_projectdir(self) -> None:
+    @projectdir.deleter
+    def projectdir(self) -> None:
         self._projectdir = None
-
-    projectdir = propertytools.ProtectedPropertyStr(
-        _get_projectdir, _set_projectdir, _del_projectdir
-    )
 
     @property
     def basepath(self) -> str:
@@ -298,16 +301,18 @@ class FileManager:
         ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: The current working directory of the FileManager object has not \
-been defined manually and cannot be determined automatically: \
-`.../projectname/basename` does not contain any available directories.
+        RuntimeError: The current working directory of the file manager has not been \
+defined manually and cannot be determined automatically: `.../projectname/basename` \
+does not contain any available directories.
 
         If only one directory exists, it is considered the current working directory
         automatically:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):
         ...     os.mkdir("projectname/basename/dir1")
         ...     assert filemanager.currentdir == "dir1"
+        The name of the file manager's current working directory has not been \
+previously defined and is hence set to `dir1`.
 
         |property| |FileManager.currentdir| memorises the name of the current working
         directory, even if another directory is added later to the base path:
@@ -325,10 +330,9 @@ been defined manually and cannot be determined automatically: \
         ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: The current working directory of the FileManager object has not \
-been defined manually and cannot be determined automatically: \
-`....../projectname/basename` does contain multiple available directories (dir1 and \
-dir2).
+        RuntimeError: The current working directory of the file manager has not been \
+defined manually and cannot be determined automatically: `.../projectname/basename` \
+does contain multiple available directories (dir1 and dir2).
 
         Setting |FileManager.currentdir| manually solves the problem:
 
@@ -355,15 +359,17 @@ dir2).
         ...     filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
-        RuntimeError: The current working directory of the FileManager object has not \
-been defined manually and cannot be determined automatically: The default directory \
-(dir3) is not among the available directories (dir1 and dir2).
+        RuntimeError: The current working directory of the file manager has not been \
+defined manually and cannot be determined automatically: The default directory (dir3) \
+is not among the available directories (dir1 and dir2).
 
-        We can fix this by manually  adding the required default directory:
+        We can fix this by manually adding the required default directory:
 
-        >>> with TestIO():
+        >>> with TestIO(), pub.options.printprogress(True):
         ...     os.mkdir("projectname/basename/dir3")
         ...     assert filemanager.currentdir == "dir3"
+        The name of the file manager's current working directory has not been \
+previously defined and is hence set to `dir3`.
 
         Setting the |FileManager.currentdir| to `dir4` not only overwrites the default
         name but also creates the required folder:
@@ -381,14 +387,12 @@ been defined manually and cannot be determined automatically: The default direct
 
         >>> import shutil
         >>> from unittest.mock import patch
-        >>> with patch.object(shutil, "rmtree", side_effect=AttributeError):
-        ...     with TestIO():
-        ...         del filemanager.currentdir  # doctest: +ELLIPSIS
+        >>> with TestIO(), patch.object(shutil, "rmtree", side_effect=AttributeError):
+        ...     del filemanager.currentdir  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
         AttributeError: While trying to delete the current working directory \
-`.../projectname/basename/dir4` of the FileManager object, the following error \
-occurred: ...
+`.../projectname/basename/dir4` of the file manager, the following error occurred: ...
 
         Then, the current working directory still exists and is remembered by property
         |FileManager.currentdir|:
@@ -411,7 +415,7 @@ occurred: ...
 
         If a |FileManager| subclass defines its |FileManager.DEFAULTDIR| class
         attribute, the above behaviour differs in the case of an initially empty base
-        directory.  Then, |FileManager.currentdir| creates and activates an accordingly
+        directory.  Then, |FileManager.currentdir| activates and creates an accordingly
         named directory automatically:
 
         >>> filemanager.currentdir = None
@@ -421,20 +425,32 @@ occurred: ...
         ...     os.makedirs("projectname/basename")
         ...     assert filemanager.currentdir == "default"
         ...     assert os.path.exists("projectname/basename/default")
+        The name of the file manager's current working directory has not been \
+previously defined and is hence set to `default`.
         Directory ...default has been created.
         """
+
+        def _print_info(dirname: str, /) -> None:
+            if hydpy.pub.options.printprogress:
+                print(
+                    f"The name of the {self._docname}'s current working directory "
+                    f"has not been previously defined and is hence set to "
+                    f"`{dirname}`."
+                )
+
         currentdir = self._currentdir
         if currentdir is None:
             dirs = self.availabledirs.folders
             if len(dirs) == 1:
+                _print_info(dirs[0])
                 currentdir = dirs[0]
             elif (default := self.DEFAULTDIR) and (default in dirs or not dirs):
+                _print_info(default)
                 currentdir = default
             else:
                 prefix = (
-                    f"The current working directory of the {type(self).__name__} "
-                    f"object has not been defined manually and cannot be determined "
-                    f"automatically:"
+                    f"The current working directory of the {self._docname} has not "
+                    f"been defined manually and cannot be determined automatically:"
                 )
                 if not dirs:
                     raise RuntimeError(
@@ -455,7 +471,7 @@ occurred: ...
         return currentdir
 
     @currentdir.setter
-    def currentdir(self, directory: Optional[str]) -> None:
+    def currentdir(self, directory: str | None) -> None:
         if directory is None:
             self._currentdir = None
         else:
@@ -488,7 +504,7 @@ occurred: ...
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to delete the current working directory "
-                    f"`{objecttools.repr_(path)}` of the {type(self).__name__} object"
+                    f"`{objecttools.repr_(path)}` of the {self._docname}"
                 )
         self._currentdir = None
 
@@ -623,6 +639,10 @@ removed.
                 zipfile_.write(filename=filepath, arcname=filename)
         del self.currentdir
 
+    @property
+    def _docname(self) -> str:
+        return f"{type(self).__name__[:-7].lower()} manager"
+
 
 class NetworkManager(FileManager):
     """Manager for network files.
@@ -645,12 +665,12 @@ class NetworkManager(FileManager):
     >>> prepare_full_example_1()
 
     You can define the complete network structure of an `HydPy` project by an arbitrary
-    number of "network files".  These are valid Python files which define certain |Node|
-    and |Element| as well as their connections.  Network files are allowed to overlap,
-    meaning two or more files can define the same objects (in a consistent manner only,
-    of course).  The primary purpose of class |NetworkManager| is to execute each
-    network file individually and pass its content to a |Selection| object, which is
-    done by method |NetworkManager.load_files|:
+    number of "network files".  These valid Python files define |Node| and |Element|
+    objects and their connections.  Network files are allowed to overlap, meaning two
+    or more files can define the same objects (in a consistent manner only, of course).
+    The primary purpose of class |NetworkManager| is to execute each network file
+    individually and pass its content to a |Selection| object, which is done by method
+    |NetworkManager.load_files|:
 
     >>> networkmanager = NetworkManager()
     >>> from hydpy import TestIO
@@ -659,15 +679,18 @@ class NetworkManager(FileManager):
     ...     selections = networkmanager.load_files()
 
     Method |NetworkManager.load_files| takes file names as selection names (without
-    file endings).  Additionally, it creates a "complete" selection, including the
-    whole set of |Node| and |Element| objects of the file-specific selections:
+    file endings):
 
     >>> selections
-    Selections("complete", "headwaters", "nonheadwaters", "streams")
+    Selections("headwaters", "nonheadwaters", "streams")
     >>> selections.headwaters
     Selection("headwaters",
               nodes=("dill_assl", "lahn_marb"),
               elements=("land_dill_assl", "land_lahn_marb"))
+
+    The whole set of |Node| and |Element| objects is accessible via the property
+    |Selections.complete|:
+
     >>> selections.complete
     Selection("complete",
               nodes=("dill_assl", "lahn_kalk", "lahn_leun", "lahn_marb"),
@@ -677,9 +700,9 @@ class NetworkManager(FileManager):
                         "stream_lahn_leun_lahn_kalk",
                         "stream_lahn_marb_lahn_leun"))
 
-    Method |NetworkManager.save_files| writes all |Selection| objects into separate
-    files.  We first change the current working directory to ensure we do not overwrite
-    already existing files:
+    Method |NetworkManager.save_files| writes all user-defined selections into separate
+    files.  First, we change the current working directory to ensure we do not
+    overwrite already existing files:
 
     >>> import os
     >>> with TestIO():
@@ -712,8 +735,8 @@ class NetworkManager(FileManager):
     ...     networkmanager.delete_files(["headwaters"])   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to remove the network files of selections \
-`['headwaters']`, the following error occurred: ...
+    FileNotFoundError: While trying to remove the network files of the selection(s) \
+`headwaters`, the following error occurred: ...
 
     >>> with TestIO():
     ...     with open("HydPy-H-Lahn/network/testdir/streams.py", "w") as wrongfile:
@@ -748,8 +771,8 @@ error occurred: name 'y' is not defined
     ...     networkmanager.save_files(selections)   # doctest: +ELLIPSIS
     Traceback (most recent call last):
     ...
-    FileNotFoundError: While trying to save the selections `Selections("complete", \
-"headwaters", "nonheadwaters")` into network files, the following error occurred: ...
+    FileNotFoundError: While trying to save the selection(s) `headwaters and \
+nonheadwaters` into network files, the following error occurred: ...
     """
 
     BASEDIR = "network"
@@ -761,8 +784,6 @@ error occurred: name 'y' is not defined
 
         See the main documentation of class |NetworkManager| for further information.
         """
-        devicetools.Node.clear_all()
-        devicetools.Element.clear_all()
         selections = selectiontools.Selections()
         if not self.filenames:
             raise RuntimeError(
@@ -790,9 +811,6 @@ error occurred: name 'y' is not defined
                     f"The class {exc.args[0]} cannot be loaded from the network file "
                     f"`{path}`."
                 ) from None
-        selections += selectiontools.Selection(
-            "complete", info["Node"].query_all(), info["Element"].query_all()
-        )
         return selections
 
     def save_files(self, selections: Iterable[selectiontools.Selection]) -> None:
@@ -801,17 +819,16 @@ error occurred: name 'y' is not defined
 
         See the main documentation on class |NetworkManager| for further information.
         """
+        selections = tuple(selections)
         try:
             currentpath = self.currentpath
             for selection in selections:
-                if selection.name == "complete":
-                    continue
                 path = os.path.join(currentpath, selection.name + ".py")
                 selection.save_networkfile(filepath=path)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to save the selections `{selections}` "
-                f"into network files"
+                f"While trying to save the selection(s) "
+                f"`{objecttools.enumeration(selections)}` into network files"
             )
 
     def delete_files(self, selections: Iterable[selectiontools.Selection]) -> None:
@@ -820,19 +837,19 @@ error occurred: name 'y' is not defined
 
         See the main documentation on class |NetworkManager| for further information.
         """
+        selections = tuple(selections)
         try:
             currentpath = self.currentpath
             for selection in selections:
                 name = str(selection)
-                if name == "complete":
-                    continue
                 if not name.endswith(".py"):
                     name += ".py"
                 path = os.path.join(currentpath, name)
                 os.remove(path)
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to remove the network files of selections `{selections}`"
+                f"While trying to remove the network files of the selection(s) "
+                f"`{objecttools.enumeration(selections)}`"
             )
 
 
@@ -863,8 +880,8 @@ class ControlManager(FileManager):
 
     def load_file(
         self,
-        element: Optional[devicetools.Element] = None,
-        filename: Optional[str] = None,
+        element: devicetools.Element | None = None,
+        filename: str | None = None,
         clear_registry: bool = True,
     ) -> dict[str, Any]:
         """Return the namespace of the given file (and eventually of its corresponding
@@ -1031,10 +1048,17 @@ class ConditionManager(FileManager):
     it following the actual simulation start or end date, respectively:
 
     >>> from hydpy import repr_
-    >>> with TestIO():  # doctest: +ELLIPSIS
+    >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
     ...     repr_(pub.conditionmanager.inputpath)
     ...     repr_(pub.conditionmanager.outputpath)
+    The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager reads its data from a directory named \
+`init_1996_01_01_00_00_00`.
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00'
+    The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager writes its data to a directory named \
+`init_1996_01_05_00_00_00`.
+    Directory ...init_1996_01_05_00_00_00 has been created.
     '.../hydpy/tests/iotesting/HydPy-H-Lahn/conditions/init_1996_01_05_00_00_00'
 
     >>> pub.timegrids.sim.firstdate += "1d"
@@ -1133,6 +1157,82 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         """,
     )
 
+    _already_reported: set[str] | None
+
+    @contextlib.contextmanager
+    def filter_duplicates(self) -> Generator[None, None, None]:
+        """Prevent temporarily that the notes about assumed input and output paths
+        emitted by the properties |ConditionManager.inputpath| and
+        |ConditionManager.outputpath| are printed repeatedly.
+
+        The context manager |ConditionManager.filter_duplicates| serves primarily for
+        HydPy-internal purposes:
+
+        >>> from hydpy.core.testtools import prepare_full_example_1
+        >>> prepare_full_example_1()
+        >>> from hydpy import HydPy, pub, TestIO
+        >>> with TestIO():
+        ...     hp = HydPy("HydPy-H-Lahn")
+        ...     hp.prepare_network()
+        ...     pub.timegrids = "1996-01-01", "1997-01-01", "1d"
+        ...     hp.prepare_models()
+        ...     with pub.options.printprogress(True):
+        ...         hp.load_conditions()  # doctest: +ELLIPSIS
+        method Elements.load_conditions started at ...
+            |-----|
+            *******
+        The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager reads its data from a directory named \
+`init_1996_01_01_00_00_00`.
+            seconds elapsed: ...
+
+        However, you can also use it directly when writing custom functions that
+        repeatedly interact with the mentioned properties:
+
+        >>> with TestIO(), pub.options.printprogress(True):
+        ...     hp.save_conditions()  # doctest: +ELLIPSIS
+        method Elements.save_conditions started at ...
+            |-----|
+            *******
+        The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager writes its data to a directory named \
+`init_1997_01_01_00_00_00`.
+        Directory ...init_1997_01_01_00_00_00 has been created.
+            seconds elapsed: ...
+
+        >>> with (
+        ...     TestIO(),
+        ...     pub.options.printprogress(True),
+        ...     pub.conditionmanager.filter_duplicates(),
+        ... ):
+        ...     _ = pub.conditionmanager.inputpath
+        ...     _ = pub.conditionmanager.outputpath
+        ...     _ = pub.conditionmanager.inputpath
+        ...     _ = pub.conditionmanager.outputpath  # doctest: +ELLIPSIS
+        The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager reads its data from a directory named \
+`init_1996_01_01_00_00_00`.
+        The condition manager's current working directory is not defined explicitly.  \
+Hence, the condition manager writes its data to a directory named \
+`init_1997_01_01_00_00_00`.
+        """
+        self._already_reported = set()
+        yield
+        self._already_reported = None
+
+    def _print_info(self, dirname, task) -> None:
+        if hydpy.pub.options.printprogress:
+            already_reported = self._already_reported
+            message = (
+                f"The {self._docname}'s current working directory is not defined "
+                f"explicitly.  Hence, the {self._docname} {task} a directory named "
+                f"`{dirname}`."
+            )
+            if (already_reported is None) or (message not in already_reported):
+                print(message)
+                if already_reported is not None:
+                    already_reported.add(message)
+
     @property
     def inputpath(self) -> str:
         """The directory path for loading initial conditions.
@@ -1144,7 +1244,9 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         try:
             if not currentdir:
                 to_string = hydpy.pub.timegrids.sim.firstdate.to_string
-                self.currentdir = f"{self.prefix}_{to_string('os')}"
+                autodir = f"{self.prefix}_{to_string('os')}"
+                self._print_info(dirname=autodir, task="reads its data from")
+                self.currentdir = autodir
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
@@ -1165,7 +1267,9 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         try:
             if not currentdir:
                 to_string = hydpy.pub.timegrids.sim.lastdate.to_string
-                self.currentdir = f"{self.prefix}_{to_string('os')}"
+                autodir = f"{self.prefix}_{to_string('os')}"
+                self._print_info(dirname=autodir, task="writes its data to")
+                self.currentdir = autodir
             return self.currentpath
         except BaseException:
             objecttools.augment_excmessage(
@@ -1562,9 +1666,9 @@ not allowed to overwrite the existing file `...`.
         """,
     )
 
-    _netcdfreader: Optional[netcdftools.NetCDFInterfaceReader] = None
-    _netcdfwriter: Optional[netcdftools.NetCDFInterfaceWriter] = None
-    _jitaccesshandler: Optional[netcdftools.JITAccessHandler] = None
+    _netcdfreader: netcdftools.NetCDFInterfaceReader | None = None
+    _netcdfwriter: netcdftools.NetCDFInterfaceWriter | None = None
+    _jitaccesshandler: netcdftools.JITAccessHandler | None = None
 
     def load_file(self, sequence: sequencetools.IOSequence) -> None:
         """Load data from a data file and pass it to the given |IOSequence|."""
@@ -1615,7 +1719,7 @@ not allowed to overwrite the existing file `...`.
     def save_file(
         self,
         sequence: sequencetools.IOSequence,
-        array: Optional[sequencetools.InfoArray] = None,
+        array: sequencetools.InfoArray | None = None,
     ) -> None:
         """Write the data stored in the |IOSequence.series| property of the given
         |IOSequence| into a data file."""
@@ -1628,8 +1732,8 @@ not allowed to overwrite the existing file `...`.
                 filepath = sequence.filepath
                 if not sequence.overwrite and os.path.exists(filepath):
                     raise OSError(
-                        f"Sequence {objecttools.devicephrase(sequence)} is not allowed "
-                        f"to overwrite the existing file `{filepath}`."
+                        f"Sequence {objecttools.devicephrase(sequence)} is not "
+                        f"allowed to overwrite the existing file `{filepath}`."
                     )
                 if sequence.filetype == "npy":
                     self._save_npy(array, filepath)
@@ -1711,8 +1815,10 @@ documentation for help).
     def close_netcdfreader(self) -> None:
         """Read data with a prepared |NetCDFInterfaceReader| object and delete it
         afterwards."""
-        self.netcdfreader.read()
-        self._netcdfreader = None
+        try:
+            self.netcdfreader.read()
+        finally:
+            self._netcdfreader = None
 
     @contextlib.contextmanager
     def netcdfreading(self) -> Iterator[None]:
@@ -1720,8 +1826,10 @@ documentation for help).
         beginning of a with-block and read the data and delete the object at the end of
         the same with-block."""
         self.open_netcdfreader()
-        yield
-        self.close_netcdfreader()
+        try:
+            yield
+        finally:
+            self.close_netcdfreader()
 
     @property
     def netcdfwriter(self) -> netcdftools.NetCDFInterfaceWriter:
@@ -1768,8 +1876,10 @@ documentation for help).
     def close_netcdfwriter(self) -> None:
         """Write data with a prepared |NetCDFInterfaceWriter| object and delete it
         afterwards."""
-        self.netcdfwriter.write()
-        self._netcdfwriter = None
+        try:
+            self.netcdfwriter.write()
+        finally:
+            self._netcdfwriter = None
 
     @contextlib.contextmanager
     def netcdfwriting(self) -> Iterator[None]:
@@ -1782,7 +1892,7 @@ documentation for help).
 
     @contextlib.contextmanager
     def provide_netcdfjitaccess(
-        self, deviceorder: Iterable[Union[devicetools.Node, devicetools.Element]]
+        self, deviceorder: Iterable[devicetools.Node | devicetools.Element]
     ) -> Iterator[None]:
         """Open all required internal NetCDF time series files.
 

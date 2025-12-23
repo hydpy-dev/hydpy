@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements only the interface base class required to support casting to
 specific subclasses in Cython."""
 
@@ -20,6 +19,24 @@ cdef class BaseInterface:
         pass
 
     cdef void save_data(self, int idx) noexcept nogil:
+        pass
+
+    cdef void update_inlets(self) noexcept nogil:
+        pass
+
+    cdef void update_observers(self) noexcept nogil:
+        pass
+
+    cdef void update_receivers(self, int idx) noexcept nogil:
+        pass
+
+    cdef void update_outlets(self) noexcept nogil:
+        pass
+
+    cdef void update_senders(self, int idx) noexcept nogil:
+        pass
+
+    cdef void update_outputs(self) noexcept nogil:
         pass
 
 

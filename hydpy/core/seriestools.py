@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """This module provides features for working with time series."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -25,41 +25,42 @@ def aggregate_series(
     *,
     series: NDArrayFloat,
     stepsize: Literal["daily", "d"],
-    aggregator: Union[str, Callable[[NDArrayFloat], float]] = "mean",
+    aggregator: str | Callable[[NDArrayFloat], float] = "mean",
     subperiod: bool = True,
     basetime: str = "00:00",
 ) -> pandas.DataFrame:
-    """sim and obs as arguments, daily aggregation"""
+    """daily aggregation"""
 
 
 @overload
 def aggregate_series(
     *,
     series: NDArrayFloat,
-    stepsize: Literal["monthly", "m"],
-    aggregator: Union[str, Callable[[NDArrayFloat], float]] = "mean",
+    stepsize: Literal["monthly", "m", "yearly", "y"],
+    aggregator: str | Callable[[NDArrayFloat], float] = "mean",
     subperiod: bool = True,
 ) -> pandas.DataFrame:
-    """sim and obs as arguments, monthly aggregation"""
+    """monthly or yearly aggregation"""
 
 
 @objecttools.excmessage_decorator("aggregate the given series")
 def aggregate_series(
     series: NDArrayFloat,
-    stepsize: StepSize = "monthly",
-    aggregator: Union[str, Callable[[NDArrayFloat], float]] = "mean",
+    stepsize: StepSize,
+    aggregator: str | Callable[[NDArrayFloat], float] = "mean",
     subperiod: bool = True,
     basetime: str = "00:00",
 ) -> pandas.DataFrame:
-    """Aggregate the time series on a monthly or daily basis.
+    """Aggregate the time series on a daily, monthly, or yearly basis.
 
     Often, we need some aggregation before analysing deviations between simulation
     results and observations.  Function |aggregate_series| performs such aggregation on
-    a monthly or daily basis.  You are free to specify arbitrary aggregation functions.
+    a daily, monthly, or yearly basis.  You are free to specify arbitrary aggregation
+    functions.
 
-    We first show the default behaviour of function |aggregate_series|, which is to
-    calculate monthly averages.  Therefore, we first say the hydrological summer
-    half-year 2001 to be our simulation period and define a daily simulation step size:
+    We first show the behaviour of function |aggregate_series| when calculating monthly
+    averages.  Therefore, we first say the hydrological summer half-year 2001 to be our
+    simulation period and define a daily simulation step size:
 
     >>> from hydpy import aggregate_series, pub, Node
     >>> pub.timegrids = "01.11.2000", "01.05.2001", "1d"
@@ -73,10 +74,10 @@ def aggregate_series(
     >>> sim = node.sequences.sim
     >>> sim.series = numpy.arange(1, 181+1)
 
-    |aggregate_series| returns the data within index-sorted |pandas.Series| objects
-    (note that the index addresses the left boundary of each time step:
+    |aggregate_series| returns the data within index-sorted |pandas.DataFrame| objects
+    (note that the index addresses the left boundary of each time step):
 
-    >>> aggregate_series(series=sim.series)
+    >>> aggregate_series(series=sim.series, stepsize="m")
                 series
     2000-11-01    15.5
     2000-12-01    46.0
@@ -90,7 +91,7 @@ def aggregate_series(
     module and pass a different aggregation function:
 
     >>> pub.timegrids.eval_.dates = "2001-01-01", "2001-03-01"
-    >>> aggregate_series(series=sim.series, aggregator=numpy.sum)
+    >>> aggregate_series(series=sim.series, stepsize="m", aggregator=numpy.sum)
                 series
     2001-01-01  2387.0
     2001-02-01  2982.0
@@ -99,7 +100,7 @@ def aggregate_series(
     to the complete initialisation period:
 
     >>> pub.timegrids.eval_.dates = "2001-01-01", "2001-03-01"
-    >>> aggregate_series(series=sim.evalseries, aggregator=numpy.sum)
+    >>> aggregate_series(series=sim.evalseries, stepsize="m", aggregator=numpy.sum)
     Traceback (most recent call last):
     ...
     ValueError: While trying to aggregate the given series, the following error \
@@ -111,7 +112,7 @@ initialisation time grid (181).
 
     >>> def wrong(values):
     ...     assert False, "wrong function"
-    >>> aggregate_series(series=sim.series, aggregator=wrong)
+    >>> aggregate_series(series=sim.series, stepsize="m", aggregator=wrong)
     Traceback (most recent call last):
     ...
     AssertionError: While trying to aggregate the given series, the following error \
@@ -121,14 +122,14 @@ following error occurred: wrong function
     When passing a string, |aggregate_series| queries it from |numpy|:
 
     >>> pub.timegrids.eval_.dates = "2001-01-01", "2001-02-01"
-    >>> aggregate_series(series=sim.series, aggregator="sum")
+    >>> aggregate_series(series=sim.series, stepsize="m", aggregator="sum")
                 series
     2001-01-01  2387.0
 
     |aggregate_series| raises the following error when the requested function does not
     exist:
 
-    >>> aggregate_series(series=sim.series, aggregator="Sum")
+    >>> aggregate_series(series=sim.series, stepsize="m", aggregator="Sum")
     Traceback (most recent call last):
     ...
     ValueError: While trying to aggregate the given series, the following error \
@@ -141,7 +142,7 @@ occurred: Module `numpy` does not provide a function named `Sum`.
     >>> node.prepare_simseries()
     >>> sim.series = numpy.arange(30, 152+1)
     >>> sim = node.sequences.sim
-    >>> aggregate_series(series=sim.series, aggregator="sum")
+    >>> aggregate_series(series=sim.series, stepsize="m", aggregator="sum")
                 series
     2000-12-01  1426.0
     2001-01-01  2387.0
@@ -149,7 +150,7 @@ occurred: Module `numpy` does not provide a function named `Sum`.
     2001-03-01  4216.0
 
     >>> pub.timegrids.eval_.dates = "2001-01-02", "2001-02-28"
-    >>> aggregate_series(series=sim.series)
+    >>> aggregate_series(series=sim.series, stepsize="m")
     Empty DataFrame
     Columns: [series]
     Index: []
@@ -157,7 +158,9 @@ occurred: Module `numpy` does not provide a function named `Sum`.
     If you want to analyse the data of the complete initialisation period independently
     of the state of |Timegrids.eval_|, set argument `subperiod` to |False|:
 
-    >>> aggregate_series(series=sim.series, aggregator="sum", subperiod=False)
+    >>> aggregate_series(
+    ...     series=sim.series, stepsize="m", aggregator="sum", subperiod=False
+    ... )
                 series
     2000-12-01  1426.0
     2001-01-01  2387.0
@@ -171,14 +174,14 @@ occurred: Module `numpy` does not provide a function named `Sum`.
     >>> pub.timegrids = "02.11.2000", "30.04.2001", "1d"
     >>> node.prepare_simseries()
     >>> sim.series = numpy.arange(2, 180+1)
-    >>> aggregate_series(series=node.sequences.sim.series)
+    >>> aggregate_series(series=node.sequences.sim.series, stepsize="m")
                 series
     2000-12-01    46.0
     2001-01-01    77.0
     2001-02-01   106.5
     2001-03-01   136.0
 
-    Now we prepare a time grid with an hourly simulation step size to show some
+    Now, we prepare a time grid with an hourly simulation step size to show some
     examples of daily aggregation:
 
     >>> pub.timegrids = "01.01.2000 22:00", "05.01.2000 22:00", "1h"
@@ -207,7 +210,7 @@ occurred: Module `numpy` does not provide a function named `Sum`.
     2000-01-03 22:00:00    60.5
     2000-01-04 22:00:00    84.5
 
-    So far, the `basetime` argument works for daily aggregation only:
+    So far, the `basetime` argument works only for daily aggregation:
 
     >>> aggregate_series(series=sim.series, stepsize="monthly", basetime="22:00")
     Traceback (most recent call last):
@@ -237,16 +240,28 @@ size only.
     ValueError: While trying to aggregate the given series, the following error \
 occurred: Data aggregation is not supported for simulation step sizes greater one day.
 
+    The following example shows the yearly aggregation, which so far only works for
+    calendar years:
+
+    >>> pub.timegrids = "01.10.2000 22:00", "01.10.2003 22:00", "1d"
+    >>> node.prepare_simseries()
+    >>> sim = node.sequences.sim
+    >>> sim.series = numpy.ones((1, 1095))
+    >>> aggregate_series(series=sim.series, stepsize="yearly", aggregator="sum")
+                series
+    2001-01-01   365.0
+    2002-01-01   365.0
+
     We are looking forward supporting other useful aggregation step sizes later:
 
     >>> pub.timegrids = "01.01.2000 22:00", "05.01.2000 22:00", "1d"
     >>> node.prepare_simseries()
-    >>> aggregate_series(series=node.sequences.sim.series, stepsize="yearly")
+    >>> aggregate_series(series=node.sequences.sim.series, stepsize="minutely")
     Traceback (most recent call last):
     ...
     ValueError: While trying to aggregate the given series, the following error \
-occurred: Argument `stepsize` received value `yearly`, but only the following ones \
-are supported: `monthly` (default) and `daily`.
+occurred: Argument `stepsize` received value `minutely`, but only the following ones \
+are supported: `monthly` (default), `daily`, and `yearly`.
     """
     timegrids: timetools.Timegrids = hydpy.pub.timegrids
     if isinstance(aggregator, str):
@@ -276,10 +291,13 @@ are supported: `monthly` (default) and `daily`.
     elif stepsize in ("m", "monthly"):
         rule = "MS"
         offset = 0
+    elif stepsize in ("y", "yearly"):
+        rule = "YS"
+        offset = 0
     else:
         raise ValueError(
             f"Argument `stepsize` received value `{stepsize}`, but only the following "
-            f"ones are supported: `monthly` (default) and `daily`."
+            f"ones are supported: `monthly` (default), `daily`, and `yearly`."
         )
     if len(series) != len(timegrids.init):
         raise ValueError(
@@ -309,8 +327,10 @@ are supported: `monthly` (default) and `daily`.
         date = timetools.Date(date1)
         if stepsize in ("daily", "d"):
             date += "1d"
-        else:
+        elif stepsize in ("monthly", "m"):
             date = date.beginning_next_month
+        else:
+            date = date.beginning_next_year
         if date <= tg.lastdate:
             jdx1 = len(dataframe_resampled) - jdx1
             break

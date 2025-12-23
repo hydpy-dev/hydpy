@@ -40,7 +40,7 @@ approximate the processes of large catchments that extend over several natural a
 Usually, land models support the further distribution of a subbasin in hydrological
 response units, snow classes, or the like.
 
-There are currently three land model families.
+There are currently four land model families.
 
 :ref:`HydPy-H` follows the ideas and terminology of the wordwide applied HBV model.
 Besides |hland_96|, which implements the original HBV96 model
@@ -59,6 +59,20 @@ simulate surface water fluxes in lowland catchments influenced by near-surface
 groundwater.  Application model |wland_wag| extends the original WALRUS concept by
 providing additional options regarding the spatial distribution of processes and the
 handling of mildly hilly terrain.
+
+:ref:`HydPy-G` provides members of the very simple and handy `modèle due Génie Rural`
+model series, of which GR4J is likely the most prominent.  Our application models
+|gland_gr4|, |gland_gr5|, and |gland_gr6| closely emulate and slightly extend the GR4J
+:cite:p:`ref-Perrin2003`, GR5J :cite:p:`ref-Moine2008`, and GR6J
+:cite:t:`ref-Pushpalatha2011` implementations of the R package airGR
+:cite:p:`ref-airGR2017`.
+
+:ref:`HydPy-WHMod` is the primary implementation of the SVAT model WHMod
+:cite:p:`ref-Probst2002`.  It stands out from the other model families by focusing more
+on water balance and groundwater recharge aspects of individual sites than on
+simulating the discharge of entire river basins.  The application model |whmod_rural|
+is designed to perform water balance analyses for rural areas, while |whmod_urban| also
+considers water management measures relevant to urban areas.
 
 .. _stream_models:
 
@@ -223,6 +237,14 @@ of the MORECS model :cite:p:`ref-Thompson1981`, while |evap_aet_hbv96| and
 |evap_aet_minhas| adjust potential evapotranspiration estimates, provided by a
 sub-submodel, to the catchment's wetness as suggested by
 :cite:t:`ref-Lindstrom1997HBV96` and :cite:t:`ref-Minhas1974`.
+
+Snow models
+-----------
+
+Until now, most :ref:`land models <land_models>` possess their own snow module.  We
+plan to provide the same flexibility as for evapotranspiration processes by extracting
+these modules into the :ref:`HydPy-Snow` model family, which currently only provides the
+CemaNeige models |snow_cn| and |snow_cn_minmax|.
 
 Infiltration models
 -------------------

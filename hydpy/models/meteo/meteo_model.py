@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`solar time`: https://en.wikipedia.org/wiki/Solar_time
 """
+
 # imports...
 # ...from standard library
 import contextlib
@@ -2765,6 +2765,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_EarthSunDistance_V1,

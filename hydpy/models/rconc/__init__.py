@@ -1,6 +1,8 @@
-# -*- coding: utf-8 -*-
-"""The |rconc.DOCNAME.long| model family supplies features for calculating runoff
-concentration."""
+"""
+The |rconc.DOCNAME.long| model family supplies features for calculating runoff
+concentration.
+"""
+
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *

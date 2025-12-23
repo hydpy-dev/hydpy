@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module defines the Cython declarations related to module |interptools|."""
 
 from cpython cimport PyObject

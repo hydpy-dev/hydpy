@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 The |musk.DOCNAME.long| family member |musk_classic| realises the well-known Muskingum
@@ -210,6 +209,7 @@ class Model(modeltools.SegmentModel):
 
     SOLVERPARAMETERS = (NmbRuns,)
     INLET_METHODS = (musk_model.Pick_Inflow_V1, musk_model.Update_Discharge_V1)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (musk_model.Calc_Discharge_V1,)
     ADD_METHODS = ()

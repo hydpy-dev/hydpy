@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements rudimentary artificial neural network tools required for some
 models implemented in the *HydPy* framework.
 
@@ -51,7 +50,7 @@ class _ANNArrayProperty(propertytools.DependentProperty[T_contra, T_co]):
         cann = self._obj2cann[obj]
         return numpy.asarray(getattr(cann, self.name))  # type: ignore[return-value]
 
-    def _fset(self, obj: ANN, value: Optional[T_contra]) -> None:
+    def _fset(self, obj: ANN, value: T_contra | None) -> None:
         if value is None:
             self.fdel(obj)
         else:
@@ -135,6 +134,11 @@ class ANN(interptools.InterpAlgorithm):
     >>> save_autofig("ANN_plot.png", figure=figure)
 
     .. image:: ANN_plot.png
+
+   .. testsetup::
+
+        >>> import gc
+        >>> _ = gc.collect()
 
     Some models might require the derivative of certain outputs with respect to
     individual inputs.  One example is application model the |dam_llake|, which uses
@@ -487,12 +491,12 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
         nmb_inputs: int = 1,
         nmb_neurons: tuple[int, ...] = (1,),
         nmb_outputs: int = 1,
-        weights_input: Optional[MatrixInputFloat] = None,
-        weights_output: Optional[MatrixInputFloat] = None,
-        weights_hidden: Optional[TensorInputFloat] = None,
-        intercepts_hidden: Optional[MatrixInputFloat] = None,
-        intercepts_output: Optional[VectorInputFloat] = None,
-        activation: Optional[MatrixInputInt] = None,
+        weights_input: MatrixInputFloat | None = None,
+        weights_output: MatrixInputFloat | None = None,
+        weights_hidden: TensorInputFloat | None = None,
+        intercepts_hidden: MatrixInputFloat | None = None,
+        intercepts_output: VectorInputFloat | None = None,
+        activation: MatrixInputInt | None = None,
     ) -> None:
         self._calgorithm = annutils.ANN()
         _ANNArrayProperty.add_cann(self, self._calgorithm)
@@ -514,12 +518,12 @@ is not usable so far.  At least, you have to prepare attribute `nmb_outputs` fir
         nmb_inputs: int = 1,
         nmb_neurons: tuple[int, ...] = (1,),
         nmb_outputs: int = 1,
-        weights_input: Optional[MatrixInputFloat] = None,
-        weights_output: Optional[MatrixInputFloat] = None,
-        weights_hidden: Optional[TensorInputFloat] = None,
-        intercepts_hidden: Optional[MatrixInputFloat] = None,
-        intercepts_output: Optional[VectorInputFloat] = None,
-        activation: Optional[MatrixInputInt] = None,
+        weights_input: MatrixInputFloat | None = None,
+        weights_output: MatrixInputFloat | None = None,
+        weights_hidden: TensorInputFloat | None = None,
+        intercepts_hidden: MatrixInputFloat | None = None,
+        intercepts_output: VectorInputFloat | None = None,
+        activation: MatrixInputInt | None = None,
     ) -> None:
         self.nmb_inputs = nmb_inputs
         self.nmb_outputs = nmb_outputs
@@ -665,7 +669,7 @@ object `ann` has not been prepared so far.
         """
         return self.nmb_inputs, self.nmb_neurons[0]
 
-    weights_input = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
+    weights_input = _ANNArrayProperty[MatrixInputFloat | None, MatrixFloat](
         protected=__protectedproperties,
         doc="""The weights between all input nodes and neurons of the first hidden 
         layer.
@@ -759,7 +763,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self.nmb_neurons[-1] * self.nmb_outputs
 
-    weights_output = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
+    weights_output = _ANNArrayProperty[MatrixInputFloat | None, MatrixFloat](
         protected=__protectedproperties,
         doc="""The weights between all neurons of the last hidden layer and the output 
         nodes.
@@ -807,7 +811,7 @@ broadcast input array from shape (3,3) into shape (2,3)
             nmb += self.nmb_neurons[idx_layer] * self.nmb_neurons[idx_layer + 1]
         return nmb
 
-    weights_hidden = _ANNArrayProperty[Optional[TensorInputFloat], TensorFloat](
+    weights_hidden = _ANNArrayProperty[TensorInputFloat | None, TensorFloat](
         protected=__protectedproperties,
         doc="""The weights between the neurons of the different hidden layers.
 
@@ -836,7 +840,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """The number of input intercepts."""
         return sum(self.nmb_neurons)
 
-    intercepts_hidden = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
+    intercepts_hidden = _ANNArrayProperty[MatrixInputFloat | None, MatrixFloat](
         protected=__protectedproperties,
         doc="""The intercepts of all neurons of the hidden layers.
 
@@ -870,7 +874,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self.nmb_outputs
 
-    intercepts_output = _ANNArrayProperty[Optional[VectorInputFloat], VectorFloat](
+    intercepts_output = _ANNArrayProperty[VectorInputFloat | None, VectorFloat](
         protected=__protectedproperties,
         doc="""The intercepts of all output nodes.
 
@@ -894,7 +898,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return self.nmb_layers, self.__max_nmb_neurons
 
-    activation = _ANNArrayProperty[Optional[MatrixInputInt], MatrixInt](
+    activation = _ANNArrayProperty[MatrixInputInt | None, MatrixInt](
         protected=__protectedproperties,
         doc="""Indices for selecting suitable activation functions for the neurons of 
         the hidden layers.
@@ -1060,7 +1064,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return (self.nmb_inputs,)
 
-    inputs = _ANNArrayProperty[Optional[VectorInputFloat], VectorFloat](
+    inputs = _ANNArrayProperty[VectorInputFloat | None, VectorFloat](
         protected=__protectedproperties,
         doc="""The values of the input nodes.
 
@@ -1082,7 +1086,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return (self.nmb_outputs,)
 
-    outputs = _ANNArrayProperty[Optional[VectorInputFloat], VectorFloat](
+    outputs = _ANNArrayProperty[VectorInputFloat | None, VectorFloat](
         protected=__protectedproperties,
         doc="""The values of the output nodes.
 
@@ -1104,7 +1108,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         """
         return (self.nmb_outputs,)
 
-    output_derivatives = _ANNArrayProperty[Optional[VectorInputFloat], VectorFloat](
+    output_derivatives = _ANNArrayProperty[VectorInputFloat | None, VectorFloat](
         protected=__protectedproperties,
         doc="""The derivatives of the output nodes.
 
@@ -1145,7 +1149,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         protected=__protectedproperties, fget=_get_shape_neurons
     )
 
-    neurons = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
+    neurons = _ANNArrayProperty[MatrixInputFloat | None, MatrixFloat](
         protected=__protectedproperties,
         doc="""The activation of the neurons of the hidden layers.
 
@@ -1172,7 +1176,7 @@ broadcast input array from shape (3,3) into shape (2,3)
         tuple[int, int], tuple[int, int]
     ](protected=__protectedproperties, fget=_get_shape_neuron_derivatives)
 
-    neuron_derivatives = _ANNArrayProperty[Optional[MatrixInputFloat], MatrixFloat](
+    neuron_derivatives = _ANNArrayProperty[MatrixInputFloat | None, MatrixFloat](
         protected=__protectedproperties,
         doc="""The derivatives of the activation of the neurons of the hidden layers.
 
@@ -1283,8 +1287,8 @@ of element `?` is not properly defined.
 
     def __eq__(self, other: object) -> bool:
         def _equal_array(
-            x: Union[VectorFloat, MatrixInt, MatrixFloat],
-            y: Union[VectorFloat, MatrixInt, MatrixFloat],
+            x: VectorFloat | MatrixInt | MatrixFloat,
+            y: VectorFloat | MatrixInt | MatrixFloat,
         ) -> bool:
             idxs = ~(numpy.isnan(x) * numpy.isnan(y))
             return bool(numpy.all(x[idxs] == y[idxs]))

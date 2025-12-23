@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module provides features for executing *HydPy* workflows based on XML
 configuration files.
 
@@ -54,10 +53,10 @@ conditions and the written final conditions of sequence |hland_states.SM| for th
 >>> with TestIO():
 ...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/land_dill_assl.py"
 ...     with open(filepath) as file_:
-...         print("".join(file_.readlines()[10:12]))
+...         print("".join(file_.readlines()[8:10]))
 ...     filepath = "HydPy-H-Lahn/conditions/init_1996_01_06/land_dill_assl.py"
 ...     with open(filepath) as file_:
-...         print("".join(file_.readlines()[12:14]))
+...         print("".join(file_.readlines()[10:12]))
 sm(185.13164, 181.18755, 199.80432, 196.55888, 212.04018, 209.48859,
    222.12115, 220.12671, 230.30756, 228.70779, 236.91943, 235.64427)
 <BLANKLINE>
@@ -91,6 +90,7 @@ Spatially averaged time series values have been stored in files ending with the 
 ...     )
 9.64767, 8.513649, 7.777628, 7.343314, 7.156591
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -155,7 +155,7 @@ _ITEMGROUP2ITEMCLASS = {
 @overload
 def find(
     root: ElementTree.Element, name: str, optional: Literal[True] = True
-) -> Optional[ElementTree.Element]:
+) -> ElementTree.Element | None:
     """Optional version of function |find|."""
 
 
@@ -168,7 +168,7 @@ def find(
 
 def find(
     root: ElementTree.Element, name: str, optional: Literal[True, False] = True
-) -> Optional[ElementTree.Element]:
+) -> ElementTree.Element | None:
     """Return the first XML element with the given name found in the given XML root.
 
     >>> from hydpy.exe.xmltools import find, XMLInterface
@@ -203,15 +203,23 @@ def _query_selections(xmlelement: ElementTree.Element) -> selectiontools.Selecti
     selections = []
     text = xmlelement.text
     assert text is not None
+    sels = hydpy.pub.selections
     for name in text.split():
-        try:
-            selections.append(getattr(hydpy.pub.selections, name))
-        except AttributeError:
-            raise NameError(
-                f"The XML configuration file tries to define a selection using the "
-                f"text `{name}`, but the actual project does not handle such a "
-                f"`Selection` object."
-            ) from None
+        if name == "complete":
+            selections.append(
+                selectiontools.Selection(
+                    "__complete__", nodes=sels.nodes, elements=sels.elements
+                )
+            )
+        else:
+            try:
+                selections.append(getattr(sels, name))
+            except AttributeError:
+                raise NameError(
+                    f"The XML configuration file tries to define a selection using "
+                    f"the text `{name}`, but the actual project does not handle such "
+                    f"a `Selection` object."
+                ) from None
     return selectiontools.Selections(*selections)
 
 
@@ -381,7 +389,7 @@ class XMLBase:
     @overload
     def find(
         self, name: str, optional: Literal[True] = True
-    ) -> Optional[ElementTree.Element]:
+    ) -> ElementTree.Element | None:
         """Optional version of method |XMLBase.find|."""
 
     @overload
@@ -390,7 +398,7 @@ class XMLBase:
 
     def find(
         self, name: str, optional: Literal[True, False] = True
-    ) -> Optional[ElementTree.Element]:
+    ) -> ElementTree.Element | None:
         """Apply function |find| to the root of the object of the |XMLBase| subclass.
 
         >>> from hydpy.exe.xmltools import XMLInterface
@@ -439,7 +447,7 @@ HydPyConfigMultipleRuns.xsd}config'
 [Errno 2] No such file or directory: '...wrongfilepath.xml'
     """
 
-    def __init__(self, filename: str, directory: Optional[str] = None) -> None:
+    def __init__(self, filename: str, directory: str | None = None) -> None:
         if directory is None:
             directory = hydpy.pub.projectname
         self.filepath = os.path.abspath(os.path.join(directory, filename))
@@ -480,7 +488,7 @@ HydPyConfigMultipleRuns.xsd}config'
 validate XML file `...single_run.xml`, the following error occurred: failed decoding \
 '1996-01-32T00:00:00' with XsdAtomicBuiltin(name='xs:dateTime')...
         ...
-        Reason: day is out of range for month
+        Reason: day ...
         ...
         Schema component:
         ...
@@ -559,6 +567,8 @@ correctly refer to one of the available XML schema files \
             >>> from hydpy import pub
             >>> del pub.timegrids
             >>> del pub.options.simulationstep
+            >>> threads = pub.options.threads
+            >>> usecython = pub.options.usecython
 
         >>> from hydpy.exe.xmltools import XMLInterface
         >>> from hydpy import pub
@@ -569,6 +579,7 @@ correctly refer to one of the available XML schema files \
         >>> pub.options.printprogress = True
         >>> pub.options.reprdigits = -1
         >>> pub.options.utcoffset = -60
+        >>> pub.options.threads = 4
         >>> pub.options.timestampleft = False
         >>> pub.options.warnsimulationstep = 0
         >>> interface.update_options()
@@ -581,6 +592,7 @@ correctly refer to one of the available XML schema files \
             printprogress -> FALSE
             reprdigits -> 6
             simulationstep -> Period()
+            threads -> 0
             timestampleft -> TRUE
             trimvariables -> TRUE
             usecython -> TRUE
@@ -593,9 +605,16 @@ correctly refer to one of the available XML schema files \
             warnsimulationstep -> FALSE
             warntrim -> TRUE
         )
+
         >>> pub.options.checkprojectstructure = False
         >>> pub.options.printprogress = False
+        >>> pub.options.threads = 0
         >>> pub.options.reprdigits = 6
+
+        .. testsetup::
+
+            >>> del pub.timegrids
+            >>> pub.options.prepare_testing(usecython=usecython, threads=threads)
         """
         options = hydpy.pub.options
         for option in self.find("options", optional=False):
@@ -635,7 +654,7 @@ correctly refer to one of the available XML schema files \
         """Create |Selection| objects based on the `add_selections` XML element and
         add them to the |Selections| object available in module |pub|.
 
-        The `Lahn` example project comes with four selections:
+        The `Lahn` example project comes with three selections:
 
         >>> from hydpy.core.testtools import prepare_full_example_1
         >>> prepare_full_example_1()
@@ -646,7 +665,7 @@ correctly refer to one of the available XML schema files \
         ...     hp.prepare_network()
         ...     interface = XMLInterface("single_run.xml")
         >>> pub.selections
-        Selections("complete", "headwaters", "nonheadwaters", "streams")
+        Selections("headwaters", "nonheadwaters", "streams")
 
         Following the definitions of the `add_selections` element of the configuration
         file `single_run.xml`, method |XMLInterface.update_selections| creates three
@@ -655,8 +674,8 @@ correctly refer to one of the available XML schema files \
 
         >>> interface.update_selections()
         >>> pub.selections
-        Selections("complete", "from_devices", "from_keywords",
-                   "from_selections", "headwaters", "nonheadwaters", "streams")
+        Selections("from_devices", "from_keywords", "from_selections",
+                   "headwaters", "nonheadwaters", "streams")
         >>> pub.selections.from_devices
         Selection("from_devices",
                   nodes=(),
@@ -852,7 +871,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         return fullselection
 
     @property
-    def network_io(self) -> Union[XMLNetworkDefault, XMLNetworkUserDefined]:
+    def network_io(self) -> XMLNetworkDefault | XMLNetworkUserDefined:
         """The `network_io` element defined in the actual XML file.
 
         >>> from hydpy.exe.xmltools import XMLInterface, strip
@@ -870,7 +889,7 @@ text `head_waters`, but the actual project does not handle such a `Selection` ob
         return XMLNetworkUserDefined(self, network_io, text=network_io.text)
 
     @property
-    def control_io(self) -> Union[XMLControlDefault, XMLControlUserDefined]:
+    def control_io(self) -> XMLControlDefault | XMLControlUserDefined:
         """The `control_io` element defined in the actual XML file.
 
         >>> from hydpy.exe.xmltools import XMLInterface, strip
@@ -929,7 +948,7 @@ class XMLNetworkBase:
     """Base class for |XMLNetworkDefault| and |XMLNetworkUserDefined|."""
 
     master: XMLInterface
-    text: Optional[str]
+    text: str | None
 
     def prepare_network(self) -> None:
         """Prepare the |Selections| object available in the global |pub| module:
@@ -953,7 +972,7 @@ class XMLNetworkBase:
         ...     interface.find("network_io").text = "default"
         ...     interface.network_io.prepare_network()  # doctest: +ELLIPSIS
         >>> pub.selections
-        Selections("complete", "headwaters", "nonheadwaters", "streams")
+        Selections("headwaters", "nonheadwaters", "streams")
         """
         if self.text:
             hydpy.pub.networkmanager.currentdir = str(self.text)
@@ -964,9 +983,9 @@ class XMLNetworkDefault(XMLNetworkBase):
     """Helper class for |XMLInterface| responsible for loading devices from network
     files when the XML file does not specify a network directory."""
 
-    def __init__(self, master: XMLInterface, text: Optional[str]) -> None:
+    def __init__(self, master: XMLInterface, text: str | None) -> None:
         self.master: XMLInterface = master
-        self.text: Optional[str] = text
+        self.text: str | None = text
 
 
 class XMLNetworkUserDefined(XMLBase, XMLNetworkBase):
@@ -974,18 +993,18 @@ class XMLNetworkUserDefined(XMLBase, XMLNetworkBase):
     files when the XML file specifies a network directory."""
 
     def __init__(
-        self, master: XMLInterface, root: ElementTree.Element, text: Optional[str]
+        self, master: XMLInterface, root: ElementTree.Element, text: str | None
     ) -> None:
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
-        self.text: Optional[str] = text
+        self.text: str | None = text
 
 
 class XMLControlBase:
     """Base class for |XMLControlDefault| and |XMLControlUserDefined|."""
 
     master: XMLInterface
-    text: Optional[str]
+    text: str | None
 
     def prepare_models(self) -> None:
         """Prepare the |Model| objects of all |Element| objects returned by
@@ -1019,9 +1038,9 @@ class XMLControlDefault(XMLControlBase):
     """Helper class for |XMLInterface| responsible for loading models from control
     files when the XML file does not specify a control directory."""
 
-    def __init__(self, master: XMLInterface, text: Optional[str]) -> None:
+    def __init__(self, master: XMLInterface, text: str | None) -> None:
         self.master: XMLInterface = master
-        self.text: Optional[str] = text
+        self.text: str | None = text
 
 
 class XMLControlUserDefined(XMLBase, XMLControlBase):
@@ -1029,11 +1048,11 @@ class XMLControlUserDefined(XMLBase, XMLControlBase):
     files when the XML file specifies a control directory."""
 
     def __init__(
-        self, master: XMLInterface, root: ElementTree.Element, text: Optional[str]
+        self, master: XMLInterface, root: ElementTree.Element, text: str | None
     ) -> None:
         self.master: XMLInterface = master
         self.root: ElementTree.Element = root
-        self.text: Optional[str] = text
+        self.text: str | None = text
 
 
 class XMLConditions(XMLBase):
@@ -1045,7 +1064,7 @@ class XMLConditions(XMLBase):
         self.root: ElementTree.Element = root
 
     def _determine_currentdir(
-        self, currentdir: Optional[str], type_: Literal["input", "output"], /
+        self, currentdir: str | None, type_: Literal["input", "output"], /
     ) -> str:
         if currentdir is not None:
             return currentdir
@@ -1056,7 +1075,7 @@ class XMLConditions(XMLBase):
         with conditionmanager.prefix(prefix):
             return getattr(conditionmanager, f"{type_}path")
 
-    def load_conditions(self, currentdir: Optional[str] = None) -> None:
+    def load_conditions(self, currentdir: str | None = None) -> None:
         """Load the condition files of the |Model| objects of all |Element| objects
         returned by |XMLInterface.elements|:
 
@@ -1096,9 +1115,9 @@ class XMLConditions(XMLBase):
             for element in self.master.elements:
                 element.model.load_conditions()
         finally:
-            cm.currentdir = None  # type: ignore[assignment]
+            cm.currentdir = None
 
-    def save_conditions(self, currentdir: Optional[str] = None) -> None:
+    def save_conditions(self, currentdir: str | None = None) -> None:
         """Save the condition files of the |Model| objects of all |Element| objects
         returned by |XMLInterface.elements|:
 
@@ -1119,7 +1138,7 @@ class XMLConditions(XMLBase):
         ...     interface.conditions_io.save_conditions()
         ...     dirpath = "HydPy-H-Lahn/conditions/init_1996_01_06"
         ...     with open(os.path.join(dirpath, "land_dill_assl.py")) as file_:
-        ...         print(file_.readlines()[12].strip())
+        ...         print(file_.readlines()[10].strip())
         ...     os.path.exists(os.path.join(dirpath, "land_lahn_leun.py"))
         lz(999.0)
         False
@@ -1144,7 +1163,7 @@ class XMLConditions(XMLBase):
                 if objecttools.value2bool(zip__, zip__):
                     cm.zip_currentdir()
         finally:
-            cm.currentdir = None  # type: ignore[assignment]
+            cm.currentdir = None
 
 
 class XMLSeries(XMLBase):
@@ -1188,20 +1207,20 @@ class XMLSeries(XMLBase):
         for ioseries in itertools.chain(self.readers, self.writers):
             ioseries.prepare_series()
 
-    def load_series(self, currentdir: Optional[str] = None) -> None:
+    def load_series(self, currentdir: str | None = None) -> None:
         """Call |XMLSubseries.load_series| of all |XMLSubseries| objects handled as
         "readers"."""
         for reader in self.readers:
             reader.load_series(currentdir)
 
-    def save_series(self, currentdir: Optional[str] = None) -> None:
+    def save_series(self, currentdir: str | None = None) -> None:
         """Call |XMLSubseries.load_series| of all |XMLSubseries| objects handled as
         "writers"."""
         for writer in self.writers:
             writer.save_series(currentdir)
 
     @contextlib.contextmanager
-    def modify_inputdir(self, currentdir: Optional[str] = None) -> Iterator[None]:
+    def modify_inputdir(self, currentdir: str | None = None) -> Iterator[None]:
         """Temporarily modify the |IOSequence.dirpath| of all |IOSequence| objects
         registered for reading time series data "just in time" during a simulation
         run."""
@@ -1214,7 +1233,7 @@ class XMLSeries(XMLBase):
                 reader.reset_dirpath()
 
     @contextlib.contextmanager
-    def modify_outputdir(self, currentdir: Optional[str] = None) -> Iterator[None]:
+    def modify_outputdir(self, currentdir: str | None = None) -> Iterator[None]:
         """Temporarily modify the |IOSequence.dirpath| of all |IOSequence| objects
         registered for writing time series data "just in time" during a simulation
         run."""
@@ -1259,7 +1278,7 @@ class XMLSelector(XMLBase):
         ...     print(seq.info, seq.selections.names)
         all input data ('from_keywords',)
         precipitation ('headwaters', 'from_devices')
-        soilmoisture ('complete',)
+        soilmoisture ('__complete__',)
         averaged ('from_selections',)
 
         If property |XMLSelector.selections| does not find any definitions, it raises
@@ -1275,7 +1294,7 @@ class XMLSelector(XMLBase):
 sure your XML file follows the relevant XML schema.
         """
         selections = self.find("selections")
-        master: Optional[XMLBase] = self
+        master: XMLBase | None = self
         while selections is None:
             master = getattr(master, "master", None)
             if master is None:
@@ -1296,7 +1315,7 @@ sure your XML file follows the relevant XML schema.
 
     def _get_devices(
         self, attr: Literal["nodes", "elements"]
-    ) -> Union[Iterator[devicetools.Node], Iterator[devicetools.Element]]:
+    ) -> Iterator[devicetools.Node] | Iterator[devicetools.Element]:
         """Extract all nodes or elements."""
         selections = copy.copy(self.selections)
         devices = set()
@@ -1375,7 +1394,7 @@ class XMLSubseries(XMLSelector):
     def _is_writer(self) -> bool:
         return not self._is_reader
 
-    def prepare_sequencemanager(self, currentdir: Optional[str] = None) -> None:
+    def prepare_sequencemanager(self, currentdir: str | None = None) -> None:
         """Configure the |SequenceManager| object available in module |pub| following
         the definitions of the actual XML `reader` or `writer` element when available;
         if not, use those of the XML `series_io` element or fall back to the default.
@@ -1717,7 +1736,7 @@ during a simulation run is not supported but tried for sequence `p` of element \
                 write_jit=sequence.diskflag_writing or args.write_jit,
             )
 
-    def load_series(self, currentdir: Optional[str]) -> None:
+    def load_series(self, currentdir: str | None) -> None:
         """Load time series data as defined by the actual XML `reader` element.
 
         >>> from hydpy.core.testtools import prepare_full_example_1
@@ -1749,7 +1768,7 @@ during a simulation run is not supported but tried for sequence `p` of element \
                     sequence.load_series()
             hydpy.pub.sequencemanager.close_netcdfreader()
 
-    def save_series(self, currentdir: Optional[str]) -> None:
+    def save_series(self, currentdir: str | None) -> None:
         """Save time series data as defined by the actual XML `writer` element.
 
         >>> from hydpy.core.testtools import prepare_full_example_1
@@ -1793,7 +1812,7 @@ during a simulation run is not supported but tried for sequence `p` of element \
                     sequence.save_series()
             hydpy.pub.sequencemanager.close_netcdfwriter()
 
-    def change_dirpath(self, currentdir: Optional[str]) -> None:
+    def change_dirpath(self, currentdir: str | None) -> None:
         """Set the |IOSequence.dirpath| of all relevant |IOSequence| objects to the
         |FileManager.currentpath| of the |SequenceManager| object available in the
         |pub| module.
@@ -1830,10 +1849,12 @@ class XMLExchange(XMLBase):
         items: list[_TypeGetOrChangeItem] = []
         for itemgroup in self.itemgroups:
             if (
-                issubclass(itemtype, itemtools.GetItem)
+                issubclass(itemtype, itemtools.GetItem)  # type: ignore[redundant-expr]
                 and (itemgroup.name == "getitems")
             ) or (
-                issubclass(itemtype, itemtools.ChangeItem)
+                issubclass(  # type: ignore[redundant-expr]
+                    itemtype, itemtools.ChangeItem
+                )
                 and (itemgroup.name != "getitems")
             ):
                 for var in (
@@ -2087,10 +2108,8 @@ class XMLVar(XMLSelector):
     """Helper class for |XMLSubvars| and |XMLNode| responsible for creating a defined
     exchange item."""
 
-    def __init__(
-        self, master: Union[XMLSubvars, XMLNode], root: ElementTree.Element
-    ) -> None:
-        self.master: Union[XMLSubvars, XMLNode] = master
+    def __init__(self, master: XMLSubvars | XMLNode, root: ElementTree.Element) -> None:
+        self.master: XMLSubvars | XMLNode = master
         self.root: ElementTree.Element = root
 
     @property
@@ -2523,8 +2542,8 @@ class XSDWriter:
                              type="hpcb:arma_rimorido_writerType"
                              minOccurs="0"/>
         ...
-                    <element name="wq_trapeze_strickler"
-                             type="hpcb:wq_trapeze_strickler_writerType"
+                    <element name="wq_widths_strickler"
+                             type="hpcb:wq_widths_strickler_writerType"
                              minOccurs="0"/>
                 </sequence>
             </complexType>
@@ -2557,7 +2576,7 @@ class XSDWriter:
     @classmethod
     def get_modelinsertion(
         cls, model: modeltools.Model, type_: str, indent: int
-    ) -> Optional[str]:
+    ) -> str | None:
         """Return the insertion string required for the given application model.
 
         >>> from hydpy.exe.xmltools import XSDWriter
@@ -2731,8 +2750,8 @@ class XSDWriter:
                              type="hpcb:arma_rimorido_writerType"
                              minOccurs="0"/>
         ...
-                    <element name="wq_trapeze_strickler"
-                             type="hpcb:wq_trapeze_strickler_writerType"
+                    <element name="wq_widths_strickler"
+                             type="hpcb:wq_widths_strickler_writerType"
                              minOccurs="0"/>
                 </sequence>
             </complexType>
@@ -2749,7 +2768,7 @@ class XSDWriter:
         for name in cls.get_applicationmodelnames():
             seqs = importtools.prepare_model(name).sequences
             if seqs.inputs or (
-                ((type_ == "writer") and (seqs.factors or seqs.fluxes or seqs.states))
+                (type_ == "writer") and (seqs.factors or seqs.fluxes or seqs.states)
             ):
                 subs.extend(
                     [

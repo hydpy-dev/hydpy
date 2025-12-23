@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 .. _`Pegasus method`: https://link.springer.com/article/10.1007/BF01932959
 """
@@ -67,13 +66,8 @@ class Pick_HS_V1(modeltools.Method):
         sequence |DHS|:
 
         >>> bl(3.0)
-        >>> with model.add_waterlevelmodel_v1("exch_waterlevel"):
-        ...     pass
-        >>> from hydpy import Element, Node
-        >>> wl = Node("wl", variable="WaterLevel")
-        >>> wl.sequences.sim = 5.0
-        >>> e = Element("e", receivers=wl, outlets="q")
-        >>> e.model = model
+        >>> with model.add_waterlevelmodel_v1("exch_waterlevel") as exch:
+        ...     exch.sequences.logs.loggedwaterlevel(5.0)
         >>> model.pick_hs_v1()
         >>> states.hs
         hs(2000.0)
@@ -3131,10 +3125,19 @@ class Calc_R_V1(modeltools.Method):
 
 
 class Pass_R_V1(modeltools.Method):
-    r"""Update the outlet link sequence.
+    """Update the outlet link sequence.
 
     Basic equation:
        :math:`Q = R`
+
+    Example:
+
+        >>> from hydpy.models.wland import *
+        >>> parameterstep()
+        >>> fluxes.r = 2.0
+        >>> model.pass_r_v1()
+        >>> outlets.q
+        q(2.0)
     """
 
     REQUIREDSEQUENCES = (wland_fluxes.R,)
@@ -3144,7 +3147,7 @@ class Pass_R_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.r
+        out.q = flu.r
 
 
 class Get_Temperature_V1(modeltools.Method):
@@ -3280,6 +3283,7 @@ class Model(modeltools.ELSModel):
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (Calc_PE_PET_V1, Calc_FR_V1, Calc_PM_V1)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = (Pick_HS_V1,)
     INTERFACE_METHODS = (
         Get_Temperature_V1,

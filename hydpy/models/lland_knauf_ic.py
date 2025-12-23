@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 |lland_knauf_ic| is still under development and likely to change in the future.  Its
@@ -72,6 +71,7 @@ ________________
 >>> nhru(1)
 >>> ft(1.0)
 >>> fhru(1.0)
+>>> gh(100.0)
 
 .. _lland_knauf_ic_acker_summer_daily:
 
@@ -80,6 +80,7 @@ acre (summer)
 
 >>> lnk(ACKER)
 >>> kg(0.94)
+>>> atg(-0.65)
 >>> kt(0.0)
 >>> hinz(0.2)
 >>> lai.acker_aug = 3.5
@@ -97,6 +98,7 @@ acre (summer)
 >>> rbeta(False)
 >>> dmax(r_dmax=0.55)
 >>> dmin(r_dmin=10.0)
+>>> bsf0(0.0)
 >>> bsf(0.3)
 >>> volbmax(inf)
 >>> gsbmax(1.0)
@@ -980,6 +982,7 @@ _________________
 
 >>> model.aetmodel.add_radiationmodel_v1(submodel_meteo_glob_morsim)
 
+>>> land.prepare_allseries(False)
 >>> test = IntegrationTest(land)
 
 .. _lland_knauf_ic_acker_summer_hourly:
@@ -1710,6 +1713,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (lland_model.Pick_QZ_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     INTERFACE_METHODS = (
         lland_model.Get_Temperature_V1,

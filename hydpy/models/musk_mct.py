@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 The |musk.DOCNAME.long| family member |musk_mct| realises a modification of the
@@ -98,6 +97,7 @@ We use the |wq_trapeze_strickler| submodel to configure the shape of a simple tr
 ...     bottomwidths(15.0)
 ...     sideslopes(5.0)
 ...     stricklercoefficients(1.0/0.035)
+...     calibrationfactors(1.0)
 
 |musk_mct| uses the catchment area for calculating the value of the solver parameter
 |ToleranceDischarge|, which determines the accuracy of the iterative estimation of the
@@ -1272,6 +1272,7 @@ class Model(modeltools.SegmentModel):
         musk_model.Adjust_Inflow_V1,
         musk_model.Update_Discharge_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         musk_model.Calc_ReferenceDischarge_V1,
@@ -1318,6 +1319,7 @@ class Model(modeltools.SegmentModel):
         ...     bottomwidths(15.0)
         ...     sideslopes(5.0)
         ...     stricklercoefficients(1.0/0.035)
+        ...     calibrationfactors(1.0)
 
         We apply |Model.prepare_states| for a constant discharge of 100 m³/s:
 
@@ -1360,6 +1362,7 @@ class Model(modeltools.SegmentModel):
         ...     bottomwidths(0.0)
         ...     sideslopes(2.0)
         ...     stricklercoefficients(40.0)
+        ...     calibrationfactors(1.0)
         >>> model.prepare_states(discharge=1e-20)
         >>> states.courantnumber
         courantnumber(0.000364)
@@ -1453,6 +1456,7 @@ class Model(modeltools.SegmentModel):
         ...     bottomlevels(1.0, 3.0)
         ...     sideslopes(2.0, 4.0)
         ...     bottomslope
+        ...     calibrationfactors(1.0)
         bottomslope(0.01)
 
         >>> model.wqmodel.parameters.control.nmbtrapezes

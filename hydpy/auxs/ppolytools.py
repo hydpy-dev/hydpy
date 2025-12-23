@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """This module implements interpolation approaches based on piecewise polynomials
 required for some models implemented in the *HydPy* framework.
 
@@ -259,11 +258,9 @@ polynomial function by passing at leas one `Poly` object.
     @classmethod
     def from_data(
         cls,
-        xs: VectorFloat,
-        ys: VectorFloat,
-        method: Union[
-            Literal["linear"], type[interpolate.CubicHermiteSpline]
-        ] = "linear",
+        xs: VectorInputFloat,
+        ys: VectorInputFloat,
+        method: Literal["linear"] | type[interpolate.CubicHermiteSpline] = "linear",
     ) -> PPoly:
         """Prepare a |PPoly| object based on x-y data.
 

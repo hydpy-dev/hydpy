@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=unused-wildcard-import
 """
 The |sw1d.DOCNAME.long| model family member |sw1d_weir_out| is a routing submodel,
@@ -27,11 +26,11 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
     )
     __HYDPY_ROOTMODEL__ = False
 
-    INLET_METHODS = ()
+    INLET_METHODS = (sw1d_model.Reset_DischargeVolume_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (
-        sw1d_model.Perform_Preprocessing_V2,
         sw1d_model.Determine_MaxTimeStep_V3,
         sw1d_model.Determine_Discharge_V3,
         sw1d_model.Get_MaxTimeStep_V1,
@@ -39,18 +38,15 @@ class Model(modeltools.AdHocModel, routinginterfaces.RoutingModel_V3):
         sw1d_model.Get_PartialDischargeDownstream_V1,
         sw1d_model.Get_DischargeVolume_V1,
         sw1d_model.Set_TimeStep_V1,
-        sw1d_model.Perform_Postprocessing_V2,
     )
     ADD_METHODS = (
-        sw1d_model.Reset_DischargeVolume_V1,
         sw1d_model.Calc_WaterLevelUpstream_V1,
         sw1d_model.Calc_WaterLevel_V3,
         sw1d_model.Calc_MaxTimeStep_V3,
         sw1d_model.Calc_Discharge_V2,
         sw1d_model.Update_DischargeVolume_V1,
-        sw1d_model.Pass_Discharge_V1,
     )
-    OUTLET_METHODS = ()
+    OUTLET_METHODS = (sw1d_model.Pass_Discharge_V1,)
     SENDER_METHODS = ()
     SUBMODELINTERFACES = (
         routinginterfaces.RoutingModel_V1,

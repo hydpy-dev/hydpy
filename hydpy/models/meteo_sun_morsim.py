@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
@@ -431,6 +430,7 @@ class Model(modeltools.AdHocModel, radiationinterfaces.RadiationModel_V1):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         meteo_model.Calc_EarthSunDistance_V1,

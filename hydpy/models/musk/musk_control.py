@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -85,7 +84,7 @@ class NmbSegments(parametertools.Parameter):
 
     def __call__(self, *args, **kwargs) -> None:
         self._keywordarguments = parametertools.KeywordArguments(False)
-        idx = self._find_kwargscombination(args, kwargs, (set(("lag",)),))
+        idx = self._find_kwargscombination(args, kwargs, ({"lag"},))
         if idx is None:
             super().__call__(*args, **kwargs)
         else:
@@ -280,9 +279,7 @@ with value `1.0` needed to be trimmed to `0.0`.
 
     def __call__(self, *args, **kwargs) -> None:
         self._keywordarguments = parametertools.KeywordArguments(False)
-        idx = self._find_kwargscombination(
-            args, kwargs, (set(("damp",)), set(("k", "x")))
-        )
+        idx = self._find_kwargscombination(args, kwargs, ({"damp"}, {"k", "x"}))
         if idx is None:
             super().__call__(*args, **kwargs)
         elif idx == 0:

@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # imports...
 # ...from site-packages
 import numpy
+from packaging import version
 
 # ...from HydPy
+import hydpy
 from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import modeltools
@@ -50,6 +51,16 @@ class Pick_QZ_V1(modeltools.Method):
 
     Basic equation:
       :math:`QZ = \sum Q_{inlets}`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> inlets.q.shape = 2
+        >>> inlets.q = 2.0, 4.0
+        >>> model.pick_qz_v1()
+        >>> fluxes.qz
+        qz(6.0)
     """
 
     REQUIREDSEQUENCES = (lland_inlets.Q,)
@@ -61,7 +72,7 @@ class Pick_QZ_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu.qz = 0.0
         for idx in range(inl.len_q):
-            flu.qz += inl.q[idx][0]
+            flu.qz += inl.q[idx]
 
 
 class Calc_QZH_V1(modeltools.Method):
@@ -468,34 +479,84 @@ class Calc_NKor_V1(modeltools.Method):
 
 
 class Calc_TKor_V1(modeltools.Method):
-    """Adjust the given air temperature value.
+    r"""Adjust the given air temperature value.
 
     Basic equation:
-      :math:`TKor = KT + TemL`
+      :math:`TKor = TemL + ATB \cdot (GH - MGH) / 100 + KT`
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(3)
+        >>> gh(100.0, 200.0, 300.0)
+        >>> atg(-0.5)
         >>> kt(-2.0, 0.0, 2.0)
+        >>> derived.mgh(200.0)
         >>> inputs.teml(1.0)
         >>> model.calc_tkor_v1()
         >>> fluxes.tkor
-        tkor(-1.0, 1.0, 3.0)
+        tkor(-0.5, 1.0, 2.5)
     """
 
-    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.KT)
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.GH,
+        lland_control.ATG,
+        lland_control.KT,
+    )
+    DERIVEDPARAMETERS = (lland_derived.MGH,)
     REQUIREDSEQUENCES = (lland_inputs.TemL,)
     RESULTSEQUENCES = (lland_fluxes.TKor,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nhru):
-            flu.tkor[k] = con.kt[k] + inp.teml
+            flu.tkor[k] = inp.teml + con.atg * (con.gh[k] - der.mgh) / 100.0 + con.kt[k]
+
+
+class Calc_ATKor_V1(modeltools.Method):
+    r"""Calculate the air temperature for calculating snowmelt above the "alpinity
+    thresholds |AGGH| and |AGSH|.
+
+    Basic equation:
+      :math:`ATKor = TKor - ATG \cdot max(GH - AGGH, \ 0) / 100.0`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(4)
+        >>> gh(1900.0, 2000.0, 2100.0, 2200.0)
+        >>> atg(-0.5)
+        >>> aggh(2000.0)
+        >>> fluxes.tkor(-1.0, -2.0, -3.0, -4.0)
+        >>> model.calc_atkor_v1()
+        >>> fluxes.atkor
+        atkor(-1.0, -2.0, -2.5, -3.0)
+    """
+
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.GH,
+        lland_control.ATG,
+        lland_control.AGGH,
+    )
+    REQUIREDSEQUENCES = (lland_fluxes.TKor,)
+    RESULTSEQUENCES = (lland_fluxes.ATKor,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            flu.atkor[k] = flu.tkor[k]
+            if con.gh[k] > con.aggh:
+                flu.atkor[k] -= con.atg * (con.gh[k] - con.aggh) / 100.0
 
 
 class Calc_WindSpeed2m_V1(modeltools.Method):
@@ -1826,6 +1887,52 @@ class Calc_WATS_V2(modeltools.Method):
                 sta.wats[k] += flu.sbes[k]
 
 
+class Calc_USG_WATS_WAeS_V1(modeltools.Method):
+    r"""Convert snow into glacier ice.
+
+    Basic equations:
+      .. math::
+        USG = FEis \cdot WAeS_{old} \\
+        WAeS_{new} = WAeS_{old} - USG
+        WATS_{new} = WATS_{old} - USG
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(5)
+        >>> lnk(GLETS, GLETS, GLETS, GLETS, ACKER)
+        >>> feis(0.02, 0.02, 0.0, 0.02, 0.02)
+        >>> states.waes = 20.0, 20.0, 20.0, 0.0, 20.0
+        >>> states.wats = 10.0, 0.1, 10.0, 0.0, 10.0
+        >>> model.calc_usg_wats_waes_v1()
+        >>> fluxes.usg
+        usg(0.2, 0.2, 0.0, 0.0, 0.0)
+        >>> states.waes
+        waes(19.8, 19.8, 20.0, 0.0, 20.0)
+        >>> states.wats
+        wats(9.8, 0.0, 10.0, 0.0, 10.0)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.FEis)
+    UPDATEDSEQUENCES = (lland_states.WAeS, lland_states.WATS)
+    RESULTSEQUENCES = (lland_fluxes.USG,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] == GLETS:
+                flu.usg[k] = con.feis[k] * sta.waes[k]
+                sta.waes[k] -= flu.usg[k]
+                sta.wats[k] = max(sta.wats[k] - flu.usg[k], 0.0)
+            else:
+                flu.usg[k] = 0.0
+
+
 class Calc_WaDa_WAeS_V1(modeltools.Method):
     """Add as much liquid precipitation to the snow cover as it is able to hold.
 
@@ -1941,6 +2048,38 @@ class Calc_WaDa_WAeS_V2(modeltools.Method):
                 sta.waes[k] -= flu.wada[k]
 
 
+class Update_WaDa_V1(modeltools.Method):
+    r"""Add glacial melt to the water reaching the soil.
+
+    Basic equations:
+      :math:`WaDa_{new} = WaDa_{old} + SchmGl`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(3)
+        >>> lnk(GLETS, GLETS, ACKER)
+        >>> fluxes.wada = 1.0, 2.0, 3.0
+        >>> fluxes.schmgl = 0.0, 5.0, 5.0
+        >>> model.update_wada_v1()
+        >>> fluxes.wada
+        wada(1.0, 7.0, 3.0)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    REQUIREDSEQUENCES = (lland_fluxes.SchmGl,)
+    UPDATEDSEQUENCES = (lland_fluxes.WaDa,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] == GLETS:
+                flu.wada[k] += flu.schmgl[k]
+
+
 class Calc_WGTF_V1(modeltools.Method):
     """Calculate the heat flux according to the degree-day method according to
     :cite:t:`ref-LARSIM`.
@@ -2008,6 +2147,51 @@ class Calc_WGTF_V1(modeltools.Method):
                 flu.wgtf[k] = con.gtf[k] * (flu.tkor[k] - con.treft[k]) * fix.rschmelz
 
 
+class Calc_AWGTF_V1(modeltools.Method):
+    r"""Calculate the heat flux above the "alpinity thresholds" |AGGH| and |AGSH|
+    according to the degree-day method analogous to method |Calc_WGTF_V1|.
+
+    Basic equation:
+      :math:`AWGTF = GTF \cdot (ATKor - TRefT) \cdot RSchmelz`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(6)
+        >>> lnk(FLUSS, SEE, LAUBW, ACKER, ACKER, LAUBW)
+        >>> gtf(5.0)
+        >>> treft(0.0)
+        >>> trefn(1.0)
+        >>> fluxes.atkor = 1.0, 1.0, 1.0, 1.0, 0.0, -1.0
+        >>> model.calc_awgtf_v1()
+        >>> fluxes.awgtf
+        awgtf(0.0, 0.0, 19.328704, 19.328704, 0.0, -19.328704)
+    """
+
+    CONTROLPARAMETERS = (
+        lland_control.NHRU,
+        lland_control.Lnk,
+        lland_control.GTF,
+        lland_control.TRefT,
+    )
+    FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
+    REQUIREDSEQUENCES = (lland_fluxes.ATKor,)
+    RESULTSEQUENCES = (lland_fluxes.AWGTF,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.awgtf[k] = 0.0
+            else:
+                flu.awgtf[k] = con.gtf[k] * (flu.atkor[k] - con.treft[k]) * fix.rschmelz
+
+
 class Calc_WNied_V1(modeltools.Method):
     """Calculate the heat flux into the snow layer due to the total amount
     of ingoing precipitation (:cite:t:`ref-LARSIM`, modified).
@@ -2052,6 +2236,50 @@ class Calc_WNied_V1(modeltools.Method):
                 d_ice = fix.cpeis * flu.sbes[k]
                 d_water = fix.cpwasser * (flu.nbes[k] - flu.sbes[k])
                 flu.wnied[k] = (flu.tkor[k] - con.trefn[k]) * (d_ice + d_water)
+
+
+class Calc_AWNied_V1(modeltools.Method):
+    r"""Calculate the heat flux into the snow layer above the "alpinity thresholds"
+    |AGGH| and |AGSH| due to the total amount of ingoing precipitation analogous to
+    method |Calc_WNied_V1|.
+
+    Basic equation:
+      :math:`AWNied = \big( ATKor - TRefN \big) \cdot
+      \big( CPEis \cdot SBes + CPWasser \cdot (NBes - SBes) \big)`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(5)
+        >>> lnk(ACKER, ACKER, ACKER, ACKER, WASSER)
+        >>> trefn(-2.0, 2.0, 2.0, 2.0, 2.0)
+        >>> fluxes.atkor(1.0)
+        >>> fluxes.nbes = 10.0
+        >>> fluxes.sbes = 0.0, 0.0, 5.0, 10.0, 10.0
+        >>> model.calc_awnied_v1()
+        >>> fluxes.awnied
+        awnied(2.9075, -0.969167, -0.726481, -0.483796, 0.0)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.TRefN)
+    FIXEDPARAMETERS = (lland_fixed.CPWasser, lland_fixed.CPEis)
+    REQUIREDSEQUENCES = (lland_fluxes.ATKor, lland_fluxes.NBes, lland_fluxes.SBes)
+    RESULTSEQUENCES = (lland_fluxes.AWNied,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] in (WASSER, FLUSS, SEE):
+                flu.awnied[k] = 0.0
+            else:
+                d_ice = fix.cpeis * flu.sbes[k]
+                d_water = fix.cpwasser * (flu.nbes[k] - flu.sbes[k])
+                flu.awnied[k] = (flu.atkor[k] - con.trefn[k]) * (d_ice + d_water)
 
 
 class Calc_WNied_ESnow_V1(modeltools.Method):
@@ -4241,27 +4469,51 @@ class Update_ESnow_V1(modeltools.Method):
 
 
 class Calc_SchmPot_V1(modeltools.Method):
-    """Calculate the potential snow melt according to the day degree method.
+    r"""Calculate the potential snow melt according to the degree-day method below and
+    above the "alpinity thresholds" |AGGH| and |AGSH| and determine their weighted
+    average.
 
     Basic equation:
-      :math:`SchmPot = max\\left(\\frac{WGTF + WNied}{RSchmelz}, 0\\right)`
+      .. math::
+        SchmPot = \begin{cases}
+        p &|\ WAeS \leq AGSH
+        \\
+        w \cdot p + (1 - w) \cdot p_a
+        &|\
+        AGSH < WAeS
+        \end{cases}
+        \\ \\
+        p = max \big( (WGTF + WNied) / RSchmelz, \ 0 \big) \\
+        p_a = max \big( (AWGTF + AWNied) / RSchmelz, \ 0 \big) \\
+        w = AGSH / WAES
 
     Example:
 
         >>> from hydpy.models.lland import *
         >>> simulationstep("12h")
         >>> parameterstep("1d")
-        >>> nhru(2)
-        >>> fluxes.wgtf = 20.0
-        >>> fluxes.wnied = 10.0, 20.0
+        >>> nhru(8)
+        >>> agsh(2000.0)
+        >>> states.waes = 1000.0, 1000.0, 2000.0, 2000.0, 3000.0, 3000.0, 4000.0, 4000.0
+        >>> fluxes.wgtf = 20.0, 30.0, 20.0, 30.0, 20.0, 30.0, 20.0, 30.0
+        >>> fluxes.awgtf = 40.0, 60.0, 40.0, 60.0, 40.0, 60.0, 40.0, 60.0
+        >>> fluxes.awnied = 20.0, 40.0, 20.0, 40.0, 20.0, 40.0, 20.0, 40.0
+        >>> fluxes.wnied = 10.0, 20.0, 10.0, 20.0, 10.0, 20.0, 10.0, 20.0
         >>> model.calc_schmpot_v1()
         >>> fluxes.schmpot
-        schmpot(3.88024, 5.173653)
+        schmpot(3.88024, 6.467066, 3.88024, 6.467066, 5.173653, 8.622754,
+                5.820359, 9.700599)
     """
 
-    CONTROLPARAMETERS = (lland_control.NHRU,)
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.AGSH)
     FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
-    REQUIREDSEQUENCES = (lland_fluxes.WGTF, lland_fluxes.WNied)
+    REQUIREDSEQUENCES = (
+        lland_states.WAeS,
+        lland_fluxes.WGTF,
+        lland_fluxes.AWGTF,
+        lland_fluxes.WNied,
+        lland_fluxes.AWNied,
+    )
     RESULTSEQUENCES = (lland_fluxes.SchmPot,)
 
     @staticmethod
@@ -4269,8 +4521,15 @@ class Calc_SchmPot_V1(modeltools.Method):
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
         for k in range(con.nhru):
-            flu.schmpot[k] = max((flu.wgtf[k] + flu.wnied[k]) / fix.rschmelz, 0.0)
+            p1: float = max((flu.wgtf[k] + flu.wnied[k]) / fix.rschmelz, 0.0)
+            if sta.waes[k] > con.agsh:
+                p2: float = max((flu.awgtf[k] + flu.awnied[k]) / fix.rschmelz, 0.0)
+                w1: float = con.agsh / sta.waes[k]
+                flu.schmpot[k] = w1 * p1 + (1.0 - w1) * p2
+            else:
+                flu.schmpot[k] = p1
 
 
 class Calc_SchmPot_V2(modeltools.Method):
@@ -4309,6 +4568,47 @@ class Calc_SchmPot_V2(modeltools.Method):
                 flu.schmpot[k] = max(sta.esnow[k] / fix.rschmelz, 0.0)
             else:
                 flu.schmpot[k] = 0.0
+
+
+class Calc_SchmPotGl_V1(modeltools.Method):
+    r"""Calculate the potential glacier melt according to the degree-day method.
+
+    Basic equation:
+      .. math::
+        SchmPotGl = max \big( GSF \cdot (WGTF + WNied) / RSchmelz, \ 0 \big)
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(4)
+        >>> lnk(GLETS, GLETS, GLETS, ACKER)
+        >>> gsf(2.0)
+        >>> fluxes.wgtf = -20.0, 0.0, 20.0, 20.0
+        >>> fluxes.wnied = -10.0, 0.0, 10.0, 10.0
+        >>> model.calc_schmpotgl_v1()
+        >>> fluxes.schmpotgl
+        schmpotgl(0.0, 0.0, 7.760479, 0.0)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk, lland_control.GSF)
+    FIXEDPARAMETERS = (lland_fixed.RSchmelz,)
+    REQUIREDSEQUENCES = (lland_fluxes.WGTF, lland_fluxes.WNied)
+    RESULTSEQUENCES = (lland_fluxes.SchmPotGl,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        fix = model.parameters.fixed.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if con.lnk[k] == GLETS:
+                flu.schmpotgl[k] = max(
+                    con.gsf * (flu.wgtf[k] + flu.wnied[k]) / fix.rschmelz, 0.0
+                )
+            else:
+                flu.schmpotgl[k] = 0.0
 
 
 class Calc_GefrPot_V1(modeltools.Method):
@@ -4408,6 +4708,47 @@ class Calc_Schm_WATS_V1(modeltools.Method):
             else:
                 flu.schm[k] = min(flu.schmpot[k], sta.wats[k])
                 sta.wats[k] -= flu.schm[k]
+
+
+class Calc_SchmGl_V1(modeltools.Method):
+    r"""Calculate the actual glacier melt.
+
+    Basic equations:
+      .. math::
+        SchmGl = \big( 1 - Schm / SchmPot \big) \cdot SchmPotGl
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(5)
+        >>> lnk(GLETS, GLETS, GLETS, GLETS, ACKER)
+        >>> fluxes.schmpot = 4.0
+        >>> fluxes.schm = 0.0, 1.0, 4.0, 5.0, 0.0
+        >>> fluxes.schmpotgl = 2.0
+        >>> model.calc_schmgl_v1()
+        >>> fluxes.schmgl
+        schmgl(2.0, 1.5, 0.0, 0.0, 0.0)
+    """
+
+    CONTROLPARAMETERS = (lland_control.NHRU, lland_control.Lnk)
+    REQUIREDSEQUENCES = (
+        lland_fluxes.SchmPotGl,
+        lland_fluxes.SchmPot,
+        lland_fluxes.Schm,
+    )
+    RESULTSEQUENCES = (lland_fluxes.SchmGl,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        for k in range(con.nhru):
+            if (con.lnk[k] == GLETS) and (flu.schmpot[k] > 0.0):
+                w: float = max(1.0 - flu.schm[k] / flu.schmpot[k], 0.0)
+                flu.schmgl[k] = w * flu.schmpotgl[k]
+            else:
+                flu.schmgl[k] = 0.0
 
 
 class Calc_Gefr_WATS_V1(modeltools.Method):
@@ -4682,6 +5023,7 @@ class Calc_EvB_AETModel_V1(modeltools.Method):
         >>> lnk(VERS, ACKER, ACKER, MISCHW, WASSER)
         >>> ft(1.0)
         >>> fhru(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> gh(100.0)
         >>> wmax(100.0)
         >>> with model.add_aetmodel_v1("evap_aet_minhas"):
         ...     dissefactor(5.0)
@@ -4819,6 +5161,7 @@ class Calc_EvI_Inzp_AETModel_V1(modeltools.Method):
         >>> lnk(VERS, ACKER, ACKER, MISCHW, WASSER)
         >>> ft(1.0)
         >>> fhru(0.05, 0.1, 0.2, 0.3, 0.35)
+        >>> gh(100.0)
         >>> derived.kinz.jun = 3.0
         >>> wmax(50.0)
         >>> derived.moy.shape = 1
@@ -5290,38 +5633,40 @@ class Calc_QIB2_V1(modeltools.Method):
 
 
 class Calc_QDB_V1(modeltools.Method):
-    """Calculate direct runoff released from the soil.
+    r"""Calculate direct runoff released from the soil.
 
     Basic equations:
       .. math::
-        QDB = \\begin{cases}
-        max\\bigl(Exz, 0\\bigl)
-        &|\\
-        SfA \\leq 0
-        \\\\
-        max\\bigl(Exz + WMax \\cdot SfA^{BSf+1}, 0\\bigl)
-        &|\\
+        QDB = \begin{cases}
+        max\bigl(Exz, \, 0\bigl)
+        &|\
+        SfA \leq 0
+        \\
+        max\bigl(Exz + WMax^* \cdot SfA^{BSf+1}, \, 0\bigl)
+        &|\
         SfA > 0
-        \\end{cases}
-
-      :math:`SFA = \\left(1 - \\frac{BoWa}{WMax}\\right)^\\frac{1}{BSf+1} -
-      \\frac{WaDa}{(BSf+1) \\cdot WMax}`
-
-      :math:`Exz = (BoWa + WaDa) - WMax`
+        \end{cases}
+        \\ \\
+        SFA = \left(1 - \frac{BoWa^*}{WMax^*}\right)^\frac{1}{BSf+1} -
+        \frac{WaDa}{(BSf+1) \cdot WMax}
+        \\ \\
+        Exz = (BoWa^* + WaDa) - WMax^* \\
+        BoWa^* = BoWa - (BSf0 \cdot WMax) \\
+        WMax^* = (1 - BSf0) \cdot WMax
 
     Examples:
 
-        For water areas (|FLUSS| and |SEE|), sealed areas (|VERS|), and
-        areas without any soil storage capacity, all water is completely
-        routed as direct runoff |QDB| (see the first four HRUs).  No
-        principal distinction is made between the remaining land use
-        classes (arable land |ACKER| has been selected for the last five
-        HRUs arbitrarily):
+        For water areas (|FLUSS| and |SEE|), sealed areas (|VERS|), and areas without
+        any soil storage capacity, all water is completely routed as direct runoff
+        |QDB| (see the first four HRUs).  No principal distinction is made between the
+        remaining land use classes (arable land |ACKER| has been selected for the last
+        five HRUs arbitrarily):
 
         >>> from hydpy.models.lland import *
         >>> parameterstep()
         >>> nhru(9)
         >>> lnk(FLUSS, SEE, VERS, ACKER, ACKER, ACKER, ACKER, ACKER, ACKER)
+        >>> bsf0(0.0)
         >>> bsf(0.4)
         >>> wmax(100.0, 100.0, 100.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0)
         >>> fluxes.wada = 10.0
@@ -5331,17 +5676,29 @@ class Calc_QDB_V1(modeltools.Method):
         >>> fluxes.qdb
         qdb(10.0, 10.0, 10.0, 10.0, 0.142039, 0.144959, 1.993649, 10.0, 10.1)
 
-        With the common |BSf| value of 0.4, the discharge coefficient
-        increases more or less exponentially with soil moisture.
-        For soil moisture values slightly below zero or above usable
-        field capacity, plausible amounts of generated direct runoff
-        are ensured.
+        With a standard |BSf| value of 0.4, the discharge coefficient increases more or
+        less exponentially with soil moisture.  For soil moisture values slightly below
+        zero or above usable field capacity, plausible amounts of generated direct
+        runoff are ensured.
+
+        You can use parameter |BSf0| to define the relative soil moisture below which
+        direct runoff generation should be suppressed:
+
+        >>> lnk(ACKER)
+        >>> bsf0(0.5)
+        >>> wmax(100.0)
+        >>> states.bowa = 40.0, 45.0, 50.0, 55.0, 60.0, 70.0, 80.0, 90.0, 100.0
+        >>> model.calc_qdb_v1()
+        >>> fluxes.qdb
+        qdb(0.0, 0.005963, 0.294382, 0.605281, 0.943351, 1.729619, 2.752723,
+            4.319298, 10.0)
     """
 
     CONTROLPARAMETERS = (
         lland_control.NHRU,
         lland_control.Lnk,
         lland_control.WMax,
+        lland_control.BSf0,
         lland_control.BSf,
     )
     REQUIREDSEQUENCES = (lland_fluxes.WaDa, lland_states.BoWa)
@@ -5358,16 +5715,15 @@ class Calc_QDB_V1(modeltools.Method):
             elif (con.lnk[k] in (VERS, FLUSS, SEE)) or (con.wmax[k] <= 0.0):
                 flu.qdb[k] = flu.wada[k]
             else:
-                if sta.bowa[k] < con.wmax[k]:
-                    d_sfa = (1.0 - sta.bowa[k] / con.wmax[k]) ** (
-                        1.0 / (con.bsf[k] + 1.0)
-                    ) - (flu.wada[k] / ((con.bsf[k] + 1.0) * con.wmax[k]))
-                else:
-                    d_sfa = 0.0
-                d_exz = sta.bowa[k] + flu.wada[k] - con.wmax[k]
-                flu.qdb[k] = d_exz
-                if d_sfa > 0.0:
-                    flu.qdb[k] += d_sfa ** (con.bsf[k] + 1.0) * con.wmax[k]
+                bowa: float = sta.bowa[k] - (con.bsf0[k] * con.wmax[k])
+                wmax: float = (1.0 - con.bsf0[k]) * con.wmax[k]
+                flu.qdb[k] = bowa + flu.wada[k] - wmax
+                if bowa < wmax:
+                    sfa: float = (1.0 - bowa / wmax) ** (1.0 / (con.bsf[k] + 1.0)) - (
+                        flu.wada[k] / ((con.bsf[k] + 1.0) * wmax)
+                    )
+                    if sfa > 0.0:
+                        flu.qdb[k] += sfa ** (con.bsf[k] + 1.0) * wmax
                 flu.qdb[k] = max(flu.qdb[k], 0.0)
 
 
@@ -6968,6 +7324,15 @@ class Pass_QA_V1(modeltools.Method):
 
     Basic equation:
        :math:`Q_{outlets} = QA`
+
+    Example:
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> fluxes.qa = 2.0
+        >>> model.pass_qa_v1()
+        >>> outlets.q
+        q(2.0)
     """
 
     REQUIREDSEQUENCES = (lland_fluxes.QA,)
@@ -6977,7 +7342,7 @@ class Pass_QA_V1(modeltools.Method):
     def __call__(model: modeltools.Model) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
-        out.q[0] += flu.qa
+        out.q = flu.qa
 
 
 class Get_Temperature_V1(modeltools.Method):
@@ -7213,6 +7578,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_QZ_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     INTERFACE_METHODS = (
         Get_Temperature_V1,
@@ -7262,6 +7628,7 @@ class Model(modeltools.AdHocModel):
         Calc_DailyPossibleSunshineDuration_V1,
         Calc_NKor_V1,
         Calc_TKor_V1,
+        Calc_ATKor_V1,
         Calc_WindSpeed2m_V1,
         Calc_ReducedWindSpeed2m_V1,
         Calc_SaturationVapourPressure_V1,
@@ -7290,10 +7657,14 @@ class Model(modeltools.AdHocModel):
         Update_ESnowInz_V2,
         Calc_WATS_V1,
         Calc_WATS_V2,
+        Calc_USG_WATS_WAeS_V1,
         Calc_WaDa_WAeS_V1,
         Calc_WaDa_WAeS_V2,
+        Update_WaDa_V1,
         Calc_WGTF_V1,
+        Calc_AWGTF_V1,
         Calc_WNied_V1,
+        Calc_AWNied_V1,
         Calc_WNied_ESnow_V1,
         Calc_TZ_V1,
         Calc_WG_V1,
@@ -7308,8 +7679,10 @@ class Model(modeltools.AdHocModel):
         Calc_EvB_V1,
         Calc_SchmPot_V1,
         Calc_SchmPot_V2,
+        Calc_SchmPotGl_V1,
         Calc_GefrPot_V1,
         Calc_Schm_WATS_V1,
+        Calc_SchmGl_V1,
         Calc_Gefr_WATS_V1,
         Calc_EvS_WAeS_WATS_V1,
         Update_WaDa_WAeS_V1,
@@ -7429,6 +7802,11 @@ class _Main_AETModel_V1(modeltools.AdHocModel):
         aetmodel.prepare_nmbzones(nhru)
         aetmodel.prepare_zonetypes(lnk)
         aetmodel.prepare_subareas(control.fhru.values * control.ft.value)
+        if version.Version(hydpy.__version__).major < 8:
+            control.gh.update()
+        else:
+            assert False
+        aetmodel.prepare_elevations(control.gh.values)
         aetmodel.prepare_leafareaindex(control.lai.values)
         aetmodel.prepare_maxsoilwater(control.wmax.values)
         sel = numpy.full(nhru, False, dtype=config.NP_BOOL)
@@ -7461,6 +7839,7 @@ class Main_AETModel_V1A(_Main_AETModel_V1):
         aetinterfaces.AETModel_V1.prepare_nmbzones,
         aetinterfaces.AETModel_V1.prepare_zonetypes,
         aetinterfaces.AETModel_V1.prepare_subareas,
+        aetinterfaces.AETModel_V1.prepare_elevations,
         aetinterfaces.AETModel_V1.prepare_water,
         aetinterfaces.AETModel_V1.prepare_interception,
         aetinterfaces.AETModel_V1.prepare_soil,
@@ -7491,6 +7870,7 @@ class Main_AETModel_V1A(_Main_AETModel_V1):
         >>> nhru(9)
         >>> ft(10.0)
         >>> fhru(0.07, 0.08, 0.09, 0.1, 0.11, 0.12, 0.13, 0.14, 0.16)
+        >>> gh(100.0)
         >>> lnk(ACKER, LAUBW, NADELW, VERS, WASSER, FLUSS, SEE, BODEN, GLETS)
         >>> lai(1.0)
         >>> lai.acker_jan = 2.0
@@ -7529,6 +7909,7 @@ glets=1.1)
         prepare_nmbzones: 9
         prepare_zonetypes: [ 4 14 13  3 16 17 18  7  8]
         prepare_subareas: [0.7 0.8 0.9 1.  1.1 1.2 1.3 1.4 1.6]
+        prepare_elevations: [100. 100. 100. 100. 100. 100. 100. 100. 100.]
         prepare_leafareaindex: [[1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.]
         ...
         prepare_maxsoilwater: [50. 50. 50. 50. 50. 50. 50. 50. 50.]
@@ -7599,6 +7980,7 @@ class Main_AETModel_V1B(_Main_AETModel_V1):
         >>> nhru(2)
         >>> ft(10.0)
         >>> fhru(0.5, 0.5)
+        >>> gh(100.0)
         >>> lnk(ACKER, LAUBW)
         >>> measuringheightwindspeed(10.0)
         >>> lai(1.0)

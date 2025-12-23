@@ -1,8 +1,9 @@
-# -*- coding: utf-8 -*-
 """This module implements so-called exchange items that simplify modifying the values
 of |Parameter| and |Sequence_| objects."""
+
 # import...
 # ...from standard library
+from __future__ import annotations
 import itertools
 import warnings
 
@@ -21,11 +22,11 @@ from hydpy.core import sequencetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
-Device2Target = dict[
-    Union[devicetools.Node, devicetools.Element], variabletools.Variable
+Device2Target: TypeAlias = dict[
+    devicetools.Node | devicetools.Element, variabletools.Variable
 ]
-Selection2Targets = dict[str, tuple[variabletools.Variable, ...]]
-LevelType = Literal["global", "selection", "device", "subunit"]
+Selection2Targets: TypeAlias = dict[str, tuple[variabletools.Variable, ...]]
+LevelType: TypeAlias = Literal["global", "selection", "device", "subunit"]
 
 
 class ExchangeSpecification:
@@ -71,17 +72,17 @@ keyword="lag")
     "hland_96")."""
     variable: str
     """Name of the target or base variable."""
-    keyword: Optional[str]
+    keyword: str | None
     """(Optional) name of the target keyword argument of the target or base variable."""
     series: bool
     """Flag indicating whether to tackle the target variable's actual values (|False|)
     or complete time series (|True|)."""
-    subgroup: Optional[str]
+    subgroup: str | None
     """For model variables, the name of the parameter or sequence subgroup of the
     target or base variable; for node sequences, |None|."""
 
     def __init__(
-        self, *, master: str, variable: str, keyword: Optional[str] = None
+        self, *, master: str, variable: str, keyword: str | None = None
     ) -> None:
         self.master = master
         entries = variable.split(".")
@@ -343,8 +344,8 @@ class ChangeItem(ExchangeItem):
 
     level: LevelType
     """The level at which the values of the change item are valid."""
-    _shape: Optional[Union[tuple[()], tuple[int]]]
-    _value: Optional[NDArrayFloat]
+    _shape: tuple[()] | tuple[int] | None
+    _value: NDArrayFloat | None
 
     @property
     def ndim(self) -> int:
@@ -352,7 +353,7 @@ class ChangeItem(ExchangeItem):
         return (self.level != "global") + self.targetspecs.series
 
     @property
-    def shape(self) -> Union[tuple[()], tuple[int]]:
+    def shape(self) -> tuple[()] | tuple[int]:
         """The shape of the target variables.
 
         Trying to access property |ChangeItem.shape| before calling method
@@ -374,7 +375,7 @@ class ChangeItem(ExchangeItem):
         )
 
     @property
-    def seriesshape(self) -> Union[tuple[int], tuple[int, int]]:
+    def seriesshape(self) -> tuple[int] | tuple[int, int]:
         """The shape of the target variables' whole time series.
 
         |ChangeItem.seriesshape| extends the |ChangeItem.shape| tuple by the length of
@@ -382,7 +383,6 @@ class ChangeItem(ExchangeItem):
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
         >>> from hydpy import SetItem
         >>> for level in ("global", "selection", "device",  "subunit"):
         ...     item = SetItem(name="t", master="hland", target="inputs.t.series",
@@ -399,7 +399,7 @@ class ChangeItem(ExchangeItem):
         return (len(hydpy.pub.timegrids.sim),)
 
     @property
-    def subnames(self) -> Optional[Union[tuple[()], tuple[str, ...]]]:
+    def subnames(self) -> tuple[()] | tuple[str, ...] | None:
         """Artificial subnames of all values of all target variables.
 
         Property |ChangeItem.subnames| offers a way to identify specific entries of the
@@ -430,7 +430,6 @@ class ChangeItem(ExchangeItem):
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
 
         The first example deals with "global" state values:
 
@@ -497,13 +496,10 @@ occurred: could not broadcast input array from shape (2,) into shape (2,4)
         |ExchangeItem| and determine the |ChangeItem.shape| of the current |ChangeItem|
         object afterwards.
 
-        For the following examples, we prepare the `HydPy-H-Lahn` example project and
-        remove the "complete" selection from the |Selections| object available in
-        module |pub|:
+        For the following examples, we prepare the `HydPy-H-Lahn` example project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
 
         After calling method |ChangeItem.collect_variables|, attribute
         |ExchangeItem.device2target| assigns all relevant devices to the chosen target
@@ -708,13 +704,10 @@ given value `wrong` cannot be converted to type `float`.
         """Assign the current |ChangeItem.value| to the values or time series of the
         target variables.
 
-        For the following examples, we prepare the `HydPy-H-Lahn` example project and
-        remove the "complete" selection from the |Selections| object available in
-        module |pub|:
+        For the following examples, we prepare the `HydPy-H-Lahn` example project:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
-        >>> del pub.selections["complete"]
 
         "Global" |SetItem| objects assign the same value to all chosen 0-dimensional
         target variables (we use parameter |hland_control.Alpha| as an example):
@@ -983,7 +976,7 @@ class SetItem(ChangeItem):
         master: str,
         target: str,
         level: LevelType,
-        keyword: Optional[str] = None,
+        keyword: str | None = None,
     ) -> None:
         self.name = Name(name)
         self.targetspecs = ExchangeSpecification(
@@ -1468,12 +1461,10 @@ class AddItem(MathItem):
     value(s) and the value(s) of the related base variable to update the value(s) of
     the target variable.
 
-    We prepare the `HydPy-H-Lahn` example project and remove the "complete" selection
-    from the |Selections| object available in module |pub|:
+    We prepare the `HydPy-H-Lahn` example project:
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
-    >>> del pub.selections["complete"]
 
     We use the rainfall correction parameter (|hland_control.RfCF|) of the application
     model |hland_96| as the base variable.  Defining a different correction factor for
@@ -1589,7 +1580,6 @@ class MultiplyItem(MathItem):
 
     >>> from hydpy.core.testtools import prepare_full_example_2
     >>> hp, pub, TestIO = prepare_full_example_2()
-    >>> del pub.selections["complete"]
 
     >>> value = 0.8
     >>> for element in hp.elements.catchment:
@@ -1657,8 +1647,8 @@ class GetItem(ExchangeItem):
     """Base class for querying the values of multiple |Parameter| or |Sequence_|
     objects of a specific type."""
 
-    _device2name: dict[Union[devicetools.Node, devicetools.Element], Name]
-    _ndim: Optional[int] = None
+    _device2name: dict[devicetools.Node | devicetools.Element, Name]
+    _ndim: int | None = None
 
     def __init__(self, *, name: Name, master: str, target: str) -> None:
         self.name = name
@@ -1723,7 +1713,7 @@ class GetItem(ExchangeItem):
 
     def yield_name2subnames(
         self,
-    ) -> Iterator[tuple[Name, Union[str, tuple[()], tuple[str, ...]]]]:
+    ) -> Iterator[tuple[Name, str | tuple[()] | tuple[str, ...]]]:
         """Sequentially return pairs of the item name and its artificial sub-names.
 
         The purpose and definition of the sub-names are similar to those returned by
@@ -1790,7 +1780,7 @@ class GetItem(ExchangeItem):
                 yield name, tuple(subnames)
 
     def yield_name2value(
-        self, idx1: Optional[int] = None, idx2: Optional[int] = None
+        self, idx1: int | None = None, idx2: int | None = None
     ) -> Iterator[tuple[Name, str]]:
         """Sequentially return name-value pairs describing the current state of the
         target variables.

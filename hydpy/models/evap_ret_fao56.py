@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 |evap_ret_fao56| follows the guideline provided by :cite:t:`ref-Allen1998`.  However,
@@ -219,6 +218,7 @@ class Model(
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         evap_model.Process_RadiationModel_V1,

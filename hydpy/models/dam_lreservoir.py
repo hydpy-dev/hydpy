@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
@@ -57,6 +56,7 @@ between stage and volume:
 >>> weightevaporation(0.8)
 >>> thresholdevaporation(0.0)
 >>> toleranceevaporation(0.001)
+>>> commission("1900-01-01")
 >>> with model.add_precipmodel_v2("meteo_precip_io") as precipmodel:
 ...     precipitationfactor(1.0)
 >>> precipmodel.prepare_inputseries()
@@ -456,10 +456,49 @@ There is no indication of an error in the water balance:
 
 >>> round_(model.check_waterbalance(conditions))
 0.0
+
+.. _dam_lreservoir_commissioning:
+
+commissioning
+_____________
+
+This example extends the previous one with the commissioning mechanism shown and
+discussed in the :ref:`analogue example <dam_llake_commissioning>` of application model
+|dam_llake|:
+
+.. integration-test::
+
+    >>> commission("2000-01-04")
+    >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 50.0
+    >>> test("dam_lreservoir_commissioning")
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |        0.0 |           0.0 |                   0.0 |                 50.0 |                 0.8 |               0.0 |    0.0 |           0.0 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
+    | 02.01. |        0.0 |          50.0 |                   1.0 |                 50.0 |                0.96 |              0.96 |    0.0 |           0.0 |            0.0 |     0.04 |         0.0 |    0.0 |     0.04 |
+    | 03.01. |        0.0 |           0.0 |                   0.0 |                 50.0 |               0.992 |             0.992 |    6.0 |           0.0 |            0.0 |    5.008 |         0.0 |    6.0 |    5.008 |
+    | 04.01. |   0.774444 |           0.0 |                   0.0 |                 50.0 |              0.9984 |          0.998245 |   12.0 |      2.038238 |       0.000039 | 2.038277 |    0.774444 |   12.0 | 2.038277 |
+    | 05.01. |    1.20612 |           0.0 |                   0.0 |                 50.0 |             0.99968 |           0.99968 |   10.0 |           4.0 |       0.004079 | 4.004079 |     1.20612 |   10.0 | 4.004079 |
+    | 06.01. |   1.290108 |           0.0 |                   0.0 |                 50.0 |            0.999936 |          0.999936 |    6.0 |           4.0 |       0.027972 | 4.027972 |    1.290108 |    6.0 | 4.027972 |
+    | 07.01. |   1.115626 |           0.0 |                   0.0 |                 50.0 |            0.999987 |          0.999987 |    3.0 |           4.0 |       0.019481 | 4.019481 |    1.115626 |    3.0 | 4.019481 |
+    | 08.01. |   0.856204 |           0.0 |                   0.0 |                 50.0 |            0.999997 |          0.999997 |    2.0 |           4.0 |       0.002572 | 4.002572 |    0.856204 |    2.0 | 4.002572 |
+    | 09.01. |   0.534856 |           0.0 |                   0.0 |                 50.0 |            0.999999 |          0.999999 |    1.0 |      3.719161 |       0.000152 | 3.719313 |    0.534856 |    1.0 | 3.719313 |
+    | 10.01. |   0.429684 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               1.0 |    0.0 |      0.217251 |       0.000013 | 0.217263 |    0.429684 |    0.0 | 0.217263 |
+    | 11.01. |   0.343284 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               1.0 |    0.0 |           0.0 |       0.000005 | 0.000005 |    0.343284 |    0.0 | 0.000005 |
+    | 12.01. |   0.256884 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               1.0 |    0.0 |           0.0 |       0.000002 | 0.000002 |    0.256884 |    0.0 | 0.000002 |
+    | 13.01. |   0.170484 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               1.0 |    0.0 |           0.0 |       0.000001 | 0.000001 |    0.170484 |    0.0 | 0.000001 |
+    | 14.01. |   0.084084 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               1.0 |    0.0 |           0.0 |            0.0 |      0.0 |    0.084084 |    0.0 |      0.0 |
+    | 15.01. |  -0.000466 |           0.0 |                   0.0 |                 50.0 |                 1.0 |           0.97858 |    0.0 |           0.0 |            0.0 |      0.0 |   -0.000466 |    0.0 |      0.0 |
+    | 16.01. |  -0.001305 |           0.0 |                   0.0 |                 50.0 |                 1.0 |           0.00971 |    0.0 |           0.0 |            0.0 |      0.0 |   -0.001305 |    0.0 |      0.0 |
+    | 17.01. |  -0.001454 |           0.0 |                   0.0 |                 50.0 |                 1.0 |          0.001729 |    0.0 |           0.0 |            0.0 |      0.0 |   -0.001454 |    0.0 |      0.0 |
+    | 18.01. |  -0.001542 |           0.0 |                   0.0 |                 50.0 |                 1.0 |          0.001016 |    0.0 |           0.0 |            0.0 |      0.0 |   -0.001542 |    0.0 |      0.0 |
+    | 19.01. |  -0.001604 |           0.0 |                   0.0 |                 50.0 |                 1.0 |          0.000722 |    0.0 |           0.0 |            0.0 |      0.0 |   -0.001604 |    0.0 |      0.0 |
+    | 20.01. |  -0.001653 |           0.0 |                   0.0 |                 50.0 |                 1.0 |          0.000561 |    0.0 |           0.0 |            0.0 |      0.0 |   -0.001653 |    0.0 |      0.0 |
+
+>>> round_(model.check_waterbalance(conditions))
+0.0
 """
 # import...
 # ...from HydPy
-import hydpy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.core import modeltools
@@ -473,7 +512,12 @@ from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 
 
-class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
+class Model(
+    dam_model.ELSIEModel,
+    dam_model.MixinSimpleWaterBalance,
+    dam_model.Main_PrecipModel_V2,
+    dam_model.Main_PEModel_V1,
+):
     """|dam_lreservoir.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
@@ -486,6 +530,8 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         dam_solver.RelErrorMax,
         dam_solver.RelDTMin,
         dam_solver.RelDTMax,
+        dam_solver.MaxEval,
+        dam_solver.MaxCFL,
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (
@@ -493,18 +539,19 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         dam_model.Calc_PotentialEvaporation_V1,
         dam_model.Calc_AdjustedEvaporation_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (
         dam_model.Calc_AdjustedPrecipitation_V1,
-        dam_model.Pic_Inflow_V1,
+        dam_model.Pick_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
-        dam_model.Calc_ActualEvaporation_V1,
+        dam_model.Calc_ActualEvaporation_V3,
         dam_model.Calc_SurfaceArea_V1,
         dam_model.Calc_AllowedDischarge_V2,
         dam_model.Calc_ActualRelease_V3,
         dam_model.Calc_FloodDischarge_V1,
-        dam_model.Calc_Outflow_V1,
+        dam_model.Calc_Outflow_V7,
     )
     FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V1,)
     OUTLET_METHODS = (dam_model.Calc_WaterLevel_V1, dam_model.Pass_Outflow_V1)
@@ -516,33 +563,6 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         precipinterfaces.PrecipModel_V2, optional=True
     )
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1, optional=True)
-
-    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
-        r"""Determine the water balance error of the previous simulation run in million
-        m³.
-
-        Method |Model.check_waterbalance| calculates the balance error as follows:
-
-        :math:`Seconds \cdot 10^{-6} \cdot \sum_{t=t0}^{t1}
-        \big( AdjustedPrecipitation_t - ActualEvaporation_t + Inflow_t - Outflow_t \big)
-        + \big( WaterVolume_{t0}^k - WaterVolume_{t1}^k \big)`
-
-        The returned error should always be in scale with numerical precision so
-        that it does not affect the simulation results in any relevant manner.
-
-        Pick the required initial conditions before starting the simulation run via
-        property |Sequences.conditions|.  See the integration tests of the application
-        model |dam_lreservoir| for some examples.
-        """
-        fluxes = self.sequences.fluxes
-        first = initial_conditions["model"]["states"]
-        last = self.sequences.states
-        return (hydpy.pub.timegrids.stepsize.seconds / 1e6) * (
-            sum(fluxes.adjustedprecipitation.series)
-            - sum(fluxes.actualevaporation.series)
-            + sum(fluxes.inflow.series)
-            - sum(fluxes.outflow.series)
-        ) - (last.watervolume - first["watervolume"])
 
 
 tester = Tester()

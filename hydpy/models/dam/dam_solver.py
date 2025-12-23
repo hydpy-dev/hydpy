@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # import...
@@ -74,3 +73,25 @@ class RelDTMax(parametertools.SolverParameter):
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 1.0
+
+
+class MaxEval(parametertools.SolverParameter):
+    """Maximum number of function evaluations before stopping the Explicit Labatto
+    Sequence [-]."""
+
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
+    INIT = 1000000
+
+
+class MaxCFL(parametertools.SolverParameter):
+    """Maximum Caurant-Friedrichs-Lewy number for using the Explicit Labatto Sequence
+    [-]."""
+
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, numpy.inf)
+    INIT = numpy.inf

@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements tools for increasing the level of automation and
 standardisation of the online documentation generated with Sphinx."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -164,6 +164,8 @@ excluded_members = {
 excluded_members.update(typing.__all__)
 excluded_members.update(typing_extensions.__all__)
 
+_VAR_SPEC2CAPT = collections.OrderedDict((("variables", "Variable tools"),))
+
 _PAR_SPEC2CAPT = collections.OrderedDict(
     (
         ("parameters", "Parameter tools"),
@@ -185,6 +187,7 @@ _SEQ_SPEC2CAPT = collections.OrderedDict(
         ("logs", "Log sequences"),
         ("inlets", "Inlet sequences"),
         ("outlets", "Outlet sequences"),
+        ("observers", "Observer sequences"),
         ("receivers", "Receiver sequences"),
         ("senders", "Sender sequences"),
         ("aides", "Aide sequences"),
@@ -286,6 +289,7 @@ def autodoc_basemodel(module: types.ModuleType) -> None:
     _extend_methoddocstrings(module)
     _gain_and_insert_additional_information_into_docstrings(module, methods)
     for title, spec2capt in (
+        ("Variable Features", _VAR_SPEC2CAPT),
         ("Parameter Features", _PAR_SPEC2CAPT),
         ("Sequence Features", _SEQ_SPEC2CAPT),
         ("Auxiliary Features", _AUX_SPEC2CAPT),
@@ -510,13 +514,13 @@ def insert_docname_substitutions(
 class Substituter:
     """Implements a HydPy specific docstring substitution mechanism."""
 
-    master: Optional[Substituter]
+    master: Substituter | None
     slaves: list[Substituter]
     short2long: dict[str, str]
     short2priority: dict[str, Priority]
     medium2long: dict[str, str]
 
-    def __init__(self, master: Optional[Substituter] = None) -> None:
+    def __init__(self, master: Substituter | None = None) -> None:
         self.master = master
         self.slaves = []
         if master:
@@ -534,8 +538,8 @@ class Substituter:
         name_member: str,
         member: Any,
         module: types.ModuleType,
-        class_: Optional[type[object]] = None,
-        ignore: Optional[dict[str, object]] = None,
+        class_: type[object] | None = None,
+        ignore: dict[str, object] | None = None,
     ) -> bool:
         """Return |True| if the given member should be added to the substitutions.  If
         not, return |False|.
@@ -1027,7 +1031,7 @@ class Substituter:
             slave.medium2long.update(self.medium2long)
             slave.update_slaves()
 
-    def get_commands(self, source: Optional[str] = None) -> str:
+    def get_commands(self, source: str | None = None) -> str:
         """Return a string containing multiple `reStructuredText` replacements with the
         substitutions currently defined.
 
@@ -1204,6 +1208,10 @@ _name2descr = {
         'The following "inlet update methods" are called in the given sequence at the '
         "beginning of each simulation step"
     ),
+    "OBSERVER_METHODS": (
+        'The following "observer update methods" are called in the given sequence at '
+        "the beginning of each simulation step"
+    ),
     "RUN_METHODS": (
         'The following "run methods" are called in the given sequence during each '
         "simulation step"
@@ -1274,13 +1282,13 @@ def autodoc_tuple2doc(module: types.ModuleType) -> None:
 
 def _make_cssstyle(
     *,
-    marginleft: Optional[str] = None,
-    marginbottom: Optional[str] = None,
-    margintop: Optional[str] = None,
-    colour: Optional[str] = None,
-    fontfamily: Optional[str] = None,
-    fontstyle: Optional[str] = None,
-    fontsize: Optional[str] = None,
+    marginleft: str | None = None,
+    marginbottom: str | None = None,
+    margintop: str | None = None,
+    colour: str | None = None,
+    fontfamily: str | None = None,
+    fontstyle: str | None = None,
+    fontsize: str | None = None,
 ) -> str:
 
     styles = []
@@ -1515,7 +1523,7 @@ title="hydpy.interfaces.aetinterfaces.AETModel_V1">\
     )
 
 
-Port: TypeAlias = Union[modeltools.SubmodelProperty, modeltools.SubmodelsProperty]
+Port: TypeAlias = modeltools.SubmodelProperty | modeltools.SubmodelsProperty
 
 Subgraphs: TypeAlias = dict[
     type[modeltools.Model], dict[Port, list[type[modeltools.Model]]]
@@ -1530,9 +1538,9 @@ class SubmodelGraph:
     """Analyser and visualiser of the advisable connections between main models and
     submodels."""
 
-    _modelname: Optional[str]
+    _modelname: str | None
 
-    def __init__(self, *, modelname: Optional[str] = None) -> None:
+    def __init__(self, *, modelname: str | None = None) -> None:
         self._modelname = modelname
 
     @functools.cached_property
@@ -1578,6 +1586,7 @@ class SubmodelGraph:
         wq_trapeze
         wq_trapeze_strickler
         wq_walrus
+        wq_widths_strickler
         """
         dirpath = models.__path__[0]
         filenames = (n for n in os.listdir(dirpath) if n.endswith(".py"))
@@ -1607,7 +1616,7 @@ class SubmodelGraph:
         arma_rimorido
         conv_idw
         ...
-        sw1d_channel
+        whmod_urban
         wland_gd
         wland_wag
 

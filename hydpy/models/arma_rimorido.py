@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 |arma_rimorido| relies on the RIMO/RIDO method, which is based on the `translation
 diffusion equation`, which is a linear approximation of the Saint-Venant equations
@@ -361,6 +360,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = True
 
     INLET_METHODS = (arma_model.Pick_Q_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         arma_model.Calc_QPIn_V1,

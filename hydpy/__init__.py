@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=wrong-import-position
 # due to using the HydPy class `OptionalImports` for importing site-packages
 """
@@ -39,7 +38,7 @@ from hydpy.core.filetools import check_projectstructure, create_projectstructure
 from hydpy.core.hydpytools import HydPy
 from hydpy.core.importtools import prepare_model, reverse_model_wildcard_import
 from hydpy.core.itemtools import AddItem, GetItem, MultiplyItem, SetItem
-from hydpy.core.netcdftools import summarise_ncfile
+from hydpy.core.netcdftools import chars2str, str2chars, summarise_ncfile, write_ncfile
 from hydpy.core.objecttools import classname, print_matrix, print_vector, round_, repr_
 from hydpy.core.parametertools import KeywordArguments
 from hydpy.core.selectiontools import Selection, Selections
@@ -64,6 +63,7 @@ from hydpy.auxs.calibtools import (
     CalibSpec,
     CalibSpecs,
     FactorAdaptor,
+    LogReplace,
     make_rules,
     Multiply,
     MultiplyIUH,
@@ -89,8 +89,9 @@ from hydpy.auxs.statstools import (
     calc_weights,
     corr,
     corr2,
+    fdc_nse,
+    fdc_nse_log,
     filter_series,
-    print_evaluationtable,
     hsepd,
     hsepd_manual,
     hsepd_pdf,
@@ -98,6 +99,7 @@ from hydpy.auxs.statstools import (
     nse,
     nse_log,
     prepare_arrays,
+    print_evaluationtable,
     rmse,
     std_ratio,
     SummaryRowSimple,
@@ -118,7 +120,7 @@ from hydpy.exe.servertools import await_server, start_server
 from hydpy.exe.xmltools import XMLInterface, run_simulation, xml_validate
 
 
-__version__ = "6.1.5"
+__version__ = "6.2.0"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()
@@ -157,7 +159,10 @@ __all__ = [
     "GetItem",
     "MultiplyItem",
     "SetItem",
+    "chars2str",
+    "str2chars",
     "summarise_ncfile",
+    "write_ncfile",
     "classname",
     "print_matrix",
     "print_vector",
@@ -200,6 +205,7 @@ __all__ = [
     "TargetFunction",
     "SeasonalInterpolator",
     "LinearStorageCascade",
+    "LogReplace",
     "TranslationDiffusionEquation",
     "RiverBasinNumber",
     "RiverBasinNumbers",
@@ -214,8 +220,9 @@ __all__ = [
     "calc_weights",
     "corr",
     "corr2",
+    "fdc_nse",
+    "fdc_nse_log",
     "filter_series",
-    "print_evaluationtable",
     "hsepd",
     "hsepd_manual",
     "hsepd_pdf",
@@ -223,6 +230,7 @@ __all__ = [
     "nse",
     "nse_log",
     "prepare_arrays",
+    "print_evaluationtable",
     "rmse",
     "std_ratio",
     "SummaryRowSimple",

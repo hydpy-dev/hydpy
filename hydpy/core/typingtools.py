@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """This module implements some "types" to be used for static (and eventually dynamical)
 typing."""
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -20,6 +20,7 @@ from typing import (
     Any,
     cast,
     ClassVar,
+    Concatenate,
     Final,
     Generic,
     get_type_hints,
@@ -31,20 +32,13 @@ from typing import (
     overload,
     Protocol,
     TextIO,
+    TypeAlias,
     TypedDict,
     TypeVar,
     TYPE_CHECKING,
     Union,
 )
-from typing_extensions import (
-    assert_never,
-    Concatenate,
-    Never,
-    ParamSpec,
-    Self,
-    TypeAlias,
-    Unpack,
-)
+from typing_extensions import assert_never, Never, ParamSpec, Self, Unpack
 
 # ...from site-packages
 import numpy
@@ -70,65 +64,63 @@ Name = NewType("Name", str)
 Name.__doc__ = """Type for strings that represent names."""
 
 
-Mayberable1 = Union[T, Iterable[T]]
-Mayberable2 = Union[T1, T2, Iterable[Union[T1, T2]]]
-Mayberable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]]]
-MayNonerable1 = Union[T, Iterable[T], None]
-MayNonerable2 = Union[T1, T2, Iterable[Union[T1, T2]], None]
-MayNonerable3 = Union[T1, T2, T3, Iterable[Union[T1, T2, T3]], None]
+Mayberable1: TypeAlias = Union[T, Iterable[T]]
+Mayberable2: TypeAlias = Union[T1, T2, Iterable[T1 | T2]]
+Mayberable3: TypeAlias = Union[T1, T2, T3, Iterable[T1 | T2 | T3]]
+MayNonerable1: TypeAlias = Optional[Union[T, Iterable[T]]]
+MayNonerable2: TypeAlias = Optional[Union[T1, T2, Iterable[T1 | T2]]]
+MayNonerable3: TypeAlias = Optional[Union[T1, T2, T3, Iterable[T1 | T2 | T3]]]
 
-Collection1 = Union[T, Collection[T]]
-Collection2 = Union[T1, T2, Collection[Union[T1, T2]]]
-Collection3 = Union[T1, T2, T3, Collection[Union[T1, T2, T3]]]
+Collection1: TypeAlias = Union[T, Collection[T]]
+Collection2: TypeAlias = Union[T1, T2, Collection[T1 | T2]]
+Collection3: TypeAlias = Union[T1, T2, T3, Collection[T1 | T2 | T3]]
 
-Sequence1 = Union[T, Sequence[T]]
-Sequence2 = Union[T1, T2, Sequence[Union[T1, T2]]]
-Sequence3 = Union[T1, T2, T3, Sequence[Union[T1, T2, T3]]]
+Sequence1: TypeAlias = Union[T, Sequence[T]]
+Sequence2: TypeAlias = Union[T1, T2, Sequence[T1 | T2]]
+Sequence3: TypeAlias = Union[T1, T2, T3, Sequence[T1 | T2 | T3]]
 
 Float_co = TypeVar("Float_co", covariant=True)
 Float1 = TypeVar("Float1", bound=float)
 Float2 = TypeVar("Float2", bound=float)
 
-NDArrayObject = NDArray[numpy.generic]
-NDArrayFloat = NDArray[numpy.float64]
-NDArrayInt = NDArray[numpy.int64]
-NDArrayBool = NDArray[numpy.bool_]
+NDArrayObject: TypeAlias = NDArray[numpy.generic]
+NDArrayFloat: TypeAlias = NDArray[numpy.float64]
+NDArrayInt: TypeAlias = NDArray[numpy.int64]
+NDArrayBool: TypeAlias = NDArray[numpy.bool_]
 
-Vector = NDArray[T]
-VectorObject = NDArray[numpy.generic]
-VectorFloat = NDArray[numpy.float64]
-VectorInt = NDArray[numpy.int64]
-VectorBool = NDArray[numpy.bool_]
-VectorInput = Union[Sequence[T], Vector[T]]
-VectorInputObject = Union[Sequence[object], VectorObject]
-VectorInputFloat = Union[Sequence[float], VectorFloat]
-VectorInputInt = Union[Sequence[int], VectorInt]
-VectorInputBool = Union[Sequence[bool], VectorBool]
+Vector: TypeAlias = NDArray[T]
+VectorObject: TypeAlias = NDArray[numpy.generic]
+VectorFloat: TypeAlias = NDArray[numpy.float64]
+VectorInt: TypeAlias = NDArray[numpy.int64]
+VectorBool: TypeAlias = NDArray[numpy.bool_]
+VectorInput: TypeAlias = Union[Sequence[T], Vector[T]]
+VectorInputObject: TypeAlias = Union[Sequence[object], VectorObject]
+VectorInputFloat: TypeAlias = Union[Sequence[float], VectorFloat]
+VectorInputInt: TypeAlias = Union[Sequence[int], VectorInt]
+VectorInputBool: TypeAlias = Union[Sequence[bool], VectorBool]
 
-Matrix = NDArray[T]
-MatrixObject = NDArray[numpy.generic]
-MatrixFloat = NDArray[numpy.float64]
-MatrixInt = NDArray[numpy.int64]
-MatrixBool = NDArray[numpy.bool_]
-MatrixBytes = NDArray[numpy.bytes_]
-MatrixInput = Union[Sequence[Sequence[T]], Matrix[T]]
-MatrixInputObject = Union[Sequence[VectorInputObject], MatrixObject]
-MatrixInputFloat = Union[Sequence[VectorInputFloat], MatrixFloat]
-MatrixInputInt = Union[Sequence[VectorInputInt], MatrixInt]
-MatrixInputBool = Union[Sequence[VectorBool], MatrixBool]
+Matrix: TypeAlias = NDArray[T]
+MatrixObject: TypeAlias = NDArray[numpy.generic]
+MatrixFloat: TypeAlias = NDArray[numpy.float64]
+MatrixInt: TypeAlias = NDArray[numpy.int64]
+MatrixBool: TypeAlias = NDArray[numpy.bool_]
+MatrixBytes: TypeAlias = NDArray[numpy.bytes_]
+MatrixInput: TypeAlias = Union[Sequence[Sequence[T]], Matrix[T]]
+MatrixInputObject: TypeAlias = Union[Sequence[VectorInputObject], MatrixObject]
+MatrixInputFloat: TypeAlias = Union[Sequence[VectorInputFloat], MatrixFloat]
+MatrixInputInt: TypeAlias = Union[Sequence[VectorInputInt], MatrixInt]
+MatrixInputBool: TypeAlias = Union[Sequence[VectorBool], MatrixBool]
 
-
-Tensor = NDArray[T]
-TensorObject = NDArray[numpy.generic]
-TensorFloat = NDArray[numpy.float64]
-TensorInt = NDArray[numpy.int64]
-TensorBool = NDArray[numpy.bool_]
-TensorInput = Union[Sequence[Sequence[Sequence[T]]], Tensor[T]]
-TensorInputObject = Union[Sequence[MatrixInputObject], TensorObject]
-TensorInputFloat = Union[Sequence[MatrixInputFloat], TensorFloat]
-TensorInputInt = Union[Sequence[MatrixInputInt], TensorInt]
-TensorInputBool = Union[Sequence[MatrixInputBool], TensorBool]
-
+Tensor: TypeAlias = NDArray[T]
+TensorObject: TypeAlias = NDArray[numpy.generic]
+TensorFloat: TypeAlias = NDArray[numpy.float64]
+TensorInt: TypeAlias = NDArray[numpy.int64]
+TensorBool: TypeAlias = NDArray[numpy.bool_]
+TensorInput: TypeAlias = Union[Sequence[Sequence[Sequence[T]]], Tensor[T]]
+TensorInputObject: TypeAlias = Union[Sequence[MatrixInputObject], TensorObject]
+TensorInputFloat: TypeAlias = Union[Sequence[MatrixInputFloat], TensorFloat]
+TensorInputInt: TypeAlias = Union[Sequence[MatrixInputInt], TensorInt]
+TensorInputBool: TypeAlias = Union[Sequence[MatrixInputBool], TensorBool]
 
 NestedFloat: TypeAlias = Union[
     float, NDArrayFloat, Mapping[str, "NestedFloat"], Sequence["NestedFloat"]
@@ -138,24 +130,24 @@ ArrayFloat = TypeVar(
     "ArrayFloat", float, VectorFloat, MatrixFloat, Union[float, VectorFloat]
 )
 
-ConditionsSubmodel = dict[str, dict[str, Union[float, NDArrayFloat]]]
-ConditionsModel = dict[str, ConditionsSubmodel]
-Conditions = dict[str, ConditionsModel]
+ConditionsSubmodel: TypeAlias = dict[str, dict[str, float | NDArrayFloat]]
+ConditionsModel: TypeAlias = dict[str, ConditionsSubmodel]
+Conditions: TypeAlias = dict[str, ConditionsModel]
 
 
 class SharableConfiguration(TypedDict):
     """Specification of the configuration data that main models can share with their
     submodels."""
 
-    landtype_constants: Optional[parametertools.Constants]
+    landtype_constants: parametertools.Constants | None
     """Land cover type-related constants."""
-    soiltype_constants: Optional[parametertools.Constants]
+    soiltype_constants: parametertools.Constants | None
     """Soil type-related constants."""
-    landtype_refindices: Optional[parametertools.NameParameter]
+    landtype_refindices: parametertools.NameParameter | None
     """Reference to a land cover type-related index parameter."""
-    soiltype_refindices: Optional[parametertools.NameParameter]
+    soiltype_refindices: parametertools.NameParameter | None
     """Reference to a soil type-related index parameter."""
-    refweights: Optional[parametertools.Parameter]
+    refweights: parametertools.Parameter | None
     """Reference to a weighting parameter (probably handling the size of some 
     computational subunits like the area of hydrological response units)."""
 
@@ -169,9 +161,11 @@ DeployMode = Literal[
     "oldsim_bi",
     "obs_bi",
     "obs_oldsim_bi",
+    "newsim_update",
+    "obs_newsim_update",
 ]
 LineStyle = Literal["-", "--", "-.", ":", "solid", "dashed", "dashdot", "dotted"]
-StepSize = Literal["daily", "d", "monthly", "m"]
+StepSize = Literal["daily", "d", "monthly", "m", "yearly", "y"]
 
 
 class CyParametersProtocol(Protocol):
@@ -233,6 +227,14 @@ MethodGroup = Literal[
     "SENDER_METHODS",
 ]
 
+LinkInputOutputSequenceGroup = Literal[
+    "inlets", "outlets", "observers", "receivers", "senders", "inputs", "outputs"
+]
+
+LinkInputSequenceGroup = Literal[
+    "inlets", "outlets", "observers", "receivers", "senders", "inputs"
+]
+
 __all__ = [
     "AbstractContextManager",
     "Any",
@@ -260,6 +262,8 @@ __all__ = [
     "Iterable",
     "Iterator",
     "LineStyle",
+    "LinkInputOutputSequenceGroup",
+    "LinkInputSequenceGroup",
     "Literal",
     "l1",
     "Mapping",

@@ -15,7 +15,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 import os
-from typing import Final, Literal, NamedTuple, Optional, Union
+from typing import Final, Literal, NamedTuple
 
 from matplotlib import pyplot
 import numpy
@@ -49,8 +49,8 @@ class CellExtent:
 class Index:
     i0: int
     j0: int
-    i1: Optional[int] = None
-    j1: Optional[int] = None
+    i1: int | None = None
+    j1: int | None = None
 
 
 @dataclass
@@ -151,7 +151,7 @@ class Vectors:
 @dataclass
 class Element:
     index: Index
-    margins: Optional[Margins] = None
+    margins: Margins | None = None
 
     def plot(self, frame: Frame) -> None:
         raise NotImplementedError
@@ -159,7 +159,7 @@ class Element:
     def draw_line(
         self,
         frame: Frame,
-        points: Union[Points, Sequence[Points]],
+        points: Points | Sequence[Points],
         properties: LineProperties,
     ) -> None:
         if not isinstance(points, Points):
@@ -1194,7 +1194,7 @@ class Frame:
     xfactor: float = 2.0
     yfactor: float = 0.5
 
-    def plot(self, filename: Optional[str] = None) -> None:
+    def plot(self, filename: str | None = None) -> None:
         for e in self.elements:
             e.plot(frame=self)
         fig = pyplot.gcf()

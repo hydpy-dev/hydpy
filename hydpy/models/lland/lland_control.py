@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 """
+
 # import...
 # ...from standard library
 from __future__ import annotations
@@ -104,6 +104,36 @@ class Lnk(parametertools.NameParameter):
     constants = CONSTANTS_
 
 
+class GH(lland_parameters.ParameterComplete):
+    """Gebietshöhe (elevation) [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> gh.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`gh` (introduced in HydPy 6.2), has not been explicitly defined and is automatically \
+set to `0.0`.  We will remove this fallback mechanism in HydPy 8.0; therefore, please \
+consider updating your model setup.
+
+        >>> gh
+        gh(0.0)
+
+        >>> gh(100.0, 200.0)
+        >>> gh
+        gh(100.0, 200.0)
+        """
+        self._update_newbie(value=0.0, version="6.2")
+
+
 class FHRU(lland_parameters.ParameterComplete):
     """Flächenanteile der Hydrotope (area percentages of the respective HRUs) [-]."""
 
@@ -119,6 +149,37 @@ class KG(lland_parameters.ParameterComplete):
 
     NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
     INIT = 1.0
+
+
+class ATG(parametertools.Parameter):
+    """Atmosphärischer Temperaturgradient (atmospheric temperature gradient)
+    [°C/100m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = -0.65
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> atg.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`atg` (introduced in HydPy 6.2), has not been explicitly defined and is automatically \
+set to `0.0`.  We will remove this fallback mechanism in HydPy 8.0; therefore, please \
+consider updating your model setup.
+
+        >>> atg
+        atg(0.0)
+
+        >>> atg(-0.65)
+        >>> atg
+        atg(-0.65)
+        """
+        self._update_newbie(value=0.0, version="6.2")
 
 
 class KT(lland_parameters.ParameterComplete):
@@ -323,6 +384,133 @@ class GTF(lland_parameters.ParameterLand):
 
     NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
     INIT = 3.0
+
+
+class GSF(parametertools.Parameter):
+    """Gletscherschmelze-Faktor (factor for adjusting the snow-related degree-day
+    factor |GTF| to the melting of glacier ice) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    INIT = 1.5
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> gsf.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`gsf` (introduced in HydPy 6.2), has not been explicitly defined and is automatically \
+set to `0.0`.  We will remove this fallback mechanism in HydPy 8.0; therefore, please \
+consider updating your model setup.
+
+        >>> gsf
+        gsf(0.0)
+
+        >>> gsf(2.0)
+        >>> gsf
+        gsf(2.0)
+        """
+        self._update_newbie(value=0.0, version="6.2")
+
+
+class AGGH(parametertools.Parameter):
+    """Alpine Gebietshöhe, ab der eine Erhöhung des Grad-Tag-Faktors erfolgen kann
+    (alpine elevation above which the degree-day factor can be increased) [m]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = numpy.inf
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> aggh.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`aggh` (introduced in HydPy 6.2), has not been explicitly defined and is \
+automatically set to `inf`.  We will remove this fallback mechanism in HydPy 8.0; \
+therefore, please consider updating your model setup.
+
+        >>> aggh
+        aggh(inf)
+
+        >>> aggh(2000.0)
+        >>> aggh
+        aggh(2000.0)
+        """
+        self._update_newbie(value=numpy.inf, version="6.2")
+
+
+class AGSH(parametertools.Parameter):
+    """Alpine Schneehöhe, ab der eine Erhöhung des Grad-Tag-Faktors erfolgen kann
+    (alpine snow height above which the degree-day factor can be increased) [mm]."""
+
+    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    INIT = numpy.inf
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> agsh.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`agsh` (introduced in HydPy 6.2), has not been explicitly defined and is \
+automatically set to `inf`.  We will remove this fallback mechanism in HydPy 8.0; \
+therefore, please consider updating your model setup.
+
+        >>> agsh
+        agsh(inf)
+
+        >>> agsh(2000.0)
+        >>> agsh
+        agsh(2000.0)
+        """
+        self._update_newbie(value=numpy.inf, version="6.2")
+
+
+class FEis(lland_parameters.ParameterGlacier):
+    """Umwandlungsfaktor Schnee Gletschereis (conversion factor for transforming snow
+    into glacier ice) [1/T]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
+    INIT = 0.001
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> simulationstep("12h")
+        >>> parameterstep("1d")
+        >>> nhru(2)
+        >>> lnk(GLETS, ACKER)
+        >>> feis.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`feis` (introduced in HydPy 6.2), has not been explicitly defined and is \
+automatically set to `0.0`.  We will remove this fallback mechanism in HydPy 8.0; \
+therefore, please consider updating your model setup.
+
+        >>> feis
+        feis(0.0)
+
+        >>> feis(0.02)
+        >>> feis
+        feis(0.02)
+        """
+        self._update_newbie(value=0.0, version="6.2")
 
 
 class PWMax(lland_parameters.ParameterLand):
@@ -565,6 +753,37 @@ class PWP(lland_parameters.ParameterSoilThreshold):
 
 
 # runoff generation
+
+
+class BSf0(lland_parameters.ParameterSoil):
+    """Mindestbodenfeuchte der Sättigungsflächenbildung (relative soil moisture at
+    which the development of saturated areas starts) [-]."""
+
+    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    INIT = 0.0
+
+    def update(self) -> None:
+        """Always fall back to the default value if the user provides none
+        (deprecated).
+
+        >>> from hydpy.models.lland import *
+        >>> parameterstep()
+        >>> nhru(2)
+        >>> bsf0.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.HydPyDeprecationWarning: The value of parameter \
+`bsf0` (introduced in HydPy 6.2), has not been explicitly defined and is \
+automatically set to `0.0`.  We will remove this fallback mechanism in HydPy 8.0; \
+therefore, please consider updating your model setup.
+        >>> bsf0
+        bsf0(0.0)
+
+        >>> bsf0(0.5)
+        >>> bsf0
+        bsf0(0.5)
+        """
+        self._update_newbie(value=0.0, version="6.2")
 
 
 class BSf(lland_parameters.ParameterSoil):

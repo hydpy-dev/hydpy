@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 """|rconc_nash| is a submodel that supports its main model by calculating the runoff
 concentration using the storage cascade approach.
 
 See the integration tests of the application model |hland_96p|, which use |rconc_nash|
 as a submodel.
 """
+
 # import...
 # ...from HydPy
 from hydpy.core import modeltools
@@ -23,6 +23,7 @@ class Model(rconc_model.Sub_RConcModel, rconcinterfaces.RConcModel_V1):
     __HYDPY_ROOTMODEL__ = False
 
     INLET_METHODS = ()
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = ()
     INTERFACE_METHODS = (

@@ -1,6 +1,11 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 # import...
+# ...from standard library
+import itertools
+
+# ...from standard library
+import math
+
 # ...from site-packages
 import numpy
 
@@ -8,18 +13,19 @@ import numpy
 from hydpy.core import parametertools
 from hydpy.auxs import smoothtools
 
-# ...from lland
+# ...from wq
 from hydpy.models.wq import wq_control
+from hydpy.models.wq import wq_variables
 
 
-class BottomDepths(parametertools.Parameter):
+class BottomDepths(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The cumulated depth of a trapeze and its lower neighbours [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomLevels,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the depth values based on
         :math:`BottomDepths_i = BottomLevels_i - BottomLevels_0`.
 
@@ -35,17 +41,17 @@ class BottomDepths(parametertools.Parameter):
         self.values = bottomlevels - bottomlevels[0]
 
 
-class TrapezeHeights(parametertools.Parameter):
+class TrapezeHeights(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The individual height of each trapeze [m].
 
     The highest trapeze has no upper neighbour and is thus infinitely high.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomLevels,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the height values based on
         :math:`TrapezeHeights_i = BottomLevels_{i+1} - BottomLevels_i`.
 
@@ -61,19 +67,19 @@ class TrapezeHeights(parametertools.Parameter):
         self.values[:-1] = numpy.diff(self.subpars.pars.control.bottomlevels.values)
 
 
-class SlopeWidths(parametertools.Parameter):
-    """The tatal width of both side slopes of each trapeze.
+class SlopeWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
+    """The total width of both side slopes of each trapeze.
 
     The highest trapeze has no upper neighbour and is thus infinitely high and
     potentially infinitely wide.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.SideSlopes,)
     DERIVEDPARAMETERS = (TrapezeHeights,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the slope width values based on
         :math:`SlopeWidths = 2 \cdot SideSlopes \cdot TrapezeHeights`.
 
@@ -92,18 +98,18 @@ class SlopeWidths(parametertools.Parameter):
         self.values[:-1] = 2.0 * sideslopes[:-1] * trapezeheights[:-1]
 
 
-class TrapezeAreas(parametertools.Parameter):
+class TrapezeAreas(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The individual area of each trapeze [m].
 
     The highest trapeze has no upper neighbour and is thus infinitely large.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomWidths,)
     DERIVEDPARAMETERS = (TrapezeHeights, SlopeWidths)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the perimeter derivatives based on
         :math:`(BottomWidths + SlopeWidths / 2) \cdot TrapezeHeights`.
 
@@ -127,16 +133,16 @@ class TrapezeAreas(parametertools.Parameter):
         self.values[1:] += w[:-1] * ht[1:]
 
 
-class PerimeterDerivatives(parametertools.Parameter):
+class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter):
     """Change of the perimeter of each trapeze relative to a water level increase
     within the trapeze's range [-].
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE, TIME, SPAN = float, None, (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.SideSlopes,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the perimeter derivatives based on
         :math:`2 \cdot \sqrt{1 + SideSlopes^2}`.
 
@@ -152,6 +158,256 @@ class PerimeterDerivatives(parametertools.Parameter):
         self.values = 2.0 * (1.0 + sideslopes**2.0) ** 0.5
 
 
+class _SectorWidths(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    def _update(self, widths: wq_control.FlowWidths | wq_control.TotalWidths) -> None:
+        control = self.subpars.pars.control
+        n = control.nmbsectors.value
+        t = control.transitions.values
+        w = widths.values
+        self.values = 0.0
+        s = self.values
+        for i in range(n):
+            w0 = 0.0 if i == 0 else w[t[i - 1]]
+            w1 = w[-1] if i + 1 == n else w[t[i]]
+            s[i, :] = numpy.clip(w - w0, 0.0, w1 - w0)
+
+
+class SectorFlowWidths(_SectorWidths):
+    """The sector-specific widths of those subareas of the cross section involved in
+    water routing [m]."""
+
+    CONTROLPARAMETERS = (
+        wq_control.NmbSectors,
+        wq_control.Transitions,
+        wq_control.Heights,
+        wq_control.FlowWidths,
+    )
+
+    def update(self) -> None:
+        """Allocate the |wq_control.FlowWidths| parts to the respective cross-section
+        sectors.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowwidths
+        sectorflowwidths([[2.0, 4.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0],
+                          [0.0, 0.0, 0.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0],
+                          [0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0],
+                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])
+        """
+        flowwidths = self.subpars.pars.control.flowwidths
+        assert isinstance(flowwidths, wq_control.FlowWidths)
+        self._update(flowwidths)
+
+
+class SectorTotalWidths(_SectorWidths):
+    """The sector-specific widths of the total cross section [m]."""
+
+    CONTROLPARAMETERS = (
+        wq_control.NmbSectors,
+        wq_control.Transitions,
+        wq_control.Heights,
+        wq_control.TotalWidths,
+    )
+
+    def update(self) -> None:
+        """Allocate the |wq_control.TotalWidths| parts to the respective cross-section
+        sectors.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectortotalwidths.update()
+        >>> derived.sectortotalwidths
+        sectortotalwidths([[2.0, 4.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0],
+                           [0.0, 0.0, 0.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0],
+                           [0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0],
+                           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])
+        """
+        totalwidths = self.subpars.pars.control.totalwidths
+        assert isinstance(totalwidths, wq_control.TotalWidths)
+        self._update(totalwidths)
+
+
+class _SectorAreas(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    def _update(self, widths: SectorFlowWidths | SectorTotalWidths) -> None:
+        h = self.subpars.pars.control.heights.values
+        w = widths.values
+        h_diff = numpy.diff(h)
+        w_mean = (w[:, :-1] + w[:, 1:]) / 2.0
+        self.values = 0.0
+        self.values[:, 1:] = numpy.cumsum(h_diff * w_mean, axis=1)
+
+
+class SectorFlowAreas(_SectorAreas):
+    """The sector-specific wetted areas of those subareas of the cross section
+    involved in water routing [m²]."""
+
+    CONTROLPARAMETERS = (wq_control.Heights,)
+    DERIVEDPARAMETERS = (SectorFlowWidths,)
+
+    def update(self) -> None:
+        """Calculate the cumulative sum of the individual trapeze areas defined by the
+        height-width pairs of the individual sectors.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowareas.update()
+        >>> derived.sectorflowareas
+        sectorflowareas([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0, 29.0, 35.0],
+                         [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0, 32.0],
+                         [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0, 16.0],
+                         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
+        """
+        sectorflowwidths = self.subpars.sectorflowwidths
+        assert isinstance(sectorflowwidths, SectorFlowWidths)
+        self._update(sectorflowwidths)
+
+
+class SectorTotalAreas(_SectorAreas):
+    """The sector-specific wetted areas of the total cross section [m²]."""
+
+    CONTROLPARAMETERS = (wq_control.Heights,)
+    DERIVEDPARAMETERS = (SectorTotalWidths,)
+
+    def update(self) -> None:
+        """Calculate the cumulative sum of the individual trapeze areas defined by the
+        height-width pairs of the individual sectors.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectortotalwidths.update()
+        >>> derived.sectortotalareas.update()
+        >>> derived.sectortotalareas
+        sectortotalareas([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0, 29.0, 35.0],
+                          [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0, 32.0],
+                          [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0, 16.0],
+                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
+        """
+        sectortotalwidths = self.subpars.sectortotalwidths
+        assert isinstance(sectortotalwidths, SectorTotalWidths)
+        self._update(sectortotalwidths)
+
+
+class SectorFlowPerimeters(
+    wq_variables.MixinSectorsAndWidths, parametertools.Parameter
+):
+    """The sector-specific wetted perimeters of those subareas of the cross section
+    involved in water routing [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (wq_control.Heights,)
+    DERIVEDPARAMETERS = (SectorFlowWidths,)
+
+    def update(self) -> None:
+        """Calculate the cumulative sum of the individual trapeze perimeters defined by
+        the height-width pairs of the individual sectors.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowperimeters.update()
+        >>> derived.sectorflowperimeters
+        sectorflowperimeters([[2.0, 6.472136, 9.300563, 9.300563, 9.300563,
+                               11.300563, 13.300563, 15.300563, 17.300563],
+                              [0.0, 0.0, 0.0, 8.0, 8.0, 10.0, 12.0, 14.0, 16.0],
+                              [0.0, 0.0, 0.0, 0.0, 4.0, 6.0, 8.0, 10.0, 12.0],
+                              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.324555,
+                               10.796691, 13.625118]])
+        """
+        control = self.subpars.pars.control
+        h = control.heights.values
+        w = self.subpars.sectorflowwidths.values
+        dh = numpy.diff(h)
+        dw = numpy.diff(w)
+        p = numpy.sqrt(numpy.square(2.0 * dh) + numpy.square(dw))
+        self.values = 0.0
+        for i, t in enumerate(itertools.chain([0], control.transitions.values)):
+            self.values[i, t:] = w[i, t]
+            self.values[i, t + 1 :] += numpy.cumsum(p[i, t:])
+
+
+class SectorFlowPerimeterDerivatives(
+    wq_variables.MixinSectorsAndWidths, parametertools.Parameter
+):
+    """The sector-specific changes in the wetted perimeters of those subareas of the
+    cross section involved in water routing with respect to water level increases
+    [m]."""
+
+    TYPE, TIME, SPAN = float, None, (0.0, None)
+
+    CONTROLPARAMETERS = (wq_control.Heights,)
+    DERIVEDPARAMETERS = (SectorFlowWidths,)
+
+    def update(self) -> None:
+        r"""Calculate the flow perimeter derivatives based on
+        :math:`2 \cdot \sqrt{1 + (dw/dh/2)^2}`.
+
+        >>> from hydpy.models.wq import *
+        >>> parameterstep()
+        >>> nmbwidths(9)
+        >>> nmbsectors(4)
+        >>> heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+        >>> flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)
+        >>> transitions(2, 3, 5)
+        >>> derived.sectorflowwidths.update()
+        >>> derived.sectorflowperimeterderivatives.update()
+        >>> derived.sectorflowperimeterderivatives
+        sectorflowperimeterderivatives([[2.236068, 2.828427, 2.0, 2.0, 2.0, 2.0,
+                                         2.0, 2.0, 2.0],
+                                        [nan, nan, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,
+                                         2.0],
+                                        [nan, nan, nan, 2.0, 2.0, 2.0, 2.0, 2.0,
+                                         2.0],
+                                        [nan, nan, nan, nan, nan, 6.324555,
+                                         4.472136, 2.828427, 2.0]])
+        """
+        control = self.subpars.pars.control
+        n = control.nmbwidths.value
+        dh = numpy.diff(control.heights.values)
+        dw = numpy.diff(self.subpars.sectorflowwidths.values)
+        self.values = numpy.nan
+        v = self.values
+        v[:, -1] = 2.0
+        for i, t in enumerate(itertools.chain([0], control.transitions.values)):
+            d = 2.0
+            for j in range(n - 2, t - 1, -1):
+                if dh[j] > 0.0:
+                    d = 2.0 * math.sqrt(1.0 + math.pow(dw[i, j] / dh[j] / 2.0, 2.0))
+                v[i, j] = d
+
+
 class CrestHeightRegularisation(parametertools.Parameter):
     """Regularisation parameter related to the difference between the water depth and
     the crest height [m]."""
@@ -160,7 +416,7 @@ class CrestHeightRegularisation(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wq_control.CrestHeightTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in

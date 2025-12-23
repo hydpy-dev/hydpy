@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 # import...
 # ...from HydPy
@@ -23,5 +22,17 @@ class DeltaWaterLevel(sequencetools.FactorSequence):
     After each simulation step, the value of |DeltaWaterLevel| corresponds to the value
     of the |LoggedWaterLevels| of the previous simulation step.
     """
+
+    NDIM = 0
+
+
+class X(sequencetools.FactorSequence):
+    """Arbitrary kind of input data [?]."""
+
+    NDIM = 0
+
+
+class Y(sequencetools.FactorSequence):
+    """Arbitrary kind of result data [?]."""
 
     NDIM = 0

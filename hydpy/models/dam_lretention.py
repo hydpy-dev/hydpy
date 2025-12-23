@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=line-too-long, unused-wildcard-import
 """
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
@@ -24,11 +23,12 @@ Integration tests
 
 .. how_to_understand_integration_tests::
 
-We reuse the |dam_llake| test set,, including identical input series and an identical
+We reuse the |dam_llake| test set, including identical input series and an identical
 relationship between stage and volume:
 
 >>> from hydpy import IntegrationTest, Element, pub
 >>> pub.timegrids = "01.01.2000", "21.01.2000", "1d"
+>>> from hydpy.models.dam_lretention import *
 >>> parameterstep("1d")
 >>> element = Element("element", inlets="input_", outlets="output")
 >>> element.model = model
@@ -36,9 +36,7 @@ relationship between stage and volume:
 >>> test.dateformat = "%d.%m."
 >>> test.plotting_options.axis1 = fluxes.inflow, fluxes.outflow
 >>> test.plotting_options.axis2 = states.watervolume
->>> test.inits = [
-...     (states.watervolume, 0.0),
-...     (logs.loggedadjustedevaporation, 0.0)]
+>>> test.inits = [(states.watervolume, 0.0), (logs.loggedadjustedevaporation, 0.0)]
 >>> test.reset_inits()
 >>> conditions = model.conditions
 >>> watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))
@@ -49,6 +47,7 @@ relationship between stage and volume:
 >>> weightevaporation(0.8)
 >>> thresholdevaporation(0.0)
 >>> toleranceevaporation(0.001)
+>>> commission("1900-01-01")
 >>> with model.add_precipmodel_v2("meteo_precip_io") as precipmodel:
 ...     precipitationfactor(1.0)
 >>> precipmodel.prepare_inputseries()
@@ -253,10 +252,49 @@ There is no indication of an error in the water balance:
 
 >>> round_(model.check_waterbalance(conditions))
 0.0
+
+.. _dam_lretention_commissioning:
+
+commissioning
+_____________
+
+This example extends the previous one with the commissioning mechanism shown and
+discussed in the :ref:`analogue example <dam_llake_commissioning>` of application model
+|dam_llake|:
+
+.. integration-test::
+
+    >>> commission("2000-01-04")
+    >>> pemodel.sequences.inputs.referenceevapotranspiration.series = 50.0
+    >>> test("dam_lretention_commissioning")
+    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | actualrelease | flooddischarge |  outflow | watervolume | input_ |   output |
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    | 01.01. |        0.0 |           0.0 |                   0.0 |                 50.0 |                 0.8 |               0.0 |    0.0 |          0.04 |            0.0 |      0.0 |         0.0 |    0.0 |      0.0 |
+    | 02.01. |        0.0 |          50.0 |                   1.0 |                 50.0 |                0.96 |              0.96 |    0.0 |          0.04 |            0.0 |     0.04 |         0.0 |    0.0 |     0.04 |
+    | 03.01. |        0.0 |           0.0 |                   0.0 |                 50.0 |               0.992 |             0.992 |    6.0 |          0.04 |            0.0 |    5.008 |         0.0 |    6.0 |    5.008 |
+    | 04.01. |   0.644932 |           0.0 |                   0.0 |                 50.0 |              0.9984 |          0.998224 |   12.0 |      3.537268 |       0.000016 | 3.537284 |    0.644932 |   12.0 | 3.537284 |
+    | 05.01. |   1.076863 |           0.0 |                   0.0 |                 50.0 |             0.99968 |           0.99968 |   10.0 |           4.0 |       0.001121 | 4.001121 |    1.076863 |   10.0 | 4.001121 |
+    | 06.01. |   1.162599 |           0.0 |                   0.0 |                 50.0 |            0.999936 |          0.999936 |    6.0 |           4.0 |       0.007751 | 4.007751 |    1.162599 |    6.0 | 4.007751 |
+    | 07.01. |   0.989327 |           0.0 |                   0.0 |                 50.0 |            0.999987 |          0.999987 |    3.0 |           4.0 |       0.005478 | 4.005478 |    0.989327 |    3.0 | 4.005478 |
+    | 08.01. |   0.730064 |           0.0 |                   0.0 |                 50.0 |            0.999997 |          0.999997 |    2.0 |           4.0 |       0.000728 | 4.000728 |    0.730064 |    2.0 | 4.000728 |
+    | 09.01. |   0.384458 |           0.0 |                   0.0 |                 50.0 |            0.999999 |          0.999999 |    1.0 |      3.999996 |       0.000079 | 4.000075 |    0.384458 |    1.0 | 4.000075 |
+    | 10.01. |   0.049401 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               1.0 |    0.0 |      2.877964 |       0.000001 | 2.877966 |    0.049401 |    0.0 | 2.877966 |
+    | 11.01. |  -0.002303 |           0.0 |                   0.0 |                 50.0 |                 1.0 |          0.509487 |    0.0 |       0.08894 |            0.0 |  0.08894 |   -0.002303 |    0.0 |  0.08894 |
+    | 12.01. |  -0.005213 |           0.0 |                   0.0 |                 50.0 |                 1.0 |          0.000004 |    0.0 |      0.033683 |            0.0 | 0.033684 |   -0.005213 |    0.0 | 0.033684 |
+    | 13.01. |  -0.007782 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.029734 |            0.0 | 0.029734 |   -0.007782 |    0.0 | 0.029734 |
+    | 14.01. |  -0.010082 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.026612 |            0.0 | 0.026612 |   -0.010082 |    0.0 | 0.026612 |
+    | 15.01. |  -0.012162 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.024081 |            0.0 | 0.024081 |   -0.012162 |    0.0 | 0.024081 |
+    | 16.01. |  -0.014062 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |       0.02199 |            0.0 |  0.02199 |   -0.014062 |    0.0 |  0.02199 |
+    | 17.01. |   -0.01581 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.020232 |            0.0 | 0.020232 |    -0.01581 |    0.0 | 0.020232 |
+    | 18.01. |  -0.017429 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.018734 |            0.0 | 0.018734 |   -0.017429 |    0.0 | 0.018734 |
+    | 19.01. |  -0.018936 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.017442 |            0.0 | 0.017442 |   -0.018936 |    0.0 | 0.017442 |
+    | 20.01. |  -0.020346 |           0.0 |                   0.0 |                 50.0 |                 1.0 |               0.0 |    0.0 |      0.016316 |            0.0 | 0.016316 |   -0.020346 |    0.0 | 0.016316 |
+
+>>> round_(model.check_waterbalance(conditions))
+0.0
 """
 # import...
 # ...from HydPy
-import hydpy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
@@ -270,7 +308,12 @@ from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 
 
-class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
+class Model(
+    dam_model.ELSIEModel,
+    dam_model.MixinSimpleWaterBalance,
+    dam_model.Main_PrecipModel_V2,
+    dam_model.Main_PEModel_V1,
+):
     """|dam_lretention.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(
@@ -283,6 +326,8 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         dam_solver.RelErrorMax,
         dam_solver.RelDTMin,
         dam_solver.RelDTMax,
+        dam_solver.MaxEval,
+        dam_solver.MaxCFL,
     )
     SOLVERSEQUENCES = ()
     INLET_METHODS = (
@@ -290,16 +335,17 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         dam_model.Calc_PotentialEvaporation_V1,
         dam_model.Calc_AdjustedEvaporation_V1,
     )
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     ADD_METHODS = ()
     PART_ODE_METHODS = (
         dam_model.Calc_AdjustedPrecipitation_V1,
-        dam_model.Pic_Inflow_V1,
+        dam_model.Pick_Inflow_V1,
         dam_model.Calc_WaterLevel_V1,
-        dam_model.Calc_ActualEvaporation_V1,
+        dam_model.Calc_ActualEvaporation_V3,
         dam_model.Calc_ActualRelease_V2,
         dam_model.Calc_FloodDischarge_V1,
-        dam_model.Calc_Outflow_V1,
+        dam_model.Calc_Outflow_V7,
     )
     FULL_ODE_METHODS = (dam_model.Update_WaterVolume_V1,)
     OUTLET_METHODS = (dam_model.Calc_WaterLevel_V1, dam_model.Pass_Outflow_V1)
@@ -311,33 +357,6 @@ class Model(dam_model.Main_PrecipModel_V2, dam_model.Main_PEModel_V1):
         precipinterfaces.PrecipModel_V2, optional=True
     )
     pemodel = modeltools.SubmodelProperty(petinterfaces.PETModel_V1, optional=True)
-
-    def check_waterbalance(self, initial_conditions: ConditionsModel) -> float:
-        r"""Determine the water balance error of the previous simulation run in million
-        m³.
-
-        Method |Model.check_waterbalance| calculates the balance error as follows:
-
-        :math:`Seconds \cdot 10^{-6} \cdot \sum_{t=t0}^{t1}
-        \big( AdjustedPrecipitation_t - ActualEvaporation_t + Inflow_t - Outflow_t \big)
-        + \big( WaterVolume_{t0}^k - WaterVolume_{t1}^k \big)`
-
-        The returned error should always be in scale with numerical precision so
-        that it does not affect the simulation results in any relevant manner.
-
-        Pick the required initial conditions before starting the simulation run via
-        property |Sequences.conditions|.  See the integration tests of the application
-        model |dam_lretention| for some examples.
-        """
-        fluxes = self.sequences.fluxes
-        first = initial_conditions["model"]["states"]
-        last = self.sequences.states
-        return (hydpy.pub.timegrids.stepsize.seconds / 1e6) * (
-            sum(fluxes.adjustedprecipitation.series)
-            - sum(fluxes.actualevaporation.series)
-            + sum(fluxes.inflow.series)
-            - sum(fluxes.outflow.series)
-        ) - (last.watervolume - first["watervolume"])
 
 
 tester = Tester()

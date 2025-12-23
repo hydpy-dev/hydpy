@@ -1,6 +1,6 @@
 [Application]
 name = HydPy
-version = 6.1.5-cp[auto]-win_amd64
+version = 6.2.0-cp[auto]-win_amd64
 entry_point = execute_exe:execute_scriptfunction
 console = true
 icon = logo.ico
@@ -46,7 +46,12 @@ pypi_wheels =
 	pathspec==[auto]
 	colorama==[auto]
 	black==[auto]
+	pytokens==[auto]
 	cython==[auto]
+	inflect==[auto]
+	typeguard==[auto]
+	more_itertools==[auto]
+	packaging==[auto]
 
 local_wheels = dist/*.whl
 

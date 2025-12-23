@@ -1,19 +1,20 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=import-outside-toplevel
 # due to importing hydpy after eventually changing its source path
 """Evaluate all doctests defined in the different modules and documentation files."""
+
 from __future__ import annotations
 from collections.abc import Iterable, Sequence
 import os
 import sys
 import importlib
 import time
-from typing import NamedTuple, Optional, NoReturn
+from typing import NamedTuple, NoReturn
 import unittest
 import doctest
 import warnings
 
 import click
+import matplotlib
 
 
 def print_(*args: str) -> None:
@@ -76,11 +77,19 @@ class DocTests(NamedTuple):
     default=True,
     help="Execute all tests in Cython-mode.",
 )
+@click.option(
+    "-t",
+    "--threads",
+    type=int,
+    default=0,
+    help="Number of threads to be used during simulations.",
+)
 def main(  # pylint: disable=too-many-branches
-    hydpy_path: Optional[str],
+    hydpy_path: str | None,
     file_doctests: list[str],
     python_mode: bool,
     cython_mode: bool,
+    threads: int,
 ) -> NoReturn:
     """Perform all tests (first in Python mode, then in Cython mode)."""
 
@@ -146,27 +155,12 @@ def main(  # pylint: disable=too-many-branches
                     if exc.args[-1] != "has no docstrings":
                         raise exc
                 else:
+                    matplotlib.use("Agg")
                     del pub.projectname
                     del pub.timegrids
-                    options = pub.options
-                    options.checkprojectstructure = False
-                    del options.checkseries
-                    options.ellipsis = 0
-                    del pub.options.parameterstep
-                    options.printprogress = False
-                    options.reprdigits = 6
-                    del pub.options.simulationstep
-                    del options.timestampleft
-                    del options.trimvariables
-                    options.usecython = mode == "Cython"
-                    del options.usedefaultvalues
-                    del options.utclongitude
-                    del options.utcoffset
-                    del options.warnmissingcontrolfile
-                    del options.warnmissingobsfile
-                    del options.warnmissingsimfile
-                    options.warnsimulationstep = False
-                    options.warntrim = False
+                    pub.options.prepare_testing(
+                        usecython=mode == "Cython", threads=threads
+                    )
                     testtools.IntegrationTest.plotting_options = (
                         testtools.PlottingOptions()
                     )

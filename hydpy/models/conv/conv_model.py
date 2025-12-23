@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=missing-module-docstring
 
 # imports...
@@ -17,7 +16,19 @@ from hydpy.models.conv import conv_outlets
 
 
 class Pick_Inputs_V1(modeltools.Method):
-    """Pick the input from all inlet nodes."""
+    """Pick the input from all inlet nodes.
+
+    Example:
+
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+        >>> derived.nmbinputs(2)
+        >>> inlets.inputs.shape = 2
+        >>> inlets.inputs = 2.0, 4.0
+        >>> model.pick_inputs_v1()
+        >>> fluxes.inputs
+        inputs(2.0, 4.0)
+    """
 
     DERIVEDPARAMETERS = (conv_derived.NmbInputs,)
     REQUIREDSEQUENCES = (conv_inlets.Inputs,)
@@ -29,7 +40,7 @@ class Pick_Inputs_V1(modeltools.Method):
         inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmbinputs):
-            flu.inputs[idx] = inl.inputs[idx][0]
+            flu.inputs[idx] = inl.inputs[idx]
 
 
 class Calc_Outputs_V1(modeltools.Method):
@@ -549,7 +560,19 @@ class Calc_Outputs_V3(modeltools.Method):
 
 
 class Pass_Outputs_V1(modeltools.Method):
-    """Pass the output to all outlet nodes."""
+    """Pass the output to all outlet nodes.
+
+    Example:
+
+        >>> from hydpy.models.conv import *
+        >>> parameterstep()
+        >>> derived.nmboutputs(2)
+        >>> fluxes.outputs = 2.0, 4.0
+        >>> outlets.outputs.shape = 2
+        >>> model.pass_outputs_v1()
+        >>> outlets.outputs
+        outputs(2.0, 4.0)
+    """
 
     DERIVEDPARAMETERS = (conv_derived.NmbOutputs,)
     REQUIREDSEQUENCES = (conv_fluxes.Outputs,)
@@ -561,7 +584,7 @@ class Pass_Outputs_V1(modeltools.Method):
         out = model.sequences.outlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmboutputs):
-            out.outputs[idx][0] = flu.outputs[idx]
+            out.outputs[idx] = flu.outputs[idx]
 
 
 class Model(modeltools.AdHocModel):
@@ -571,6 +594,7 @@ class Model(modeltools.AdHocModel):
     __HYDPY_ROOTMODEL__ = None
 
     INLET_METHODS = (Pick_Inputs_V1,)
+    OBSERVER_METHODS = ()
     RECEIVER_METHODS = ()
     RUN_METHODS = (
         Calc_ActualConstant_ActualFactor_V1,
@@ -668,11 +692,13 @@ out2, and out3).
                 ),
             ):
                 if nodes == devicetools.Nodes(coordinates.nodes):
+                    sequence.node2idx = {}
                     sequence.shape = len(coordinates)
                     for idx, node in enumerate(coordinates.nodes):
                         sequence.set_pointer(
                             node.get_double(sequence.subseqs.name), idx
                         )
+                        sequence.node2idx[node] = idx
                 else:
                     parameternodes = objecttools.enumeration(coordinates.nodes)
                     elementnodes = objecttools.enumeration(nodes)

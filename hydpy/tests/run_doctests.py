@@ -14,6 +14,7 @@ import doctest
 import warnings
 
 import click
+import matplotlib
 
 
 def print_(*args: str) -> None:
@@ -154,6 +155,7 @@ def main(  # pylint: disable=too-many-branches
                     if exc.args[-1] != "has no docstrings":
                         raise exc
                 else:
+                    matplotlib.use("Agg")
                     del pub.projectname
                     del pub.timegrids
                     pub.options.prepare_testing(

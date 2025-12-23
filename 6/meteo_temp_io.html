@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>meteo_temp_io &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="meteo_precip_io" href="meteo_precip_io.html" />
+    <link rel="prev" title="meteo_psun_sun_glob_io" href="meteo_psun_sun_glob_io.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="meteo_precip_io.html" title="meteo_precip_io"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="meteo_psun_sun_glob_io.html" title="meteo_psun_sun_glob_io"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Meteo.html" accesskey="U">HydPy-Meteo</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">meteo_temp_io</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="meteo.html">meteo</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_glob_io.html">meteo_glob_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_clear_glob_io.html">meteo_clear_glob_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_psun_sun_glob_io.html">meteo_psun_sun_glob_io</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">meteo_temp_io</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-tests">Integration tests</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_temp_io.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.meteo_temp_io.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.meteo_temp_io.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.meteo_temp_io.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_temp_io.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_temp_io.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_temp_io.FactorSequences"><code class="docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_temp_io.InputSequences"><code class="docutils literal notranslate"><span class="pre">InputSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_precip_io.html">meteo_precip_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_glob_fao56.html">meteo_glob_fao56</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_glob_morsim.html">meteo_glob_morsim</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_sun_fao56.html">meteo_sun_fao56</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_sun_morsim.html">meteo_sun_morsim</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="meteo_psun_sun_glob_io.html"
+                          title="previous chapter">meteo_psun_sun_glob_io</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="meteo_precip_io.html"
+                          title="next chapter">meteo_precip_io</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/meteo_temp_io.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="meteo-temp-io">
+<span id="id1"></span><h1>HydPy-Meteo-Temp-IO (external temperature data)<a class="headerlink" href="#meteo-temp-io" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.meteo_temp_io">Use <a class="reference internal" href="#module-hydpy.models.meteo_temp_io" title="hydpy.models.meteo_temp_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_temp_io</span></code></a> as a submodel tp supply (relative) main models like
+<a class="reference internal" href="evap_pet_hbv96.html#module-hydpy.models.evap_pet_hbv96" title="hydpy.models.evap_pet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_hbv96</span></code></a> with externally available temperature time series.</p>
+<section id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to_read_the_reference_manual.html#integration-tests"><span class="std std-ref">Integration Tests</span></a> first.</p>
+</div>
+<p>The only functionality of <a class="reference internal" href="#module-hydpy.models.meteo_temp_io" title="hydpy.models.meteo_temp_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_temp_io</span></code></a> besides reading input time series is to
+adjust the given values to multiple hydrological response units.  Hence, configuring
+and testing it does not require additional explanations:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.meteo_temp_io</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;element&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-01-03&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbhru</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hruarea</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">temperatureaddend</span><span class="p">(</span><span class="o">-</span><span class="mf">0.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;%Y-</span><span class="si">%d</span><span class="s2">-%m&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_274__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_274__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date | temperature |      temperature | meantemperature |</span>
+<span class="go">-----------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 |         2.0 | 1.4          0.8 |            0.92 |</span>
+<span class="go">| 2000-02-01 |         4.0 | 3.4          2.8 |            2.92 |</span>
+</pre></div></div></div></pre></div></div></section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_temp_io.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_temp_io.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/meteo_temp_io.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.meteo_temp_io.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Sub_BaseModel" title="hydpy.models.meteo.meteo_model.Sub_BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sub_BaseModel</span></code></a>, <a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V2" title="hydpy.interfaces.tempinterfaces.TempModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V2</span></code></a></p>
+<p>HydPy-Meteo-Temp-IO (external temperature data).</p>
+<dl class="simple">
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Calc_Temperature_V1" title="hydpy.models.meteo.meteo_model.Calc_Temperature_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Temperature_V1</span></code></a> Take the input temperature for each hydrological response unit.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Adjust_Temperature_V1" title="hydpy.models.meteo.meteo_model.Adjust_Temperature_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Adjust_Temperature_V1</span></code></a> Adjust the previously determined temperature values.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Calc_MeanTemperature_V1" title="hydpy.models.meteo.meteo_model.Calc_MeanTemperature_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_MeanTemperature_V1</span></code></a> Calculate the average temperature.</p></li>
+</ul>
+</dd>
+<dt>The following interface methods are available to main models using the defined model as a submodel:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Determine_Temperature_V1" title="hydpy.models.meteo.meteo_model.Determine_Temperature_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Temperature_V1</span></code></a> Interface method that applies the complete application model by executing all “run methods”.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Get_Temperature_V1" title="hydpy.models.meteo.meteo_model.Get_Temperature_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_Temperature_V1</span></code></a> Get the current temperature from the selected hydrological response unit.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Get_MeanTemperature_V1" title="hydpy.models.meteo.meteo_model.Get_MeanTemperature_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_MeanTemperature_V1</span></code></a> Get the mean temperature.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.meteo_temp_io.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Meteo-Temp-IO',</span> <span class="pre">'external</span> <span class="pre">temperature</span> <span class="pre">data')</span></span><a class="headerlink" href="#hydpy.models.meteo_temp_io.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.meteo_temp_io.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.meteo_temp_io.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.meteo_temp_io.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.meteo_temp_io.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_temp_io.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_temp_io.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.meteo_temp_io.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model meteo_temp_io.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_control.NmbHRU" title="hydpy.models.meteo.meteo_control.NmbHRU"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbHRU()</span></code></a> The number of hydrological response units [-].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_control.HRUArea" title="hydpy.models.meteo.meteo_control.HRUArea"><code class="xref py py-func docutils literal notranslate"><span class="pre">HRUArea()</span></code></a> The area of each hydrological response unit [km²].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_control.TemperatureAddend" title="hydpy.models.meteo.meteo_control.TemperatureAddend"><code class="xref py py-func docutils literal notranslate"><span class="pre">TemperatureAddend()</span></code></a> Temperature shift constant [°C].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_temp_io.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_temp_io.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.meteo_temp_io.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model meteo_temp_io.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_derived.HRUAreaFraction" title="hydpy.models.meteo.meteo_derived.HRUAreaFraction"><code class="xref py py-func docutils literal notranslate"><span class="pre">HRUAreaFraction()</span></code></a> The area fraction of each hydrological response unit [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_temp_io.FactorSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_temp_io.</span></span><span class="sig-name descname"><span class="pre">FactorSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.meteo_temp_io.FactorSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequences" title="hydpy.core.sequencetools.FactorSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></p>
+<p>Factor sequences of model meteo_temp_io.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_factors.Temperature" title="hydpy.models.meteo.meteo_factors.Temperature"><code class="xref py py-func docutils literal notranslate"><span class="pre">Temperature()</span></code></a> Temperature [°C].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_factors.MeanTemperature" title="hydpy.models.meteo.meteo_factors.MeanTemperature"><code class="xref py py-func docutils literal notranslate"><span class="pre">MeanTemperature()</span></code></a> Mean temperature [°C].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_temp_io.InputSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_temp_io.</span></span><span class="sig-name descname"><span class="pre">InputSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.meteo_temp_io.InputSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequences" title="hydpy.core.sequencetools.InputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequences</span></code></a></p>
+<p>Input sequences of model meteo_temp_io.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_inputs.Temperature" title="hydpy.models.meteo.meteo_inputs.Temperature"><code class="xref py py-func docutils literal notranslate"><span class="pre">Temperature()</span></code></a> Temperature [°C].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="meteo_precip_io.html" title="meteo_precip_io"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="meteo_psun_sun_glob_io.html" title="meteo_psun_sun_glob_io"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Meteo.html" >HydPy-Meteo</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">meteo_temp_io</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

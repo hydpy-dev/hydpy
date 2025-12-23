@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.rconc.rconc_control &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.rconc.rconc_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.rconc.rconc_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_AllowedKeywordArgsOfClassUH</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A |TypedDict| that holds the allowed keyword arguments of the `__call__` method</span>
+<span class="sd">    of class |UH|.&quot;&quot;&quot;</span>
+
+    <span class="n">tb</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">tp</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">x4</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">auxfile</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<div class="viewcode-block" id="UH">
+<a class="viewcode-back" href="../../../../rconc.html#hydpy.models.rconc.rconc_control.UH">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UH</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Unit Hydrograph ordinates [-].</span>
+
+<span class="sd">    The ordinates of the unit hydrograph can be set directly by calling the |UH|</span>
+<span class="sd">    instance with a list of float values as one positional argument:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.rconc import *</span>
+<span class="sd">    &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; uh([0.1,0.2,0.4,0.2,0.1])</span>
+<span class="sd">    &gt;&gt;&gt; logs.quh = 0.0, 0.0, 0.0, 0.0, 0.0</span>
+<span class="sd">    &gt;&gt;&gt; uh</span>
+<span class="sd">    uh(0.1, 0.2, 0.4, 0.2, 0.1)</span>
+
+<span class="sd">    Alternatively, implemented geometries can be specified via a positional &#39;option&#39;</span>
+<span class="sd">    parameter and parameterised with the corresponding arguments.</span>
+
+<span class="sd">    We generate the ordinates of a unit hydrograph in the form of an isosceles triangle</span>
+<span class="sd">    with a base length of 10 days:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_vector</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.rconc import *</span>
+<span class="sd">    &gt;&gt;&gt; uh(&quot;triangle&quot;, tb=10.0)</span>
+<span class="sd">    &gt;&gt;&gt; uh</span>
+<span class="sd">    uh(&quot;triangle&quot;, tb=10.0)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    0.02, 0.06, 0.1, 0.14, 0.18, 0.18, 0.14, 0.1, 0.06, 0.02</span>
+
+<span class="sd">    The value of `tb` depends on the current parameter step size:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; with pub.options.parameterstep(&quot;2d&quot;):</span>
+<span class="sd">    ...     uh</span>
+<span class="sd">    uh(&quot;triangle&quot;, tb=5.0)</span>
+
+<span class="sd">    Omitting the option string will result in an error:</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(tb=10.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the values of parameter `uh` of element `?`, the \</span>
+<span class="sd">following error occurred: Exactly one positional argument is expected, but none or \</span>
+<span class="sd">more than one is given.</span>
+
+<span class="sd">    Also, calling uh with more than one positional argument or with a positional</span>
+<span class="sd">    argument of the wrong type is not allowed:</span>
+
+<span class="sd">    &gt;&gt;&gt; uh([0.1,0.2,0.1], &quot;triangle&quot;, tb=10.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the values of parameter `uh` of element `?`, the \</span>
+<span class="sd">following error occurred: Exactly one positional argument is expected, but none or \</span>
+<span class="sd">more than one is given.</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(True)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to set the values of parameter `uh` of element `?`, the \</span>
+<span class="sd">following error occurred: The expected type of the positional argument is a sequence \</span>
+<span class="sd">of floats but a value of `bool` is given.</span>
+
+<span class="sd">    The optional argument &#39;tp&#39; specifies the position of the peak:</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;triangle&quot;, tb=10.0, tp=7.0)</span>
+<span class="sd">    &gt;&gt;&gt; uh</span>
+<span class="sd">    uh(&quot;triangle&quot;, tb=10.0, tp=7.0)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    0.014286, 0.042857, 0.071429, 0.1, 0.128571, 0.157143, 0.185714,</span>
+<span class="sd">    0.166667, 0.1, 0.033333</span>
+
+<span class="sd">    Any positive real numbers are allowed:</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;triangle&quot;, tb=9.5, tp=6.7)</span>
+<span class="sd">    &gt;&gt;&gt; uh</span>
+<span class="sd">    uh(&quot;triangle&quot;, tb=9.5, tp=6.7)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    0.015711, 0.047133, 0.078555, 0.109976, 0.141398, 0.17282, 0.199445,</span>
+<span class="sd">    0.150376, 0.075188, 0.009398</span>
+
+<span class="sd">    Parameter &#39;tp&#39; must not be greater than &#39;tb&#39;:</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;triangle&quot;, tb=2.0, tp=3.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the values of parameter `uh` of element `?`, the \</span>
+<span class="sd">following error occurred: Parameter &#39;tp&#39; must not be greater than &#39;tb&#39;.</span>
+
+<span class="sd">    In addition to the HBV96-oriented triangular unit hydrograph (with the general</span>
+<span class="sd">    purpose of damping the flood pulse; see :cite:t:`ref-Harlin1992`), the unit</span>
+<span class="sd">    hydrographs used in the GR4J model (which reflect the outflow of the two</span>
+<span class="sd">    conceptional storages used in this approach; see :cite:t:`ref-Perrin2007`) are also</span>
+<span class="sd">    available:</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh1&quot;, x4=6.3)</span>
+<span class="sd">    &gt;&gt;&gt; uh</span>
+<span class="sd">    uh(&quot;gr_uh1&quot;, x4=6.3)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    0.010038, 0.046746, 0.099694, 0.16474, 0.239926, 0.324027, 0.11483</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh1&quot;, x4=0.8)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    1.0</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh2&quot;, x4=2.8)</span>
+<span class="sd">    &gt;&gt;&gt; uh</span>
+<span class="sd">    uh(&quot;gr_uh2&quot;, x4=2.8)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    0.038113, 0.177487, 0.368959, 0.292023, 0.112789, 0.010628</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh2&quot;, x4=0.8)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    0.75643, 0.24357</span>
+
+<span class="sd">    According to :cite:t:`ref-Perrin2007`, the exponent &#39;beta&#39; is 2.5 by default but</span>
+<span class="sd">    can be changed:</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh1&quot;, x4=6.3, beta=1.5)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    0.06324, 0.115629, 0.149734, 0.177314, 0.201123, 0.222388, 0.070571</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh2&quot;, x4=2.8, beta=1.5)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    0.106717, 0.195124, 0.250762, 0.231417, 0.166382, 0.049598</span>
+
+<span class="sd">    The triangle unit hydrograph must not be called with the parameters for the</span>
+<span class="sd">    GR4J-like unit hydrograph:</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;triangle&quot;, x4=2.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the values of parameter `uh` of element `?`, the \</span>
+<span class="sd">following error occurred: Wrong arguments for option &#39;triangle&#39;.</span>
+
+<span class="sd">    The GR4J-based options cannot be mixed with the triangle parameters:</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh1&quot;, tb=2.0, tp=3.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the values of parameter `uh` of element `?`, the \</span>
+<span class="sd">following error occurred: Wrong arguments for option &#39;gr_uh1&#39;.</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh2&quot;, tb=2.0, tp=3.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the values of parameter `uh` of element `?`, the \</span>
+<span class="sd">following error occurred: Wrong arguments for option &#39;gr_uh2&#39;.</span>
+
+<span class="sd">    The following tests examine the correct calculation of ordinates in edge cases:</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh2&quot;, x4=0.4)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    1.0</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh2&quot;, x4=0.0)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    1.0</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh2&quot;, x4=1.0)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    0.5, 0.5</span>
+
+<span class="sd">    &gt;&gt;&gt; uh(&quot;gr_uh2&quot;, x4=1.5)</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(uh.values)</span>
+<span class="sd">    0.181444, 0.637113, 0.181444</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">strict_valuehandling</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">KEYWORDS</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;tb&quot;</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Keyword</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;tb&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="s2">&quot;tp&quot;</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Keyword</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;tp&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="s2">&quot;x4&quot;</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Keyword</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;x4&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="s2">&quot;beta&quot;</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Keyword</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;beta&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">VectorInputFloat</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;triangle&quot;</span><span class="p">],</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tb</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">tp</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">option</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;gr_uh1&quot;</span><span class="p">,</span> <span class="s2">&quot;gr_uh2&quot;</span><span class="p">],</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">x4</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.5</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">VectorInputFloat</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Unpack</span><span class="p">[</span><span class="n">_AllowedKeywordArgsOfClassUH</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># TODO: testing for parameter auxfile here would lead to necessity of</span>
+        <span class="c1"># TODO: complex doctests, otherwise we would have to change the super class</span>
+        <span class="c1"># TODO: For now, we skip support of auxfile and need to find a general solution.</span>
+        <span class="c1"># auxfile = kwargs.get(&quot;auxfile&quot;)</span>
+        <span class="c1"># if auxfile is not None:</span>
+        <span class="c1">#    super().__call__(*args, **kwargs)</span>
+        <span class="c1">#    return None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_validate_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">option</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;The expected type of the positional argument is a &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;sequence of floats but a value of `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot; is given.&quot;</span>
+                    <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+            <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_kwargscombination</span><span class="p">(</span>
+                <span class="n">args</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">kwargs</span><span class="p">),</span> <span class="p">({</span><span class="s2">&quot;tb&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;tb&quot;</span><span class="p">,</span> <span class="s2">&quot;tp&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;x4&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;x4&quot;</span><span class="p">,</span> <span class="s2">&quot;beta&quot;</span><span class="p">})</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;triangle&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">idx</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">tb</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tb&quot;</span><span class="p">]</span>
+                    <span class="n">tb</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_timefactor</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">tp</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;tp&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">tp</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">tp</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_timefactor</span><span class="p">()</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">(</span>
+                            <span class="n">option</span><span class="o">=</span><span class="n">option</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="n">tb</span><span class="p">,</span> <span class="n">tp</span><span class="o">=</span><span class="n">tp</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tp</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">(</span>
+                            <span class="n">option</span><span class="o">=</span><span class="n">option</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="n">tb</span>
+                        <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_set_triangle_uh</span><span class="p">(</span><span class="n">tb</span><span class="o">=</span><span class="n">tb</span><span class="p">,</span> <span class="n">tp</span><span class="o">=</span><span class="n">tp</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong arguments for option &#39;triangle&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;gr_uh1&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">idx</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+                    <span class="n">x4</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;x4&quot;</span><span class="p">]</span>
+                    <span class="n">x4</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_timefactor</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">beta</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">(</span>
+                            <span class="n">option</span><span class="o">=</span><span class="n">option</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="n">x4</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">beta</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">beta</span> <span class="o">=</span> <span class="mf">2.5</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">(</span>
+                            <span class="n">option</span><span class="o">=</span><span class="n">option</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="n">x4</span>
+                        <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_gr_uh1</span><span class="p">(</span><span class="n">x4</span><span class="o">=</span><span class="n">x4</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">beta</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong arguments for option &#39;gr_uh1&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="s2">&quot;gr_uh2&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">idx</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+                    <span class="n">x4</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;x4&quot;</span><span class="p">]</span>
+                    <span class="n">x4</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_timefactor</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">beta</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;beta&quot;</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">(</span>
+                            <span class="n">option</span><span class="o">=</span><span class="n">option</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="n">x4</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">beta</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">beta</span> <span class="o">=</span> <span class="mf">2.5</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">(</span>
+                            <span class="n">option</span><span class="o">=</span><span class="n">option</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="n">x4</span>
+                        <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_gr_uh2</span><span class="p">(</span><span class="n">x4</span><span class="o">=</span><span class="n">x4</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">beta</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong arguments for option &#39;gr_uh2&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to set the values of parameter &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_validate_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">VectorInputFloat</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Exactly one positional argument is expected, but none or more &quot;</span>
+                <span class="s2">&quot;than one is given.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span><span class="o">.</span><span class="n">valid</span><span class="p">:</span>
+            <span class="n">strings</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;tb&quot;</span><span class="p">,</span> <span class="s2">&quot;tp&quot;</span><span class="p">,</span> <span class="s2">&quot;x4&quot;</span><span class="p">):</span>
+                    <span class="n">value</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_timefactor</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;option&quot;</span><span class="p">:</span>
+                    <span class="n">strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">strings</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_triangle_uh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tb</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">tp</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate and set the ordinates of a triangle unit hydrograph.&quot;&quot;&quot;</span>
+
+        <span class="n">quh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span>
+        <span class="c1"># Determine UH parameters...</span>
+        <span class="k">if</span> <span class="n">tb</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="c1"># ...when Tb smaller than or equal to the simulation time step.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">quh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">full</span> <span class="o">=</span> <span class="n">tb</span>
+            <span class="c1"># Now comes a terrible trick due to rounding problems coming from</span>
+            <span class="c1"># the conversation of the SMHI parameter set to the HydPy</span>
+            <span class="c1"># parameter set.  Time to get rid of it...</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">full</span> <span class="o">%</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-4</span><span class="p">:</span>
+                <span class="n">full</span> <span class="o">//=</span> <span class="mf">1.0</span>
+            <span class="n">full_f</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">full</span><span class="p">))</span>
+            <span class="n">full_c</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">full</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">tp</span><span class="p">:</span>
+                <span class="n">peak</span> <span class="o">=</span> <span class="n">full</span> <span class="o">/</span> <span class="mf">2.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">tp</span> <span class="o">&gt;</span> <span class="n">tb</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Parameter &#39;tp&#39; must not be greater than &#39;tb&#39;.&quot;</span><span class="p">)</span>
+                <span class="n">peak</span> <span class="o">=</span> <span class="n">tp</span>
+            <span class="n">peak_f</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">peak</span><span class="p">))</span>
+            <span class="n">peak_c</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">peak</span><span class="p">))</span>
+            <span class="c1"># Calculate the triangle ordinate(s)...</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">full_c</span>
+            <span class="n">uh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">quh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">full_c</span>
+            <span class="n">slope1</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">peak</span>
+            <span class="n">slope2</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">full</span> <span class="o">-</span> <span class="n">peak</span><span class="p">)</span>
+            <span class="c1"># ...of the rising limb.</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">peak_f</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">uh</span><span class="p">[:</span><span class="n">peak_f</span><span class="p">]</span> <span class="o">=</span> <span class="n">slope1</span> <span class="o">*</span> <span class="p">(</span><span class="n">points</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span>
+            <span class="c1"># ...around the peak (if it exists).</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">peak</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">uh</span><span class="p">[</span><span class="n">peak_c</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">slope1</span> <span class="o">*</span> <span class="p">(</span><span class="n">peak</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">peak_f</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+                    <span class="o">+</span> <span class="n">slope2</span> <span class="o">*</span> <span class="p">(</span><span class="n">peak_c</span> <span class="o">-</span> <span class="n">peak</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mi">2</span>
+                    <span class="o">+</span> <span class="n">peak_c</span>
+                    <span class="o">-</span> <span class="n">peak</span>
+                <span class="p">)</span>
+            <span class="c1"># ...of the falling limb (eventually except the last one).</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">full_f</span> <span class="o">-</span> <span class="n">peak_c</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">uh</span><span class="p">[</span><span class="n">peak_c</span><span class="p">:</span><span class="n">full_f</span><span class="p">]</span> <span class="o">=</span> <span class="n">slope2</span> <span class="o">*</span> <span class="p">(</span><span class="n">points</span> <span class="o">+</span> <span class="n">peak_c</span> <span class="o">-</span> <span class="n">peak</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="c1"># ...at the end (if not already done).</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">full</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">uh</span><span class="p">[</span><span class="n">full_c</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">slope2</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">((</span><span class="n">full</span> <span class="o">-</span> <span class="n">peak</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="p">(</span><span class="n">full_f</span> <span class="o">-</span> <span class="n">peak</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="o">+</span> <span class="n">full</span>
+                    <span class="o">-</span> <span class="n">full_f</span>
+                <span class="p">)</span>
+            <span class="c1"># Normalize the ordinates.</span>
+            <span class="n">uh</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">uh</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">uh</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">uh</span>
+
+<div class="viewcode-block" id="UH.set_gr_uh1">
+<a class="viewcode-back" href="../../../../rconc.html#hydpy.models.rconc.rconc_control.UH.set_gr_uh1">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_gr_uh1</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x4</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate and set the ordinates of a unit hydrograph as done by GR4J for</span>
+<span class="sd">        modifying base flow.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det_gr_uh</span><span class="p">(</span><span class="n">x4</span><span class="o">=</span><span class="n">x4</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">beta</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span></div>
+
+
+<div class="viewcode-block" id="UH.set_gr_uh2">
+<a class="viewcode-back" href="../../../../rconc.html#hydpy.models.rconc.rconc_control.UH.set_gr_uh2">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_gr_uh2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x4</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate and set the ordinates of a unit hydrograph as done by GR4J for</span>
+<span class="sd">        modifying direct runoff.&quot;&quot;&quot;</span>
+        <span class="n">shape_left</span><span class="p">,</span> <span class="n">values_left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det_gr_uh</span><span class="p">(</span><span class="n">x4</span><span class="o">=</span><span class="n">x4</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">beta</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">shape_right</span><span class="p">,</span> <span class="n">values_right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_det_gr_uh</span><span class="p">(</span><span class="n">x4</span><span class="o">=</span><span class="n">x4</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">beta</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape_left</span> <span class="o">+</span> <span class="n">shape_right</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="n">shape_left</span><span class="p">]</span> <span class="o">=</span> <span class="n">values_left</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="n">shape_right</span><span class="p">:]</span> <span class="o">+=</span> <span class="n">values_right</span> <span class="o">/</span> <span class="mf">2.0</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_det_gr_uh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x4</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">beta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">left</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">VectorFloat</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the shape and the ordinates of a GR4J-like (part of a) unit</span>
+<span class="sd">        hydrograph.</span>
+
+<span class="sd">        `left` means the rising limb and corresponds to &quot;uh1&quot; and the left part of</span>
+<span class="sd">        &quot;uh2&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">x4</span> <span class="o">&lt;=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">left</span> <span class="ow">and</span> <span class="n">x4</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">NP_FLOAT</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">left</span><span class="p">:</span>
+            <span class="n">ts</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">x4</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ts</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">x4</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">x4</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">totals</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">NP_FLOAT</span><span class="p">)</span>
+        <span class="n">totals</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">ts</span> <span class="o">/</span> <span class="n">x4</span><span class="p">)</span> <span class="o">**</span> <span class="n">beta</span>
+        <span class="n">totals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">totals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span>
+        <span class="n">deltas</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">totals</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">left</span><span class="p">:</span>
+            <span class="n">deltas</span> <span class="o">=</span> <span class="n">deltas</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">deltas</span><span class="p">),</span> <span class="n">deltas</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">deltas</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RetentionTime">
+<a class="viewcode-back" href="../../../../rconc.html#hydpy.models.rconc.rconc_control.RetentionTime">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RetentionTime</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retention time of the linear storage cascade [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NmbStorages">
+<a class="viewcode-back" href="../../../../rconc.html#hydpy.models.rconc.rconc_control.NmbStorages">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbStorages</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of storages of the linear storage cascade [-].</span>
+
+<span class="sd">    Defining a value for parameter |NmbStorages| automatically sets the shape of state</span>
+<span class="sd">    sequence |SC|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.rconc import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbstorages(5)</span>
+<span class="sd">    &gt;&gt;&gt; states.sc.shape</span>
+<span class="sd">    (5,)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">sc</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="NmbSteps">
+<a class="viewcode-back" href="../../../../rconc.html#hydpy.models.rconc.rconc_control.NmbSteps">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbSteps</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of internal computation steps per simulation time step [-].</span>
+
+<span class="sd">    The default value of 1440 internal computation steps per day corresponds to 1</span>
+<span class="sd">    computation step per minute.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.rconc import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbsteps(4.2)</span>
+<span class="sd">    &gt;&gt;&gt; nmbsteps</span>
+<span class="sd">    nmbsteps(4.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1440.0</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.rconc.rconc_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

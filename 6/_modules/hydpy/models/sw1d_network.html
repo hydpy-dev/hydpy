@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.sw1d_network &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.sw1d_network</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.sw1d_network</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The |sw1d.DOCNAME.long| model family member |sw1d_network| allows combining different</span>
+<span class="sd">storage and routing submodels for representing the 1-dimensional flow processes within</span>
+<span class="sd">a complete channel network.</span>
+
+<span class="sd">Technically, |sw1d_network| is quite similar to |sw1d_channel|, but both serve</span>
+<span class="sd">different purposes and complement each other.  |sw1d_network| is a &quot;composite model&quot;,</span>
+<span class="sd">of which *HydPy* automatically creates instances, each of them combining the</span>
+<span class="sd">submodels of multiple |sw1d_channel| instances.  So, framework users do usually not</span>
+<span class="sd">need to configure |sw1d_network| directly but do so indirectly by preparing seemingly</span>
+<span class="sd">independent |sw1d_channel| models for the individual reaches of a channel network.</span>
+<span class="sd">Nevertheless, reading the following notes (after reading the |sw1d_channel|</span>
+<span class="sd">documentation) might give some relevant insights as |sw1d_network| actually does the</span>
+<span class="sd">simulation job and makes some demands regarding the &quot;completeness&quot; of the underlying</span>
+<span class="sd">|sw1d_channel| models.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">The following examples build on the ones of the |sw1d_channel| documentation.  So, we</span>
+<span class="sd">select the same simulation period:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;2000-01-01 00:00&quot;, &quot;2000-01-01 05:00&quot;, &quot;5m&quot;</span>
+
+<span class="sd">We split the 20 km channel from the |sw1d_channel| documentation into two identical</span>
+<span class="sd">parts.</span>
+
+<span class="sd">We take the 20 km channel from the |sw1d_channel| documentation but split it into two</span>
+<span class="sd">identical parts.  So, one |sw1d_channel| model, handled by the |Element| `channel1a`,</span>
+<span class="sd">covers the first four segments and another one, handled by the |Element| `channel2`,</span>
+<span class="sd">covers the last four segments.  But first, we need to define three nodes that are</span>
+<span class="sd">connectable to the inlet sequence |sw1d_inlets.LongQ| and outlet sequence</span>
+<span class="sd">|sw1d_outlets.LongQ|, which is simplest by defining their variable via a string:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Node</span>
+<span class="sd">&gt;&gt;&gt; q_1a_in = Node(&quot;q_1a_in&quot;, variable=&quot;LongQ&quot;)</span>
+<span class="sd">&gt;&gt;&gt; q_1to2 = Node(&quot;q_1to2&quot;, variable=&quot;LongQ&quot;)</span>
+<span class="sd">&gt;&gt;&gt; q_2_out = Node(&quot;q_2_out&quot;, variable=&quot;LongQ&quot;)</span>
+
+<span class="sd">The remarkable thing about defining the two elements is that we must associate them</span>
+<span class="sd">with the same |Element.collective| so that *HydPy* knows it must combine their &quot;user</span>
+<span class="sd">models&quot; into one &quot;composite model&quot;:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Element</span>
+<span class="sd">&gt;&gt;&gt; channel1a = Element(&quot;channel1a&quot;, collective=&quot;network&quot;, inlets=q_1a_in, outlets=q_1to2)</span>
+<span class="sd">&gt;&gt;&gt; channel2 = Element(&quot;channel2&quot;, collective=&quot;network&quot;, inlets=q_1to2, outlets=q_2_out)</span>
+
+<span class="sd">Now, we set up all submodels as in the |sw1d_channel| documentation but assign each to</span>
+<span class="sd">one of two main models, which in turn are handled by the two already available</span>
+<span class="sd">elements:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.models import sw1d_channel, sw1d_storage, sw1d_lias</span>
+<span class="sd">&gt;&gt;&gt; lengths = 2.0, 3.0, 2.0, 3.0</span>
+<span class="sd">&gt;&gt;&gt; for element in (channel1a, channel2):</span>
+<span class="sd">...     channel = prepare_model(sw1d_channel)</span>
+<span class="sd">...     channel.parameters.control.nmbsegments(4)</span>
+<span class="sd">...     for i, length_ in enumerate(lengths):</span>
+<span class="sd">...         with channel.add_storagemodel_v1(sw1d_storage, position=i):</span>
+<span class="sd">...             length(length_)</span>
+<span class="sd">...             with model.add_crosssection_v2(&quot;wq_trapeze&quot;):</span>
+<span class="sd">...                 nmbtrapezes(1)</span>
+<span class="sd">...                 bottomlevels(5.0)</span>
+<span class="sd">...                 bottomwidths(5.0)</span>
+<span class="sd">...                 sideslopes(0.0)</span>
+<span class="sd">...     for i in range(1, 5 if element is channel1a else 4):</span>
+<span class="sd">...         with channel.add_routingmodel_v2(sw1d_lias, position=i):</span>
+<span class="sd">...             lengthupstream(2.0 if i % 2 else 3.0)</span>
+<span class="sd">...             lengthdownstream(3.0 if i % 2 else 2.0)</span>
+<span class="sd">...             stricklercoefficient(1.0/0.03)</span>
+<span class="sd">...             timestepfactor(0.7)</span>
+<span class="sd">...             diffusionfactor(0.2)</span>
+<span class="sd">...             with model.add_crosssection_v2(&quot;wq_trapeze&quot;):</span>
+<span class="sd">...                 nmbtrapezes(1)</span>
+<span class="sd">...                 bottomlevels(5.0)</span>
+<span class="sd">...                 bottomwidths(5.0)</span>
+<span class="sd">...                 sideslopes(0.0)</span>
+<span class="sd">...     element.model = channel</span>
+
+<span class="sd">The following test function object finds all nodes and elements automatically upon</span>
+<span class="sd">initialisation:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest()</span>
+
+<span class="sd">We again define a convenience function for preparing the initial conditions.  This one</span>
+<span class="sd">accepts individual water depths for different elements but generally sets the &quot;old&quot;</span>
+<span class="sd">discharge to zero:</span>
+
+<span class="sd">&gt;&gt;&gt; def prepare_inits(**name2depth):</span>
+<span class="sd">...     inits = []</span>
+<span class="sd">...     for name, h in name2depth.items():</span>
+<span class="sd">...         e = Element(name)</span>
+<span class="sd">...         for s in e.model.storagemodels:</span>
+<span class="sd">...             length = s.parameters.control.length</span>
+<span class="sd">...             c = s.crosssection.parameters.control</span>
+<span class="sd">...             v = h * (c.bottomwidths[0] + h * c.sideslopes[0]) * length</span>
+<span class="sd">...             inits.append((s.sequences.states.watervolume, v))</span>
+<span class="sd">...         for r in e.model.routingmodels:</span>
+<span class="sd">...             if r is not None:</span>
+<span class="sd">...                 inits.append((r.sequences.states.discharge, 0.0))</span>
+<span class="sd">...     test.inits = inits</span>
+
+
+<span class="sd">.. _sw1d_network_zero_inflow_and_outflow:</span>
+
+<span class="sd">Zero inflow and outflow</span>
+<span class="sd">_______________________</span>
+
+<span class="sd">The following water depths agree with the configuration of the</span>
+<span class="sd">:ref:`sw1d_channel_zero_inflow_and_outflow` example of |sw1d_channel|:</span>
+
+<span class="sd">&gt;&gt;&gt; prepare_inits(channel1a=3.0, channel2=1.0)</span>
+
+<span class="sd">Albeit irrelevant for the first simulation, we set the inflow represented by the (still</span>
+<span class="sd">unused) node `q_1a_in` to zero to avoid `nan` values in the following result table:</span>
+
+<span class="sd">&gt;&gt;&gt; q_1a_in.sequences.sim.series = 0.0</span>
+
+<span class="sd">The discharge simulated for node `q_1to2` is identical to the one simulated for the</span>
+<span class="sd">middle position in the :ref:`sw1d_channel_zero_inflow_and_outflow` example of</span>
+<span class="sd">|sw1d_channel|, which shows that the |sw1d_network| instance here works as a correct</span>
+<span class="sd">composite of the two user models:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; conditions = test(get_conditions=&quot;2000-01-01 00:00&quot;)</span>
+<span class="sd">    |                date |  timestep | q_1a_in |    q_1to2 | q_2_out |</span>
+<span class="sd">    -------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 | 41.932744 |     0.0 | 17.116697 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:05:00 | 41.932744 |     0.0 |  6.434402 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:10:00 |  41.86989 |     0.0 |  7.317577 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:15:00 | 40.570615 |     0.0 |  6.771817 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:20:00 | 38.464288 |     0.0 |  6.441228 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:25:00 | 36.060713 |     0.0 |  6.111343 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:30:00 | 33.726739 |     0.0 |  5.814913 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:35:00 | 31.578426 |     0.0 |  5.548742 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:40:00 | 29.590331 |     0.0 |  5.307354 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:45:00 | 27.697934 |     0.0 |  5.084325 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:50:00 | 25.854608 |     0.0 |  4.875904 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:55:00 | 24.044617 |     0.0 |  4.680467 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:00:00 | 22.271186 |     0.0 |  4.497034 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:05:00 | 20.541621 |     0.0 |  4.324343 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:10:00 | 18.859766 |     0.0 |  4.160846 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:15:00 | 17.225223 |     0.0 |   4.00511 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:20:00 | 15.635338 |     0.0 |  3.856098 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:25:00 | 14.087165 |     0.0 |  3.713189 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:30:00 | 12.578396 |     0.0 |  3.576035 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:35:00 | 11.107466 |     0.0 |  3.444403 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:40:00 |   9.67329 |     0.0 |  3.318058 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:45:00 |  8.274999 |     0.0 |  3.196719 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:50:00 |   6.91179 |     0.0 |  3.080056 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:55:00 |  5.582889 |     0.0 |  2.967695 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:00:00 |  4.287568 |     0.0 |  2.859236 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:05:00 |  3.025166 |     0.0 |  2.754256 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:10:00 |  1.795106 |     0.0 |  2.652318 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:15:00 |  0.596896 |     0.0 |  2.552973 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:20:00 |     300.0 |     0.0 |  2.455693 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:25:00 |     300.0 |     0.0 |  2.370851 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:30:00 |     300.0 |     0.0 |  2.278535 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:35:00 |     300.0 |     0.0 |  2.186283 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:40:00 |     300.0 |     0.0 |  2.094209 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:45:00 |     300.0 |     0.0 |  2.001626 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:50:00 |     300.0 |     0.0 |  1.908479 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:55:00 |     300.0 |     0.0 |  1.814849 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:00:00 |     300.0 |     0.0 |  1.720515 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:05:00 |     300.0 |     0.0 |  1.625017 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:10:00 |     300.0 |     0.0 |  1.527933 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:15:00 |     300.0 |     0.0 |  1.429057 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:20:00 |     300.0 |     0.0 |  1.328408 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:25:00 |     300.0 |     0.0 |   1.22614 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:30:00 |     300.0 |     0.0 |  1.122462 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:35:00 |     300.0 |     0.0 |  1.017589 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:40:00 |     300.0 |     0.0 |  0.911751 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:45:00 |     300.0 |     0.0 |  0.805203 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:50:00 |     300.0 |     0.0 |  0.698243 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:55:00 |     300.0 |     0.0 |  0.591202 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:00:00 |     300.0 |     0.0 |  0.484427 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:05:00 |     300.0 |     0.0 |  0.378258 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:10:00 |     300.0 |     0.0 |  0.273014 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:15:00 |     300.0 |     0.0 |   0.16898 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:20:00 |     300.0 |     0.0 |  0.066424 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:25:00 |     300.0 |     0.0 | -0.034386 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:30:00 |     300.0 |     0.0 | -0.131043 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:35:00 |     300.0 |     0.0 | -0.214119 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:40:00 |     300.0 |     0.0 | -0.278681 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:45:00 |     300.0 |     0.0 | -0.323311 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:50:00 |     300.0 |     0.0 | -0.349079 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:55:00 |     300.0 |     0.0 | -0.358235 |     0.0 |</span>
+
+<span class="sd">There is no indication of an error in the water balance:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">&gt;&gt;&gt; round_(test.hydpy.collectives[0].model.check_waterbalance(conditions))</span>
+<span class="sd">0.0</span>
+
+<span class="sd">.. _sw1d_network_weir_outflow:</span>
+
+<span class="sd">Weir outflow</span>
+<span class="sd">____________</span>
+
+<span class="sd">Next, we repeat the :ref:`sw1d_channel_weir_outflow` example of |sw1d_channel| as a</span>
+<span class="sd">more complex example considering inflow and outflow.</span>
+
+<span class="sd">We add an identical |sw1d_q_in| submodel at the inflow position of the upper element&#39;s</span>
+<span class="sd">model:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models import sw1d_q_in</span>
+<span class="sd">&gt;&gt;&gt; with channel1a.model.add_routingmodel_v1(sw1d_q_in, position=0):</span>
+<span class="sd">...     lengthdownstream(2.0)</span>
+<span class="sd">...     timestepfactor(0.7)</span>
+<span class="sd">...     with model.add_crosssection_v2(&quot;wq_trapeze&quot;):</span>
+<span class="sd">...         nmbtrapezes(1)</span>
+<span class="sd">...         bottomlevels(5.0)</span>
+<span class="sd">...         bottomwidths(5.0)</span>
+<span class="sd">...         sideslopes(0.0)</span>
+<span class="sd">&gt;&gt;&gt; channel1a.model.connect()</span>
+
+<span class="sd">And we add an identical |sw1d_weir_out| submodel at the outflow position of the lower</span>
+<span class="sd">element&#39;s model:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models import sw1d_weir_out</span>
+<span class="sd">&gt;&gt;&gt; with channel2.model.add_routingmodel_v3(sw1d_weir_out, position=4):</span>
+<span class="sd">...     lengthupstream(3.0)</span>
+<span class="sd">...     crestheight(7.0)</span>
+<span class="sd">...     crestwidth(5.0)</span>
+<span class="sd">...     flowcoefficient(0.58)</span>
+<span class="sd">...     timestepfactor(0.7)</span>
+<span class="sd">&gt;&gt;&gt; channel2.model.connect()</span>
+
+<span class="sd">Further, we set the time step factor, the constant inflow, and the initial conditions to</span>
+<span class="sd">the same values as in the :ref:`sw1d_channel_weir_outflow` example:</span>
+
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest()</span>
+<span class="sd">&gt;&gt;&gt; for element in (channel1a, channel2):</span>
+<span class="sd">...     for routingmodel in element.model.routingmodels.submodels:</span>
+<span class="sd">...         if routingmodel is not None:</span>
+<span class="sd">...             routingmodel.parameters.control.timestepfactor(0.1)</span>
+<span class="sd">&gt;&gt;&gt; q_1a_in.sequences.sim.series = 1.0</span>
+<span class="sd">&gt;&gt;&gt; prepare_inits(channel1a=2.0, channel2=2.0)</span>
+
+<span class="sd">The following discharges are identical to those available in the results table of the</span>
+<span class="sd">:ref:`sw1d_channel_weir_outflow` example of |sw1d_channel|:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; conditions = test(get_conditions=&quot;2000-01-01 00:00&quot;)</span>
+<span class="sd">    |                date |  timestep | q_1a_in |   q_1to2 |  q_2_out |</span>
+<span class="sd">    -------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 | 29.522473 |     1.0 | 0.000084 |      0.0 |</span>
+<span class="sd">    | 2000-01-01 00:05:00 | 30.437257 |     1.0 | 0.010297 |      0.0 |</span>
+<span class="sd">    | 2000-01-01 00:10:00 | 31.047327 |     1.0 | 0.057861 |      0.0 |</span>
+<span class="sd">    | 2000-01-01 00:15:00 | 31.487924 |     1.0 |  0.13627 | 0.000003 |</span>
+<span class="sd">    | 2000-01-01 00:20:00 | 31.831217 |     1.0 | 0.223131 | 0.000031 |</span>
+<span class="sd">    | 2000-01-01 00:25:00 | 32.115718 |     1.0 | 0.303889 | 0.000173 |</span>
+<span class="sd">    | 2000-01-01 00:30:00 | 32.362765 |     1.0 | 0.372712 | 0.000611 |</span>
+<span class="sd">    | 2000-01-01 00:35:00 | 32.584688 |     1.0 | 0.428534 | 0.001597 |</span>
+<span class="sd">    | 2000-01-01 00:40:00 | 32.788919 |     1.0 | 0.472255 | 0.003371 |</span>
+<span class="sd">    | 2000-01-01 00:45:00 | 32.980171 |     1.0 | 0.505411 | 0.006095 |</span>
+<span class="sd">    | 2000-01-01 00:50:00 | 33.161638 |     1.0 |  0.52966 | 0.009817 |</span>
+<span class="sd">    | 2000-01-01 00:55:00 | 33.335665 |     1.0 | 0.546602 | 0.014488 |</span>
+<span class="sd">    | 2000-01-01 01:00:00 |   33.5041 |     1.0 | 0.557716 | 0.019988 |</span>
+<span class="sd">    | 2000-01-01 01:05:00 | 33.668478 |     1.0 | 0.564322 |  0.02617 |</span>
+<span class="sd">    | 2000-01-01 01:10:00 | 33.830091 |     1.0 | 0.567571 | 0.032882 |</span>
+<span class="sd">    | 2000-01-01 01:15:00 | 33.990019 |     1.0 | 0.568434 | 0.039987 |</span>
+<span class="sd">    | 2000-01-01 01:20:00 | 34.149135 |     1.0 | 0.567713 | 0.047372 |</span>
+<span class="sd">    | 2000-01-01 01:25:00 | 34.308116 |     1.0 | 0.566046 | 0.054949 |</span>
+<span class="sd">    | 2000-01-01 01:30:00 | 34.467448 |     1.0 | 0.563931 | 0.062652 |</span>
+<span class="sd">    | 2000-01-01 01:35:00 | 34.627446 |     1.0 |  0.56174 | 0.070436 |</span>
+<span class="sd">    | 2000-01-01 01:40:00 | 34.788273 |     1.0 | 0.559739 | 0.078272 |</span>
+<span class="sd">    | 2000-01-01 01:45:00 | 34.949971 |     1.0 |  0.55811 | 0.086141 |</span>
+<span class="sd">    | 2000-01-01 01:50:00 | 35.112477 |     1.0 | 0.556964 | 0.094032 |</span>
+<span class="sd">    | 2000-01-01 01:55:00 | 35.275657 |     1.0 | 0.556359 | 0.101942 |</span>
+<span class="sd">    | 2000-01-01 02:00:00 | 35.439325 |     1.0 | 0.556315 | 0.109869 |</span>
+<span class="sd">    | 2000-01-01 02:05:00 | 35.603263 |     1.0 | 0.556821 | 0.117813 |</span>
+<span class="sd">    | 2000-01-01 02:10:00 | 35.767241 |     1.0 | 0.557846 | 0.125776 |</span>
+<span class="sd">    | 2000-01-01 02:15:00 | 35.931023 |     1.0 | 0.559348 | 0.133758 |</span>
+<span class="sd">    | 2000-01-01 02:20:00 | 36.094387 |     1.0 | 0.561277 | 0.141761 |</span>
+<span class="sd">    | 2000-01-01 02:25:00 | 36.257123 |     1.0 | 0.563583 | 0.149785 |</span>
+<span class="sd">    | 2000-01-01 02:30:00 | 36.419042 |     1.0 | 0.566213 |  0.15783 |</span>
+<span class="sd">    | 2000-01-01 02:35:00 | 36.579976 |     1.0 | 0.569119 | 0.165895 |</span>
+<span class="sd">    | 2000-01-01 02:40:00 | 36.739783 |     1.0 | 0.572257 |  0.17398 |</span>
+<span class="sd">    | 2000-01-01 02:45:00 |  36.89834 |     1.0 | 0.575586 | 0.182081 |</span>
+<span class="sd">    | 2000-01-01 02:50:00 | 37.055547 |     1.0 |  0.57907 | 0.190197 |</span>
+<span class="sd">    | 2000-01-01 02:55:00 |  37.21132 |     1.0 | 0.582678 | 0.198324 |</span>
+<span class="sd">    | 2000-01-01 03:00:00 | 37.365596 |     1.0 | 0.586386 |  0.20646 |</span>
+<span class="sd">    | 2000-01-01 03:05:00 | 37.518323 |     1.0 | 0.590169 |   0.2146 |</span>
+<span class="sd">    | 2000-01-01 03:10:00 | 37.669464 |     1.0 | 0.594011 | 0.222742 |</span>
+<span class="sd">    | 2000-01-01 03:15:00 |  37.81899 |     1.0 | 0.597895 | 0.230882 |</span>
+<span class="sd">    | 2000-01-01 03:20:00 | 37.966882 |     1.0 |  0.60181 | 0.239015 |</span>
+<span class="sd">    | 2000-01-01 03:25:00 | 38.113129 |     1.0 | 0.605746 | 0.247138 |</span>
+<span class="sd">    | 2000-01-01 03:30:00 | 38.257724 |     1.0 | 0.609694 | 0.255248 |</span>
+<span class="sd">    | 2000-01-01 03:35:00 | 38.400665 |     1.0 | 0.613648 | 0.263341 |</span>
+<span class="sd">    | 2000-01-01 03:40:00 | 38.541953 |     1.0 | 0.617604 | 0.271413 |</span>
+<span class="sd">    | 2000-01-01 03:45:00 | 38.681592 |     1.0 | 0.621557 | 0.279461 |</span>
+<span class="sd">    | 2000-01-01 03:50:00 |  38.81959 |     1.0 | 0.625503 | 0.287482 |</span>
+<span class="sd">    | 2000-01-01 03:55:00 | 38.955953 |     1.0 | 0.629441 | 0.295473 |</span>
+<span class="sd">    | 2000-01-01 04:00:00 | 39.090692 |     1.0 | 0.633368 |  0.30343 |</span>
+<span class="sd">    | 2000-01-01 04:05:00 | 39.223815 |     1.0 | 0.637282 | 0.311352 |</span>
+<span class="sd">    | 2000-01-01 04:10:00 | 39.355334 |     1.0 | 0.641182 | 0.319235 |</span>
+<span class="sd">    | 2000-01-01 04:15:00 |  39.48526 |     1.0 | 0.645068 | 0.327078 |</span>
+<span class="sd">    | 2000-01-01 04:20:00 | 39.613604 |     1.0 | 0.648937 | 0.334877 |</span>
+<span class="sd">    | 2000-01-01 04:25:00 | 39.740379 |     1.0 | 0.652788 | 0.342631 |</span>
+<span class="sd">    | 2000-01-01 04:30:00 | 39.865596 |     1.0 | 0.656622 | 0.350339 |</span>
+<span class="sd">    | 2000-01-01 04:35:00 | 39.989269 |     1.0 | 0.660437 | 0.357997 |</span>
+<span class="sd">    | 2000-01-01 04:40:00 | 40.111408 |     1.0 | 0.664232 | 0.365604 |</span>
+<span class="sd">    | 2000-01-01 04:45:00 | 40.232028 |     1.0 | 0.668006 |  0.37316 |</span>
+<span class="sd">    | 2000-01-01 04:50:00 | 40.351141 |     1.0 |  0.67176 | 0.380661 |</span>
+<span class="sd">    | 2000-01-01 04:55:00 |  40.46876 |     1.0 | 0.675491 | 0.388108 |</span>
+
+<span class="sd">There is no indication of an error in the water balance:</span>
+
+<span class="sd">&gt;&gt;&gt; round_(test.hydpy.collectives[0].model.check_waterbalance(conditions))</span>
+<span class="sd">0.0</span>
+
+<span class="sd">.. _sw1d_network_confluences:</span>
+
+<span class="sd">Confluences</span>
+<span class="sd">___________</span>
+
+<span class="sd">Now, we illustrate how to build real networks by connecting more than two elements with</span>
+<span class="sd">the same node.  We will handle the existing two subchannels as a main channel.  The one</span>
+<span class="sd">upstream of the junction (`channel1a`) has a width of 8 mm, and the one downstream of</span>
+<span class="sd">the junction (`channel2`) has a width of 10 m:</span>
+
+<span class="sd">&gt;&gt;&gt; for element, width in ([channel1a, 8.0], [channel2, 10.0]):</span>
+<span class="sd">...     for storagemodel in element.model.storagemodels:</span>
+<span class="sd">...         storagemodel.crosssection.parameters.control.bottomwidths(width)</span>
+<span class="sd">...     for routingmodel in element.model.routingmodels:</span>
+<span class="sd">...         if isinstance(routingmodel, (sw1d_lias.Model, sw1d_q_in.Model)):</span>
+<span class="sd">...             routingmodel.crosssection.parameters.control.bottomwidths(width)</span>
+
+<span class="sd">The new 10 km long side channel also consists of four segments but is only 2 m wide:</span>
+
+<span class="sd">&gt;&gt;&gt; channel = prepare_model(&quot;sw1d_channel&quot;)</span>
+<span class="sd">&gt;&gt;&gt; channel.parameters.control.nmbsegments(4)</span>
+<span class="sd">&gt;&gt;&gt; for i, length_ in enumerate(lengths[:4]):</span>
+<span class="sd">...     with channel.add_storagemodel_v1(sw1d_storage, position=i):</span>
+<span class="sd">...         length(length_)</span>
+<span class="sd">...         with model.add_crosssection_v2(&quot;wq_trapeze&quot;):</span>
+<span class="sd">...             nmbtrapezes(1)</span>
+<span class="sd">...             bottomlevels(5.0)</span>
+<span class="sd">...             bottomwidths(2.0)</span>
+<span class="sd">...             sideslopes(0.0)</span>
+
+<span class="sd">It receives a separate inflow via another |sw1d_q_in| instance:</span>
+
+<span class="sd">&gt;&gt;&gt; with channel.add_routingmodel_v1(sw1d_q_in, position=0):</span>
+<span class="sd">...     lengthdownstream(2.0)</span>
+<span class="sd">...     timestepfactor(0.7)</span>
+<span class="sd">...     with model.add_crosssection_v2(&quot;wq_trapeze&quot;):</span>
+<span class="sd">...         nmbtrapezes(1)</span>
+<span class="sd">...         bottomlevels(5.0)</span>
+<span class="sd">...         bottomwidths(2.0)</span>
+<span class="sd">...         sideslopes(0.0)</span>
+
+<span class="sd">We add |sw1d_lias| models for all other possible positions, including the last one:</span>
+
+<span class="sd">&gt;&gt;&gt; for i in range(1, 5):</span>
+<span class="sd">...     with channel.add_routingmodel_v2(sw1d_lias, position=i):</span>
+<span class="sd">...         lengthupstream(2.0 if i % 2 else 3.0)</span>
+<span class="sd">...         lengthdownstream(3.0 if i % 2 else 2.0)</span>
+<span class="sd">...         stricklercoefficient(1.0/0.03)</span>
+<span class="sd">...         timestepfactor(0.7)</span>
+<span class="sd">...         diffusionfactor(0.2)</span>
+<span class="sd">...         with model.add_crosssection_v2(&quot;wq_trapeze&quot;):</span>
+<span class="sd">...             nmbtrapezes(1)</span>
+<span class="sd">...             bottomlevels(5.0)</span>
+<span class="sd">...             bottomwidths(2.0)</span>
+<span class="sd">...             sideslopes(0.0)</span>
+
+<span class="sd">So, now the |sw1d_channel| models of the elements `channel1a` and `channel1b` have</span>
+<span class="sd">routing models at their outflow locations, and the one of element `channel2` does not</span>
+<span class="sd">have a routing model at its inflow location.  This is the typical configuration for</span>
+<span class="sd">modelling confluences, where one strives to couple each reach upstream of the junction</span>
+<span class="sd">with the single reach downstream.  This setting has the effect that `channel2`</span>
+<span class="sd">exchanges water with `channel1a` and `channel1b` directly, while `channel1a` and</span>
+<span class="sd">`channel1b` can do so only indirectly via the first segment of `channel2`.</span>
+
+<span class="sd">We assign the third channel model to another element, that we connect to a new inlet</span>
+<span class="sd">node (for adding inflow) and to the already existing node `q_1to2` (for coupling with</span>
+<span class="sd">the main channel):</span>
+
+<span class="sd">&gt;&gt;&gt; q_1b_in = Node(&quot;q_1b_in&quot;, variable=&quot;LongQ&quot;)</span>
+<span class="sd">&gt;&gt;&gt; channel1b = Element(&quot;channel1b&quot;, collective=&quot;network&quot;, inlets=q_1b_in, outlets=q_1to2)</span>
+<span class="sd">&gt;&gt;&gt; channel1b.model = channel</span>
+
+<span class="sd">The initial water depth is 1 m throughout the whole network:</span>
+
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest()</span>
+<span class="sd">&gt;&gt;&gt; prepare_inits(channel1a=1.0, channel1b=1.0, channel2=1.0)</span>
+
+<span class="sd">The main and the side channels receive constant inflows of 1 and 0.5 m³/s,</span>
+<span class="sd">respectively:</span>
+
+<span class="sd">&gt;&gt;&gt; q_1a_in.sequences.sim.series = 1.0</span>
+<span class="sd">&gt;&gt;&gt; q_1b_in.sequences.sim.series = 0.5</span>
+
+<span class="sd">Unfortunately, the usual standard table does not provide much information for in-depth</span>
+<span class="sd">evaluations:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; conditions = test(get_conditions=&quot;2000-01-01 00:00&quot;)</span>
+<span class="sd">    |                date |  timestep | q_1a_in | q_1b_in |   q_1to2 | q_2_out |</span>
+<span class="sd">    ----------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 | 45.030299 |     1.0 |     0.5 |      0.0 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:05:00 | 46.242118 |     1.0 |     0.5 | 0.003008 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:10:00 | 47.155436 |     1.0 |     0.5 | 0.025525 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:15:00 | 47.892762 |     1.0 |     0.5 | 0.071726 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:20:00 | 48.522333 |     1.0 |     0.5 | 0.129271 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:25:00 | 49.080523 |     1.0 |     0.5 | 0.187172 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:30:00 | 49.587791 |     1.0 |     0.5 | 0.240134 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:35:00 | 50.056456 |     1.0 |     0.5 | 0.286648 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:40:00 | 50.494442 |     1.0 |     0.5 | 0.326895 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:45:00 |  50.90715 |     1.0 |     0.5 | 0.361611 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:50:00 | 51.298454 |     1.0 |     0.5 | 0.391611 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 00:55:00 | 51.671261 |     1.0 |     0.5 | 0.417633 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:00:00 | 52.027843 |     1.0 |     0.5 |  0.44031 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:05:00 | 52.370039 |     1.0 |     0.5 | 0.460176 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:10:00 | 52.699381 |     1.0 |     0.5 |  0.47769 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:15:00 | 53.017173 |     1.0 |     0.5 | 0.493237 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:20:00 | 53.324545 |     1.0 |     0.5 |  0.50715 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:25:00 | 53.622482 |     1.0 |     0.5 | 0.519705 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:30:00 | 53.911854 |     1.0 |     0.5 | 0.531136 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:35:00 | 54.193429 |     1.0 |     0.5 | 0.541633 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:40:00 | 54.467891 |     1.0 |     0.5 | 0.551355 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:45:00 | 54.735849 |     1.0 |     0.5 | 0.560428 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:50:00 | 54.997846 |     1.0 |     0.5 | 0.568953 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 01:55:00 | 55.254368 |     1.0 |     0.5 | 0.577012 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:00:00 | 55.505854 |     1.0 |     0.5 | 0.584668 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:05:00 | 55.752694 |     1.0 |     0.5 | 0.591971 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:10:00 | 55.995245 |     1.0 |     0.5 | 0.598961 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:15:00 | 56.233826 |     1.0 |     0.5 | 0.605669 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:20:00 | 56.468727 |     1.0 |     0.5 | 0.612118 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:25:00 | 56.700214 |     1.0 |     0.5 | 0.618328 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:30:00 | 56.928527 |     1.0 |     0.5 | 0.624314 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:35:00 | 57.153887 |     1.0 |     0.5 | 0.630087 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:40:00 | 57.376496 |     1.0 |     0.5 | 0.635659 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:45:00 |  57.59654 |     1.0 |     0.5 | 0.641038 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:50:00 | 57.814191 |     1.0 |     0.5 | 0.646232 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 02:55:00 | 58.029607 |     1.0 |     0.5 | 0.651246 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:00:00 | 58.242934 |     1.0 |     0.5 | 0.656087 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:05:00 |  58.45431 |     1.0 |     0.5 | 0.660761 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:10:00 | 58.663861 |     1.0 |     0.5 | 0.665273 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:15:00 | 58.871705 |     1.0 |     0.5 | 0.669628 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:20:00 | 59.077952 |     1.0 |     0.5 |  0.67383 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:25:00 | 59.282705 |     1.0 |     0.5 | 0.677885 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:30:00 |  59.48606 |     1.0 |     0.5 | 0.681797 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:35:00 | 59.688108 |     1.0 |     0.5 | 0.685571 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:40:00 | 59.888932 |     1.0 |     0.5 | 0.689211 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:45:00 |  0.135626 |     1.0 |     0.5 | 0.692729 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:50:00 |  0.384228 |     1.0 |     0.5 | 0.698366 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 03:55:00 |  0.632218 |     1.0 |     0.5 | 0.701582 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:00:00 |  0.879114 |     1.0 |     0.5 | 0.704443 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:05:00 |  1.124822 |     1.0 |     0.5 | 0.707155 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:10:00 |  1.369384 |     1.0 |     0.5 | 0.709781 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:15:00 |  1.612877 |     1.0 |     0.5 | 0.712341 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:20:00 |  1.855383 |     1.0 |     0.5 | 0.714841 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:25:00 |  2.096978 |     1.0 |     0.5 | 0.717279 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:30:00 |  2.337734 |     1.0 |     0.5 | 0.719653 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:35:00 |  2.577714 |     1.0 |     0.5 | 0.721961 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:40:00 |  2.816978 |     1.0 |     0.5 | 0.724201 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:45:00 |   3.05558 |     1.0 |     0.5 | 0.726373 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:50:00 |  3.293568 |     1.0 |     0.5 | 0.728475 |     0.0 |</span>
+<span class="sd">    | 2000-01-01 04:55:00 |   3.53099 |     1.0 |     0.5 | 0.730509 |     0.0 |</span>
+
+<span class="sd">Therefore, we define the following function for plotting the water level profiles</span>
+<span class="sd">gained for the simulation period&#39;s end:</span>
+
+<span class="sd">&gt;&gt;&gt; def plot_waterlevels(figname):</span>
+<span class="sd">...      import numpy</span>
+<span class="sd">...      from matplotlib import pyplot</span>
+<span class="sd">...      from hydpy.core.testtools import save_autofig</span>
+<span class="sd">...      stations = ((cs := numpy.cumsum((0.0,) + lengths))[:-1] + cs[1:]) / 2.0</span>
+<span class="sd">...      for element in (channel1a, channel1b, channel2):</span>
+<span class="sd">...          ss = [s + sum(lengths) * (element is channel2) for s in stations]</span>
+<span class="sd">...          ws = [sm.sequences.factors.waterlevel for sm in element.model.storagemodels]</span>
+<span class="sd">...          _ = pyplot.plot(ss, ws, label=element.name)</span>
+<span class="sd">...      for element in (channel1a, channel1b):</span>
+<span class="sd">...          ss = stations[-1], stations[0] + sum(lengths)</span>
+<span class="sd">...          ws = (element.model.storagemodels[-1].sequences.factors.waterlevel.value,</span>
+<span class="sd">...                channel2.model.storagemodels[0].sequences.factors.waterlevel.value)</span>
+<span class="sd">...          _ = pyplot.plot(ss, ws, color=&quot;grey&quot;)</span>
+<span class="sd">...      _ = pyplot.legend()</span>
+<span class="sd">...      _ = pyplot.xlabel(&quot;station [km]&quot;)</span>
+<span class="sd">...      _ = pyplot.ylabel(&quot;water level [m]&quot;)</span>
+<span class="sd">...      save_autofig(figname)</span>
+
+<span class="sd">The simulated water levels look reasonable and are sufficiently similar to those we</span>
+<span class="sd">calculated with a fully hydrodynamic model for comparison:</span>
+
+<span class="sd">&gt;&gt;&gt; plot_waterlevels(&quot;sw1d_network_confluences.png&quot;)</span>
+
+<span class="sd">.. image:: sw1d_network_confluences.png</span>
+
+<span class="sd">There is no indication of an error in the water balance:</span>
+
+<span class="sd">&gt;&gt;&gt; round_(test.hydpy.collectives[0].model.check_waterbalance(conditions))</span>
+<span class="sd">0.0</span>
+
+<span class="sd">.. _sw1d_network_bifurcations:</span>
+
+<span class="sd">Bifurcations</span>
+<span class="sd">____________</span>
+
+<span class="sd">|sw1d_network| also allows us to model the bifurcation of channels.  We could</span>
+<span class="sd">demonstrate this by building an entirely new setting but prefer to reuse the existing</span>
+<span class="sd">network and just let the water flow &quot;upstream&quot;, which is the same in the end.</span>
+
+<span class="sd">First, we break the connections to the |sw1d_weir_out| submodel at the outlet location</span>
+<span class="sd">of `channel2`:</span>
+
+<span class="sd">&gt;&gt;&gt; channel2.model.storagemodels[-1].routingmodelsdownstream.number = 0</span>
+<span class="sd">&gt;&gt;&gt; channel2.model.routingmodels[-2].routingmodelsdownstream.number = 0</span>
+
+<span class="sd">Second, we replace the weir model with an instance of |sw1d_q_out|, which is</span>
+<span class="sd">functionally nearly identical to |sw1d_q_in| but to be placed at outlet locations:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models import sw1d_q_out</span>
+<span class="sd">&gt;&gt;&gt; with channel2.model.add_routingmodel_v3(sw1d_q_out, position=4):</span>
+<span class="sd">...     lengthupstream(2.0)</span>
+<span class="sd">...     timestepfactor(0.7)</span>
+<span class="sd">...     with model.add_crosssection_v2(&quot;wq_trapeze&quot;):</span>
+<span class="sd">...         nmbtrapezes(1)</span>
+<span class="sd">...         bottomlevels(5.0)</span>
+<span class="sd">...         bottomwidths(5.0)</span>
+<span class="sd">...         sideslopes(0.0)</span>
+
+<span class="sd">&gt;&gt;&gt; channel2.model.connect()</span>
+
+<span class="sd">We set the initial conditions as in the :ref:`sw1d_network_confluences` example:</span>
+
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest()</span>
+<span class="sd">&gt;&gt;&gt; prepare_inits(channel1a=1.0, channel1b=1.0, channel2=1.0)</span>
+
+<span class="sd">We let the same amount of water flow in the opposite direction by setting the inflow of</span>
+<span class="sd">`channel1a` and `channel1b` to zero and the outflow of `channel2` to -1.5 m³/s:</span>
+
+<span class="sd">&gt;&gt;&gt; q_1a_in.sequences.sim.series = 0.0</span>
+<span class="sd">&gt;&gt;&gt; q_1b_in.sequences.sim.series = 0.0</span>
+<span class="sd">&gt;&gt;&gt; q_2_out.sequences.sim.series = -1.5</span>
+
+<span class="sd">The outlet node `q_2_out` needs further attention.  Usually, outlet nodes receive data</span>
+<span class="sd">from their entry elements, but this one is supposed to send data &quot;upstream&quot;, which is</span>
+<span class="sd">possible by choosing one of the available &quot;bidirectional&quot; deploy modes.  We select</span>
+<span class="sd">`oldsim_bi` (the documentation on |Node.deploymode| explains this and the further</span>
+<span class="sd">options in more detail):</span>
+
+<span class="sd">&gt;&gt;&gt; q_2_out.deploymode = &quot;oldsim_bi&quot;</span>
+
+<span class="sd">Considering the absolute amount, the discharge simulated at the central node `q_1to2`</span>
+<span class="sd">is quite similar to the one of the :ref:`sw1d_network_confluences` example:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; conditions = test(&quot;sw1d_network_branch&quot;, get_conditions=&quot;2000-01-01 00:00&quot;)</span>
+<span class="sd">    |                date |  timestep | q_1a_in | q_1b_in |    q_1to2 | q_2_out |</span>
+<span class="sd">    -----------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 | 44.830004 |     0.0 |     0.0 |       0.0 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:05:00 | 45.741893 |     0.0 |     0.0 | -0.002955 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:10:00 | 46.659139 |     0.0 |     0.0 | -0.026069 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:15:00 | 47.456384 |     0.0 |     0.0 | -0.075937 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:20:00 | 48.151282 |     0.0 |     0.0 | -0.140683 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:25:00 | 48.772646 |     0.0 |     0.0 | -0.207348 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:30:00 | 49.341144 |     0.0 |     0.0 | -0.268565 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:35:00 | 49.870269 |     0.0 |     0.0 | -0.321749 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:40:00 | 50.368827 |     0.0 |     0.0 | -0.366871 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:45:00 | 50.842694 |     0.0 |     0.0 | -0.404905 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:50:00 | 51.295919 |     0.0 |     0.0 | -0.437038 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 00:55:00 | 51.731393 |     0.0 |     0.0 | -0.464363 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:00:00 | 52.151263 |     0.0 |     0.0 | -0.487801 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:05:00 | 52.557188 |     0.0 |     0.0 | -0.508095 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:10:00 |   52.9505 |     0.0 |     0.0 | -0.525847 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:15:00 | 53.332303 |     0.0 |     0.0 | -0.541542 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:20:00 | 53.703533 |     0.0 |     0.0 |  -0.55557 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:25:00 | 54.065003 |     0.0 |     0.0 | -0.568243 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:30:00 | 54.417423 |     0.0 |     0.0 | -0.579812 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:35:00 | 54.761425 |     0.0 |     0.0 | -0.590476 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:40:00 | 55.097571 |     0.0 |     0.0 | -0.600391 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:45:00 | 55.426366 |     0.0 |     0.0 | -0.609678 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:50:00 | 55.748265 |     0.0 |     0.0 | -0.618434 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 01:55:00 | 56.063683 |     0.0 |     0.0 | -0.626729 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:00:00 | 56.372995 |     0.0 |     0.0 | -0.634621 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:05:00 | 56.676546 |     0.0 |     0.0 | -0.642152 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:10:00 | 56.974651 |     0.0 |     0.0 | -0.649356 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:15:00 | 57.267603 |     0.0 |     0.0 | -0.656257 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:20:00 | 57.555671 |     0.0 |     0.0 | -0.662874 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:25:00 | 57.839105 |     0.0 |     0.0 | -0.669225 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:30:00 | 58.118138 |     0.0 |     0.0 | -0.675321 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:35:00 | 58.392989 |     0.0 |     0.0 | -0.681174 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:40:00 |  58.66386 |     0.0 |     0.0 | -0.686793 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:45:00 | 58.930943 |     0.0 |     0.0 | -0.692186 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:50:00 | 59.194418 |     0.0 |     0.0 |  -0.69736 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 02:55:00 | 59.454452 |     0.0 |     0.0 | -0.702325 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:00:00 | 59.711205 |     0.0 |     0.0 | -0.707085 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:05:00 | 59.964827 |     0.0 |     0.0 | -0.711648 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:10:00 |   0.30038 |     0.0 |     0.0 | -0.716007 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:15:00 |  0.611639 |     0.0 |     0.0 | -0.719329 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:20:00 |   0.92016 |     0.0 |     0.0 |  -0.72384 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:25:00 |  1.224742 |     0.0 |     0.0 | -0.728033 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:30:00 |   1.52568 |     0.0 |     0.0 | -0.731932 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:35:00 |   1.82326 |     0.0 |     0.0 | -0.735573 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:40:00 |  2.117718 |     0.0 |     0.0 | -0.738988 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:45:00 |  2.409252 |     0.0 |     0.0 | -0.742203 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:50:00 |  2.698035 |     0.0 |     0.0 |  -0.74524 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 03:55:00 |   2.98422 |     0.0 |     0.0 | -0.748116 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:00:00 |  3.267941 |     0.0 |     0.0 | -0.750845 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:05:00 |  3.549322 |     0.0 |     0.0 | -0.753437 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:10:00 |  3.828473 |     0.0 |     0.0 | -0.755902 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:15:00 |  4.105495 |     0.0 |     0.0 | -0.758246 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:20:00 |  4.380482 |     0.0 |     0.0 | -0.760477 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:25:00 |  4.653521 |     0.0 |     0.0 |   -0.7626 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:30:00 |  4.924693 |     0.0 |     0.0 |  -0.76462 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:35:00 |  5.194073 |     0.0 |     0.0 |  -0.76654 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:40:00 |  5.461733 |     0.0 |     0.0 | -0.768366 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:45:00 |  5.727738 |     0.0 |     0.0 |   -0.7701 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:50:00 |  5.992153 |     0.0 |     0.0 | -0.771747 |    -1.5 |</span>
+<span class="sd">    | 2000-01-01 04:55:00 |  6.255037 |     0.0 |     0.0 |  -0.77331 |    -1.5 |</span>
+
+<span class="sd">Again, the simulated water levels at the end of the simulation period seem reasonable</span>
+<span class="sd">and sufficiently similar to those we calculated with a fully hydrodynamic model:</span>
+
+<span class="sd">&gt;&gt;&gt; plot_waterlevels(&quot;sw1d_network_bifurcations.png&quot;)</span>
+
+<span class="sd">.. image:: sw1d_network_bifurcations.png</span>
+
+<span class="sd">There is no indication of an error in the water balance:</span>
+
+<span class="sd">&gt;&gt;&gt; round_(test.hydpy.collectives[0].model.check_waterbalance(conditions))</span>
+<span class="sd">0.0</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">importtools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">routinginterfaces</span>
+
+<span class="c1"># ...from sw1d</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.sw1d</span><span class="w"> </span><span class="kn">import</span> <span class="n">sw1d_model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.sw1d</span><span class="w"> </span><span class="kn">import</span> <span class="n">sw1d_derived</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">sw1d_channel</span>
+
+<span class="n">ADDITIONAL_DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">sw1d_derived</span><span class="o">.</span><span class="n">Seconds</span><span class="p">,)</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../sw1d_network.html#hydpy.models.sw1d_network.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">SubstepModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|sw1d_network.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;SW1D-Network&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;&quot;composite model&quot; for solving the 1-dimensional shallow water equations &#39;</span>
+            <span class="s2">&quot;in channel networks&quot;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">COMPOSITE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|sw1d_network| is a composite model.  (One usually only works with it </span>
+<span class="sd">    indirectly.)&quot;&quot;&quot;</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">sw1d_model</span><span class="o">.</span><span class="n">Calc_MaxTimeSteps_V1</span><span class="p">,</span>
+        <span class="n">sw1d_model</span><span class="o">.</span><span class="n">Calc_TimeStep_V1</span><span class="p">,</span>
+        <span class="n">sw1d_model</span><span class="o">.</span><span class="n">Send_TimeStep_V1</span><span class="p">,</span>
+        <span class="n">sw1d_model</span><span class="o">.</span><span class="n">Calc_Discharges_V1</span><span class="p">,</span>
+        <span class="n">sw1d_model</span><span class="o">.</span><span class="n">Update_Storages_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">INTERFACE_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V1</span><span class="p">,</span>
+        <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V2</span><span class="p">,</span>
+        <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V3</span><span class="p">,</span>
+        <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">StorageModel_V1</span><span class="p">,</span>
+        <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">ChannelModel_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="n">channelmodels</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">(</span>
+        <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">ChannelModel_V1</span><span class="p">,</span> <span class="n">sidemodels</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">storagemodels</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">(</span><span class="n">routinginterfaces</span><span class="o">.</span><span class="n">StorageModel_V1</span><span class="p">)</span>
+    <span class="n">routingmodels</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">(</span>
+        <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V1</span><span class="p">,</span>
+        <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V2</span><span class="p">,</span>
+        <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V3</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="Model.check_waterbalance">
+<a class="viewcode-back" href="../../../sw1d_network.html#hydpy.models.sw1d_network.Model.check_waterbalance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_waterbalance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_conditions</span><span class="p">:</span> <span class="n">ConditionsModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Determine the water balance error of the previous simulation in 1000 m³.</span>
+
+<span class="sd">        Method |Model.check_waterbalance| calculates the balance error as follows:</span>
+
+<span class="sd">          .. math::</span>
+<span class="sd">            Error =  \Sigma In - \Sigma Out + \Sigma Lat - \Delta Vol \\</span>
+<span class="sd">            \\</span>
+<span class="sd">            \Sigma In = \sum_{t=t_0}^{t_1} \sum_{i=1}^{R_1} DischargeVolume_t^i  \\</span>
+<span class="sd">            \Sigma Out = \sum_{t=t_0}^{t_1} \sum_{i=1}^{R_3} DischargeVolume_t^i  \\</span>
+<span class="sd">            \Sigma Lat = Seconds \cdot</span>
+<span class="sd">            \sum_{t=t_0}^{t_1} \sum_{i=1}^{S_1} LateralFlow_t^i \\</span>
+<span class="sd">            \Delta Vol = 1000 \cdot</span>
+<span class="sd">            \sum_{i=1}^{S_1} WaterVolume_{t_1}^i - WaterVolume_{t_0}^i \\</span>
+<span class="sd">            \\</span>
+<span class="sd">            S_1 = N(StorageModel\_V1) \\</span>
+<span class="sd">            R_1 = N(RoutingModel\_V1) \\</span>
+<span class="sd">            R_3 = N(RoutingModel\_V3)</span>
+
+<span class="sd">        The returned error should always be in scale with numerical precision so that</span>
+<span class="sd">        it does not affect the simulation results in any relevant manner.</span>
+
+<span class="sd">        Pick the required initial conditions before starting the simulation run via</span>
+<span class="sd">        property |Sequences.conditions|.  See the application model |sw1d_network| for</span>
+<span class="sd">        integration tests some examples.</span>
+
+<span class="sd">        ToDo: So far, |Model.check_waterbalance| works only safely with application</span>
+<span class="sd">              models |sw1d_storage|, |sw1d_q_in|, |sw1d_lias|, |sw1d_lias_sluice|,</span>
+<span class="sd">              |sw1d_q_out|, |sw1d_weir_out|, and |sw1d_gate_out| and might fail for o</span>
+<span class="sd">              ther models.  We need to implement a more general solution when we</span>
+<span class="sd">              implement incompatible models.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">r1</span> <span class="o">=</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V1</span>
+        <span class="n">r3</span> <span class="o">=</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V3</span>
+        <span class="n">r2</span> <span class="o">=</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V2</span>
+        <span class="n">v2</span> <span class="o">=</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">ChannelModel_V1</span>
+
+        <span class="n">secs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">seconds</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">volume_old</span><span class="p">,</span> <span class="n">volume_new</span><span class="p">,</span> <span class="n">latflow</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>
+        <span class="n">inflow</span><span class="p">,</span> <span class="n">outflow</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_submodels</span><span class="p">(</span><span class="n">include_subsubmodels</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">StorageModel_V1</span><span class="p">):</span>
+                <span class="n">wv</span> <span class="o">=</span> <span class="n">initial_conditions</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;states&quot;</span><span class="p">][</span><span class="s2">&quot;watervolume&quot;</span><span class="p">]</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">wv</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+                <span class="n">volume_old</span> <span class="o">+=</span> <span class="mf">1000.0</span> <span class="o">*</span> <span class="n">wv</span>
+                <span class="n">volume_new</span> <span class="o">+=</span> <span class="mf">1000.0</span> <span class="o">*</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">watervolume</span>
+                <span class="n">latflow</span> <span class="o">+=</span> <span class="n">secs</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">lateralflow</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">r1</span><span class="p">):</span>
+                <span class="n">inflow</span> <span class="o">+=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">dischargevolume</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">r3</span><span class="p">):</span>
+                <span class="n">outflow</span> <span class="o">+=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">dischargevolume</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">v2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">volume_old</span> <span class="o">+</span> <span class="n">inflow</span> <span class="o">-</span> <span class="n">outflow</span> <span class="o">+</span> <span class="n">latflow</span> <span class="o">-</span> <span class="n">volume_new</span></div>
+</div>
+
+
+
+<span class="nd">@modeltools</span><span class="o">.</span><span class="n">define_modelcoupler</span><span class="p">(</span><span class="n">inputtypes</span><span class="o">=</span><span class="p">(</span><span class="n">sw1d_channel</span><span class="o">.</span><span class="n">Model</span><span class="p">,),</span> <span class="n">outputtype</span><span class="o">=</span><span class="n">Model</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">combine_channels</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span> <span class="n">nodes</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">,</span> <span class="n">elements</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Model</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine all the submodels of the given |sw1d_channel| instances within a new</span>
+<span class="sd">    |sw1d_network| instance and build their missing connections.</span>
+
+<span class="sd">    |combine_channels| has to address many corner cases, especially for discovering</span>
+<span class="sd">    configuration errors.  We define a helper function that returns a (hopefully</span>
+<span class="sd">    sufficiently complex) valid setting containing six |sw1d_channel| models, including</span>
+<span class="sd">    one bifurcation and one confluence:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Element, Nodes, prepare_model</span>
+<span class="sd">    &gt;&gt;&gt; def prepare_example():</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     nodes = n12, n23, n34, n45 = Nodes(&quot;n12&quot;, &quot;n23&quot;, &quot;n34&quot;, &quot;n45&quot;,</span>
+<span class="sd">    ...                                        defaultvariable=&quot;LongQ&quot;)</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     e1 = Element(&quot;e1&quot;, outlets=n12)</span>
+<span class="sd">    ...     e2 = Element(&quot;e2&quot;, inlets=n12, outlets=n23)</span>
+<span class="sd">    ...     e3a = Element(&quot;e3a&quot;, inlets=n23, outlets=n34)</span>
+<span class="sd">    ...     e3b = Element(&quot;e3b&quot;, inlets=n23, outlets=n34)</span>
+<span class="sd">    ...     e4 = Element(&quot;e4&quot;, inlets=n34, outlets=n45)</span>
+<span class="sd">    ...     e5 = Element(&quot;e5&quot;, inlets=n45)</span>
+<span class="sd">    ...     elements = e1, e2, e3a, e3b, e4, e5</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     m1 = prepare_model(&quot;sw1d_channel&quot;)</span>
+<span class="sd">    ...     m2 = prepare_model(&quot;sw1d_channel&quot;)</span>
+<span class="sd">    ...     m3a = prepare_model(&quot;sw1d_channel&quot;)</span>
+<span class="sd">    ...     m3b = prepare_model(&quot;sw1d_channel&quot;)</span>
+<span class="sd">    ...     m4 = prepare_model(&quot;sw1d_channel&quot;)</span>
+<span class="sd">    ...     m5 = prepare_model(&quot;sw1d_channel&quot;)</span>
+<span class="sd">    ...     models = m1, m2, m3a, m3b, m4, m5</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     m1.parameters.control.nmbsegments(1)</span>
+<span class="sd">    ...     m2.parameters.control.nmbsegments(1)</span>
+<span class="sd">    ...     m3a.parameters.control.nmbsegments(2)</span>
+<span class="sd">    ...     m3b.parameters.control.nmbsegments(1)</span>
+<span class="sd">    ...     m4.parameters.control.nmbsegments(1)</span>
+<span class="sd">    ...     m5.parameters.control.nmbsegments(1)</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     for m in models:</span>
+<span class="sd">    ...         for i in range(m.parameters.control.nmbsegments.value):</span>
+<span class="sd">    ...             with m.add_storagemodel_v1(&quot;sw1d_storage&quot;, position=i):</span>
+<span class="sd">    ...                 pass</span>
+<span class="sd">    ...     for m, ps in ((m1, [1]), (m3a, [0, 1, 2]), (m3b, [0, 1]), (m5, [0])):</span>
+<span class="sd">    ...         for p in ps:</span>
+<span class="sd">    ...             with m.add_routingmodel_v2(&quot;sw1d_lias&quot;, position=p, update=False):</span>
+<span class="sd">    ...                 pass</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     e1.model = m1</span>
+<span class="sd">    ...     e2.model = m2</span>
+<span class="sd">    ...     e3a.model = m3a</span>
+<span class="sd">    ...     e3b.model = m3b</span>
+<span class="sd">    ...     e4.model = m4</span>
+<span class="sd">    ...     e5.model = m5</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     return nodes, elements, models</span>
+
+<span class="sd">    The second helper function checks for this example if all |combine_channels| builds</span>
+<span class="sd">    all side-model connections correctly and does not break already existing ones:</span>
+
+<span class="sd">    &gt;&gt;&gt; def apply_assertions(models):</span>
+<span class="sd">    ...     m1, m2, m3a, m3b, m4, m5 = models</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     sm = m1.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsd := sm.routingmodelsdownstream).number == 1</span>
+<span class="sd">    ...     assert m1.routingmodels[1] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     rm = m1.routingmodels[1]</span>
+<span class="sd">    ...     assert rm.routingmodelsupstream.number == 0</span>
+<span class="sd">    ...     assert rm.storagemodelupstream is m1.storagemodels[0]</span>
+<span class="sd">    ...     assert rm.storagemodeldownstream is m2.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsd := rm.routingmodelsdownstream).number == 2</span>
+<span class="sd">    ...     assert m3a.routingmodels[0] in rmsd</span>
+<span class="sd">    ...     assert m3b.routingmodels[0] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     sm = m2.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsu := sm.routingmodelsupstream).number == 1</span>
+<span class="sd">    ...     assert m1.routingmodels[1] in rmsu</span>
+<span class="sd">    ...     assert (rmsd := sm.routingmodelsdownstream).number == 2</span>
+<span class="sd">    ...     assert m3a.routingmodels[0] in rmsd</span>
+<span class="sd">    ...     assert m3a.routingmodels[0] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     rm = m3a.routingmodels[0]</span>
+<span class="sd">    ...     assert (rmsu := rm.routingmodelsupstream).number == 1</span>
+<span class="sd">    ...     assert m1.routingmodels[1] in rmsu</span>
+<span class="sd">    ...     assert rm.storagemodelupstream is m2.storagemodels[0]</span>
+<span class="sd">    ...     assert rm.storagemodeldownstream is m3a.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsd := rm.routingmodelsdownstream).number == 1</span>
+<span class="sd">    ...     assert m3a.routingmodels[1] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     sm = m3a.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsu := sm.routingmodelsupstream).number == 1</span>
+<span class="sd">    ...     assert m3a.routingmodels[0] in rmsu</span>
+<span class="sd">    ...     assert (rmsd := sm.routingmodelsdownstream).number == 1</span>
+<span class="sd">    ...     assert m3a.routingmodels[1] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     rm = m3a.routingmodels[1]</span>
+<span class="sd">    ...     assert (rmsu := rm.routingmodelsupstream).number == 1</span>
+<span class="sd">    ...     assert m3a.routingmodels[0] in rmsu</span>
+<span class="sd">    ...     assert rm.storagemodelupstream is m3a.storagemodels[0]</span>
+<span class="sd">    ...     assert rm.storagemodeldownstream is m3a.storagemodels[1]</span>
+<span class="sd">    ...     assert (rmsd := rm.routingmodelsdownstream).number == 1</span>
+<span class="sd">    ...     assert m3a.routingmodels[2] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     sm = m3a.storagemodels[1]</span>
+<span class="sd">    ...     assert (rmsu := sm.routingmodelsupstream).number == 1</span>
+<span class="sd">    ...     assert m3a.routingmodels[1] in rmsu</span>
+<span class="sd">    ...     assert (rmsd := sm.routingmodelsdownstream).number == 1</span>
+<span class="sd">    ...     assert m3a.routingmodels[2] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     rm = m3a.routingmodels[2]</span>
+<span class="sd">    ...     assert (rmsu := rm.routingmodelsupstream).number == 1</span>
+<span class="sd">    ...     assert m3a.routingmodels[1] in rmsu</span>
+<span class="sd">    ...     assert rm.storagemodelupstream is m3a.storagemodels[1]</span>
+<span class="sd">    ...     assert rm.storagemodeldownstream is m4.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsd := rm.routingmodelsdownstream).number == 1</span>
+<span class="sd">    ...     assert m5.routingmodels[0] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     rm = m3b.routingmodels[0]</span>
+<span class="sd">    ...     assert (rmsu := rm.routingmodelsupstream).number == 1</span>
+<span class="sd">    ...     assert m1.routingmodels[1] in rmsu</span>
+<span class="sd">    ...     assert rm.storagemodelupstream is m2.storagemodels[0]</span>
+<span class="sd">    ...     assert rm.storagemodeldownstream is m3b.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsd := rm.routingmodelsdownstream).number == 1</span>
+<span class="sd">    ...     assert m3b.routingmodels[1] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     sm = m3b.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsu := sm.routingmodelsupstream).number == 1</span>
+<span class="sd">    ...     assert m3b.routingmodels[0] in rmsu</span>
+<span class="sd">    ...     assert (rmsd := sm.routingmodelsdownstream).number == 1</span>
+<span class="sd">    ...     assert m3b.routingmodels[1] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     rm = m3b.routingmodels[1]</span>
+<span class="sd">    ...     assert (rmsu := rm.routingmodelsupstream).number == 1</span>
+<span class="sd">    ...     assert m3b.routingmodels[0] in rmsu</span>
+<span class="sd">    ...     assert rm.storagemodelupstream is m3b.storagemodels[0]</span>
+<span class="sd">    ...     assert rm.storagemodeldownstream is m4.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsd := rm.routingmodelsdownstream).number == 1</span>
+<span class="sd">    ...     assert m5.routingmodels[0] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     sm = m4.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsu := sm.routingmodelsupstream).number == 2</span>
+<span class="sd">    ...     assert m3a.routingmodels[2] in rmsu</span>
+<span class="sd">    ...     assert m3b.routingmodels[1] in rmsu</span>
+<span class="sd">    ...     assert (rmsd := sm.routingmodelsdownstream).number == 1</span>
+<span class="sd">    ...     assert m5.routingmodels[0] in rmsd</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     rm = m5.routingmodels[0]</span>
+<span class="sd">    ...     assert (rmsu := rm.routingmodelsupstream).number == 2</span>
+<span class="sd">    ...     assert m3a.routingmodels[2] in rmsu</span>
+<span class="sd">    ...     assert m3b.routingmodels[1] in rmsu</span>
+<span class="sd">    ...     assert rm.storagemodelupstream is m4.storagemodels[0]</span>
+<span class="sd">    ...     assert rm.storagemodeldownstream is m5.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsd := rm.routingmodelsdownstream).number == 0</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     sm = m5.storagemodels[0]</span>
+<span class="sd">    ...     assert (rmsu := sm.routingmodelsupstream).number == 1</span>
+<span class="sd">    ...     assert m5.routingmodels[0] in rmsu</span>
+<span class="sd">    ...     assert (rmsd := sm.routingmodelsdownstream).number == 0</span>
+
+<span class="sd">    According to the test functions, |combine_channels| works correctly:</span>
+
+<span class="sd">    &gt;&gt;&gt; nodes, elements, models = prepare_example()</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.sw1d_network import combine_channels</span>
+<span class="sd">    &gt;&gt;&gt; network = combine_channels(nodes=nodes, elements=elements)</span>
+<span class="sd">    &gt;&gt;&gt; apply_assertions(models)</span>
+
+<span class="sd">    Before building new connections, |combine_channels| deletes existing ones that it</span>
+<span class="sd">    is responsible for and might have ,ade in an earlier call.  This preprocessing step</span>
+<span class="sd">    allows to use |combine_channels| multiple times without risking duplicate</span>
+<span class="sd">    connections:</span>
+
+<span class="sd">    &gt;&gt;&gt; network = combine_channels(nodes=nodes, elements=elements)</span>
+<span class="sd">    &gt;&gt;&gt; apply_assertions(models)</span>
+
+<span class="sd">    |combine_channels| performs various checks.  We shortly explain the covered</span>
+<span class="sd">    configuration errors.</span>
+
+<span class="sd">    There must be one routing model between all neighbouring segments of a single</span>
+<span class="sd">    channel:</span>
+
+<span class="sd">    &gt;&gt;&gt; models[2].routingmodels.delete_submodel(1)</span>
+<span class="sd">    &gt;&gt;&gt; combine_channels(nodes=nodes, elements=elements)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to couple the given model instances to a composite \</span>
+<span class="sd">model of type `sw1d_network` based on function `combine_channels`, the following \</span>
+<span class="sd">error occurred: Model `sw1d_channel` of element `e3a` requires a routing model at \</span>
+<span class="sd">position `1`, which is missing.</span>
+
+<span class="sd">    There must be one storage model for each channel segment:</span>
+
+<span class="sd">    &gt;&gt;&gt; models[1].storagemodels.delete_submodel(0)</span>
+<span class="sd">    &gt;&gt;&gt; combine_channels(nodes=nodes, elements=elements)  # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: ... Model `sw1d_channel` of element `e2` requires a storage model \</span>
+<span class="sd">at position `0`, which is missing.</span>
+
+<span class="sd">    There must be one routing model between each pair of a channel&#39;s neighbouring</span>
+<span class="sd">    segments:</span>
+
+<span class="sd">    &gt;&gt;&gt; nodes, elements, models = prepare_example()</span>
+<span class="sd">    &gt;&gt;&gt; models[5].routingmodels.delete_submodel(0)</span>
+<span class="sd">    &gt;&gt;&gt; combine_channels(nodes=nodes, elements=elements)  # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: ... Either model `sw1d_channel` of element `e4` requires a routing \</span>
+<span class="sd">model at its last position or model `sw1d_channel` of element `e5` at its first \</span>
+<span class="sd">position, but both are missing.</span>
+
+<span class="sd">    All routing models between two segments must allow building connections to upstream</span>
+<span class="sd">    models:</span>
+
+<span class="sd">    &gt;&gt;&gt; with models[5].add_routingmodel_v1(&quot;sw1d_q_in&quot;, position=0, update=False):</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; elements[5].model = models[5]</span>
+<span class="sd">    &gt;&gt;&gt; combine_channels(nodes=nodes, elements=elements)  # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: ... Submodel `sw1d_q_in` of element `e5` does not allow to build an \</span>
+<span class="sd">upstream connection to model `sw1d_channel` of element `e4`.</span>
+
+<span class="sd">    All routing models between two segments must allow building connections to</span>
+<span class="sd">    downstream models:</span>
+
+<span class="sd">    &gt;&gt;&gt; with models[0].add_routingmodel_v3(&quot;sw1d_q_out&quot;, position=1, update=False):</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; elements[0].model = models[0]</span>
+<span class="sd">    &gt;&gt;&gt; combine_channels(nodes=nodes, elements=elements)  # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: ... Submodel `sw1d_q_out` of element `e1` does not allow to build \</span>
+<span class="sd">a downstream connection to model `sw1d_channel` of element `e2`.</span>
+
+<span class="sd">    There cannot be multiple routing models between two segments:</span>
+
+<span class="sd">    &gt;&gt;&gt; nodes, elements, models = prepare_example()</span>
+<span class="sd">    &gt;&gt;&gt; with models[4].add_routingmodel_v2(&quot;sw1d_lias&quot;, position=1, update=False):</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; combine_channels(nodes=nodes, elements=elements)  # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: ... Either model `sw1d_channel` of element `e4` must provide a \</span>
+<span class="sd">routing model at its last position or model `sw1d_channel` of element `e5` at its \</span>
+<span class="sd">first position, but both do.</span>
+
+<span class="sd">    One cannot connect a routing model to multiple upstream storage models:</span>
+
+<span class="sd">    &gt;&gt;&gt; models[2].routingmodels.delete_submodel(2)</span>
+<span class="sd">    &gt;&gt;&gt; models[3].routingmodels.delete_submodel(1)</span>
+<span class="sd">    &gt;&gt;&gt; with models[4].add_routingmodel_v2(&quot;sw1d_lias&quot;, position=0, update=False):</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; elements[4].model = models[4]</span>
+<span class="sd">    &gt;&gt;&gt; combine_channels(nodes=nodes, elements=elements)  # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: ... The first routing submodel, `sw1d_lias` of element `e4`, can \</span>
+<span class="sd">only be connected to one upstream storage submodel but is requested to be at least \</span>
+<span class="sd">connected to `sw1d_storage` of element `e3a` and `sw1d_storage` of element `e3b`.</span>
+
+<span class="sd">    One cannot connect a routing model to multiple downstream storage models:</span>
+
+<span class="sd">    &gt;&gt;&gt; models[2].routingmodels.delete_submodel(0)</span>
+<span class="sd">    &gt;&gt;&gt; models[3].routingmodels.delete_submodel(0)</span>
+<span class="sd">    &gt;&gt;&gt; with models[1].add_routingmodel_v2(&quot;sw1d_lias&quot;, position=1, update=False):</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; elements[1].model = models[1]</span>
+<span class="sd">    &gt;&gt;&gt; combine_channels(nodes=nodes, elements=elements)  # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: ... The last routing submodel, `sw1d_lias` of element `e2`, can \</span>
+<span class="sd">only be connected to one downstream storage submodel but is requested to be at least \</span>
+<span class="sd">connected to `sw1d_storage` of element `e3a` and `sw1d_storage` of element `e3b`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># pylint: disable=too-many-nested-blocks,too-many-branches,too-many-statements</span>
+
+    <span class="n">c1</span> <span class="o">=</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">ChannelModel_V1</span>
+    <span class="n">r1</span> <span class="o">=</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V1</span>
+    <span class="n">r2</span> <span class="o">=</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V2</span>
+    <span class="n">r3</span> <span class="o">=</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">RoutingModel_V3</span>
+    <span class="n">network</span> <span class="o">=</span> <span class="n">importtools</span><span class="o">.</span><span class="n">prepare_model</span><span class="p">(</span><span class="s2">&quot;sw1d_network&quot;</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">Model</span><span class="p">)</span>
+    <span class="n">channelmodels</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">channelmodels</span>
+    <span class="n">storagemodels</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">storagemodels</span>
+    <span class="n">routingmodels</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">routingmodels</span>
+    <span class="n">ep</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span>
+
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">c1</span><span class="p">)</span>
+
+        <span class="c1"># First check if all definitely required submodels are actually available:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">storagemodels</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">sm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span><span class="si">}</span><span class="s2"> requires a storage model at position `</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">`, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;which is missing.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">rm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">routingmodels</span><span class="o">.</span><span class="n">submodels</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">rm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span><span class="si">}</span><span class="s2"> requires a routing model at position `</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">`, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;which is missing.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Link the network to its submodels:</span>
+        <span class="n">channelmodels</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">submodel</span><span class="o">=</span><span class="n">cm</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sm</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">storagemodels</span><span class="o">.</span><span class="n">submodels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">storagemodels</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">submodel</span><span class="o">=</span><span class="n">sm</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">rm</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">routingmodels</span><span class="o">.</span><span class="n">submodels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">routingmodels</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">submodel</span><span class="o">=</span><span class="n">rm</span><span class="p">)</span>
+
+        <span class="c1"># Prevent duplicate links when calling `combine_channels` twice:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">r_d1</span> <span class="o">:=</span> <span class="n">cm</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="p">(</span><span class="n">sm</span> <span class="o">:=</span> <span class="n">cm</span><span class="o">.</span><span class="n">storagemodels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">sm</span><span class="o">.</span><span class="n">routingmodelsupstream</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">r_d2</span> <span class="o">:=</span> <span class="n">cm</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_d2</span><span class="p">,</span> <span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">r3</span><span class="p">)):</span>
+                    <span class="n">r_d2</span><span class="o">.</span><span class="n">routingmodelsupstream</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_d2</span><span class="p">,</span> <span class="n">r1</span><span class="p">)</span>
+                    <span class="n">assert_never</span><span class="p">(</span><span class="n">r_d2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_d1</span><span class="p">,</span> <span class="n">r2</span><span class="p">):</span>
+                <span class="n">r_d1</span><span class="o">.</span><span class="n">routingmodelsupstream</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">r_d1</span><span class="o">.</span><span class="n">storagemodelupstream</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">r_d1</span><span class="o">.</span><span class="n">storagemodelupstream_typeid</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_d1</span><span class="p">,</span> <span class="n">r1</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_d1</span><span class="p">,</span> <span class="n">r3</span><span class="p">)</span>
+                <span class="n">assert_never</span><span class="p">(</span><span class="n">r_d1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">r_u1</span> <span class="o">:=</span> <span class="n">cm</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="p">(</span><span class="n">sm</span> <span class="o">:=</span> <span class="n">cm</span><span class="o">.</span><span class="n">storagemodels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="n">sm</span><span class="o">.</span><span class="n">routingmodelsdownstream</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">r_u2</span> <span class="o">:=</span> <span class="n">cm</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_u2</span><span class="p">,</span> <span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">)):</span>
+                    <span class="n">r_u2</span><span class="o">.</span><span class="n">routingmodelsdownstream</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_u2</span><span class="p">,</span> <span class="n">r3</span><span class="p">)</span>
+                    <span class="n">assert_never</span><span class="p">(</span><span class="n">r_u2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_u1</span><span class="p">,</span> <span class="n">r2</span><span class="p">):</span>
+                <span class="n">r_u1</span><span class="o">.</span><span class="n">routingmodelsdownstream</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">r_u1</span><span class="o">.</span><span class="n">storagemodeldownstream</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">r_u1</span><span class="o">.</span><span class="n">storagemodeldownstream_typeid</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_u1</span><span class="p">,</span> <span class="n">r3</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_u1</span><span class="p">,</span> <span class="n">r1</span><span class="p">)</span>
+                <span class="n">assert_never</span><span class="p">(</span><span class="n">r_u1</span><span class="p">)</span>
+
+    <span class="c1"># Link the submodels at the channel end points:</span>
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">e_up</span> <span class="ow">in</span> <span class="p">(</span><span class="n">e_up</span> <span class="k">for</span> <span class="n">e_up</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e_up</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c_u</span> <span class="o">:=</span> <span class="n">e_up</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">c1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">r_u</span> <span class="o">:=</span> <span class="n">c_u</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">e_down</span> <span class="ow">in</span> <span class="p">(</span><span class="n">e_down</span> <span class="k">for</span> <span class="n">e_down</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">exits</span> <span class="k">if</span> <span class="n">e_down</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">):</span>
+                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c_d</span> <span class="o">:=</span> <span class="n">e_down</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">c1</span><span class="p">)</span>
+                    <span class="k">assert</span> <span class="p">(</span><span class="n">s_u</span> <span class="o">:=</span> <span class="n">c_u</span><span class="o">.</span><span class="n">storagemodels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">r_d</span> <span class="o">:=</span> <span class="n">c_d</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Either model </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">c_u</span><span class="p">)</span><span class="si">}</span><span class="s2"> requires a routing model at its &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;last position or model </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">c_d</span><span class="p">)</span><span class="si">}</span><span class="s2"> at its first position, &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;but both are missing.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_d</span><span class="p">,</span> <span class="n">r2</span><span class="p">):</span>
+                        <span class="k">pass</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_d</span><span class="p">,</span> <span class="n">r1</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Submodel </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">r_d</span><span class="p">)</span><span class="si">}</span><span class="s2"> does not allow to build an upstream &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;connection to model </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">c_u</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_d</span><span class="p">,</span> <span class="n">r3</span><span class="p">)</span>
+                        <span class="n">assert_never</span><span class="p">(</span><span class="n">r_d</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">r_d</span><span class="o">.</span><span class="n">storagemodelupstream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;The first routing submodel, </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">r_d</span><span class="p">)</span><span class="si">}</span><span class="s2">, can only be &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;connected to one upstream storage submodel but is &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;requested to be at least connected to &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">r_d</span><span class="o">.</span><span class="n">storagemodelupstream</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">s_u</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="n">r_d</span><span class="o">.</span><span class="n">storagemodelupstream</span> <span class="o">=</span> <span class="n">s_u</span>
+                    <span class="n">r_d</span><span class="o">.</span><span class="n">storagemodelupstream_typeid</span> <span class="o">=</span> <span class="n">c_u</span><span class="o">.</span><span class="n">storagemodels</span><span class="o">.</span><span class="n">typeids</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">s_u</span><span class="o">.</span><span class="n">routingmodelsdownstream</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">r_d</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">r_uu</span> <span class="o">:=</span> <span class="n">c_u</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="c1"># hint: this &quot;None part&quot; does not need to be repeated below</span>
+                        <span class="n">n_u</span> <span class="o">=</span> <span class="n">e_up</span><span class="o">.</span><span class="n">inlets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">e_uu</span> <span class="ow">in</span> <span class="p">(</span><span class="n">e_uu</span> <span class="k">for</span> <span class="n">e_uu</span> <span class="ow">in</span> <span class="n">n_u</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e_uu</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">):</span>
+                            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c_uu</span> <span class="o">:=</span> <span class="n">e_uu</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">c1</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="n">r_uu</span> <span class="o">:=</span> <span class="n">c_uu</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="c1"># hint: exception for the None case handled above</span>
+                                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_uu</span><span class="p">,</span> <span class="n">r2</span><span class="p">):</span>
+                                    <span class="k">pass</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_uu</span><span class="p">,</span> <span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r3</span><span class="p">))</span>
+                                    <span class="n">assert_never</span><span class="p">(</span><span class="n">r_uu</span><span class="p">)</span>
+                                <span class="n">r_d</span><span class="o">.</span><span class="n">routingmodelsupstream</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">r_uu</span><span class="p">)</span>
+                                <span class="n">r_uu</span><span class="o">.</span><span class="n">routingmodelsdownstream</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">r_d</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_uu</span><span class="p">,</span> <span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="p">)):</span>
+                            <span class="n">r_d</span><span class="o">.</span><span class="n">routingmodelsupstream</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">r_uu</span><span class="p">)</span>
+                            <span class="n">r_uu</span><span class="o">.</span><span class="n">routingmodelsdownstream</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">r_d</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_uu</span><span class="p">,</span> <span class="n">r3</span><span class="p">)</span>
+                            <span class="n">assert_never</span><span class="p">(</span><span class="n">r_uu</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">e_down</span> <span class="ow">in</span> <span class="p">(</span><span class="n">e_down</span> <span class="k">for</span> <span class="n">e_down</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">exits</span> <span class="k">if</span> <span class="n">e_down</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">):</span>
+                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c_d</span> <span class="o">:=</span> <span class="n">e_down</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">c1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">c_d</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Either model </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">c_u</span><span class="p">)</span><span class="si">}</span><span class="s2"> must provide a routing model at &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;its last position or model </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">c_d</span><span class="p">)</span><span class="si">}</span><span class="s2"> at its first &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;position, but both do.&quot;</span>
+                        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">e_down</span> <span class="ow">in</span> <span class="p">(</span><span class="n">e_down</span> <span class="k">for</span> <span class="n">e_down</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">exits</span> <span class="k">if</span> <span class="n">e_down</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c_d</span> <span class="o">:=</span> <span class="n">e_down</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">c1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">r_d</span> <span class="o">:=</span> <span class="n">c_d</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">e_up</span> <span class="ow">in</span> <span class="p">(</span><span class="n">e_up</span> <span class="k">for</span> <span class="n">e_up</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e_up</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">):</span>
+                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c_u</span> <span class="o">:=</span> <span class="n">e_up</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">c1</span><span class="p">)</span>
+                    <span class="k">assert</span> <span class="p">(</span><span class="n">s_d</span> <span class="o">:=</span> <span class="n">c_d</span><span class="o">.</span><span class="n">storagemodels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="k">assert</span> <span class="p">(</span><span class="n">r_u</span> <span class="o">:=</span> <span class="n">c_u</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_u</span><span class="p">,</span> <span class="n">r3</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Submodel </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">r_u</span><span class="p">)</span><span class="si">}</span><span class="s2"> does not allow to build a &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;downstream connection to model </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">c_d</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_u</span><span class="p">,</span> <span class="n">r1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">r_u</span><span class="o">.</span><span class="n">storagemodeldownstream</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;The last routing submodel, </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">r_u</span><span class="p">)</span><span class="si">}</span><span class="s2">, can only be &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;connected to one downstream storage submodel but is &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;requested to be at least connected to &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">r_u</span><span class="o">.</span><span class="n">storagemodeldownstream</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">ep</span><span class="p">(</span><span class="n">s_d</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="n">r_u</span><span class="o">.</span><span class="n">storagemodeldownstream</span> <span class="o">=</span> <span class="n">s_d</span>
+                    <span class="n">r_u</span><span class="o">.</span><span class="n">storagemodeldownstream_typeid</span> <span class="o">=</span> <span class="n">c_d</span><span class="o">.</span><span class="n">storagemodels</span><span class="o">.</span><span class="n">typeids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">s_d</span><span class="o">.</span><span class="n">routingmodelsupstream</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">r_u</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">r_dd</span> <span class="o">:=</span> <span class="n">c_d</span><span class="o">.</span><span class="n">routingmodels</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="c1"># hint: the &quot;None part&quot; is already handled above</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_dd</span><span class="p">,</span> <span class="p">(</span><span class="n">r2</span><span class="p">,</span> <span class="n">r3</span><span class="p">)):</span>
+                            <span class="n">r_u</span><span class="o">.</span><span class="n">routingmodelsdownstream</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">r_dd</span><span class="p">)</span>
+                            <span class="n">r_dd</span><span class="o">.</span><span class="n">routingmodelsupstream</span><span class="o">.</span><span class="n">append_submodel</span><span class="p">(</span><span class="n">r_u</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">assert</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_dd</span><span class="p">,</span> <span class="n">r1</span><span class="p">)</span>
+                            <span class="n">assert_never</span><span class="p">(</span><span class="n">r_dd</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">network</span>
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.sw1d_network</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

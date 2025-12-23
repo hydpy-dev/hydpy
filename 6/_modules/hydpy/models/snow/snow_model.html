@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.snow.snow_model &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.snow.snow_model</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.snow.snow_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inflect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.cythons</span><span class="w"> </span><span class="kn">import</span> <span class="n">modelutils</span>
+
+<span class="c1"># ...from snow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.snow</span><span class="w"> </span><span class="kn">import</span> <span class="n">snow_control</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.snow</span><span class="w"> </span><span class="kn">import</span> <span class="n">snow_derived</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.snow</span><span class="w"> </span><span class="kn">import</span> <span class="n">snow_fixed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.snow</span><span class="w"> </span><span class="kn">import</span> <span class="n">snow_inputs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.snow</span><span class="w"> </span><span class="kn">import</span> <span class="n">snow_factors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.snow</span><span class="w"> </span><span class="kn">import</span> <span class="n">snow_fluxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.snow</span><span class="w"> </span><span class="kn">import</span> <span class="n">snow_states</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.snow</span><span class="w"> </span><span class="kn">import</span> <span class="n">snow_logs</span>
+
+
+<div class="viewcode-block" id="Calc_PLayer_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_PLayer_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_PLayer_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Adjust the precipitation to the altitude for the snow layers according to</span>
+<span class="sd">    :cite:t:`ref-Valery`.</span>
+
+<span class="sd">    Basic equations:</span>
+
+<span class="sd">      .. math::</span>
+<span class="sd">        L_i^* = P \cdot \begin{cases}</span>
+<span class="sd">        e^{G\cdot \big(Z_i - \overline{Z}\big)} &amp;|\ Z_i \leq T \\</span>
+<span class="sd">        e^{G\cdot max\big(T- \overline{Z}, \,0\big)} &amp;|\ Z_i &gt; T</span>
+<span class="sd">        \end{cases}</span>
+<span class="sd">        \\</span>
+<span class="sd">        L_i = L_i^* \cdot \frac{P}{\sum_{i=1}^{N} A_i \cdot L_i^*}</span>
+<span class="sd">        \\ \\</span>
+<span class="sd">        L = PLayer \\</span>
+<span class="sd">        G = GradP \\</span>
+<span class="sd">        Z = ZLayers \\</span>
+<span class="sd">        \overline{Z} = ZMean \\</span>
+<span class="sd">        T = ZThreshold  \\</span>
+<span class="sd">        N = NLayers \\</span>
+<span class="sd">        A = LayerArea</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(5)</span>
+<span class="sd">        &gt;&gt;&gt; layerarea(0.2)</span>
+<span class="sd">        &gt;&gt;&gt; gradp(0.00041)</span>
+<span class="sd">        &gt;&gt;&gt; inputs.p = 10.0</span>
+
+<span class="sd">        The threshold parameter |ZThreshold| is usually fixed to 4000 m:</span>
+
+<span class="sd">        &gt;&gt;&gt; fixed.zthreshold</span>
+<span class="sd">        zthreshold(4000.0)</span>
+
+<span class="sd">        If all layers lie below the threshold, their precipitation values become</span>
+<span class="sd">        adjusted by the same equation:</span>
+
+<span class="sd">        &gt;&gt;&gt; zlayers(2199.0, 2599.0, 2999.0, 3399.0, 3799.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean</span>
+<span class="sd">        zmean(2999.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_player_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.player</span>
+<span class="sd">        player(7.013551, 8.263467, 9.736135, 11.471253, 13.515595)</span>
+
+<span class="sd">        The total precipitation volume stays intact:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(fluxes.player.average_values())</span>
+<span class="sd">        10.0</span>
+
+<span class="sd">        Layers above the threshold altitude are only adjusted with respect to the</span>
+<span class="sd">        threshold:</span>
+
+<span class="sd">        &gt;&gt;&gt; zlayers(3199.0, 3599.0, 3999.0, 4399.0, 4799.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean</span>
+<span class="sd">        zmean(3999.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_player_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.player</span>
+<span class="sd">        player(7.881562, 9.28617, 10.941098, 10.945585, 10.945585)</span>
+<span class="sd">        &gt;&gt;&gt; round_(fluxes.player.average_values())</span>
+<span class="sd">        10.0</span>
+
+<span class="sd">        If the average layer altitude exceeds the threshold, the precipitation values</span>
+<span class="sd">        of the upper layers are not directly adjusted.  Still, |Calc_PLayer_V1|</span>
+<span class="sd">        indirectly increases them by decreasing the lower layers&#39; precipitation and</span>
+<span class="sd">        subsequently adjusting all layers&#39; precipitation sum back to the original</span>
+<span class="sd">        volume:</span>
+
+<span class="sd">        &gt;&gt;&gt; zlayers(3201.0, 3601.0, 4001.0, 4401.0, 4801.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean</span>
+<span class="sd">        zmean(4001.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_player_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.player</span>
+<span class="sd">        player(7.882977, 9.287837, 10.943062, 10.943062, 10.943062)</span>
+<span class="sd">        &gt;&gt;&gt; round_(fluxes.player.average_values())</span>
+<span class="sd">        10.0</span>
+
+<span class="sd">        If all layers lie above the threshold, all get the same (original)</span>
+<span class="sd">        precipitation value:</span>
+
+<span class="sd">        &gt;&gt;&gt; zlayers(4201.0, 4601.0, 5001.0, 5401.0, 5801.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean.update()</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_player_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.player</span>
+<span class="sd">        player(10.0, 10.0, 10.0, 10.0, 10.0)</span>
+
+<span class="sd">        The last example demonstrates that the water balance remains intact for layers</span>
+<span class="sd">        with different sizes:</span>
+
+<span class="sd">        &gt;&gt;&gt; zlayers(3201.0, 3601.0, 4001.0, 4401.0, 4801.0)</span>
+<span class="sd">        &gt;&gt;&gt; control.layerarea(0.3, 0.2, 0.2, 0.2, 0.1)</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean.update()</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_player_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.player</span>
+<span class="sd">        player(8.1337, 9.583241, 11.286484, 11.286484, 11.286484)</span>
+<span class="sd">        &gt;&gt;&gt; round_(fluxes.player.average_values())</span>
+<span class="sd">        10.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">ZLayers</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">LayerArea</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">GradP</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_derived</span><span class="o">.</span><span class="n">ZMean</span><span class="p">,)</span>
+    <span class="n">FIXEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fixed</span><span class="o">.</span><span class="n">ZThreshold</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_inputs</span><span class="o">.</span><span class="n">P</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PLayer</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">fixed</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="n">p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">con</span><span class="o">.</span><span class="n">zlayers</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">fix</span><span class="o">.</span><span class="n">zthreshold</span><span class="p">:</span>
+                <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">zlayers</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">der</span><span class="o">.</span><span class="n">zmean</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">fix</span><span class="o">.</span><span class="n">zthreshold</span> <span class="o">-</span> <span class="n">der</span><span class="o">.</span><span class="n">zmean</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">player</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">p</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">gradp</span> <span class="o">*</span> <span class="n">delta</span><span class="p">)</span>
+            <span class="n">p</span> <span class="o">+=</span> <span class="n">flu</span><span class="o">.</span><span class="n">player</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">con</span><span class="o">.</span><span class="n">layerarea</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">player</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">player</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span> <span class="n">p</span> <span class="o">*</span> <span class="n">inp</span><span class="o">.</span><span class="n">p</span></div>
+
+
+
+<div class="viewcode-block" id="Return_T_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Return_T_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Return_T_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the altitude-adjusted temperature.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`f(t, \, k, \, g) = t + (ZMean - ZLayer_k) \cdot g / 100`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        The adjustment depends on the selected layer&#39;s altitude relative to the average</span>
+<span class="sd">        altitude and the current-day temperature gradient:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(2)</span>
+<span class="sd">        &gt;&gt;&gt; zlayers(100.0, 500.0)</span>
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; gradtmean(numpy.linspace(0.5, 1.0, 366))</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean(300.0)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub, round_</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2001-01-01&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy.update()</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = pub.timegrids.init[&quot;2000-01-01&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.return_t_v1(5.0, 0, gradtmean.values))</span>
+<span class="sd">        6.0</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.return_t_v1(5.0, 1, gradtmean.values))</span>
+<span class="sd">        4.0</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = pub.timegrids.init[&quot;2000-12-31&quot;]</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.return_t_v1(5.0, 0, gradtmean.values))</span>
+<span class="sd">        7.0</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.return_t_v1(5.0, 1, gradtmean.values))</span>
+<span class="sd">        3.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">ZLayers</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_derived</span><span class="o">.</span><span class="n">DOY</span><span class="p">,</span> <span class="n">snow_derived</span><span class="o">.</span><span class="n">ZMean</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="n">MatrixFloat</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">return</span> <span class="n">t</span> <span class="o">+</span> <span class="p">(</span><span class="n">der</span><span class="o">.</span><span class="n">zmean</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">zlayers</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="o">*</span> <span class="n">g</span><span class="p">[</span><span class="n">der</span><span class="o">.</span><span class="n">doy</span><span class="p">[</span><span class="n">model</span><span class="o">.</span><span class="n">idx_sim</span><span class="p">]]</span> <span class="o">/</span> <span class="mf">100.0</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_TLayer_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_TLayer_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_TLayer_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the mean temperature for each snow layer based on method</span>
+<span class="sd">    |Return_T_V1|.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`TLayer_k = f_{Return\_T\_V1}(T, \, k, \, GradTMean)`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(2)</span>
+<span class="sd">        &gt;&gt;&gt; zlayers(100.0, 500.0)</span>
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; gradtmean(numpy.linspace(0.5, 1.0, 366))</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean(300.0)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2001-01-01&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy.update()</span>
+<span class="sd">        &gt;&gt;&gt; inputs.t = 5.0</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_tlayer_v1()</span>
+<span class="sd">        &gt;&gt;&gt; factors.tlayer</span>
+<span class="sd">        tlayer(6.0, 4.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 365</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_tlayer_v1()</span>
+<span class="sd">        &gt;&gt;&gt; factors.tlayer</span>
+<span class="sd">        tlayer(7.0, 3.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Return_T_V1</span><span class="p">,)</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">ZLayers</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">GradTMean</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_derived</span><span class="o">.</span><span class="n">DOY</span><span class="p">,</span> <span class="n">snow_derived</span><span class="o">.</span><span class="n">ZMean</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_inputs</span><span class="o">.</span><span class="n">T</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_factors</span><span class="o">.</span><span class="n">TLayer</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">fac</span><span class="o">.</span><span class="n">tlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">return_t_v1</span><span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">con</span><span class="o">.</span><span class="n">gradtmean</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_TMinLayer_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_TMinLayer_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_TMinLayer_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the minimum temperature for each snow layer based on method</span>
+<span class="sd">    |Return_T_V1|.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`TMinLayer_k = f_{Return\_T\_V1}(TMin, \, k, \, GradTMin)`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(2)</span>
+<span class="sd">        &gt;&gt;&gt; zlayers(100.0, 500.0)</span>
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; gradtmin(numpy.linspace(0.5, 1.0, 366))</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean(300.0)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2001-01-01&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy.update()</span>
+<span class="sd">        &gt;&gt;&gt; inputs.tmin = 5.0</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_tminlayer_v1()</span>
+<span class="sd">        &gt;&gt;&gt; factors.tminlayer</span>
+<span class="sd">        tminlayer(6.0, 4.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 365</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_tminlayer_v1()</span>
+<span class="sd">        &gt;&gt;&gt; factors.tminlayer</span>
+<span class="sd">        tminlayer(7.0, 3.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Return_T_V1</span><span class="p">,)</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">ZLayers</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">GradTMin</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_derived</span><span class="o">.</span><span class="n">DOY</span><span class="p">,</span> <span class="n">snow_derived</span><span class="o">.</span><span class="n">ZMean</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_inputs</span><span class="o">.</span><span class="n">TMin</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_factors</span><span class="o">.</span><span class="n">TMinLayer</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">fac</span><span class="o">.</span><span class="n">tminlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">return_t_v1</span><span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">tmin</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">con</span><span class="o">.</span><span class="n">gradtmin</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_TMaxLayer_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_TMaxLayer_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_TMaxLayer_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the maximum temperature for each snow layer based on method</span>
+<span class="sd">    |Return_T_V1|.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`TMaxLayer_k = f_{Return\_T\_V1}(TMax, \, k, \, GradTMax)`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(2)</span>
+<span class="sd">        &gt;&gt;&gt; zlayers(100.0, 500.0)</span>
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; gradtmax(numpy.linspace(0.5, 1.0, 366))</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean(300.0)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2001-01-01&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; derived.doy.update()</span>
+<span class="sd">        &gt;&gt;&gt; inputs.tmax = 5.0</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_tmaxlayer_v1()</span>
+<span class="sd">        &gt;&gt;&gt; factors.tmaxlayer</span>
+<span class="sd">        tmaxlayer(6.0, 4.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_sim = 365</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_tmaxlayer_v1()</span>
+<span class="sd">        &gt;&gt;&gt; factors.tmaxlayer</span>
+<span class="sd">        tmaxlayer(7.0, 3.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Return_T_V1</span><span class="p">,)</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">ZLayers</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">GradTMax</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_derived</span><span class="o">.</span><span class="n">DOY</span><span class="p">,</span> <span class="n">snow_derived</span><span class="o">.</span><span class="n">ZMean</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_inputs</span><span class="o">.</span><span class="n">TMax</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_factors</span><span class="o">.</span><span class="n">TMaxLayer</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">fac</span><span class="o">.</span><span class="n">tmaxlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">return_t_v1</span><span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">tmax</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">con</span><span class="o">.</span><span class="n">gradtmax</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_SolidFractionPrecipitation_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_SolidFractionPrecipitation_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_SolidFractionPrecipitation_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the solid precipitation fraction for each snow layer according to</span>
+<span class="sd">    :cite:t:`ref-USACE1956`.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      .. math::</span>
+<span class="sd">        F = min \left( max \left( \frac{R - T}{R - S}, \, 0 \right), \, 1 \right)</span>
+<span class="sd">        \\ \\</span>
+<span class="sd">        F = SolidFractionPrecipitation \\</span>
+<span class="sd">        T = TLayer \\</span>
+<span class="sd">        R = TThreshRain \\</span>
+<span class="sd">        S = TThreshSnow</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(7)</span>
+<span class="sd">        &gt;&gt;&gt; factors.tlayer = -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_solidfractionprecipitation_v1()</span>
+<span class="sd">        &gt;&gt;&gt; factors.solidfractionprecipitation</span>
+<span class="sd">        solidfractionprecipitation(1.0, 1.0, 0.75, 0.5, 0.25, 0.0, 0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,)</span>
+    <span class="n">FIXEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fixed</span><span class="o">.</span><span class="n">TThreshSnow</span><span class="p">,</span> <span class="n">snow_fixed</span><span class="o">.</span><span class="n">TThreshRain</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_factors</span><span class="o">.</span><span class="n">TLayer</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_factors</span><span class="o">.</span><span class="n">SolidFractionPrecipitation</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">fixed</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">r</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">fix</span><span class="o">.</span><span class="n">tthreshrain</span>
+            <span class="n">s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">fix</span><span class="o">.</span><span class="n">tthreshsnow</span>
+            <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">fac</span><span class="o">.</span><span class="n">tlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">fac</span><span class="o">.</span><span class="n">solidfractionprecipitation</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">((</span><span class="n">r</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">s</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_SolidFractionPrecipitation_V2">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_SolidFractionPrecipitation_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_SolidFractionPrecipitation_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the solid precipitation fraction for each snow layer according to</span>
+<span class="sd">    :cite:t:`ref-Turcotte2007` and :cite:t:`ref-USACE1956`.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      .. math::</span>
+<span class="sd">        F = \begin{cases}</span>
+<span class="sd">        min \left( max \left( 1 - \frac{X}{X - N}, \, 0 \right), \, 1 \right)</span>
+<span class="sd">        &amp;|\ Z &lt; 1500 \\</span>
+<span class="sd">        min \left( max \left( \frac{R - T}{R - S}, \, 0 \right), \, 1 \right)</span>
+<span class="sd">        &amp;|\ Z \geq 1500 \end{cases}</span>
+<span class="sd">        \\ \\</span>
+<span class="sd">        F = SolidFractionPrecipitation \\</span>
+<span class="sd">        Z = ZMean \\</span>
+<span class="sd">        X = TMaxLayer \\</span>
+<span class="sd">        N = TMinLayer \\</span>
+<span class="sd">        T = TLayer \\</span>
+<span class="sd">        R = TThreshRain \\</span>
+<span class="sd">        S = TThreshSnow</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        For catchments with an average elevation below 1500 m, the (daily) solid</span>
+<span class="sd">        precipitation fraction is determined by the time with an air temperature below</span>
+<span class="sd">        0°C, which is estimated based on |TMaxLayer| and |TMinLayer|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(7)</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean(1499.0)</span>
+<span class="sd">        &gt;&gt;&gt; factors.tminlayer = -2.0, -2.0, -2.0, -2.0, -1.0, 0.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.tmaxlayer = -1.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_solidfractionprecipitation_v2()</span>
+<span class="sd">        &gt;&gt;&gt; factors.solidfractionprecipitation</span>
+<span class="sd">        solidfractionprecipitation(1.0, 1.0, 0.666667, 0.5, 0.333333, 0.0, 0.0)</span>
+
+
+<span class="sd">        Swapping the minimum and maximum values (which might occur in applications due</span>
+<span class="sd">        to input data errors or problematic altitude adjustments) yields the same</span>
+<span class="sd">        results:</span>
+
+<span class="sd">        &gt;&gt;&gt; factors.tminlayer = -1.0, 0.0, 1.0, 2.0, 2.0, 2.0, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.tmaxlayer = -2.0, -2.0, -2.0, -2.0, -1.0, 0.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_solidfractionprecipitation_v2()</span>
+<span class="sd">        &gt;&gt;&gt; factors.solidfractionprecipitation</span>
+<span class="sd">        solidfractionprecipitation(1.0, 1.0, 0.666667, 0.5, 0.333333, 0.0, 0.0)</span>
+
+<span class="sd">        Identical minimum and maximum temperatures also pose no problem:</span>
+
+<span class="sd">        &gt;&gt;&gt; factors.tminlayer = -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.tmaxlayer = -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_solidfractionprecipitation_v2()</span>
+<span class="sd">        &gt;&gt;&gt; factors.solidfractionprecipitation</span>
+<span class="sd">        solidfractionprecipitation(1.0, 1.0, 1.0, 0.5, 0.0, 0.0, 0.0)</span>
+
+<span class="sd">        For higher catchments, the usual linear interpolation approach between a</span>
+<span class="sd">        minimum (|TThreshSnow|) and a maximum (|TThreshRain|) temperature threshold</span>
+<span class="sd">        applies (as when using |Calc_SolidFractionPrecipitation_V1|):</span>
+
+<span class="sd">        &gt;&gt;&gt; factors.tlayer = -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.zmean(1500.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_solidfractionprecipitation_v2()</span>
+<span class="sd">        &gt;&gt;&gt; factors.solidfractionprecipitation</span>
+<span class="sd">        solidfractionprecipitation(1.0, 1.0, 0.75, 0.5, 0.25, 0.0, 0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_derived</span><span class="o">.</span><span class="n">ZMean</span><span class="p">,)</span>
+    <span class="n">FIXEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fixed</span><span class="o">.</span><span class="n">TThreshSnow</span><span class="p">,</span> <span class="n">snow_fixed</span><span class="o">.</span><span class="n">TThreshRain</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">snow_factors</span><span class="o">.</span><span class="n">TLayer</span><span class="p">,</span>
+        <span class="n">snow_factors</span><span class="o">.</span><span class="n">TMinLayer</span><span class="p">,</span>
+        <span class="n">snow_factors</span><span class="o">.</span><span class="n">TMaxLayer</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_factors</span><span class="o">.</span><span class="n">SolidFractionPrecipitation</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">fixed</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">der</span><span class="o">.</span><span class="n">zmean</span> <span class="o">&lt;</span> <span class="mf">1500.0</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">fac</span><span class="o">.</span><span class="n">tmaxlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="n">n</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">fac</span><span class="o">.</span><span class="n">tminlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="n">x</span><span class="p">:</span>
+                    <span class="n">w</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">n</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="n">x</span><span class="p">:</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">n</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="k">elif</span> <span class="n">x</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="mf">0.5</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">w</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">r</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">fix</span><span class="o">.</span><span class="n">tthreshrain</span>
+                <span class="n">s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">fix</span><span class="o">.</span><span class="n">tthreshsnow</span>
+                <span class="n">t</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">fac</span><span class="o">.</span><span class="n">tlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="n">w</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span>
+            <span class="n">fac</span><span class="o">.</span><span class="n">solidfractionprecipitation</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_PRainLayer_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_PRainLayer_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_PRainLayer_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the liquid part of precipitation :cite:p:`ref-USACE1956`.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`PRainLayer = (1 - SolidFractionPrecipitation) \cdot PLayer`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(2)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.player = 0.0, 4.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.solidfractionprecipitation = 0.25</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_prainlayer()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.prainlayer</span>
+<span class="sd">        prainlayer(0.0, 3.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_factors</span><span class="o">.</span><span class="n">SolidFractionPrecipitation</span><span class="p">,</span> <span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PLayer</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PRainLayer</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">f</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">fac</span><span class="o">.</span><span class="n">solidfractionprecipitation</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">prainlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">f</span><span class="p">)</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">player</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_PSnowLayer_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_PSnowLayer_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_PSnowLayer_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the frozen part of precipitation.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`PSnowLayer = SolidFractionPrecipitation \cdot PLayer`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(2)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.player = 0.0, 4.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.solidfractionprecipitation = 0.25</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_psnowlayer()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.psnowlayer</span>
+<span class="sd">        psnowlayer(0.0, 1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_factors</span><span class="o">.</span><span class="n">SolidFractionPrecipitation</span><span class="p">,</span> <span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PLayer</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PSnowLayer</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">psnowlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">fac</span><span class="o">.</span><span class="n">solidfractionprecipitation</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">player</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Update_G_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Update_G_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_G_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add the snowfall to each layer&#39;s snow pack.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`G_{new} = G_{old} + PSnowLayer`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(3)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.psnowlayer = 0.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; states.g = 1.0, 1.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_g_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.g</span>
+<span class="sd">        g(1.0, 2.0, 1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PSnowLayer</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_states</span><span class="o">.</span><span class="n">G</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">g</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+=</span> <span class="n">flu</span><span class="o">.</span><span class="n">psnowlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_ETG_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_ETG_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_ETG_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Update the thermal state of each snow layer.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      .. math::</span>
+<span class="sd">        E_{new} = min(C \cdot E_{old} + (1 - C) \cdot T, \, 0)</span>
+<span class="sd">        \\ \\</span>
+<span class="sd">        E = ETG \\</span>
+<span class="sd">        C = CN1 \\</span>
+<span class="sd">        T = TLayer</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(3)</span>
+<span class="sd">        &gt;&gt;&gt; cn1(0.75)</span>
+<span class="sd">        &gt;&gt;&gt; factors.tlayer = 1.0, 0.0, -1.0</span>
+<span class="sd">        &gt;&gt;&gt; states.etg = -1.0, 0.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_etg_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.etg</span>
+<span class="sd">        etg(-0.5, 0.0, 0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,</span> <span class="n">snow_control</span><span class="o">.</span><span class="n">CN1</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_factors</span><span class="o">.</span><span class="n">TLayer</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_states</span><span class="o">.</span><span class="n">ETG</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">etg</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                <span class="n">con</span><span class="o">.</span><span class="n">cn1</span> <span class="o">*</span> <span class="n">sta</span><span class="o">.</span><span class="n">etg</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">cn1</span><span class="p">)</span> <span class="o">*</span> <span class="n">fac</span><span class="o">.</span><span class="n">tlayer</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="mf">0.0</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_PotMelt_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_PotMelt_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_PotMelt_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the potential melt for each snow layer.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      .. math::</span>
+<span class="sd">        P = \begin{cases}</span>
+<span class="sd">        min \big(G, \, C \cdot max(T, \, 0) \big) &amp;|\ E = 0</span>
+<span class="sd">        \\</span>
+<span class="sd">        0 &amp;|\ E &lt; 0</span>
+<span class="sd">        \end{cases}</span>
+<span class="sd">        \\ \\</span>
+<span class="sd">        P = PotMelt \\</span>
+<span class="sd">        E = ETG \\</span>
+<span class="sd">        C = CN2 \\</span>
+<span class="sd">        T = TLayer</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        |Calc_PotMelt_V1| extends the classical day degree with a restriction that</span>
+<span class="sd">        prevents any melting as long as the snowpack&#39;s thermal state is below 0°C:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(5)</span>
+<span class="sd">        &gt;&gt;&gt; cn2(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; factors.tlayer = 1.0, -1.0, 1.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; states.g = 1.0, 1.0, 1.0, 2.0, 3.0</span>
+<span class="sd">        &gt;&gt;&gt; states.etg = -1.0, 0.0, 0.0, 0.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_potmelt_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.potmelt</span>
+<span class="sd">        potmelt(0.0, 0.0, 1.0, 2.0, 2.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,</span> <span class="n">snow_control</span><span class="o">.</span><span class="n">CN2</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_factors</span><span class="o">.</span><span class="n">TLayer</span><span class="p">,</span> <span class="n">snow_states</span><span class="o">.</span><span class="n">ETG</span><span class="p">,</span> <span class="n">snow_states</span><span class="o">.</span><span class="n">G</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PotMelt</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">sta</span><span class="o">.</span><span class="n">etg</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">potmelt</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">potmelt</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">g</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="nb">max</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">cn2</span> <span class="o">*</span> <span class="n">fac</span><span class="o">.</span><span class="n">tlayer</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_GRatio_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_GRatio_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_GRatio_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the fraction of the snow-covered area for each snow layer.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`GRatio = min(G / GThresh, \, 1)`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        We set |CN4|, used to derive |GThresh|, to 0.9, which corresponds to the</span>
+<span class="sd">        configuration of the original CemaNeige model:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(4)</span>
+<span class="sd">        &gt;&gt;&gt; cn4(0.9)</span>
+<span class="sd">        &gt;&gt;&gt; meanansolidprecip(100.0, 100.0, 100.0, 200.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.gthresh.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.gthresh</span>
+<span class="sd">        gthresh(90.0, 90.0, 90.0, 180.0)</span>
+<span class="sd">        &gt;&gt;&gt; states.g = 67.5, 90.0, 90.1, 90.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_gratio_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.gratio</span>
+<span class="sd">        gratio(0.75, 1.0, 1.0, 0.5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_derived</span><span class="o">.</span><span class="n">GThresh</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_states</span><span class="o">.</span><span class="n">G</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_states</span><span class="o">.</span><span class="n">GRatio</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">gratio</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">g</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span> <span class="n">der</span><span class="o">.</span><span class="n">gthresh</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Update_GRatio_GLocalMax_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Update_GRatio_GLocalMax_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_GRatio_GLocalMax_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the fraction of the snow-covered area for each snow layer and update</span>
+<span class="sd">    |GLocalMax| before calculating the snowmelt.</span>
+
+<span class="sd">    Basic equations:</span>
+<span class="sd">      .. math::</span>
+<span class="sd">        L_{new} = min(G, \, L_{old}) \\</span>
+<span class="sd">        R = min(G / L_{new}, \, 1.0)</span>
+<span class="sd">        \\ \\</span>
+<span class="sd">        L = GLocalMax \\</span>
+<span class="sd">        R = GRatio</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(5)</span>
+<span class="sd">        &gt;&gt;&gt; meanansolidprecip(80.0)</span>
+<span class="sd">        &gt;&gt;&gt; cn4(0.9)</span>
+<span class="sd">        &gt;&gt;&gt; derived.gthresh.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.gthresh</span>
+<span class="sd">        gthresh(72.0)</span>
+<span class="sd">        &gt;&gt;&gt; states.g = 30.0, 20.0, 12.0, 80.0, 50.0</span>
+<span class="sd">        &gt;&gt;&gt; states.gratio = 0.0, 0.2, 1.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.potmelt = 10.0, 10.0, 10.0, 0.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; logs.glocalmax = 40.0, 30.0, 20.0, 10.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; hysteresis(True)</span>
+<span class="sd">        &gt;&gt;&gt; model.update_gratio_glocalmax_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.gratio</span>
+<span class="sd">        gratio(0.75, 0.666667, 1.0, 1.0, 1.0)</span>
+<span class="sd">        &gt;&gt;&gt; logs.glocalmax</span>
+<span class="sd">        glocalmax(40.0, 30.0, 12.0, 10.0, 72.0)</span>
+
+<span class="sd">        If we switch off hysteresis, |GRatio| will dependent solely on |GThresh| and</span>
+<span class="sd">        |GLocalMax| is always set to zero:</span>
+
+<span class="sd">        &gt;&gt;&gt; hysteresis(False)</span>
+<span class="sd">        &gt;&gt;&gt; model.update_gratio_glocalmax_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.gratio</span>
+<span class="sd">        gratio(0.416667, 0.277778, 0.166667, 1.0, 0.694444)</span>
+<span class="sd">        &gt;&gt;&gt; logs.glocalmax</span>
+<span class="sd">        glocalmax(0.0, 0.0, 0.0, 0.0, 0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,</span> <span class="n">snow_control</span><span class="o">.</span><span class="n">Hysteresis</span><span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_derived</span><span class="o">.</span><span class="n">GThresh</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_states</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PotMelt</span><span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_states</span><span class="o">.</span><span class="n">GRatio</span><span class="p">,</span> <span class="n">snow_logs</span><span class="o">.</span><span class="n">GLocalMax</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">con</span><span class="o">.</span><span class="n">hysteresis</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">log</span><span class="o">.</span><span class="n">glocalmax</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">glocalmax</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">gthresh</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">potmelt</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">sta</span><span class="o">.</span><span class="n">gratio</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">glocalmax</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">g</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">log</span><span class="o">.</span><span class="n">glocalmax</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                    <span class="n">sta</span><span class="o">.</span><span class="n">gratio</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">g</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span> <span class="n">log</span><span class="o">.</span><span class="n">glocalmax</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sta</span><span class="o">.</span><span class="n">gratio</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">g</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span> <span class="n">der</span><span class="o">.</span><span class="n">gthresh</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="mf">1.0</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">glocalmax</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Melt_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_Melt_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Melt_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the actual snow melt for each layer.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      .. math::</span>
+<span class="sd">        M = P \cdot ((1 - N) \cdot R + N)</span>
+<span class="sd">        \\ \\</span>
+<span class="sd">        M = Melt \\</span>
+<span class="sd">        P = PotMelt \\</span>
+<span class="sd">        N = MinMelt \\</span>
+<span class="sd">        R = GRatio</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(5)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.potmelt = 0.0, 0.5, 1.0, 1.5, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.gratio = 0.0, 0.25, 0.5, 0.75, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; states.g = 0.0, 0.5, 1.0, 1.5, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_melt_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.melt</span>
+<span class="sd">        melt(0.0, 0.1625, 0.55, 1.1625, 2.0)</span>
+
+<span class="sd">        In the original formulation of the CemaNeige model, the basic equation</span>
+<span class="sd">        typically results in an exponential decrease in snow cover because |PotMelt|</span>
+<span class="sd">        never exceeds |G| and |GRatio| converges to zero during snow cover depletion.</span>
+<span class="sd">        To provide an opportunity to avoid infinitely thin snow layers in summer, we</span>
+<span class="sd">        introduced the fixed parameter |MinG|, which defines the amount of snow below</span>
+<span class="sd">        which |Melt| equals |PotMelt|:</span>
+
+<span class="sd">        &gt;&gt;&gt; fixed.ming(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_melt_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.melt</span>
+<span class="sd">        melt(0.0, 0.5, 0.55, 1.1625, 2.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,)</span>
+    <span class="n">FIXEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fixed</span><span class="o">.</span><span class="n">MinMelt</span><span class="p">,</span> <span class="n">snow_fixed</span><span class="o">.</span><span class="n">MinG</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PotMelt</span><span class="p">,</span> <span class="n">snow_states</span><span class="o">.</span><span class="n">GRatio</span><span class="p">,</span> <span class="n">snow_states</span><span class="o">.</span><span class="n">G</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">Melt</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">fixed</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">melt</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">potmelt</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">sta</span><span class="o">.</span><span class="n">g</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">fix</span><span class="o">.</span><span class="n">ming</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">melt</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">fix</span><span class="o">.</span><span class="n">minmelt</span><span class="p">)</span> <span class="o">*</span> <span class="n">sta</span><span class="o">.</span><span class="n">gratio</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">fix</span><span class="o">.</span><span class="n">minmelt</span></div>
+
+
+
+<div class="viewcode-block" id="Update_G_V2">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Update_G_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_G_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove the snowmelt from the snowpack.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`G_{new} = G_{old} - Melt`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(4)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.melt = 0.0, 0.2, 0.2, 0.2</span>
+<span class="sd">        &gt;&gt;&gt; states.g = 0.0, 0.2, 0.4, 0.6</span>
+<span class="sd">        &gt;&gt;&gt; model.update_g_v2()</span>
+<span class="sd">        &gt;&gt;&gt; states.g</span>
+<span class="sd">        g(0.0, 0.0, 0.2, 0.4)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">Melt</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_states</span><span class="o">.</span><span class="n">G</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">g</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-=</span> <span class="n">flu</span><span class="o">.</span><span class="n">melt</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Update_GRatio_GLocalMax_V2">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Update_GRatio_GLocalMax_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_GRatio_GLocalMax_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the fraction of the snow-covered area for each snow layer and update</span>
+<span class="sd">    |GLocalMax| after calculating the snowmelt.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      .. math::</span>
+<span class="sd">        R_{new}= \begin{cases}</span>
+<span class="sd">        min \left( R_{old} + \Delta / C, \, 1 \right) &amp;|\ \Delta &gt; 0 \\</span>
+<span class="sd">        min \left( G / L, \, 1 \right) &amp;|\ \Delta &lt; 0</span>
+<span class="sd">        \end{cases}</span>
+<span class="sd">        \\ \\</span>
+<span class="sd">        R = GRatio \\</span>
+<span class="sd">        \Delta = PSnowLayer - Melt \\</span>
+<span class="sd">        C = CN3 \\</span>
+<span class="sd">        L = GLocalMax</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(5)</span>
+<span class="sd">        &gt;&gt;&gt; cn3(3.0)</span>
+<span class="sd">        &gt;&gt;&gt; cn4(0.2)</span>
+<span class="sd">        &gt;&gt;&gt; meanansolidprecip(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.gthresh.update()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.psnowlayer = 0.0, 1.0, 2.0, 3.0, 4.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.melt = 0.0, 0.0, 3.0, 2.0, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.g = 10.0, 20.0, 30.0, 40.0, 50.0</span>
+<span class="sd">        &gt;&gt;&gt; states.gratio = 0.1, 0.5, 0.8, 0.2, 0.4</span>
+<span class="sd">        &gt;&gt;&gt; logs.glocalmax = 10.0</span>
+
+<span class="sd">        If |Hysteresis| is deactivated, |Update_GRatio_GLocalMax_V2| has no effect:</span>
+
+<span class="sd">        &gt;&gt;&gt; hysteresis(False)</span>
+<span class="sd">        &gt;&gt;&gt; model.update_gratio_glocalmax_v2()</span>
+<span class="sd">        &gt;&gt;&gt; states.gratio</span>
+<span class="sd">        gratio(0.1, 0.5, 0.8, 0.2, 0.4)</span>
+<span class="sd">        &gt;&gt;&gt; logs.glocalmax</span>
+<span class="sd">        glocalmax(10.0, 10.0, 10.0, 10.0, 10.0)</span>
+
+<span class="sd">        After activating |Hysteresis|, |Update_GRatio_GLocalMax_V2| updates |GRatio|</span>
+<span class="sd">        and |GLocalMax| differently depending on whether the snowpack is increasing or</span>
+<span class="sd">        decreasing:</span>
+
+<span class="sd">        &gt;&gt;&gt; hysteresis(True)</span>
+<span class="sd">        &gt;&gt;&gt; model.update_gratio_glocalmax_v2()</span>
+<span class="sd">        &gt;&gt;&gt; states.gratio</span>
+<span class="sd">        gratio(0.1, 0.833333, 1.0, 0.533333, 1.0)</span>
+<span class="sd">        &gt;&gt;&gt; logs.glocalmax</span>
+<span class="sd">        glocalmax(10.0, 10.0, 10.0, 10.0, 20.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">Hysteresis</span><span class="p">,</span>
+        <span class="n">snow_control</span><span class="o">.</span><span class="n">CN3</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_derived</span><span class="o">.</span><span class="n">GThresh</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">Melt</span><span class="p">,</span> <span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PSnowLayer</span><span class="p">,</span> <span class="n">snow_states</span><span class="o">.</span><span class="n">G</span><span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_states</span><span class="o">.</span><span class="n">GRatio</span><span class="p">,</span> <span class="n">snow_logs</span><span class="o">.</span><span class="n">GLocalMax</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">log</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">if</span> <span class="n">con</span><span class="o">.</span><span class="n">hysteresis</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+                <span class="n">dg</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">psnowlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">melt</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">dg</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">sta</span><span class="o">.</span><span class="n">gratio</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">gratio</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">dg</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">cn3</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">sta</span><span class="o">.</span><span class="n">gratio</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">glocalmax</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">der</span><span class="o">.</span><span class="n">gthresh</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">dg</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">sta</span><span class="o">.</span><span class="n">gratio</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">g</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">/</span> <span class="n">log</span><span class="o">.</span><span class="n">glocalmax</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_PNetLayer_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_PNetLayer_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_PNetLayer_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sum the rainfall and the actual snow melt for each layer.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`PNetLayer = PRainLayer + Melt`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nlayers(2)</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.prainlayer = 1.0, 2.0</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.melt = 3.0, 4.0</span>
+<span class="sd">    &gt;&gt;&gt; model.calc_pnetlayer_v1()</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.pnetlayer</span>
+<span class="sd">    pnetlayer(4.0, 6.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PRainLayer</span><span class="p">,</span> <span class="n">snow_fluxes</span><span class="o">.</span><span class="n">Melt</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PNetLayer</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">pnetlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">prainlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">melt</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_PNet_V1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Calc_PNet_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_PNet_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the catchment&#39;s average net rainfall.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`PNet = \sum_{i=1}^{NLayers} LayerArea_i \cdot PRainLayer_i`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nlayers(2)</span>
+<span class="sd">        &gt;&gt;&gt; layerarea(0.2, 0.8)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pnetlayer = 2.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_pnet_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pnet</span>
+<span class="sd">        pnet(1.2)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(fluxes.pnetlayer.average_values())</span>
+<span class="sd">        1.2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_control</span><span class="o">.</span><span class="n">NLayers</span><span class="p">,</span> <span class="n">snow_control</span><span class="o">.</span><span class="n">LayerArea</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PNetLayer</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">snow_fluxes</span><span class="o">.</span><span class="n">PNet</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="n">flu</span><span class="o">.</span><span class="n">pnet</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">nlayers</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">pnet</span> <span class="o">+=</span> <span class="n">flu</span><span class="o">.</span><span class="n">pnetlayer</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">*</span> <span class="n">con</span><span class="o">.</span><span class="n">layerarea</span><span class="p">[</span><span class="n">k</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|snow.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s2">&quot;Snow&quot;</span><span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Return_T_V1</span><span class="p">,)</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Calc_PLayer_V1</span><span class="p">,</span>
+        <span class="n">Calc_TLayer_V1</span><span class="p">,</span>
+        <span class="n">Calc_TMinLayer_V1</span><span class="p">,</span>
+        <span class="n">Calc_TMaxLayer_V1</span><span class="p">,</span>
+        <span class="n">Calc_SolidFractionPrecipitation_V1</span><span class="p">,</span>
+        <span class="n">Calc_SolidFractionPrecipitation_V2</span><span class="p">,</span>
+        <span class="n">Calc_PRainLayer_V1</span><span class="p">,</span>
+        <span class="n">Calc_PSnowLayer_V1</span><span class="p">,</span>
+        <span class="n">Update_G_V1</span><span class="p">,</span>
+        <span class="n">Calc_ETG_V1</span><span class="p">,</span>
+        <span class="n">Calc_PotMelt_V1</span><span class="p">,</span>
+        <span class="n">Calc_GRatio_V1</span><span class="p">,</span>
+        <span class="n">Update_GRatio_GLocalMax_V1</span><span class="p">,</span>
+        <span class="n">Calc_Melt_V1</span><span class="p">,</span>
+        <span class="n">Update_G_V2</span><span class="p">,</span>
+        <span class="n">Update_GRatio_GLocalMax_V2</span><span class="p">,</span>
+        <span class="n">Calc_PNetLayer_V1</span><span class="p">,</span>
+        <span class="n">Calc_PNet_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="BaseModel">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.BaseModel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseModel</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base model for CemaNeige-like layered models.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BaseModel.prepare_layers">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_model.BaseModel.prepare_layers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">hypsodata</span><span class="p">:</span> <span class="n">VectorInputFloat</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the control parameters |LayerArea| and |ZLayers| based on hypsometric</span>
+<span class="sd">        data.</span>
+
+<span class="sd">        Method |BaseModel.prepare_layers| requires the percentiles of the catchment&#39;s</span>
+<span class="sd">        elevation distribution in meters, prefixed by the minimum and suffixed by the</span>
+<span class="sd">        maximum elevation, which makes exactly 101 data points:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.snow_cn import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; model.prepare_layers(hypsodata=[0.0])</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        ValueError: Method `prepare_layers` requires a vector of 101 hypsometric data \</span>
+<span class="sd">points but 1 value is given.</span>
+
+<span class="sd">        If 100 is a multiple of the number of layers, |BaseModel.prepare_layers| can</span>
+<span class="sd">        select the correct data directly:</span>
+
+<span class="sd">        &gt;&gt;&gt; nlayers(5)</span>
+<span class="sd">        &gt;&gt;&gt; hypsodata = [</span>
+<span class="sd">        ...     286.0, 309.0, 320.0, 327.0, 333.0, 338.0, 342.0, 347.0, 351.0, 356.0,</span>
+<span class="sd">        ...     360.0, 365.0, 369.0, 373.0, 378.0, 382.0, 387.0, 393.0, 399.0, 405.0,</span>
+<span class="sd">        ...     411.0, 417.0, 423.0, 428.0, 434.0, 439.0, 443.0, 448.0, 453.0, 458.0,</span>
+<span class="sd">        ...     463.0, 469.0, 474.0, 480.0, 485.0, 491.0, 496.0, 501.0, 507.0, 513.0,</span>
+<span class="sd">        ...     519.0, 524.0, 530.0, 536.0, 542.0, 548.0, 554.0, 560.0, 566.0, 571.0,</span>
+<span class="sd">        ...     577.0, 583.0, 590.0, 596.0, 603.0, 609.0, 615.0, 622.0, 629.0, 636.0,</span>
+<span class="sd">        ...     642.0, 649.0, 656.0, 663.0, 669.0, 677.0, 684.0, 691.0, 698.0, 706.0,</span>
+<span class="sd">        ...     714.0, 722.0, 730.0, 738.0, 746.0, 754.0, 762.0, 770.0, 777.0, 786.0,</span>
+<span class="sd">        ...     797.0, 808.0, 819.0, 829.0, 841.0, 852.0, 863.0, 875.0, 887.0, 901.0,</span>
+<span class="sd">        ...     916.0, 934.0, 952.0, 972.0, 994.0, 1012.0, 1029.0, 10540.0, 10800.0,</span>
+<span class="sd">        ...     11250.0, 12780.0</span>
+<span class="sd">        ... ]</span>
+<span class="sd">        &gt;&gt;&gt; model.prepare_layers(hypsodata=hypsodata)</span>
+<span class="sd">        &gt;&gt;&gt; layerarea</span>
+<span class="sd">        layerarea(0.2)</span>
+<span class="sd">        &gt;&gt;&gt; zlayers</span>
+<span class="sd">        zlayers(360.0, 463.0, 577.0, 714.0, 916.0)</span>
+
+<span class="sd">        Otherwise, it still selects some of the given values and thereby needs to</span>
+<span class="sd">        trick a little, which results in some deviations from the original elevation</span>
+<span class="sd">        distribution:</span>
+
+<span class="sd">        &gt;&gt;&gt; nlayers(7)</span>
+<span class="sd">        &gt;&gt;&gt; model.prepare_layers(hypsodata=hypsodata)</span>
+<span class="sd">        &gt;&gt;&gt; layerarea</span>
+<span class="sd">        layerarea(0.142857)</span>
+<span class="sd">        &gt;&gt;&gt; zlayers</span>
+<span class="sd">        zlayers(347.0, 423.0, 501.0, 583.0, 677.0, 786.0, 972.0)</span>
+
+
+<span class="sd">        &gt;&gt;&gt; nlayers(70)</span>
+<span class="sd">        &gt;&gt;&gt; model.prepare_layers(hypsodata=hypsodata)</span>
+<span class="sd">        &gt;&gt;&gt; layerarea</span>
+<span class="sd">        layerarea(0.014286)</span>
+<span class="sd">        &gt;&gt;&gt; zlayers</span>
+<span class="sd">        zlayers(286.0, 320.0, 333.0, 342.0, 351.0, 360.0, 369.0, 378.0, 387.0,</span>
+<span class="sd">                399.0, 411.0, 423.0, 434.0, 443.0, 453.0, 463.0, 474.0, 485.0,</span>
+<span class="sd">                496.0, 507.0, 519.0, 530.0, 542.0, 554.0, 566.0, 577.0, 590.0,</span>
+<span class="sd">                603.0, 615.0, 629.0, 642.0, 649.0, 656.0, 663.0, 669.0, 677.0,</span>
+<span class="sd">                684.0, 691.0, 698.0, 706.0, 714.0, 722.0, 730.0, 738.0, 746.0,</span>
+<span class="sd">                754.0, 762.0, 770.0, 777.0, 786.0, 797.0, 808.0, 819.0, 829.0,</span>
+<span class="sd">                841.0, 852.0, 863.0, 875.0, 887.0, 901.0, 916.0, 934.0, 952.0,</span>
+<span class="sd">                972.0, 994.0, 1012.0, 1029.0, 10540.0, 10800.0, 11250.0)</span>
+
+<span class="sd">        Due to this selection mechanism (without interpolation), the highest number of</span>
+<span class="sd">        supported layers is 100:</span>
+
+<span class="sd">        &gt;&gt;&gt; nlayers(100)</span>
+<span class="sd">        &gt;&gt;&gt; model.prepare_layers(hypsodata=hypsodata)</span>
+<span class="sd">        &gt;&gt;&gt; layerarea</span>
+<span class="sd">        layerarea(0.01)</span>
+<span class="sd">        &gt;&gt;&gt; assert zlayers == hypsodata[:-1]</span>
+
+<span class="sd">        &gt;&gt;&gt; nlayers(101)</span>
+<span class="sd">        &gt;&gt;&gt; model.prepare_layers(hypsodata=hypsodata)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        ValueError: Method `prepare_layers` works for at most 100 layers, but the \</span>
+<span class="sd">value of parameter `nlayers` of element `?` is set to 101.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hypsodata</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">101</span><span class="p">:</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">inflect</span><span class="o">.</span><span class="n">engine</span><span class="p">()</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hypsodata</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Method `prepare_layers` requires a vector of 101 hypsometric data &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;points but </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hypsodata</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">plural_noun</span><span class="p">(</span><span class="s1">&#39;value&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">plural_verb</span><span class="p">(</span><span class="s1">&#39;is&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2"> given.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span>
+
+        <span class="k">if</span> <span class="n">control</span><span class="o">.</span><span class="n">nlayers</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Method `prepare_layers` works for at most 100 layers, but the value &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;of parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">nlayers</span><span class="p">)</span><span class="si">}</span><span class="s2"> is set to &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">control</span><span class="o">.</span><span class="n">nlayers</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">control</span><span class="o">.</span><span class="n">layerarea</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">control</span><span class="o">.</span><span class="n">nlayers</span><span class="p">)</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">//</span> <span class="n">control</span><span class="o">.</span><span class="n">nlayers</span>
+        <span class="n">rest</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">%</span> <span class="n">control</span><span class="o">.</span><span class="n">nlayers</span>
+        <span class="n">i0</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">control</span><span class="o">.</span><span class="n">zlayers</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">nlayers</span><span class="o">.</span><span class="n">value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">rest</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">adjusted_width</span> <span class="o">=</span> <span class="n">width</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">adjusted_width</span> <span class="o">=</span> <span class="n">width</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">rest</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">adjusted_width</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">zlayers</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span> <span class="o">=</span> <span class="n">hypsodata</span><span class="p">[</span><span class="n">i0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">zlayers</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span> <span class="o">=</span> <span class="n">hypsodata</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">i0</span> <span class="o">+</span> <span class="n">adjusted_width</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)]</span>
+            <span class="n">i0</span> <span class="o">=</span> <span class="n">i0</span> <span class="o">+</span> <span class="n">adjusted_width</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.snow.snow_model</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

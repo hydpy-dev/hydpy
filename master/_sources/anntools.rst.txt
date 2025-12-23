@@ -1,0 +1,33 @@
+.. |ANN.activation| replace:: :const:`~hydpy.auxs.anntools.ANN.activation`
+.. |ANN.calculate_derivatives| replace:: :func:`~hydpy.auxs.anntools.ANN.calculate_derivatives`
+.. |ANN.calculate_values| replace:: :func:`~hydpy.auxs.anntools.ANN.calculate_values`
+.. |ANN.nmb_intercepts| replace:: :const:`~hydpy.auxs.anntools.ANN.nmb_intercepts`
+.. |ANN.nmb_weights| replace:: :const:`~hydpy.auxs.anntools.ANN.nmb_weights`
+.. |ANN.shape_inputs| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_inputs`
+.. |ANN.shape_intercepts_hidden| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_intercepts_hidden`
+.. |ANN.shape_intercepts_output| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_intercepts_output`
+.. |ANN.shape_neuron_derivatives| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_neuron_derivatives`
+.. |ANN.shape_neurons| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_neurons`
+.. |ANN.shape_output_derivatives| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_output_derivatives`
+.. |ANN.shape_outputs| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_outputs`
+.. |ANN.shape_weights_hidden| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_weights_hidden`
+.. |ANN.shape_weights_input| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_weights_input`
+.. |ANN.shape_weights_output| replace:: :const:`~hydpy.auxs.anntools.ANN.shape_weights_output`
+.. |ANN.weights_input| replace:: :const:`~hydpy.auxs.anntools.ANN.weights_input`
+.. |ANN| replace:: :class:`~hydpy.auxs.anntools.ANN`
+.. |RuntimeError| replace:: :class:`RuntimeError`
+.. |SeasonalInterpolator| replace:: :class:`~hydpy.auxs.interptools.SeasonalInterpolator`
+.. |SimpleInterpolator| replace:: :class:`~hydpy.auxs.interptools.SimpleInterpolator`
+.. |annutils| replace:: :mod:`~hydpy.cythons.autogen.annutils`
+.. |dam_llake| replace:: :mod:`~hydpy.models.dam_llake`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+
+.. _anntools:
+
+anntools
+========
+
+.. automodule:: hydpy.auxs.anntools
+    :members:
+    :show-inheritance:
+    :exclude-members: Tuple, CapsuleType, RESULTSEQUENCES, Required, disjoint_base, get_annotations, Final, SupportsRound, LiteralString, NotRequired, Reader, Iterator, Protocol, List, Pattern, Hashable, SupportsComplex, PART_ODE_METHODS, KeysView, SupportsBytes, ReadOnly, Mapping, Counter, TypeVarTuple, reveal_type, NoExtraItems, assert_type, FULL_ODE_METHODS, UPDATEDSEQUENCES, Collection, NamedTuple, AsyncIterable, Generator, FIXEDPARAMETERS, ItemsView, OUTLET_METHODS, Annotated, overload, override, ValuesView, REQUIREDSEQUENCES, MutableSequence, TypeAliasType, get_original_bases, CLASSES, Deque, ClassVar, BinaryIO, ParamSpecKwargs, Reversible, ParamSpecArgs, get_protocol_members, AsyncIterator, SENDER_METHODS, Iterable, MutableMapping, Awaitable, no_type_check, runtime, RECEIVER_METHODS, Generic, SOLVERSEQUENCES, Dict, INLET_METHODS, SOLVERPARAMETERS, OrderedDict, TypedDict, evaluate_forward_ref, fastaccess, AbstractSet, SupportsIndex, cast, runtime_checkable, Doc, ADD_METHODS, Buffer, NoDefault, Any, pars, Literal, AnyStr, assert_never, MutableSet, no_type_check_decorator, Format, Match, AsyncContextManager, TypeGuard, get_type_hints, ParamSpec, get_overloads, seqs, TypeForm, fastaccess_old, is_protocol, IO, AsyncGenerator, Writer, Set, INTERFACE_METHODS, Sentinel, Optional, subpars, SupportsFloat, Container, get_origin, type_repr, ContextManager, RUN_METHODS, SUBMODELS, Text, fastaccess_new, Unpack, clear_overloads, DefaultDict, NewType, SupportsAbs, TypeIs, NoReturn, is_typeddict, Callable, ForwardRef, ChainMap, SupportsInt, Never, MappingView, Union, TypeVar, deprecated, Type, FrozenSet, Sized, IntVar, DERIVEDPARAMETERS, SUBMODELINTERFACES, subseqs, ByteString, Sequence, TypeAlias, get_args, Concatenate, dataclass_transform, CONTROLPARAMETERS, TYPE_CHECKING, SUBMETHODS, TextIO, Coroutine, Self, final, subvars

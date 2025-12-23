@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.wq_walrus &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.wq_walrus</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.wq_walrus</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. _`issue 120`: https://github.com/hydpy-dev/hydpy/issues/120</span>
+
+<span class="sd">|wq_walrus| is a submodel that supplies its main model with discharge estimates.  It</span>
+<span class="sd">implements the equation suggested by :cite:t:`ref-Brauer2014` for calculating the</span>
+<span class="sd">outflow of a subcatchment through a ditch or channel, which assumes a rectangular</span>
+<span class="sd">channel geometry and, optionally, the existence of a weir at the channel outlet.  See</span>
+<span class="sd">`issue 120`_ for more additional information.</span>
+
+<span class="sd">As |wq_walrus| only applies the single method |Calculate_Discharge_V1|, we keep the</span>
+<span class="sd">tests short and take a single example from its documentation:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.wq_walrus import *</span>
+<span class="sd">&gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">&gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">&gt;&gt;&gt; channeldepth(5.0)</span>
+<span class="sd">&gt;&gt;&gt; crestheight(2.0)</span>
+<span class="sd">&gt;&gt;&gt; bankfulldischarge(2.0)</span>
+<span class="sd">&gt;&gt;&gt; dischargeexponent(2.0)</span>
+<span class="sd">&gt;&gt;&gt; crestheighttolerance(0.1)</span>
+<span class="sd">&gt;&gt;&gt; derived.crestheightregularisation.update()</span>
+<span class="sd">&gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">&gt;&gt;&gt; round_(model.calculate_discharge(3.0))</span>
+<span class="sd">0.111111</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from ga</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.wq</span><span class="w"> </span><span class="kn">import</span> <span class="n">wq_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../wq_walrus.html#hydpy.models.wq_walrus.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">,</span> <span class="n">wq_model</span><span class="o">.</span><span class="n">Base_DischargeModel_V2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|wq_walrus.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;WQ-WALRUS&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;WALRUS default function for calculating catchment outflow&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">INTERFACE_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_model</span><span class="o">.</span><span class="n">Calculate_Discharge_V1</span><span class="p">,)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.wq_walrus</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

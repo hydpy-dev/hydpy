@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.dam_v004 &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam_v004</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.dam_v004</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Application model |dam_v004| extends |dam_v003|.  Both models discharge water into the</span>
+<span class="sd">channel downstream and to &quot;remote locations&quot;.  The difference is that |dam_v003|</span>
+<span class="sd">releases water only to a single remote location (for example, to a drinking water</span>
+<span class="sd">treatment plant) while |dam_v004| also discharges to a second remote location (for</span>
+<span class="sd">example, to relieve water during high flow conditions).</span>
+
+<span class="sd">The following explanations focus on this difference.  For further information on using</span>
+<span class="sd">|dam_v004|, please read the documentation on |dam_v001| and |dam_v003|.  Besides that,</span>
+<span class="sd">consider reading the documentation on |dam_v005|, which is a possible counterpart to</span>
+<span class="sd">|dam_v004|, being able to send information on required supply and allowed relief and to</span>
+<span class="sd">consume the related discharges.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">The following examples stem from the documentation of application model |dam_v003|.</span>
+<span class="sd">Some are recalculations to confirm the proper implementation of the features common</span>
+<span class="sd">to both models.  Others are modifications that illustrate the additional features</span>
+<span class="sd">of |dam_v003|.</span>
+
+<span class="sd">The time-related setup is identical to the one of |dam_v003|:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import pub, Node, Element</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;01.01.2000&quot;, &quot;21.01.2000&quot;, &quot;1d&quot;</span>
+
+<span class="sd">In addition to the general configuration of application model |dam_v003|, we require</span>
+<span class="sd">connections to two additional |Node| objects.  Node `allowed_relief` provides</span>
+<span class="sd">information on the maximum allowed relief discharge, and node `actual_relief` passes</span>
+<span class="sd">the actual relief discharge to a remote location. Both nodes use the string literal &quot;R&quot;</span>
+<span class="sd">to connect to the receiver sequence |dam_receivers.R| and the outlet sequence</span>
+<span class="sd">|dam_outlets.R|, respectively:</span>
+
+<span class="sd">&gt;&gt;&gt; inflow = Node(&quot;inflow&quot;, variable=&quot;Q&quot;)</span>
+<span class="sd">&gt;&gt;&gt; outflow = Node(&quot;outflow&quot;, variable=&quot;Q&quot;)</span>
+<span class="sd">&gt;&gt;&gt; required_supply = Node(&quot;required_supply&quot;, variable=&quot;S&quot;)</span>
+<span class="sd">&gt;&gt;&gt; actual_supply = Node(&quot;actual_supply&quot;, variable=&quot;S&quot;)</span>
+<span class="sd">&gt;&gt;&gt; allowed_relief = Node(&quot;allowed_relief&quot;, variable=&quot;R&quot;)</span>
+<span class="sd">&gt;&gt;&gt; actual_relief = Node(&quot;actual_relief&quot;, variable=&quot;R&quot;)</span>
+<span class="sd">&gt;&gt;&gt; dam = Element(&quot;dam&quot;,</span>
+<span class="sd">...               inlets=inflow,</span>
+<span class="sd">...               outlets=(outflow, actual_supply, actual_relief),</span>
+<span class="sd">...               receivers=(required_supply, allowed_relief))</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.models.dam_v004 import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">&gt;&gt;&gt; dam.model = model</span>
+
+<span class="sd">We prepare the |IntegrationTest| object as for |dam_v003|:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(dam)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%d.%m.&quot;</span>
+<span class="sd">&gt;&gt;&gt; test.plotting_options.axis1 = fluxes.inflow, fluxes.outflow</span>
+<span class="sd">&gt;&gt;&gt; test.plotting_options.axis2 = states.watervolume</span>
+
+<span class="sd">|dam_v004| requires additional initial conditions for the sequence</span>
+<span class="sd">|LoggedAllowedRemoteRelief|:</span>
+
+<span class="sd">&gt;&gt;&gt; test.inits=((states.watervolume, 0.0),</span>
+<span class="sd">...             (logs.loggedadjustedevaporation, 0.0),</span>
+<span class="sd">...             (logs.loggedrequiredremoterelease, 0.005),</span>
+<span class="sd">...             (logs.loggedallowedremoterelief, 0.0))</span>
+
+<span class="sd">We define the same inflow as for |dam_v003|:</span>
+
+<span class="sd">&gt;&gt;&gt; inflow.sequences.sim.series = 1.0</span>
+
+<span class="sd">|dam_v003| and |dam_v004| share the following parameters and we apply the same values</span>
+<span class="sd">as for |dam_v003|:</span>
+
+<span class="sd">&gt;&gt;&gt; watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))</span>
+<span class="sd">&gt;&gt;&gt; waterlevel2flooddischarge(PPoly.from_data(xs=[0.0], ys=[0.0]))</span>
+<span class="sd">&gt;&gt;&gt; catchmentarea(86.4)</span>
+<span class="sd">&gt;&gt;&gt; neardischargeminimumthreshold(0.2)</span>
+<span class="sd">&gt;&gt;&gt; neardischargeminimumtolerance(0.2)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumthreshold(0.0)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumtolerance(0.0)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumremotethreshold(0.0)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumremotetolerance(0.0)</span>
+<span class="sd">&gt;&gt;&gt; restricttargetedrelease(True)</span>
+<span class="sd">&gt;&gt;&gt; surfacearea(1.44)</span>
+<span class="sd">&gt;&gt;&gt; correctionprecipitation(1.2)</span>
+<span class="sd">&gt;&gt;&gt; correctionevaporation(1.2)</span>
+<span class="sd">&gt;&gt;&gt; weightevaporation(0.8)</span>
+<span class="sd">&gt;&gt;&gt; thresholdevaporation(0.0)</span>
+<span class="sd">&gt;&gt;&gt; toleranceevaporation(0.001)</span>
+
+<span class="sd">The following parameters are unique to |dam_v004|.  We first set &quot;neutral&quot; values</span>
+<span class="sd">which disable any relief discharges:</span>
+
+<span class="sd">&gt;&gt;&gt; remoterelieftolerance(0.0)</span>
+<span class="sd">&gt;&gt;&gt; highestremotedischarge(inf)</span>
+<span class="sd">&gt;&gt;&gt; highestremotetolerance(0.1)</span>
+<span class="sd">&gt;&gt;&gt; waterlevel2possibleremoterelief(PPoly.from_data(xs=[0.0], ys=[0.0]))</span>
+<span class="sd">&gt;&gt;&gt; figure = waterlevel2possibleremoterelief.plot(-0.1, 1.0)</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import save_autofig</span>
+<span class="sd">&gt;&gt;&gt; save_autofig(&quot;dam_v004_waterlevel2possibleremoterelief_1.png&quot;, figure=figure)</span>
+
+<span class="sd">.. image:: dam_v004_waterlevel2possibleremoterelief_1.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">.. _dam_v004_smooth_near_minimum:</span>
+
+<span class="sd">smooth near minimum</span>
+<span class="sd">___________________</span>
+
+<span class="sd">The following examples correspond to the :ref:`dam_v001_smooth_near_minimum` example of</span>
+<span class="sd">application model |dam_v001| as well as the :ref:`dam_v003_smooth_near_minimum` example</span>
+<span class="sd">of application model |dam_v003|.  We again use the same remote demand:</span>
+
+<span class="sd">&gt;&gt;&gt; required_supply.sequences.sim.series = [</span>
+<span class="sd">...     0.008588, 0.010053, 0.013858, 0.027322, 0.064075, 0.235523, 0.470414,</span>
+<span class="sd">...     0.735001, 0.891263, 0.696325, 0.349797, 0.105231, 0.111928, 0.240436,</span>
+<span class="sd">...     0.229369, 0.058622, 0.016958, 0.008447, 0.004155, 0.0]</span>
+
+<span class="sd">.. _dam_v004_smooth_near_minimum_recalculation:</span>
+
+<span class="sd">recalculation</span>
+<span class="sd">-------------</span>
+
+<span class="sd">First, we set the allowed discharge relief to zero to perform a strict recalculation:</span>
+
+<span class="sd">&gt;&gt;&gt; allowed_relief.sequences.sim.series = 0.0</span>
+
+<span class="sd">This recalculation confirms that model |dam_v004| functions exactly like model |dam_v003|</span>
+<span class="sd">to meet the water demands at a cross-section downstream and a single remote location</span>
+<span class="sd">(for example, see column &quot;waterlevel&quot;):</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v004_smooth_near_minimum_recalculation&quot;,</span>
+<span class="sd">    ...      axis1=(fluxes.inflow, fluxes.outflow, fluxes.actualremoterelease),</span>
+<span class="sd">    ...      axis2=states.watervolume)</span>
+<span class="sd">    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | requiredremoterelease | allowedremoterelief | possibleremoterelief | actualremoterelief | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relief | actual_supply | allowed_relief | inflow |  outflow | required_supply |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |   0.017174 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                 0.005 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |      0.199917 |            0.004998 |            0.0 | 0.199917 |    0.068695 |           0.0 |      0.004998 |            0.0 |    1.0 | 0.199917 |        0.008588 |</span>
+<span class="sd">    | 02.01. |   0.034268 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.008588 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.008588 |            0.0 |      0.2 |    0.137073 |           0.0 |      0.008588 |            0.0 |    1.0 |      0.2 |        0.010053 |</span>
+<span class="sd">    | 03.01. |   0.051331 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.010053 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.010053 |            0.0 |      0.2 |    0.205325 |           0.0 |      0.010053 |            0.0 |    1.0 |      0.2 |        0.013858 |</span>
+<span class="sd">    | 04.01. |   0.068312 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.013858 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.013858 |            0.0 |      0.2 |    0.273247 |           0.0 |      0.013858 |            0.0 |    1.0 |      0.2 |        0.027322 |</span>
+<span class="sd">    | 05.01. |   0.085002 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.027322 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.027322 |            0.0 |      0.2 |    0.340007 |           0.0 |      0.027322 |            0.0 |    1.0 |      0.2 |        0.064075 |</span>
+<span class="sd">    | 06.01. |   0.100898 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.064075 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.064075 |            0.0 |      0.2 |    0.403591 |           0.0 |      0.064075 |            0.0 |    1.0 |      0.2 |        0.235523 |</span>
+<span class="sd">    | 07.01. |    0.11309 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.235523 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.235523 |            0.0 |      0.2 |    0.452362 |           0.0 |      0.235523 |            0.0 |    1.0 |      0.2 |        0.470414 |</span>
+<span class="sd">    | 08.01. |   0.120209 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.470414 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.470414 |            0.0 |      0.2 |    0.480838 |           0.0 |      0.470414 |            0.0 |    1.0 |      0.2 |        0.735001 |</span>
+<span class="sd">    | 09.01. |   0.121613 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.735001 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.735001 |            0.0 |      0.2 |    0.486454 |           0.0 |      0.735001 |            0.0 |    1.0 |      0.2 |        0.891263 |</span>
+<span class="sd">    | 10.01. |   0.119642 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.891263 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.891263 |            0.0 |      0.2 |    0.478569 |           0.0 |      0.891263 |            0.0 |    1.0 |      0.2 |        0.696325 |</span>
+<span class="sd">    | 11.01. |   0.121882 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.696325 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.696325 |            0.0 |      0.2 |    0.487526 |           0.0 |      0.696325 |            0.0 |    1.0 |      0.2 |        0.349797 |</span>
+<span class="sd">    | 12.01. |   0.131606 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.349797 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.349797 |            0.0 |      0.2 |    0.526424 |           0.0 |      0.349797 |            0.0 |    1.0 |      0.2 |        0.105231 |</span>
+<span class="sd">    | 13.01. |   0.146613 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.105231 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.105231 |            0.0 |      0.2 |    0.586452 |           0.0 |      0.105231 |            0.0 |    1.0 |      0.2 |        0.111928 |</span>
+<span class="sd">    | 14.01. |   0.161475 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.111928 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.111928 |            0.0 |      0.2 |    0.645901 |           0.0 |      0.111928 |            0.0 |    1.0 |      0.2 |        0.240436 |</span>
+<span class="sd">    | 15.01. |   0.173562 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.240436 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.240436 |            0.0 |      0.2 |    0.694247 |           0.0 |      0.240436 |            0.0 |    1.0 |      0.2 |        0.229369 |</span>
+<span class="sd">    | 16.01. |   0.185887 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.229369 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.229369 |            0.0 |      0.2 |     0.74355 |           0.0 |      0.229369 |            0.0 |    1.0 |      0.2 |        0.058622 |</span>
+<span class="sd">    | 17.01. |   0.201901 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.058622 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.058622 |            0.0 |      0.2 |    0.807605 |           0.0 |      0.058622 |            0.0 |    1.0 |      0.2 |        0.016958 |</span>
+<span class="sd">    | 18.01. |   0.218815 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.016958 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.016958 |            0.0 |      0.2 |     0.87526 |           0.0 |      0.016958 |            0.0 |    1.0 |      0.2 |        0.008447 |</span>
+<span class="sd">    | 19.01. |   0.235913 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.008447 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.008447 |            0.0 |      0.2 |     0.94365 |           0.0 |      0.008447 |            0.0 |    1.0 |      0.2 |        0.004155 |</span>
+<span class="sd">    | 20.01. |   0.253103 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.004155 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.004155 |            0.0 |      0.2 |    1.012411 |           0.0 |      0.004155 |            0.0 |    1.0 |      0.2 |             0.0 |</span>
+
+<span class="sd">.. _dam_v004_smooth_near_minimum_modification_1:</span>
+
+<span class="sd">modification 1</span>
+<span class="sd">--------------</span>
+
+<span class="sd">In this first modification of the :ref:`dam_v003_smooth_near_minimum` example, we take</span>
+<span class="sd">the old required supply as the new allowed relief discharge and set the new required</span>
+<span class="sd">supply to zero:</span>
+
+<span class="sd">&gt;&gt;&gt; allowed_relief.sequences.sim.series = required_supply.sequences.sim.series</span>
+<span class="sd">&gt;&gt;&gt; test.inits.loggedallowedremoterelief = 0.005</span>
+<span class="sd">&gt;&gt;&gt; required_supply.sequences.sim.series = 0.0</span>
+<span class="sd">&gt;&gt;&gt; test.inits.loggedrequiredremoterelease = 0.0</span>
+
+<span class="sd">Also, we set the possible relief discharge to a huge constant value of 100 m³/s:</span>
+
+<span class="sd">&gt;&gt;&gt; waterlevel2possibleremoterelief(PPoly.from_data(xs=[0.0], ys=[100.0]))</span>
+<span class="sd">&gt;&gt;&gt; figure = waterlevel2possibleremoterelief.plot(-0.1, 1.0)</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import save_autofig</span>
+<span class="sd">&gt;&gt;&gt; save_autofig(&quot;dam_v004_waterlevel2possibleremoterelief_2.png&quot;, figure=figure)</span>
+
+<span class="sd">.. image:: dam_v001_waterlevel2flooddischarge_2.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">Due to this setting, the new actual relief discharge is nearly identical to the old</span>
+<span class="sd">actual supply discharge.  There is only a minor deviation in the first simulation step</span>
+<span class="sd">due to the numerical inaccuracy explained in the documentation on |dam_v001|:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v004_smooth_near_minimum_modification_1&quot;,</span>
+<span class="sd">    ...      axis1=(fluxes.inflow, fluxes.outflow, fluxes.actualremoterelief),</span>
+<span class="sd">    ...      axis2=states.watervolume)</span>
+<span class="sd">    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | requiredremoterelease | allowedremoterelief | possibleremoterelief | actualremoterelief | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relief | actual_supply | allowed_relief | inflow |  outflow | required_supply |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |   0.017174 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |               0.005 |                100.0 |              0.005 |             0.2 |             0.2 |      0.199917 |                 0.0 |            0.0 | 0.199917 |    0.068695 |         0.005 |           0.0 |       0.008588 |    1.0 | 0.199917 |             0.0 |</span>
+<span class="sd">    | 02.01. |   0.034268 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.008588 |                100.0 |           0.008588 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.137073 |      0.008588 |           0.0 |       0.010053 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 03.01. |   0.051331 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.010053 |                100.0 |           0.010053 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.205325 |      0.010053 |           0.0 |       0.013858 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 04.01. |   0.068312 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.013858 |                100.0 |           0.013858 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.273247 |      0.013858 |           0.0 |       0.027322 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 05.01. |   0.085002 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.027322 |                100.0 |           0.027322 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.340007 |      0.027322 |           0.0 |       0.064075 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 06.01. |   0.100898 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.064075 |                100.0 |           0.064075 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.403591 |      0.064075 |           0.0 |       0.235523 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 07.01. |    0.11309 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.235523 |                100.0 |           0.235523 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.452361 |      0.235523 |           0.0 |       0.470414 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 08.01. |   0.120209 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.470414 |                100.0 |           0.470414 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.480838 |      0.470414 |           0.0 |       0.735001 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 09.01. |   0.121613 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.735001 |                100.0 |           0.735001 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.486454 |      0.735001 |           0.0 |       0.891263 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 10.01. |   0.119642 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.891263 |                100.0 |           0.891263 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.478568 |      0.891263 |           0.0 |       0.696325 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 11.01. |   0.121881 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.696325 |                100.0 |           0.696325 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.487526 |      0.696325 |           0.0 |       0.349797 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 12.01. |   0.131606 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.349797 |                100.0 |           0.349797 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.526423 |      0.349797 |           0.0 |       0.105231 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 13.01. |   0.146613 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.105231 |                100.0 |           0.105231 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.586452 |      0.105231 |           0.0 |       0.111928 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 14.01. |   0.161475 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.111928 |                100.0 |           0.111928 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.645901 |      0.111928 |           0.0 |       0.240436 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 15.01. |   0.173562 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.240436 |                100.0 |           0.240436 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.694247 |      0.240436 |           0.0 |       0.229369 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 16.01. |   0.185887 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.229369 |                100.0 |           0.229369 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |     0.74355 |      0.229369 |           0.0 |       0.058622 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 17.01. |   0.201901 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.058622 |                100.0 |           0.058622 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.807605 |      0.058622 |           0.0 |       0.016958 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 18.01. |   0.218815 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.016958 |                100.0 |           0.016958 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |     0.87526 |      0.016958 |           0.0 |       0.008447 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 19.01. |   0.235912 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.008447 |                100.0 |           0.008447 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |     0.94365 |      0.008447 |           0.0 |       0.004155 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 20.01. |   0.253103 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.004155 |                100.0 |           0.004155 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    1.012411 |      0.004155 |           0.0 |            0.0 |    1.0 |      0.2 |             0.0 |</span>
+
+<span class="sd">.. _dam_v004_smooth_near_minimum_modification_2:</span>
+
+<span class="sd">modification 2</span>
+<span class="sd">--------------</span>
+
+<span class="sd">Now, we modify |WaterLevel2PossibleRemoteRelief| to prevent any relief discharge when</span>
+<span class="sd">the dam is empty and to set its maximum to 0.5 m³/s:</span>
+
+<span class="sd">&gt;&gt;&gt; waterlevel2possibleremoterelief(ANN(weights_input=1e30, weights_output=0.5,</span>
+<span class="sd">...                                     intercepts_hidden=-1e27, intercepts_output=0.0))</span>
+<span class="sd">&gt;&gt;&gt; waterlevel2possibleremoterelief(PPoly(Poly(x0=-1.0, cs=(0.0,)), Poly(x0=0.0, cs=(0.5,))))</span>
+<span class="sd">&gt;&gt;&gt; figure = waterlevel2possibleremoterelief.plot(-0.1, 1.0)</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import save_autofig</span>
+<span class="sd">&gt;&gt;&gt; save_autofig(&quot;dam_v004_waterlevel2possibleremoterelief_3.png&quot;, figure=figure)</span>
+
+<span class="sd">.. image:: dam_v001_waterlevel2flooddischarge_3.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">For low water levels, the current customisation of the possible relief discharge</span>
+<span class="sd">resembles the customisation of the actual supply defined in the</span>
+<span class="sd">:ref:`dam_v004_smooth_near_minimum_recalculation` example.  Hence, the results for</span>
+<span class="sd">|ActualRemoteRelease| and |ActualRemoteRelief| of the respective experiments agree</span>
+<span class="sd">well (again, except for the minor deviation for the first simulation step due to</span>
+<span class="sd">limited numerical accuracy).  For the high water levels (between January 9 and January</span>
+<span class="sd">11), the imposed restriction of 0.5 m³/s reduces relief discharge:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v004_smooth_near_minimum_modification_2&quot;,</span>
+<span class="sd">    ...      axis1=(fluxes.inflow, fluxes.outflow, fluxes.actualremoterelief),</span>
+<span class="sd">    ...      axis2=states.watervolume)</span>
+<span class="sd">    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | requiredremoterelease | allowedremoterelief | possibleremoterelief | actualremoterelief | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relief | actual_supply | allowed_relief | inflow |  outflow | required_supply |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |   0.017174 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |               0.005 |                  0.5 |              0.005 |             0.2 |             0.2 |      0.199917 |                 0.0 |            0.0 | 0.199917 |    0.068695 |         0.005 |           0.0 |       0.008588 |    1.0 | 0.199917 |             0.0 |</span>
+<span class="sd">    | 02.01. |   0.034268 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.008588 |                  0.5 |           0.008588 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.137073 |      0.008588 |           0.0 |       0.010053 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 03.01. |   0.051331 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.010053 |                  0.5 |           0.010053 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.205325 |      0.010053 |           0.0 |       0.013858 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 04.01. |   0.068312 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.013858 |                  0.5 |           0.013858 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.273247 |      0.013858 |           0.0 |       0.027322 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 05.01. |   0.085002 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.027322 |                  0.5 |           0.027322 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.340007 |      0.027322 |           0.0 |       0.064075 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 06.01. |   0.100898 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.064075 |                  0.5 |           0.064075 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.403591 |      0.064075 |           0.0 |       0.235523 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 07.01. |    0.11309 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.235523 |                  0.5 |           0.235523 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.452361 |      0.235523 |           0.0 |       0.470414 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 08.01. |   0.120209 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.470414 |                  0.5 |           0.470414 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.480838 |      0.470414 |           0.0 |       0.735001 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 09.01. |   0.126689 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.735001 |                  0.5 |                0.5 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.506758 |           0.5 |           0.0 |       0.891263 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 10.01. |   0.133169 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.891263 |                  0.5 |                0.5 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.532678 |           0.5 |           0.0 |       0.696325 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 11.01. |   0.139649 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.696325 |                  0.5 |                0.5 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.558598 |           0.5 |           0.0 |       0.349797 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 12.01. |   0.149374 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.349797 |                  0.5 |           0.349797 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.597495 |      0.349797 |           0.0 |       0.105231 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 13.01. |   0.164381 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.105231 |                  0.5 |           0.105231 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.657523 |      0.105231 |           0.0 |       0.111928 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 14.01. |   0.179243 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.111928 |                  0.5 |           0.111928 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.716973 |      0.111928 |           0.0 |       0.240436 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 15.01. |    0.19133 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.240436 |                  0.5 |           0.240436 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.765319 |      0.240436 |           0.0 |       0.229369 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 16.01. |   0.203655 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.229369 |                  0.5 |           0.229369 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.814621 |      0.229369 |           0.0 |       0.058622 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 17.01. |   0.219669 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.058622 |                  0.5 |           0.058622 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.878677 |      0.058622 |           0.0 |       0.016958 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 18.01. |   0.236583 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.016958 |                  0.5 |           0.016958 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.946331 |      0.016958 |           0.0 |       0.008447 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 19.01. |    0.25368 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.008447 |                  0.5 |           0.008447 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    1.014722 |      0.008447 |           0.0 |       0.004155 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 20.01. |   0.270871 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.004155 |                  0.5 |           0.004155 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    1.083483 |      0.004155 |           0.0 |            0.0 |    1.0 |      0.2 |             0.0 |</span>
+
+<span class="sd">.. _dam_v004_smooth_near_minimum_modification_3:</span>
+
+<span class="sd">modification 3</span>
+<span class="sd">--------------</span>
+
+<span class="sd">The restricted possible relief discharge in the example above results in a</span>
+<span class="sd">discontinuous evolution of the actual relief discharge.  One can set</span>
+<span class="sd">|RemoteReliefTolerance| to a value larger than zero to achieve smoother transitions:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; remoterelieftolerance(0.2)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v004_smooth_near_minimum_modification_3&quot;,</span>
+<span class="sd">    ...      axis1=(fluxes.inflow, fluxes.outflow, fluxes.actualremoterelief),</span>
+<span class="sd">    ...      axis2=states.watervolume)</span>
+<span class="sd">    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | requiredremoterelease | allowedremoterelief | possibleremoterelief | actualremoterelief | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relief | actual_supply | allowed_relief | inflow |  outflow | required_supply |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |   0.017174 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |               0.005 |                  0.5 |              0.005 |             0.2 |             0.2 |      0.199917 |                 0.0 |            0.0 | 0.199917 |    0.068695 |         0.005 |           0.0 |       0.008588 |    1.0 | 0.199917 |             0.0 |</span>
+<span class="sd">    | 02.01. |   0.034268 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.008588 |                  0.5 |           0.008588 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.137073 |      0.008588 |           0.0 |       0.010053 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 03.01. |   0.051331 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.010053 |                  0.5 |           0.010053 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.205325 |      0.010053 |           0.0 |       0.013858 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 04.01. |   0.068312 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.013858 |                  0.5 |           0.013858 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.273247 |      0.013858 |           0.0 |       0.027322 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 05.01. |   0.085002 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.027322 |                  0.5 |           0.027322 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.340007 |      0.027322 |           0.0 |       0.064075 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 06.01. |   0.100898 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.064075 |                  0.5 |           0.064075 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.403591 |      0.064075 |           0.0 |       0.235523 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 07.01. |   0.113094 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.235523 |                  0.5 |           0.235352 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.452376 |      0.235352 |           0.0 |       0.470414 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 08.01. |   0.121327 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.470414 |                  0.5 |           0.418836 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.485309 |      0.418836 |           0.0 |       0.735001 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 09.01. |   0.128393 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.735001 |                  0.5 |           0.472874 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.513572 |      0.472874 |           0.0 |       0.891263 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 10.01. |    0.13529 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.891263 |                  0.5 |           0.480688 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.541161 |      0.480688 |           0.0 |       0.696325 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 11.01. |   0.142428 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.696325 |                  0.5 |           0.469547 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.569712 |      0.469547 |           0.0 |       0.349797 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 12.01. |   0.152319 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.349797 |                  0.5 |           0.342067 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.609278 |      0.342067 |           0.0 |       0.105231 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 13.01. |   0.167326 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.105231 |                  0.5 |           0.105231 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.669306 |      0.105231 |           0.0 |       0.111928 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 14.01. |   0.182189 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.111928 |                  0.5 |           0.111928 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.728755 |      0.111928 |           0.0 |       0.240436 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 15.01. |    0.19428 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.240436 |                  0.5 |           0.240219 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |     0.77712 |      0.240219 |           0.0 |       0.229369 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 16.01. |   0.206608 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.229369 |                  0.5 |           0.229243 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.826434 |      0.229243 |           0.0 |       0.058622 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 17.01. |   0.222622 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.058622 |                  0.5 |           0.058622 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.890489 |      0.058622 |           0.0 |       0.016958 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 18.01. |   0.239536 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.016958 |                  0.5 |           0.016958 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    0.958143 |      0.016958 |           0.0 |       0.008447 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 19.01. |   0.256633 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.008447 |                  0.5 |           0.008447 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    1.026534 |      0.008447 |           0.0 |       0.004155 |    1.0 |      0.2 |             0.0 |</span>
+<span class="sd">    | 20.01. |   0.273824 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |            0.004155 |                  0.5 |           0.004155 |             0.2 |             0.2 |           0.2 |                 0.0 |            0.0 |      0.2 |    1.095295 |      0.004155 |           0.0 |            0.0 |    1.0 |      0.2 |             0.0 |</span>
+
+<span class="sd">.. _dam_v004_restriction_enabled:</span>
+
+<span class="sd">restriction enabled</span>
+<span class="sd">___________________</span>
+
+<span class="sd">The following exact recalculations demonstrate the identical functioning of those</span>
+<span class="sd">components of |dam_v004| and |dam_v003| not utilised in the examples above.  Therefore,</span>
+<span class="sd">we turn off the remote relief discharge again:</span>
+
+<span class="sd">&gt;&gt;&gt; test.inits.loggedrequiredremoterelease = 0.005</span>
+<span class="sd">&gt;&gt;&gt; test.inits.loggedallowedremoterelief = 0.0</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumremotetolerance(0.0)</span>
+<span class="sd">&gt;&gt;&gt; waterlevel2possibleremoterelief(PPoly.from_data(xs=[0.0], ys=[0.0]))</span>
+<span class="sd">&gt;&gt;&gt; remoterelieftolerance(0.0)</span>
+<span class="sd">&gt;&gt;&gt; allowed_relief.sequences.sim.series = 0.0</span>
+
+<span class="sd">Here, we confirm equality when releasing water to the channel downstream during low</span>
+<span class="sd">flow conditions.  We need to update the time series of the inflow and the required</span>
+<span class="sd">remote release:</span>
+
+<span class="sd">&gt;&gt;&gt; inflow.sequences.sim.series[10:] = 0.1</span>
+<span class="sd">&gt;&gt;&gt; required_supply.sequences.sim.series = [</span>
+<span class="sd">...     0.008746, 0.010632, 0.015099, 0.03006, 0.068641, 0.242578, 0.474285, 0.784512,</span>
+<span class="sd">...     0.95036, 0.35, 0.034564, 0.299482, 0.585979, 0.557422, 0.229369, 0.142578,</span>
+<span class="sd">...     0.068641, 0.029844, 0.012348, 0.0]</span>
+<span class="sd">&gt;&gt;&gt; neardischargeminimumtolerance(0.0)</span>
+
+<span class="sd">The following results agree with the test results of the</span>
+<span class="sd">:ref:`dam_v003_restriction_enabled` example of application model |dam_v003|:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v004_restriction_enabled&quot;)</span>
+<span class="sd">    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | requiredremoterelease | allowedremoterelief | possibleremoterelief | actualremoterelief | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relief | actual_supply | allowed_relief | inflow |  outflow | required_supply |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |   0.017174 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                 0.005 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |      0.199917 |            0.004998 |            0.0 | 0.199917 |    0.068695 |           0.0 |      0.004998 |            0.0 |    1.0 | 0.199917 |        0.008746 |</span>
+<span class="sd">    | 02.01. |   0.034265 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.008746 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.008746 |            0.0 |      0.2 |     0.13706 |           0.0 |      0.008746 |            0.0 |    1.0 |      0.2 |        0.010632 |</span>
+<span class="sd">    | 03.01. |   0.051315 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.010632 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.010632 |            0.0 |      0.2 |    0.205261 |           0.0 |      0.010632 |            0.0 |    1.0 |      0.2 |        0.015099 |</span>
+<span class="sd">    | 04.01. |   0.068269 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.015099 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.015099 |            0.0 |      0.2 |    0.273077 |           0.0 |      0.015099 |            0.0 |    1.0 |      0.2 |         0.03006 |</span>
+<span class="sd">    | 05.01. |     0.0849 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |               0.03006 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |             0.03006 |            0.0 |      0.2 |    0.339599 |           0.0 |       0.03006 |            0.0 |    1.0 |      0.2 |        0.068641 |</span>
+<span class="sd">    | 06.01. |   0.100697 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.068641 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.068641 |            0.0 |      0.2 |    0.402789 |           0.0 |      0.068641 |            0.0 |    1.0 |      0.2 |        0.242578 |</span>
+<span class="sd">    | 07.01. |   0.112738 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.242578 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.242578 |            0.0 |      0.2 |     0.45095 |           0.0 |      0.242578 |            0.0 |    1.0 |      0.2 |        0.474285 |</span>
+<span class="sd">    | 08.01. |   0.119773 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.474285 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.474285 |            0.0 |      0.2 |    0.479092 |           0.0 |      0.474285 |            0.0 |    1.0 |      0.2 |        0.784512 |</span>
+<span class="sd">    | 09.01. |   0.120108 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |              0.784512 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |            0.784512 |            0.0 |      0.2 |     0.48043 |           0.0 |      0.784512 |            0.0 |    1.0 |      0.2 |         0.95036 |</span>
+<span class="sd">    | 10.01. |    0.11686 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |               0.95036 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |           0.2 |             0.95036 |            0.0 |      0.2 |    0.467439 |           0.0 |       0.95036 |            0.0 |    1.0 |      0.2 |            0.35 |</span>
+<span class="sd">    | 11.01. |     0.1093 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.1 |                  0.35 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.1 |           0.1 |                0.35 |            0.0 |      0.1 |    0.437199 |           0.0 |          0.35 |            0.0 |    0.1 |      0.1 |        0.034564 |</span>
+<span class="sd">    | 12.01. |   0.108553 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.1 |              0.034564 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.1 |           0.1 |            0.034564 |            0.0 |      0.1 |    0.434213 |           0.0 |      0.034564 |            0.0 |    0.1 |      0.1 |        0.299482 |</span>
+<span class="sd">    | 13.01. |   0.102084 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.1 |              0.299482 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.1 |           0.1 |            0.299482 |            0.0 |      0.1 |    0.408337 |           0.0 |      0.299482 |            0.0 |    0.1 |      0.1 |        0.585979 |</span>
+<span class="sd">    | 14.01. |   0.089427 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.1 |              0.585979 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.1 |           0.1 |            0.585979 |            0.0 |      0.1 |    0.357709 |           0.0 |      0.585979 |            0.0 |    0.1 |      0.1 |        0.557422 |</span>
+<span class="sd">    | 15.01. |   0.077387 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.1 |              0.557422 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.1 |           0.1 |            0.557422 |            0.0 |      0.1 |    0.309547 |           0.0 |      0.557422 |            0.0 |    0.1 |      0.1 |        0.229369 |</span>
+<span class="sd">    | 16.01. |   0.072432 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.1 |              0.229369 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.1 |           0.1 |            0.229369 |            0.0 |      0.1 |     0.28973 |           0.0 |      0.229369 |            0.0 |    0.1 |      0.1 |        0.142578 |</span>
+<span class="sd">    | 17.01. |   0.069353 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.1 |              0.142578 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.1 |           0.1 |            0.142578 |            0.0 |      0.1 |    0.277411 |           0.0 |      0.142578 |            0.0 |    0.1 |      0.1 |        0.068641 |</span>
+<span class="sd">    | 18.01. |    0.06787 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.1 |              0.068641 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.1 |           0.1 |            0.068641 |            0.0 |      0.1 |    0.271481 |           0.0 |      0.068641 |            0.0 |    0.1 |      0.1 |        0.029844 |</span>
+<span class="sd">    | 19.01. |   0.067226 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.1 |              0.029844 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.1 |           0.1 |            0.029844 |            0.0 |      0.1 |    0.268902 |           0.0 |      0.029844 |            0.0 |    0.1 |      0.1 |        0.012348 |</span>
+<span class="sd">    | 20.01. |   0.066959 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.1 |              0.012348 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.1 |           0.1 |            0.012348 |            0.0 |      0.1 |    0.267835 |           0.0 |      0.012348 |            0.0 |    0.1 |      0.1 |             0.0 |</span>
+
+<span class="sd">.. _dam_v004_smooth_stage_minimum:</span>
+
+<span class="sd">smooth stage minimum</span>
+<span class="sd">____________________</span>
+
+<span class="sd">This example repeats the :ref:`dam_v003_smooth_stage_minimum` example of application</span>
+<span class="sd">model |dam_v003|.  We update all parameters and time series accordingly:</span>
+
+<span class="sd">&gt;&gt;&gt; waterlevelminimumtolerance(0.01)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumthreshold(0.005)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumremotetolerance(0.01)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumremotethreshold(0.01)</span>
+<span class="sd">&gt;&gt;&gt; inflow.sequences.sim.series = numpy.linspace(0.2, 0.0, 20)</span>
+<span class="sd">&gt;&gt;&gt; required_supply.sequences.sim.series = [</span>
+<span class="sd">...     0.01232, 0.029323, 0.064084, 0.120198, 0.247367, 0.45567, 0.608464,</span>
+<span class="sd">...     0.537314, 0.629775, 0.744091, 0.82219, 0.841916, 0.701812, 0.533258,</span>
+<span class="sd">...     0.351863, 0.185207, 0.107697, 0.055458, 0.025948, 0.0]</span>
+
+<span class="sd">|dam_v004| responds equally to limited storage contents as |dam_v003|:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v004_smooth_stage_minimum&quot;)</span>
+<span class="sd">    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation |   inflow | requiredremoterelease | allowedremoterelief | possibleremoterelief | actualremoterelief | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relief | actual_supply | allowed_relief |   inflow |  outflow | required_supply |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |   0.003462 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |      0.2 |                 0.005 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |      0.039605 |            0.000125 |            0.0 | 0.039605 |    0.013847 |           0.0 |      0.000125 |            0.0 |      0.2 | 0.039605 |         0.01232 |</span>
+<span class="sd">    | 02.01. |   0.005651 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.189474 |               0.01232 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.189474 |       0.08713 |            0.000999 |            0.0 |  0.08713 |    0.022604 |           0.0 |      0.000999 |            0.0 | 0.189474 |  0.08713 |        0.029323 |</span>
+<span class="sd">    | 03.01. |   0.006915 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.178947 |              0.029323 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.178947 |      0.115815 |            0.004617 |            0.0 | 0.115815 |    0.027659 |           0.0 |      0.004617 |            0.0 | 0.178947 | 0.115815 |        0.064084 |</span>
+<span class="sd">    | 04.01. |    0.00756 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.168421 |              0.064084 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.168421 |      0.124349 |            0.014199 |            0.0 | 0.124349 |     0.03024 |           0.0 |      0.014199 |            0.0 | 0.168421 | 0.124349 |        0.120198 |</span>
+<span class="sd">    | 05.01. |    0.00769 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.157895 |              0.120198 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.157895 |      0.121593 |            0.030276 |            0.0 | 0.121593 |    0.030761 |           0.0 |      0.030276 |            0.0 | 0.157895 | 0.121593 |        0.247367 |</span>
+<span class="sd">    | 06.01. |   0.007221 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.147368 |              0.247367 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.147368 |      0.110974 |            0.058113 |            0.0 | 0.110974 |    0.028885 |           0.0 |      0.058113 |            0.0 | 0.147368 | 0.110974 |         0.45567 |</span>
+<span class="sd">    | 07.01. |   0.006355 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.136842 |               0.45567 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.136842 |      0.094052 |            0.082892 |            0.0 | 0.094052 |     0.02542 |           0.0 |      0.082892 |            0.0 | 0.136842 | 0.094052 |        0.608464 |</span>
+<span class="sd">    | 08.01. |   0.005656 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.126316 |              0.608464 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.126316 |      0.076665 |            0.082026 |            0.0 | 0.076665 |    0.022622 |           0.0 |      0.082026 |            0.0 | 0.126316 | 0.076665 |        0.537314 |</span>
+<span class="sd">    | 09.01. |   0.005435 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.115789 |              0.537314 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.115789 |      0.064915 |            0.061095 |            0.0 | 0.064915 |    0.021739 |           0.0 |      0.061095 |            0.0 | 0.115789 | 0.064915 |        0.629775 |</span>
+<span class="sd">    | 10.01. |   0.005122 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.105263 |              0.629775 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.105263 |      0.055735 |            0.064032 |            0.0 | 0.055735 |    0.020486 |           0.0 |      0.064032 |            0.0 | 0.105263 | 0.055735 |        0.744091 |</span>
+<span class="sd">    | 11.01. |    0.00475 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.094737 |              0.744091 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.094737 |        0.0464 |            0.065527 |            0.0 |   0.0464 |    0.019001 |           0.0 |      0.065527 |            0.0 | 0.094737 |   0.0464 |         0.82219 |</span>
+<span class="sd">    | 12.01. |   0.004406 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.084211 |               0.82219 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.084211 |      0.037828 |            0.062332 |            0.0 | 0.037828 |    0.017623 |           0.0 |      0.062332 |            0.0 | 0.084211 | 0.037828 |        0.841916 |</span>
+<span class="sd">    | 13.01. |   0.004127 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.073684 |              0.841916 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.073684 |      0.030563 |             0.05601 |            0.0 | 0.030563 |    0.016509 |           0.0 |       0.05601 |            0.0 | 0.073684 | 0.030563 |        0.701812 |</span>
+<span class="sd">    | 14.01. |   0.004021 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.063158 |              0.701812 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.063158 |      0.024926 |            0.043161 |            0.0 | 0.024926 |    0.016084 |           0.0 |      0.043161 |            0.0 | 0.063158 | 0.024926 |        0.533258 |</span>
+<span class="sd">    | 15.01. |   0.004021 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.052632 |              0.533258 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.052632 |      0.020495 |            0.032121 |            0.0 | 0.020495 |    0.016085 |           0.0 |      0.032121 |            0.0 | 0.052632 | 0.020495 |        0.351863 |</span>
+<span class="sd">    | 16.01. |   0.004106 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.042105 |              0.351863 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.042105 |      0.016599 |            0.021602 |            0.0 | 0.016599 |    0.016422 |           0.0 |      0.021602 |            0.0 | 0.042105 | 0.016599 |        0.185207 |</span>
+<span class="sd">    | 17.01. |   0.004252 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.031579 |              0.185207 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.031579 |      0.012852 |            0.011952 |            0.0 | 0.012852 |    0.017008 |           0.0 |      0.011952 |            0.0 | 0.031579 | 0.012852 |        0.107697 |</span>
+<span class="sd">    | 18.01. |   0.004357 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.021053 |              0.107697 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.021053 |      0.008861 |            0.007331 |            0.0 | 0.008861 |    0.017428 |           0.0 |      0.007331 |            0.0 | 0.021053 | 0.008861 |        0.055458 |</span>
+<span class="sd">    | 19.01. |   0.004402 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 | 0.010526 |              0.055458 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.010526 |      0.004519 |            0.003898 |            0.0 | 0.004519 |     0.01761 |           0.0 |      0.003898 |            0.0 | 0.010526 | 0.004519 |        0.025948 |</span>
+<span class="sd">    | 20.01. |   0.004363 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |      0.0 |              0.025948 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.0 |           0.0 |            0.001826 |            0.0 |      0.0 |    0.017452 |           0.0 |      0.001826 |            0.0 |      0.0 |      0.0 |             0.0 |</span>
+
+<span class="sd">.. _dam_v004_evaporation:</span>
+
+<span class="sd">evaporation</span>
+<span class="sd">___________</span>
+
+<span class="sd">This example repeats the :ref:`dam_v003_evaporation` example of application model</span>
+<span class="sd">|dam_v003|. We add an |evap_ret_io| submodel and update the required remote release</span>
+<span class="sd">time series accordingly:</span>
+
+<span class="sd">&gt;&gt;&gt; with model.add_pemodel_v1(&quot;evap_ret_io&quot;) as pemodel:</span>
+<span class="sd">...     evapotranspirationfactor(1.0)</span>
+<span class="sd">&gt;&gt;&gt; pemodel.prepare_inputseries()</span>
+<span class="sd">&gt;&gt;&gt; pemodel.sequences.inputs.referenceevapotranspiration.series = 10 * [1.0] + 10 * [5.0]</span>
+<span class="sd">&gt;&gt;&gt; required_supply.sequences.sim.series = [</span>
+<span class="sd">...     0.012321, 0.029352, 0.064305, 0.120897, 0.248435, 0.453671, 0.585089,</span>
+<span class="sd">...     0.550583, 0.694398, 0.784979, 0.81852, 0.840207, 0.72592, 0.575373,</span>
+<span class="sd">...     0.386003, 0.198088, 0.113577, 0.05798, 0.026921, 0.0]</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v004_evaporation&quot;)</span>
+<span class="sd">    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation |   inflow | requiredremoterelease | allowedremoterelief | possibleremoterelief | actualremoterelief | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relief | actual_supply | allowed_relief |   inflow |  outflow | required_supply |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |   0.003181 |           0.0 |                   0.0 |                  1.0 |               0.016 |          0.015347 |      0.2 |                 0.005 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.2 |      0.037276 |            0.000116 |            0.0 | 0.037276 |    0.012723 |           0.0 |      0.000116 |            0.0 |      0.2 | 0.037276 |        0.012321 |</span>
+<span class="sd">    | 02.01. |   0.005144 |           0.0 |                   0.0 |                  1.0 |              0.0192 |            0.0192 | 0.189474 |              0.012321 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.189474 |      0.078569 |            0.000837 |            0.0 | 0.078569 |    0.020574 |           0.0 |      0.000837 |            0.0 | 0.189474 | 0.078569 |        0.029352 |</span>
+<span class="sd">    | 03.01. |   0.006246 |           0.0 |                   0.0 |                  1.0 |             0.01984 |           0.01984 | 0.178947 |              0.029352 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.178947 |      0.104408 |            0.003653 |            0.0 | 0.104408 |    0.024985 |           0.0 |      0.003653 |            0.0 | 0.178947 | 0.104408 |        0.064305 |</span>
+<span class="sd">    | 04.01. |   0.006783 |           0.0 |                   0.0 |                  1.0 |            0.019968 |          0.019968 | 0.168421 |              0.064305 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.168421 |      0.112714 |             0.01089 |            0.0 | 0.112714 |    0.027132 |           0.0 |       0.01089 |            0.0 | 0.168421 | 0.112714 |        0.120897 |</span>
+<span class="sd">    | 05.01. |   0.006882 |           0.0 |                   0.0 |                  1.0 |            0.019994 |          0.019994 | 0.157895 |              0.120897 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.157895 |      0.110416 |            0.022906 |            0.0 | 0.110416 |    0.027527 |           0.0 |      0.022906 |            0.0 | 0.157895 | 0.110416 |        0.248435 |</span>
+<span class="sd">    | 06.01. |   0.006503 |           0.0 |                   0.0 |                  1.0 |            0.019999 |          0.019999 | 0.147368 |              0.248435 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.147368 |       0.10065 |            0.044264 |            0.0 |  0.10065 |    0.026011 |           0.0 |      0.044264 |            0.0 | 0.147368 |  0.10065 |        0.453671 |</span>
+<span class="sd">    | 07.01. |   0.005786 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 | 0.136842 |              0.453671 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.136842 |      0.085218 |            0.064794 |            0.0 | 0.085218 |    0.023146 |           0.0 |      0.064794 |            0.0 | 0.136842 | 0.085218 |        0.585089 |</span>
+<span class="sd">    | 08.01. |   0.005189 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 | 0.126316 |              0.585089 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.126316 |      0.069588 |            0.064373 |            0.0 | 0.069588 |    0.020757 |           0.0 |      0.064373 |            0.0 | 0.126316 | 0.069588 |        0.550583 |</span>
+<span class="sd">    | 09.01. |   0.004901 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 | 0.115789 |              0.550583 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.115789 |      0.058259 |            0.050888 |            0.0 | 0.058259 |    0.019603 |           0.0 |      0.050888 |            0.0 | 0.115789 | 0.058259 |        0.694398 |</span>
+<span class="sd">    | 10.01. |   0.004496 |           0.0 |                   0.0 |                  1.0 |                0.02 |              0.02 | 0.105263 |              0.694398 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.105263 |      0.048686 |            0.055331 |            0.0 | 0.048686 |    0.017983 |           0.0 |      0.055331 |            0.0 | 0.105263 | 0.048686 |        0.784979 |</span>
+<span class="sd">    | 11.01. |   0.003086 |           0.0 |                   0.0 |                  5.0 |               0.084 |             0.084 | 0.094737 |              0.784979 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.094737 |      0.033924 |            0.042097 |            0.0 | 0.033924 |    0.012342 |           0.0 |      0.042097 |            0.0 | 0.094737 | 0.033924 |         0.81852 |</span>
+<span class="sd">    | 12.01. |   0.001849 |           0.0 |                   0.0 |                  5.0 |              0.0968 |          0.096796 | 0.084211 |               0.81852 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.084211 |       0.01987 |            0.024773 |            0.0 |  0.01987 |    0.007398 |           0.0 |      0.024773 |            0.0 | 0.084211 |  0.01987 |        0.840207 |</span>
+<span class="sd">    | 13.01. |    0.00074 |           0.0 |                   0.0 |                  5.0 |             0.09936 |          0.098662 | 0.073684 |              0.840207 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.073684 |       0.01131 |            0.015082 |            0.0 |  0.01131 |    0.002959 |           0.0 |      0.015082 |            0.0 | 0.073684 |  0.01131 |         0.72592 |</span>
+<span class="sd">    | 14.01. |   0.000083 |           0.0 |                   0.0 |                  5.0 |            0.099872 |          0.078473 | 0.063158 |               0.72592 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.063158 |      0.006629 |            0.008462 |            0.0 | 0.006629 |    0.000332 |           0.0 |      0.008462 |            0.0 | 0.063158 | 0.006629 |        0.575373 |</span>
+<span class="sd">    | 15.01. |  -0.000055 |           0.0 |                   0.0 |                  5.0 |            0.099974 |          0.048539 | 0.052632 |              0.575373 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.052632 |      0.004782 |            0.005722 |            0.0 | 0.004782 |   -0.000222 |           0.0 |      0.005722 |            0.0 | 0.052632 | 0.004782 |        0.386003 |</span>
+<span class="sd">    | 16.01. |  -0.000129 |           0.0 |                   0.0 |                  5.0 |            0.099995 |          0.038137 | 0.042105 |              0.386003 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.042105 |      0.003679 |            0.003679 |            0.0 | 0.003679 |   -0.000515 |           0.0 |      0.003679 |            0.0 | 0.042105 | 0.003679 |        0.198088 |</span>
+<span class="sd">    | 17.01. |  -0.000204 |           0.0 |                   0.0 |                  5.0 |            0.099999 |          0.030567 | 0.031579 |              0.198088 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.031579 |      0.002676 |            0.001826 |            0.0 | 0.002676 |   -0.000816 |           0.0 |      0.001826 |            0.0 | 0.031579 | 0.002676 |        0.113577 |</span>
+<span class="sd">    | 18.01. |  -0.000301 |           0.0 |                   0.0 |                  5.0 |                 0.1 |          0.022795 | 0.021053 |              0.113577 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.021053 |      0.001719 |            0.001006 |            0.0 | 0.001719 |   -0.001202 |           0.0 |      0.001006 |            0.0 | 0.021053 | 0.001719 |         0.05798 |</span>
+<span class="sd">    | 19.01. |  -0.000428 |           0.0 |                   0.0 |                  5.0 |                 0.1 |          0.015126 | 0.010526 |               0.05798 |                 0.0 |                  0.0 |                0.0 |             0.2 |        0.010526 |       0.00082 |            0.000488 |            0.0 |  0.00082 |   -0.001713 |           0.0 |      0.000488 |            0.0 | 0.010526 |  0.00082 |        0.026921 |</span>
+<span class="sd">    | 20.01. |  -0.000609 |           0.0 |                   0.0 |                  5.0 |                 0.1 |          0.008146 |      0.0 |              0.026921 |                 0.0 |                  0.0 |                0.0 |             0.2 |             0.0 |           0.0 |            0.000211 |            0.0 |      0.0 |   -0.002435 |           0.0 |      0.000211 |            0.0 |      0.0 |      0.0 |             0.0 |</span>
+
+<span class="sd">&gt;&gt;&gt; del model.pemodel</span>
+
+<span class="sd">.. _dam_v004_flood_retention:</span>
+
+<span class="sd">flood retention</span>
+<span class="sd">_______________</span>
+
+<span class="sd">The following examples correspond to the :ref:`dam_v001_flood_retention` example of</span>
+<span class="sd">application model |dam_v001| as well as the :ref:`dam_v003_flood_retention` example</span>
+<span class="sd">of application model |dam_v003|.  We use the same parameter and input time series</span>
+<span class="sd">configuration:</span>
+
+<span class="sd">&gt;&gt;&gt; neardischargeminimumthreshold(0.0)</span>
+<span class="sd">&gt;&gt;&gt; neardischargeminimumtolerance(0.0)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumthreshold(0.0)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumtolerance(0.0)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumremotethreshold(0.0)</span>
+<span class="sd">&gt;&gt;&gt; waterlevelminimumremotetolerance(0.0)</span>
+<span class="sd">&gt;&gt;&gt; waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.5]))</span>
+<span class="sd">&gt;&gt;&gt; neardischargeminimumthreshold(0.0)</span>
+<span class="sd">&gt;&gt;&gt; with model.add_precipmodel_v2(&quot;meteo_precip_io&quot;) as precipmodel:</span>
+<span class="sd">...     precipitationfactor(1.0)</span>
+<span class="sd">&gt;&gt;&gt; precipmodel.prepare_inputseries()</span>
+<span class="sd">&gt;&gt;&gt; precipmodel.sequences.inputs.precipitation.series = [</span>
+<span class="sd">...     0.0, 50.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]</span>
+<span class="sd">&gt;&gt;&gt; inflow.sequences.sim.series = [0.0, 0.0, 5.0, 9.0, 8.0, 5.0, 3.0, 2.0, 1.0, 0.0,</span>
+<span class="sd">...                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]</span>
+
+
+<span class="sd">.. _dam_v004_flood_retention_recalculation:</span>
+
+<span class="sd">recalculation</span>
+<span class="sd">-------------</span>
+
+<span class="sd">To first perform a strict recalculation, we set the remote demand to zero (the allowed</span>
+<span class="sd">relief is already zero):</span>
+
+<span class="sd">&gt;&gt;&gt; required_supply.sequences.sim.series = 0.0</span>
+<span class="sd">&gt;&gt;&gt; test.inits.loggedrequiredremoterelease = 0.0</span>
+<span class="sd">&gt;&gt;&gt; allowed_relief.sequences.sim.series   # doctest: +ELLIPSIS</span>
+<span class="sd">InfoArray([0., ..., 0.])</span>
+
+<span class="sd">The following results demonstrate that |dam_v003| calculates the same outflow values as</span>
+<span class="sd">|dam_v001| and |dam_v003| in situations where the remote locations are inactive:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v004_flood_retention_recalculation&quot;)</span>
+<span class="sd">    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | requiredremoterelease | allowedremoterelief | possibleremoterelief | actualremoterelief | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relief | actual_supply | allowed_relief | inflow |  outflow | required_supply |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |            0.0 |      0.0 |         0.0 |           0.0 |           0.0 |            0.0 |    0.0 |      0.0 |             0.0 |</span>
+<span class="sd">    | 02.01. |   0.021027 |          50.0 |                   1.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.026521 | 0.026521 |    0.084109 |           0.0 |           0.0 |            0.0 |    0.0 | 0.026521 |             0.0 |</span>
+<span class="sd">    | 03.01. |   0.125058 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    5.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.183777 | 0.183777 |     0.50023 |           0.0 |           0.0 |            0.0 |    5.0 | 0.183777 |             0.0 |</span>
+<span class="sd">    | 04.01. |   0.307728 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    9.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.543038 | 0.543038 |    1.230912 |           0.0 |           0.0 |            0.0 |    9.0 | 0.543038 |             0.0 |</span>
+<span class="sd">    | 05.01. |   0.459769 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    8.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.961082 | 0.961082 |    1.839074 |           0.0 |           0.0 |            0.0 |    8.0 | 0.961082 |             0.0 |</span>
+<span class="sd">    | 06.01. |   0.540735 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    5.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.251541 | 1.251541 |    2.162941 |           0.0 |           0.0 |            0.0 |    5.0 | 1.251541 |             0.0 |</span>
+<span class="sd">    | 07.01. |   0.575391 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.395548 | 1.395548 |    2.301566 |           0.0 |           0.0 |            0.0 |    3.0 | 1.395548 |             0.0 |</span>
+<span class="sd">    | 08.01. |   0.587199 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.453371 | 1.453371 |    2.348795 |           0.0 |           0.0 |            0.0 |    2.0 | 1.453371 |             0.0 |</span>
+<span class="sd">    | 09.01. |   0.577358 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.455585 | 1.455585 |    2.309432 |           0.0 |           0.0 |            0.0 |    1.0 | 1.455585 |             0.0 |</span>
+<span class="sd">    | 10.01. |   0.547008 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.405115 | 1.405115 |     2.18803 |           0.0 |           0.0 |            0.0 |    0.0 | 1.405115 |             0.0 |</span>
+<span class="sd">    | 11.01. |   0.518253 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.331251 | 1.331251 |     2.07301 |           0.0 |           0.0 |            0.0 |    0.0 | 1.331251 |             0.0 |</span>
+<span class="sd">    | 12.01. |   0.491009 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |        1.26127 |  1.26127 |    1.964036 |           0.0 |           0.0 |            0.0 |    0.0 |  1.26127 |             0.0 |</span>
+<span class="sd">    | 13.01. |   0.465198 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.194968 | 1.194968 |    1.860791 |           0.0 |           0.0 |            0.0 |    0.0 | 1.194968 |             0.0 |</span>
+<span class="sd">    | 14.01. |   0.440743 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.132151 | 1.132151 |    1.762973 |           0.0 |           0.0 |            0.0 |    0.0 | 1.132151 |             0.0 |</span>
+<span class="sd">    | 15.01. |   0.417574 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       1.072636 | 1.072636 |    1.670297 |           0.0 |           0.0 |            0.0 |    0.0 | 1.072636 |             0.0 |</span>
+<span class="sd">    | 16.01. |   0.395623 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |        1.01625 |  1.01625 |    1.582493 |           0.0 |           0.0 |            0.0 |    0.0 |  1.01625 |             0.0 |</span>
+<span class="sd">    | 17.01. |   0.374826 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.962828 | 0.962828 |    1.499305 |           0.0 |           0.0 |            0.0 |    0.0 | 0.962828 |             0.0 |</span>
+<span class="sd">    | 18.01. |   0.355122 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.912214 | 0.912214 |     1.42049 |           0.0 |           0.0 |            0.0 |    0.0 | 0.912214 |             0.0 |</span>
+<span class="sd">    | 19.01. |   0.336454 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.864261 | 0.864261 |    1.345818 |           0.0 |           0.0 |            0.0 |    0.0 | 0.864261 |             0.0 |</span>
+<span class="sd">    | 20.01. |   0.318768 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |                 0.0 |                  0.0 |                0.0 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.818829 | 0.818829 |    1.275071 |           0.0 |           0.0 |            0.0 |    0.0 | 0.818829 |             0.0 |</span>
+
+<span class="sd">.. _dam_v004_flood_retention_modification:</span>
+
+<span class="sd">modification</span>
+<span class="sd">------------</span>
+
+<span class="sd">Building on the example above, we demonstrate the possibility to constrain the total</span>
+<span class="sd">discharge to remote locations by setting |HighestRemoteDischarge| to 1.0 m³/s, which</span>
+<span class="sd">defines the allowed sum of |AllowedRemoteRelief| and |ActualRemoteRelease|:</span>
+
+<span class="sd">&gt;&gt;&gt; highestremotedischarge(1.0)</span>
+<span class="sd">&gt;&gt;&gt; highestremotetolerance(0.1)</span>
+
+<span class="sd">This final example demonstrates the identical behaviour of models</span>
+<span class="sd">|dam_v003| and |dam_v004| (and also of models |dam_v001| and</span>
+<span class="sd">|dam_v002| regarding high flow conditions:</span>
+
+<span class="sd">We assume a constant remote demand of 0.5 m³/s and let the allowed relief rise linearly</span>
+<span class="sd">from 0.0 to 1.5 m³/s:</span>
+
+<span class="sd">&gt;&gt;&gt; required_supply.sequences.sim.series = 0.5</span>
+<span class="sd">&gt;&gt;&gt; test.inits.loggedrequiredremoterelease = 0.5</span>
+<span class="sd">&gt;&gt;&gt; allowed_relief.sequences.sim.series = numpy.linspace(0.0, 1.5, 20)</span>
+<span class="sd">&gt;&gt;&gt; test.inits.loggedallowedremoterelief = 0.0</span>
+
+<span class="sd">Also, we set the possible relief discharge to a constant value of 5.0 m³/s:</span>
+
+<span class="sd">&gt;&gt;&gt; waterlevel2possibleremoterelief(PPoly.from_data(xs=[0.0], ys=[5.0]))</span>
+<span class="sd">&gt;&gt;&gt; figure = waterlevel2possibleremoterelief.plot(-0.1, 1.0)</span>
+<span class="sd">&gt;&gt;&gt; save_autofig(&quot;dam_v004_waterlevel2possibleremoterelief_4.png&quot;, figure=figure)</span>
+
+<span class="sd">.. image:: dam_v004_waterlevel2possibleremoterelief_4.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">The following results demonstrate that |AllowedRemoteRelief| has priority over</span>
+<span class="sd">|ActualRemoteRelease|. Due to |HighestRemoteDischarge| set to 1.0 m³/s,</span>
+<span class="sd">|ActualRemoteRelease| starts to drop when |AllowedRemoteRelief| exceeds 0.5 m³/s.</span>
+<span class="sd">Furthermore, |AllowedRemoteRelief| itself never exceeds 1.0 m³/s:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;dam_v004_flood_retention_modification&quot;)</span>
+<span class="sd">    |   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | requiredremoterelease | allowedremoterelief | possibleremoterelief | actualremoterelief | requiredrelease | targetedrelease | actualrelease | actualremoterelease | flooddischarge |  outflow | watervolume | actual_relief | actual_supply | allowed_relief | inflow |  outflow | required_supply |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01.01. |  -0.000003 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |                 0.0 |                  5.0 |                0.0 |             0.0 |             0.0 |           0.0 |            0.000125 |      -0.000007 |      0.0 |   -0.000011 |           0.0 |      0.000125 |            0.0 |    0.0 |      0.0 |             0.5 |</span>
+<span class="sd">    | 02.01. |   0.010515 |          50.0 |                   1.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |                 0.0 |                  5.0 |                0.0 |             0.0 |             0.0 |           0.0 |            0.499821 |       0.013263 | 0.013263 |    0.042059 |           0.0 |      0.499821 |       0.078947 |    0.0 | 0.013263 |             0.5 |</span>
+<span class="sd">    | 03.01. |   0.102925 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    5.0 |                   0.5 |            0.078947 |                  5.0 |           0.078947 |             0.0 |             0.0 |           0.0 |            0.499952 |        0.14284 |  0.14284 |      0.4117 |      0.078947 |      0.499952 |       0.157895 |    5.0 |  0.14284 |             0.5 |</span>
+<span class="sd">    | 04.01. |   0.272929 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    9.0 |                   0.5 |            0.157895 |                  5.0 |           0.157895 |             0.0 |             0.0 |           0.0 |            0.499819 |       0.471731 | 0.471731 |    1.091717 |      0.157895 |      0.499819 |       0.236842 |    9.0 | 0.471731 |             0.5 |</span>
+<span class="sd">    | 05.01. |    0.41132 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    8.0 |                   0.5 |            0.236842 |                  5.0 |           0.236842 |             0.0 |             0.0 |           0.0 |            0.499314 |       0.856868 | 0.856868 |    1.645279 |      0.236842 |      0.499314 |       0.315789 |    8.0 | 0.856868 |             0.5 |</span>
+<span class="sd">    | 06.01. |   0.477734 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    5.0 |                   0.5 |            0.315789 |                  5.0 |           0.315789 |             0.0 |             0.0 |           0.0 |            0.497434 |       1.112064 | 1.112064 |    1.910934 |      0.315789 |      0.497434 |       0.394737 |    5.0 | 1.112064 |             0.5 |</span>
+<span class="sd">    | 07.01. |   0.497082 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |                   0.5 |            0.394737 |                  5.0 |           0.394735 |             0.0 |             0.0 |           0.0 |            0.490789 |       1.218737 | 1.218737 |    1.988326 |      0.394735 |      0.490789 |       0.473684 |    3.0 | 1.218737 |             0.5 |</span>
+<span class="sd">    | 08.01. |   0.493147 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |                   0.5 |            0.473684 |                  5.0 |           0.473676 |             0.0 |             0.0 |           0.0 |            0.470723 |       1.237743 | 1.237743 |    1.972589 |      0.473676 |      0.470723 |       0.552632 |    2.0 | 1.237743 |             0.5 |</span>
+<span class="sd">    | 09.01. |   0.467652 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |                   0.5 |            0.552632 |                  5.0 |           0.552601 |             0.0 |             0.0 |           0.0 |            0.427028 |       1.200712 | 1.200712 |    1.870608 |      0.552601 |      0.427028 |       0.631579 |    1.0 | 1.200712 |             0.5 |</span>
+<span class="sd">    | 10.01. |   0.422175 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            0.631579 |                  5.0 |           0.631463 |             0.0 |             0.0 |           0.0 |            0.362181 |       1.111772 | 1.111772 |      1.6887 |      0.631463 |      0.362181 |       0.710526 |    0.0 | 1.111772 |             0.5 |</span>
+<span class="sd">    | 11.01. |   0.379019 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            0.710526 |                  5.0 |           0.710086 |             0.0 |             0.0 |           0.0 |            0.286864 |       1.001007 | 1.001007 |    1.516076 |      0.710086 |      0.286864 |       0.789474 |    0.0 | 1.001007 |             0.5 |</span>
+<span class="sd">    | 12.01. |   0.338142 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            0.789474 |                  5.0 |           0.787817 |             0.0 |             0.0 |           0.0 |            0.208657 |       0.895991 | 0.895991 |    1.352567 |      0.787817 |      0.208657 |       0.868421 |    0.0 | 0.895991 |             0.5 |</span>
+<span class="sd">    | 13.01. |   0.299503 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            0.868421 |                  5.0 |           0.862356 |             0.0 |             0.0 |           0.0 |            0.129881 |       0.796621 | 0.796621 |     1.19801 |      0.862356 |      0.129881 |       0.947368 |    0.0 | 0.796621 |             0.5 |</span>
+<span class="sd">    | 14.01. |   0.263192 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            0.947368 |                  5.0 |           0.927029 |             0.0 |             0.0 |           0.0 |            0.051045 |        0.70296 |  0.70296 |    1.052769 |      0.927029 |      0.051045 |       1.026316 |    0.0 |  0.70296 |             0.5 |</span>
+<span class="sd">    | 15.01. |   0.228945 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            1.026316 |                  5.0 |           0.970723 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.614786 | 0.614786 |    0.915781 |      0.970723 |           0.0 |       1.105263 |    0.0 | 0.614786 |             0.5 |</span>
+<span class="sd">    | 16.01. |   0.196078 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            1.105263 |                  5.0 |           0.990741 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.530909 | 0.530909 |     0.78431 |      0.990741 |           0.0 |       1.184211 |    0.0 | 0.530909 |             0.5 |</span>
+<span class="sd">    | 17.01. |   0.164811 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            1.184211 |                  5.0 |           0.996746 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.450759 | 0.450759 |    0.659246 |      0.996746 |           0.0 |       1.263158 |    0.0 | 0.450759 |             0.5 |</span>
+<span class="sd">    | 18.01. |   0.135163 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            1.263158 |                  5.0 |           0.997993 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.374634 | 0.374634 |    0.540651 |      0.997993 |           0.0 |       1.342105 |    0.0 | 0.374634 |             0.5 |</span>
+<span class="sd">    | 19.01. |   0.107067 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            1.342105 |                  5.0 |           0.998268 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.302471 | 0.302471 |    0.428267 |      0.998268 |           0.0 |       1.421053 |    0.0 | 0.302471 |             0.5 |</span>
+<span class="sd">    | 20.01. |   0.080446 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            1.421053 |                  5.0 |           0.998337 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.234092 | 0.234092 |    0.321785 |      0.998337 |           0.0 |            1.5 |    0.0 | 0.234092 |             0.5 |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.anntools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.ppolytools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly</span><span class="p">,</span> <span class="n">PPoly</span>  <span class="c1"># pylint: disable=unused-import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">petinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">precipinterfaces</span>
+
+<span class="c1"># ...from dam</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.dam</span><span class="w"> </span><span class="kn">import</span> <span class="n">dam_model</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.dam</span><span class="w"> </span><span class="kn">import</span> <span class="n">dam_solver</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../dam_v004.html#hydpy.models.dam_v004.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span>
+    <span class="n">dam_model</span><span class="o">.</span><span class="n">ELSIEModel</span><span class="p">,</span> <span class="n">dam_model</span><span class="o">.</span><span class="n">Main_PrecipModel_V2</span><span class="p">,</span> <span class="n">dam_model</span><span class="o">.</span><span class="n">Main_PEModel_V1</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|dam_v004.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s2">&quot;Dam-V4&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;dam model, version 4&quot;</span><span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">SOLVERPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">AbsErrorMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelErrorMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelDTMin</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">RelDTMax</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">MaxEval</span><span class="p">,</span>
+        <span class="n">dam_solver</span><span class="o">.</span><span class="n">MaxCFL</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SOLVERSEQUENCES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_Precipitation_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_PotentialEvaporation_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_AdjustedEvaporation_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pick_Inflow_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_RequiredRemoteRelease_V2</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_AllowedRemoteRelief_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_RequiredRelease_V2</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_TargetedRelease_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pick_LoggedRequiredRemoteRelease_V2</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pick_LoggedAllowedRemoteRelief_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Fix_Min1_V1</span><span class="p">,)</span>
+    <span class="n">PART_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_AdjustedPrecipitation_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pick_Inflow_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_WaterLevel_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_ActualEvaporation_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_ActualRelease_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_PossibleRemoteRelief_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_ActualRemoteRelief_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_ActualRemoteRelease_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Update_ActualRemoteRelease_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Update_ActualRemoteRelief_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_FloodDischarge_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_Outflow_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">FULL_ODE_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">dam_model</span><span class="o">.</span><span class="n">Update_WaterVolume_V3</span><span class="p">,)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Calc_WaterLevel_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pass_Outflow_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pass_ActualRemoteRelease_V1</span><span class="p">,</span>
+        <span class="n">dam_model</span><span class="o">.</span><span class="n">Pass_ActualRemoteRelief_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">(</span><span class="n">precipinterfaces</span><span class="o">.</span><span class="n">PrecipModel_V2</span><span class="p">,</span> <span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">)</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="n">precipmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span>
+        <span class="n">precipinterfaces</span><span class="o">.</span><span class="n">PrecipModel_V2</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">pemodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span><span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam_v004</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+.. |dummy.DOCNAME.complete| replace:: HydPy-Dummy (base model)
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _dummy:
+
+dummy
+=====
+
+.. automodule:: hydpy.models.dummy
+    :members:
+    :show-inheritance:
+    :exclude-members: Hashable, Match, Text, RECEIVER_METHODS, Union, Iterable, cast, Callable, SupportsAbs, disjoint_base, overload, Sized, ParamSpecArgs, get_original_bases, get_protocol_members, SOLVERPARAMETERS, is_typeddict, FactorSequences, Writer, get_overloads, FULL_ODE_METHODS, REQUIREDSEQUENCES, CapsuleType, SupportsRound, ReadOnly, fastaccess_old, evaluate_forward_ref, List, subpars, Required, ForwardRef, Protocol, Format, NoExtraItems, TypeGuard, clear_overloads, seqs, TypeAliasType, CONTROLPARAMETERS, Final, AbstractSet, DefaultDict, ADD_METHODS, SupportsFloat, dataclass_transform, AnyStr, MappingView, Doc, Reversible, assert_never, Concatenate, Dict, OUTLET_METHODS, AsyncIterator, SUBMETHODS, ParamSpec, Annotated, no_type_check_decorator, get_type_hints, CLASSES, NamedTuple, ByteString, Generator, FrozenSet, pars, IO, TypeIs, Set, Deque, INTERFACE_METHODS, type_repr, NoDefault, Literal, Any, DERIVEDPARAMETERS, SupportsBytes, subseqs, Buffer, Reader, deprecated, Sentinel, SOLVERSEQUENCES, Counter, Optional, MutableSequence, OrderedDict, NoReturn, runtime, MutableSet, final, fastaccess_new, reveal_type, Awaitable, Unpack, Container, IntVar, LiteralString, TextIO, KeysView, ChainMap, Mapping, UPDATEDSEQUENCES, StateSequences, ClassVar, fastaccess, override, FIXEDPARAMETERS, SUBMODELINTERFACES, AsyncGenerator, TypeVar, SupportsIndex, NotRequired, AsyncIterable, Iterator, TypeVarTuple, get_args, Never, PART_ODE_METHODS, ValuesView, TYPE_CHECKING, TypedDict, NewType, AsyncContextManager, no_type_check, Pattern, RESULTSEQUENCES, Tuple, runtime_checkable, BinaryIO, ObserverSequences, get_origin, LogSequences, ParamSpecKwargs, Collection, SUBMODELS, ItemsView, TypeAlias, SupportsInt, TypeForm, get_annotations, SENDER_METHODS, Coroutine, ReceiverSequences, Self, Sequence, RUN_METHODS, SenderSequences, subvars, INLET_METHODS, MutableMapping, ContextManager, AideSequences, SupportsComplex, Generic, Type, is_protocol, assert_type

@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.gland.gland_model &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.gland.gland_model</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.gland.gland_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">importtools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.cythons</span><span class="w"> </span><span class="kn">import</span> <span class="n">modelutils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">petinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">rconcinterfaces</span>
+
+<span class="c1"># ...from gland</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.gland</span><span class="w"> </span><span class="kn">import</span> <span class="n">gland_control</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.gland</span><span class="w"> </span><span class="kn">import</span> <span class="n">gland_derived</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.gland</span><span class="w"> </span><span class="kn">import</span> <span class="n">gland_inputs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.gland</span><span class="w"> </span><span class="kn">import</span> <span class="n">gland_fluxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.gland</span><span class="w"> </span><span class="kn">import</span> <span class="n">gland_states</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.gland</span><span class="w"> </span><span class="kn">import</span> <span class="n">gland_outlets</span>
+
+
+<div class="viewcode-block" id="Calc_E_PETModel_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_E_PETModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_E_PETModel_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Let a submodel that conforms to the |PETModel_V1| interface calculate the</span>
+<span class="sd">    potential evapotranspiration.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        We use |evap_ret_tw2002| as an example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland_gr4 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">        &gt;&gt;&gt; area(50.0)</span>
+<span class="sd">        &gt;&gt;&gt; with model.add_petmodel_v1(&quot;evap_ret_tw2002&quot;):</span>
+<span class="sd">        ...     hrualtitude(200.0)</span>
+<span class="sd">        ...     coastfactor(0.6)</span>
+<span class="sd">        ...     evapotranspirationfactor(1.1)</span>
+<span class="sd">        ...     with model.add_radiationmodel_v2(&quot;meteo_glob_io&quot;):</span>
+<span class="sd">        ...         inputs.globalradiation = 200.0</span>
+<span class="sd">        ...     with model.add_tempmodel_v2(&quot;meteo_temp_io&quot;):</span>
+<span class="sd">        ...         temperatureaddend(1.0)</span>
+<span class="sd">        ...         inputs.temperature = 14.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_e_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.e</span>
+<span class="sd">        e(3.07171)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">E</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">submodel</span><span class="p">:</span> <span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">submodel</span><span class="o">.</span><span class="n">determine_potentialevapotranspiration</span><span class="p">()</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">e</span> <span class="o">=</span> <span class="n">submodel</span><span class="o">.</span><span class="n">get_potentialevapotranspiration</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_E_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_E_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_E_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Let a submodel that conforms to the |PETModel_V1| interface calculate the</span>
+<span class="sd">    potential evapotranspiration.&quot;&quot;&quot;</span>
+
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">(</span><span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">,)</span>
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Calc_E_PETModel_V1</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">E</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">petmodel_typeid</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">calc_e_petmodel_v1</span><span class="p">(</span><span class="n">cast</span><span class="p">(</span><span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_EI_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_EI_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_EI_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the actual evaporation from the interception store.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`EI = min(E, \, I + P)`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">        &gt;&gt;&gt; inputs.p = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.e = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; states.i = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_ei_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ei</span>
+<span class="sd">        ei(0.5)</span>
+
+<span class="sd">        &gt;&gt;&gt; inputs.p = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.e = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; states.i = 0.2</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_ei_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ei</span>
+<span class="sd">        ei(0.7)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_inputs</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">E</span><span class="p">,</span> <span class="n">gland_states</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">EI</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">ei</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">e</span><span class="p">,</span> <span class="n">sta</span><span class="o">.</span><span class="n">i</span> <span class="o">+</span> <span class="n">inp</span><span class="o">.</span><span class="n">p</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_PN_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_PN_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_PN_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the net precipitation by considering all interception losses.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`PN = max(P - (IMax - I) - EI, \, 0)`</span>
+
+<span class="sd">    Examples:</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; control.imax(10.0)</span>
+<span class="sd">        &gt;&gt;&gt; inputs.p = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; states.i = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ei = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_pn_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pn</span>
+<span class="sd">        pn(0.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; inputs.p = 8.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_pn_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pn</span>
+<span class="sd">        pn(1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_control</span><span class="o">.</span><span class="n">IMax</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_inputs</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">EI</span><span class="p">,</span> <span class="n">gland_states</span><span class="o">.</span><span class="n">I</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PN</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">pn</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">inp</span><span class="o">.</span><span class="n">p</span> <span class="o">-</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">imax</span> <span class="o">-</span> <span class="n">sta</span><span class="o">.</span><span class="n">i</span><span class="p">)</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">ei</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_EN_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_EN_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_EN_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the net evapotranspiration capacity by considering interception</span>
+<span class="sd">    evaporation.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`EN = max(E - EI, \, 0.0)`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.e = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ei = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_en_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.en</span>
+<span class="sd">        en(0.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.e = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_en_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.en</span>
+<span class="sd">        en(1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">E</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">EI</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">EN</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">en</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">e</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">ei</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Update_I_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Update_I_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_I_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the interception store based on precipitation, net precipitation, and</span>
+<span class="sd">    interception evaporation.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`I_{new} = I_{old} + P - PN - EI`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; states.i = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; inputs.p = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ei = 4.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pn = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_i_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.i</span>
+<span class="sd">        i(8.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_inputs</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PN</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">EI</span><span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">I</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span><span class="o">.</span><span class="n">i</span> <span class="o">+=</span> <span class="n">inp</span><span class="o">.</span><span class="n">p</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">ei</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">pn</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_PS_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_PS_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_PS_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the part of net precipitation filling the production store.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`PS = \frac{</span>
+<span class="sd">      X1 \cdot \left( 1 - \left( \frac{S}{X1} \right)^2 \right)</span>
+<span class="sd">      \cdot tanh \left( \frac{PN}{X1} \right)}</span>
+<span class="sd">      {1 + \frac{S}{X1} \cdot tanh \left( \frac{PN}{X1} \right)}`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        If the production store is full, no more precipitation can enter it:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; x1(300.0)</span>
+<span class="sd">        &gt;&gt;&gt; states.s = 300.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pn = 50.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_ps_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ps</span>
+<span class="sd">        ps(0.0)</span>
+
+<span class="sd">        If the production store is empty, nearly all net precipitation enters it:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.s = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_ps_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ps</span>
+<span class="sd">        ps(49.542124)</span>
+
+<span class="sd">        If net precipitation is zero, there can be no inflow into the production store:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.pn = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_ps_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ps</span>
+<span class="sd">        ps(0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_control</span><span class="o">.</span><span class="n">X1</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PN</span><span class="p">,</span> <span class="n">gland_states</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PS</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="n">flu</span><span class="o">.</span><span class="n">ps</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">con</span><span class="o">.</span><span class="n">x1</span>
+            <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">s</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.0</span><span class="p">)</span>
+            <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">pn</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x1</span><span class="p">)</span>
+            <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">sta</span><span class="o">.</span><span class="n">s</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x1</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">pn</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x1</span><span class="p">))</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_ES_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_ES_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_ES_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the actual evapotranspiration from the production store.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      .. math ::</span>
+<span class="sd">        Es = \frac{S \cdot (2 - r) \cdot t}{1 + (1 - r) \cdot t} \\</span>
+<span class="sd">        t = tanh \left( EN / X1 \right) \\</span>
+<span class="sd">        r = S / X1</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        If the production store is nearly full, actual and potential evapotranspiration</span>
+<span class="sd">        are almost equal:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; x1(300.0)</span>
+<span class="sd">        &gt;&gt;&gt; states.s = 270.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.en = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_es_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.es</span>
+<span class="sd">        es(1.978652)</span>
+
+<span class="sd">        If the production store is nearly empty, actual evapotranspiration is almost</span>
+<span class="sd">        zero:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.s = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_es_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.es</span>
+<span class="sd">        es(0.13027)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_control</span><span class="o">.</span><span class="n">X1</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">EN</span><span class="p">,</span> <span class="n">gland_states</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">ES</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="n">rs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">sta</span><span class="o">.</span><span class="n">s</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x1</span>
+        <span class="n">re</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">en</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x1</span>
+        <span class="n">tre</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">re</span><span class="p">)</span>  <span class="c1"># equals (exp(2 * re) - 1) / (exp(2 * re) + 1)</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">es</span> <span class="o">=</span> <span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">s</span> <span class="o">*</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">-</span> <span class="n">rs</span><span class="p">)</span> <span class="o">*</span> <span class="n">tre</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">rs</span><span class="p">)</span> <span class="o">*</span> <span class="n">tre</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Update_S_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Update_S_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_S_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the production store by adding precipitation and evapotranspiration.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`S_{new} = S_{old} + PS - ES`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; x1(300.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ps = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.es = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; states.s = 270.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_s_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(277.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PS</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">ES</span><span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">S</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span><span class="o">.</span><span class="n">s</span> <span class="o">+=</span> <span class="n">flu</span><span class="o">.</span><span class="n">ps</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">es</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Perc_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_Perc_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Perc_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the percolation from the production store.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`Perc = S \cdot \left(</span>
+<span class="sd">      1 - \left(1 + \left(\frac{S}{Beta \cdot X1} \right)^4 \right)^{-1/4} \right)`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.beta.update()</span>
+
+<span class="sd">        &gt;&gt;&gt; x1(300.0)</span>
+<span class="sd">        &gt;&gt;&gt; states.s = 268.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_perc_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.perc</span>
+<span class="sd">        perc(1.639555)</span>
+
+<span class="sd">        &gt;&gt;&gt; states.s = 50.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_perc_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.perc</span>
+<span class="sd">        perc(0.000376)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_control</span><span class="o">.</span><span class="n">X1</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_derived</span><span class="o">.</span><span class="n">Beta</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">S</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Perc</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">perc</span> <span class="o">=</span> <span class="n">sta</span><span class="o">.</span><span class="n">s</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">s</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x1</span> <span class="o">/</span> <span class="n">der</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span> <span class="o">**</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">**</span> <span class="o">-</span><span class="mf">0.25</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Update_S_V2">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Update_S_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_S_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the production store by subtracting percolation.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`S_{new} = S_{old} - Perc`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.perc = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.s = 20.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_s_v2()</span>
+<span class="sd">        &gt;&gt;&gt; states.s</span>
+<span class="sd">        s(18.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Perc</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">S</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span><span class="o">.</span><span class="n">s</span> <span class="o">-=</span> <span class="n">flu</span><span class="o">.</span><span class="n">perc</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_AE_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_AE_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_AE_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the total actual evapotranspiration.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`AE = EI + ES`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ei = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.es = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_ae_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ae</span>
+<span class="sd">        ae(3.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">EI</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">ES</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">AE</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">ae</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">ei</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">es</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Pr_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_Pr_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Pr_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the total inflow into the runoff concentration module.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`PR = Perc + (PN - PS)`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.perc = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pn = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.ps = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_pr_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pr</span>
+<span class="sd">        pr(4.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PS</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PN</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Perc</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PR</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">pr</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">perc</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">pn</span> <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">ps</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_PR1_PR9_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_PR1_PR9_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_PR1_PR9_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Split |PR| into |PR1| and |PR9|.</span>
+
+<span class="sd">    Basic equations:</span>
+
+<span class="sd">      :math:`PR9 = 0.9 \cdot PR`</span>
+
+<span class="sd">      :math:`PR1 = 0.1 \cdot PR`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pr = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_pr1_pr9_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pr9</span>
+<span class="sd">        pr9(9.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pr1</span>
+<span class="sd">        pr1(1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PR</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PR9</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PR1</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">pr9</span> <span class="o">=</span> <span class="mf">0.9</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">pr</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">pr1</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">pr</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Q_RConcModel_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_Q_RConcModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Q_RConcModel_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Let a submodel that follows the |RConcModel_V1| submodel interface perform</span>
+<span class="sd">    runoff concentration.&quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">submodel</span><span class="p">:</span> <span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">,</span> <span class="n">inflow</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">submodel</span><span class="o">.</span><span class="n">set_inflow</span><span class="p">(</span><span class="n">inflow</span><span class="p">)</span>
+        <span class="n">submodel</span><span class="o">.</span><span class="n">determine_outflow</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">submodel</span><span class="o">.</span><span class="n">get_outflow</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Q9_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_Q9_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Q9_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform |PR9| into |Q9|.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Without a `rconcmodel_routingstore` submodel, |Calc_Q9_V1| directs |PR9|</span>
+<span class="sd">        instantaneously to |Q9|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland_gr4 import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pr9 = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_q9_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q9</span>
+<span class="sd">        q9(1.0)</span>
+
+<span class="sd">        For a GR-compatible calculation of runoff concentration, you can select the</span>
+<span class="sd">        Unit Hydrograph submodel |rconc_uh| and configure its ordinates via the</span>
+<span class="sd">        `gr_uh1` option:</span>
+
+<span class="sd">        &gt;&gt;&gt; with model.add_rconcmodel_routingstore_v1(&quot;rconc_uh&quot;):</span>
+<span class="sd">        ...     uh(&quot;gr_uh1&quot;, x4=3.0)</span>
+<span class="sd">        ...     logs.quh = 1.0, 3.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pr9 = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_q9_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q9</span>
+<span class="sd">        q9(1.1283)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">(</span><span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">,)</span>
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Calc_Q_RConcModel_V1</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PR9</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q9</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">rconcmodel_routingstore</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">q9</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">pr9</span>
+        <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">rconcmodel_routingstore_typeid</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">q9</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">calc_q_rconcmodel_v1</span><span class="p">(</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">rconcmodel_routingstore</span><span class="p">),</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">pr9</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Q1_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_Q1_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Q1_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform |PR1| into |Q1|.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Without a `rconcmodel_directflow` submodel, |Calc_Q1_V1| directs |PR1|</span>
+<span class="sd">        instantaneously to |Q1|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland_gr4 import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pr1 = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_q1_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q1</span>
+<span class="sd">        q1(1.0)</span>
+
+<span class="sd">        For a GR-compatible calculation of runoff concentration, you can select the</span>
+<span class="sd">        Unit Hydrograph submodel |rconc_uh| and configure its ordinates via the</span>
+<span class="sd">        `gr_uh2` option:</span>
+
+<span class="sd">        &gt;&gt;&gt; with model.add_rconcmodel_directflow_v1(&quot;rconc_uh&quot;):</span>
+<span class="sd">        ...     uh(&quot;gr_uh2&quot;, x4=1.5)</span>
+<span class="sd">        ...     logs.quh = 1.0, 3.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pr1 = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_q1_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q1</span>
+<span class="sd">        q1(1.362887)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">(</span><span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">,)</span>
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Calc_Q_RConcModel_V1</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PR1</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q1</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">rconcmodel_directflow</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">q1</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">pr1</span>
+        <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">rconcmodel_directflow_typeid</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">q1</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">calc_q_rconcmodel_v1</span><span class="p">(</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">rconcmodel_directflow</span><span class="p">),</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">pr1</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Q10_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_Q10_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Q10_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform |PR| into |Q10|.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Without a `rconcmodel` submodel, |Calc_Q10_V1| directs |PR| instantaneously to</span>
+<span class="sd">        |Q10|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland_gr5 import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pr = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_q10_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q10</span>
+<span class="sd">        q10(1.0)</span>
+
+<span class="sd">        For a GR-compatible calculation of runoff concentration, you can select the</span>
+<span class="sd">        Unit Hydrograph submodel |rconc_uh| and configure its ordinates via the</span>
+<span class="sd">        `gr_uh2` option:</span>
+
+<span class="sd">        &gt;&gt;&gt; with model.add_rconcmodel_v1(&quot;rconc_uh&quot;):</span>
+<span class="sd">        ...     uh(&quot;gr_uh2&quot;, x4=1.5)</span>
+<span class="sd">        ...     logs.quh = 1.0, 3.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.pr = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_q10_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q10</span>
+<span class="sd">        q10(1.362887)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">(</span><span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">,)</span>
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Calc_Q_RConcModel_V1</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">PR</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q10</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">rconcmodel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">q10</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">pr</span>
+        <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">rconcmodel_typeid</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">q10</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">calc_q_rconcmodel_v1</span><span class="p">(</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">rconcmodel</span><span class="p">),</span> <span class="n">flu</span><span class="o">.</span><span class="n">pr</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Q1_Q9_V2">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_Q1_Q9_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Q1_Q9_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate |Q1| and |Q9| by splitting |Q10|.</span>
+
+<span class="sd">    Basic equations:</span>
+
+<span class="sd">      :math:`Q9 = 0.9 \cdot Q10`</span>
+
+<span class="sd">      :math:`Q1 = 0.1 \cdot Q10`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q10 = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_q1_q9_v2()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q1</span>
+<span class="sd">        q1(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q9</span>
+<span class="sd">        q9(9.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q10</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q1</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q9</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">q1</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">q10</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">q9</span> <span class="o">=</span> <span class="mf">0.9</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">q10</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_FR_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_FR_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_FR_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the groundwater exchange affecting the routing store according to</span>
+<span class="sd">    GR4.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`FR = X2 \cdot \left( \frac{R}{X3} \right)^{7/2}`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        If the routing store is nearly full, groundwater exchange is high and close to</span>
+<span class="sd">        |X3|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; x2(1.02)</span>
+<span class="sd">        &gt;&gt;&gt; x3(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; states.r = 95.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_fr_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr</span>
+<span class="sd">        fr(0.852379)</span>
+
+<span class="sd">        If the routing store is almost empty, groundwater exchange is low and near</span>
+<span class="sd">        zero:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.r = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_fr_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr</span>
+<span class="sd">        fr(0.000029)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_control</span><span class="o">.</span><span class="n">X2</span><span class="p">,</span> <span class="n">gland_control</span><span class="o">.</span><span class="n">X3</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">R</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">FR</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">fr</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">x2</span> <span class="o">*</span> <span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x3</span><span class="p">)</span> <span class="o">**</span> <span class="mf">3.5</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_FR_V2">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_FR_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_FR_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the groundwater exchange affecting the routing store according to</span>
+<span class="sd">    GR5 and GR6.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`FR = X2 \cdot \left( \frac{R}{X3} - X5 \right)`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; x2(-0.163)</span>
+<span class="sd">        &gt;&gt;&gt; x3(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; x5(0.104)</span>
+<span class="sd">        &gt;&gt;&gt; states.r = 95.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_fr_v2()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr</span>
+<span class="sd">        fr(-0.137898)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_control</span><span class="o">.</span><span class="n">X2</span><span class="p">,</span> <span class="n">gland_control</span><span class="o">.</span><span class="n">X3</span><span class="p">,</span> <span class="n">gland_control</span><span class="o">.</span><span class="n">X5</span><span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">R</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">FR</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">fr</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">x2</span> <span class="o">*</span> <span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x3</span> <span class="o">-</span> <span class="n">con</span><span class="o">.</span><span class="n">x5</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Update_R_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Update_R_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_R_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the level of the non-linear routing store by adding its inflows according</span>
+<span class="sd">    to GR4 and GR5.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`R_{new} = R_{old} + Q9 + FR`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">        In case of sufficient content of the routing store, the basic equation applies</span>
+<span class="sd">        without modification:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.r = 4.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q9 = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr = -2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_r_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.r</span>
+<span class="sd">        r(3.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr</span>
+<span class="sd">        fr(-2.0)</span>
+
+<span class="sd">        For insufficient content, groundwater loss (negative groundwater exchange)</span>
+<span class="sd">        becomes restricted:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.fr = -5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_r_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.r</span>
+<span class="sd">        r(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr</span>
+<span class="sd">        fr(-4.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q9</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">FR</span><span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">R</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">+=</span> <span class="n">flu</span><span class="o">.</span><span class="n">q9</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">fr</span>
+        <span class="k">if</span> <span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">fr</span> <span class="o">-=</span> <span class="n">sta</span><span class="o">.</span><span class="n">r</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="Update_R_V2">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Update_R_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_R_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Update the level of the non-linear routing store by adding its inflows</span>
+<span class="sd">    according to GR6.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`R_{new} = R_{old} + 0.6 \cdot Q9 + FR`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">        In case of sufficient content of the routing store, the basic equation applies</span>
+<span class="sd">        without modification:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.r = 4.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q9 = 1.0 / 0.6</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr = -2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_r_v2()</span>
+<span class="sd">        &gt;&gt;&gt; states.r</span>
+<span class="sd">        r(3.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr</span>
+<span class="sd">        fr(-2.0)</span>
+
+<span class="sd">        For insufficient content, groundwater loss (negative groundwater exchange)</span>
+<span class="sd">        becomes restricted:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.fr = -5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_r_v2()</span>
+<span class="sd">        &gt;&gt;&gt; states.r</span>
+<span class="sd">        r(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr</span>
+<span class="sd">        fr(-4.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q9</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">FR</span><span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">R</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">+=</span> <span class="mf">0.6</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">q9</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">fr</span>
+        <span class="k">if</span> <span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">fr</span> <span class="o">-=</span> <span class="n">sta</span><span class="o">.</span><span class="n">r</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_QR_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_QR_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_QR_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the outflow of the routing store.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`QR = R \cdot \left( 1 - \left[1 + \left( \frac{R}{X3} \right)^{4}</span>
+<span class="sd">      \right]^{-1/4} \right)`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; x3(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; states.r = 115.852379</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qr_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qr</span>
+<span class="sd">        qr(26.30361)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_control</span><span class="o">.</span><span class="n">X3</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">R</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QR</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qr</span> <span class="o">=</span> <span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x3</span><span class="p">)</span> <span class="o">**</span> <span class="mf">4.0</span><span class="p">)</span> <span class="o">**</span> <span class="o">-</span><span class="mf">0.25</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Update_R_V3">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Update_R_V3">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_R_V3</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the non-linear routing store by subtracting its outflow.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`R_{new} = R_{old} - QR`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qr = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.r = 20.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_r_v3()</span>
+<span class="sd">        &gt;&gt;&gt; states.r</span>
+<span class="sd">        r(18.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QR</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">R</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span><span class="o">.</span><span class="n">r</span> <span class="o">-=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qr</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_FR2_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_FR2_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_FR2_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the groundwater exchange affecting the exponential routing store.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`FR2 = FR`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr = -0.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_fr2_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr2</span>
+<span class="sd">        fr2(-0.5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">FR</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">FR2</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">fr2</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">fr</span></div>
+
+
+
+<div class="viewcode-block" id="Update_R2_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Update_R2_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_R2_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Update the exponential routing store by adding its inflows.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`R2_{new} = R2_{new} + 0.4 \cdot Q9 + FR2`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q9 = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr2 = -0.5</span>
+<span class="sd">        &gt;&gt;&gt; states.r2 = 40.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_r2_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.r2</span>
+<span class="sd">        r2(43.5)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q9</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">FR2</span><span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">R2</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span><span class="o">.</span><span class="n">r2</span> <span class="o">+=</span> <span class="mf">0.4</span> <span class="o">*</span> <span class="n">flu</span><span class="o">.</span><span class="n">q9</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">fr2</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_QR2_R2_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_QR2_R2_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_QR2_R2_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the outflow of the exponential routing store and update its content.</span>
+
+<span class="sd">    Basic equations:</span>
+
+<span class="sd">      .. math::</span>
+<span class="sd">        QR = \begin{cases}</span>
+<span class="sd">        X6 \cdot exp(ar) &amp;|\ ar &lt; -7</span>
+<span class="sd">        \\</span>
+<span class="sd">        X6 \cdot log(exp(ar) + 1) &amp;|\ -7 \leq ar \leq 7</span>
+<span class="sd">        \\</span>
+<span class="sd">        R2 + X6 / exp(ar) &amp;|\ ar &gt; 7</span>
+<span class="sd">        \end{cases}</span>
+<span class="sd">        \\</span>
+<span class="sd">        ar = min(max(R2 / X6, \, -33), \, 33)</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; x6(4.5)</span>
+
+<span class="sd">        For large negative exponential store levels, its outflow is almost zero:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.r2 = -50.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qr2_r2_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qr2</span>
+<span class="sd">        qr2(0.000067)</span>
+<span class="sd">        &gt;&gt;&gt; states.r2</span>
+<span class="sd">        r2(-50.000067)</span>
+
+<span class="sd">        For exponential store levels around zero, there is a significant outflow:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.r2 = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qr2_r2_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qr2</span>
+<span class="sd">        qr2(3.119162)</span>
+<span class="sd">        &gt;&gt;&gt; states.r2</span>
+<span class="sd">        r2(-3.119162)</span>
+
+<span class="sd">        For large positive exponential store levels, its outflow is highest:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.r2 = 40.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qr2_r2_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qr2</span>
+<span class="sd">        qr2(40.000621)</span>
+<span class="sd">        &gt;&gt;&gt; states.r2</span>
+<span class="sd">        r2(-0.000621)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_control</span><span class="o">.</span><span class="n">X6</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_states</span><span class="o">.</span><span class="n">R2</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QR2</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+
+        <span class="n">ar</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">sta</span><span class="o">.</span><span class="n">r2</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">x6</span><span class="p">,</span> <span class="o">-</span><span class="mf">33.0</span><span class="p">),</span> <span class="mf">33.0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">ar</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">7.0</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">qr2</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">x6</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">ar</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ar</span> <span class="o">&lt;=</span> <span class="mf">7.0</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">qr2</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">x6</span> <span class="o">*</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">modelutils</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">ar</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">qr2</span> <span class="o">=</span> <span class="n">sta</span><span class="o">.</span><span class="n">r2</span> <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">x6</span> <span class="o">/</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">ar</span><span class="p">)</span>
+
+        <span class="n">sta</span><span class="o">.</span><span class="n">r2</span> <span class="o">-=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qr2</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_FD_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_FD_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_FD_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the groundwater exchange affecting the direct runoff.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      .. math::</span>
+<span class="sd">        FD = \begin{cases}</span>
+<span class="sd">        - Q1 &amp;|\ (Q1 + FR) \leq 0</span>
+<span class="sd">        \\</span>
+<span class="sd">        FR &amp;|\ (Q1 + FR) &gt; 0</span>
+<span class="sd">        \end{cases}</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.q1 = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr = -0.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_fd_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fd</span>
+<span class="sd">        fd(-0.5)</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.q1 = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fr = -1.5</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_fd_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.fd</span>
+<span class="sd">        fd(-1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q1</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">FR</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">FD</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">q1</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">fr</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">fd</span> <span class="o">=</span> <span class="o">-</span><span class="n">flu</span><span class="o">.</span><span class="n">q1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">fd</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">fr</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_QD_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_QD_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_QD_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the direct runoff.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`QD = max(Q1 + FD, \, 0)`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.q1 = 2.0</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.fd = -1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qd_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qd</span>
+<span class="sd">        qd(1.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.fd = -3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qd_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qd</span>
+<span class="sd">        qd(0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">Q1</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">FD</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QD</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qd</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">flu</span><span class="o">.</span><span class="n">q1</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">fd</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_QH_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_QH_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_QH_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the total runoff according to GR4 and GR5.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`QH = QR + QD`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qr = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qd = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qh_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qh</span>
+<span class="sd">        qh(3.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QR</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QD</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QH</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qh</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qr</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">qd</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_QH_V2">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_QH_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_QH_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the total runoff according to GR6.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`QH = QR + QR2 + QD`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qr = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qr2 = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qd = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qh_v2()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qh</span>
+<span class="sd">        qh(6.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QR</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QR2</span><span class="p">,</span> <span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QD</span><span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QH</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qh</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qr</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">qr2</span> <span class="o">+</span> <span class="n">flu</span><span class="o">.</span><span class="n">qd</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_QV_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Calc_QV_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_QV_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate total discharge in m³/s.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`QV = QFactor \cdot QH`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; derived.qfactor(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qh = 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_qv_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qv</span>
+<span class="sd">        qv(6.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_derived</span><span class="o">.</span><span class="n">QFactor</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QH</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QV</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">qv</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qh</span> <span class="o">*</span> <span class="n">der</span><span class="o">.</span><span class="n">qfactor</span></div>
+
+
+
+<div class="viewcode-block" id="Pass_Q_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Pass_Q_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Pass_Q_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the outlet link sequence.</span>
+
+<span class="sd">    Basic equation:</span>
+
+<span class="sd">      :math:`Q = QV`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.qv = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.pass_q_v1()</span>
+<span class="sd">        &gt;&gt;&gt; outlets.q</span>
+<span class="sd">        q(2.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_fluxes</span><span class="o">.</span><span class="n">QV</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">gland_outlets</span><span class="o">.</span><span class="n">Q</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">qv</span></div>
+
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|gland.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s2">&quot;G&quot;</span><span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Calc_E_V1</span><span class="p">,)</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Calc_EI_V1</span><span class="p">,</span>
+        <span class="n">Calc_PN_V1</span><span class="p">,</span>
+        <span class="n">Calc_EN_V1</span><span class="p">,</span>
+        <span class="n">Update_I_V1</span><span class="p">,</span>
+        <span class="n">Calc_PS_V1</span><span class="p">,</span>
+        <span class="n">Calc_ES_V1</span><span class="p">,</span>
+        <span class="n">Update_S_V1</span><span class="p">,</span>
+        <span class="n">Calc_Perc_V1</span><span class="p">,</span>
+        <span class="n">Update_S_V2</span><span class="p">,</span>
+        <span class="n">Calc_AE_V1</span><span class="p">,</span>
+        <span class="n">Calc_Pr_V1</span><span class="p">,</span>
+        <span class="n">Calc_PR1_PR9_V1</span><span class="p">,</span>
+        <span class="n">Calc_Q9_V1</span><span class="p">,</span>
+        <span class="n">Calc_Q1_V1</span><span class="p">,</span>
+        <span class="n">Calc_Q10_V1</span><span class="p">,</span>
+        <span class="n">Calc_Q1_Q9_V2</span><span class="p">,</span>
+        <span class="n">Calc_FR_V1</span><span class="p">,</span>
+        <span class="n">Calc_FR_V2</span><span class="p">,</span>
+        <span class="n">Update_R_V1</span><span class="p">,</span>
+        <span class="n">Update_R_V3</span><span class="p">,</span>
+        <span class="n">Update_R_V2</span><span class="p">,</span>
+        <span class="n">Calc_QR_V1</span><span class="p">,</span>
+        <span class="n">Update_R_V3</span><span class="p">,</span>
+        <span class="n">Calc_FR2_V1</span><span class="p">,</span>
+        <span class="n">Update_R2_V1</span><span class="p">,</span>
+        <span class="n">Calc_QR2_R2_V1</span><span class="p">,</span>
+        <span class="n">Update_R_V2</span><span class="p">,</span>
+        <span class="n">Calc_FD_V1</span><span class="p">,</span>
+        <span class="n">Calc_QD_V1</span><span class="p">,</span>
+        <span class="n">Calc_QH_V1</span><span class="p">,</span>
+        <span class="n">Calc_QH_V2</span><span class="p">,</span>
+        <span class="n">Calc_QV_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Calc_E_PETModel_V1</span><span class="p">,</span> <span class="n">Calc_Q_RConcModel_V1</span><span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Pass_Q_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">(</span><span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">,</span> <span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">)</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="n">petmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span><span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">)</span>
+    <span class="n">petmodel_is_mainmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelIsMainmodelProperty</span><span class="p">()</span>
+    <span class="n">petmodel_typeid</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelTypeIDProperty</span><span class="p">()</span>
+
+    <span class="n">rconcmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span><span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">)</span>
+    <span class="n">rconcmodel_is_mainmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelIsMainmodelProperty</span><span class="p">()</span>
+    <span class="n">rconcmodel_typeid</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelTypeIDProperty</span><span class="p">()</span>
+
+    <span class="n">rconcmodel_directflow</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span><span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">)</span>
+    <span class="n">rconcmodel_directflow_is_mainmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelIsMainmodelProperty</span><span class="p">()</span>
+    <span class="n">rconcmodel_directflow_typeid</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelTypeIDProperty</span><span class="p">()</span>
+
+    <span class="n">rconcmodel_routingstore</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span><span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">)</span>
+    <span class="n">rconcmodel_routingstore_is_mainmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelIsMainmodelProperty</span><span class="p">()</span>
+    <span class="n">rconcmodel_routingstore_typeid</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelTypeIDProperty</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Main_PETModel_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Main_PETModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Main_PETModel_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for |gland.DOCNAME.long| models that use submodels that comply with</span>
+<span class="sd">    the |PETModel_V1| interface.&quot;&quot;&quot;</span>
+
+    <span class="n">petmodel</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span>
+    <span class="n">petmodel_is_mainmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelIsMainmodelProperty</span><span class="p">()</span>
+    <span class="n">petmodel_typeid</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelTypeIDProperty</span><span class="p">()</span>
+
+    <span class="nd">@importtools</span><span class="o">.</span><span class="n">prepare_submodel</span><span class="p">(</span>
+        <span class="s2">&quot;petmodel&quot;</span><span class="p">,</span>
+        <span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">,</span>
+        <span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="o">.</span><span class="n">prepare_nmbzones</span><span class="p">,</span>
+        <span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="o">.</span><span class="n">prepare_subareas</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_petmodel_v1</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">petmodel</span><span class="p">:</span> <span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">,</span>
+        <span class="o">/</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">refresh</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>  <span class="c1"># pylint: disable=unused-argument</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the given `petmodel` that follows the |PETModel_V1| interface.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland_gr4 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; area(5.0)</span>
+<span class="sd">        &gt;&gt;&gt; with model.add_petmodel_v1(&quot;evap_ret_tw2002&quot;):</span>
+<span class="sd">        ...     nmbhru</span>
+<span class="sd">        ...     hruarea</span>
+<span class="sd">        ...     evapotranspirationfactor(1.5)</span>
+<span class="sd">        nmbhru(1)</span>
+<span class="sd">        hruarea(5.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; etf = model.petmodel.parameters.control.evapotranspirationfactor</span>
+<span class="sd">        &gt;&gt;&gt; etf</span>
+<span class="sd">        evapotranspirationfactor(1.5)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span>
+        <span class="n">petmodel</span><span class="o">.</span><span class="n">prepare_nmbzones</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">petmodel</span><span class="o">.</span><span class="n">prepare_subareas</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">area</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Main_RConcModel_V1">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Main_RConcModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Main_RConcModel_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for |gland.DOCNAME.long| models that use a single submodel that</span>
+<span class="sd">    complies with the |RConcModel_V1| interface.&quot;&quot;&quot;</span>
+
+    <span class="n">rconcmodel</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span>
+    <span class="n">rconcmodel_is_mainmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelIsMainmodelProperty</span><span class="p">()</span>
+    <span class="n">rconcmodel_typeid</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelTypeIDProperty</span><span class="p">()</span>
+
+    <span class="nd">@importtools</span><span class="o">.</span><span class="n">prepare_submodel</span><span class="p">(</span><span class="s2">&quot;rconcmodel&quot;</span><span class="p">,</span> <span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_rconcmodel_v1</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">rconcmodel</span><span class="p">:</span> <span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">refresh</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the given submodel that follows the |RConcModel_V1| interface and</span>
+<span class="sd">        is responsible for calculating runoff concentration.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland_gr5 import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; with model.add_rconcmodel_v1(&quot;rconc_uh&quot;):</span>
+<span class="sd">        ...     uh(&quot;gr_uh2&quot;, x4=3.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.rconcmodel.parameters.control.uh</span>
+<span class="sd">        uh(&quot;gr_uh2&quot;, x4=3.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_rconcmodel_waterbalance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">initial_conditions</span><span class="p">:</span> <span class="n">ConditionsModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the water balance of the single runoff concentration submodel if</span>
+<span class="sd">        used.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rconcmodel</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rconcmodel</span><span class="o">.</span><span class="n">get_waterbalance</span><span class="p">(</span>
+                <span class="n">initial_conditions</span><span class="p">[</span><span class="s2">&quot;model.rconcmodel&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="Main_RConcModel_V2">
+<a class="viewcode-back" href="../../../../gland.html#hydpy.models.gland.gland_model.Main_RConcModel_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Main_RConcModel_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for |gland.DOCNAME.long| models that use two submodels that comply</span>
+<span class="sd">    with the |RConcModel_V1| interface.&quot;&quot;&quot;</span>
+
+    <span class="n">rconcmodel_routingstore</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span>
+    <span class="n">rconcmodel_routingstore_is_mainmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelIsMainmodelProperty</span><span class="p">()</span>
+    <span class="n">rconcmodel_routingstore_typeid</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelTypeIDProperty</span><span class="p">()</span>
+
+    <span class="n">rconcmodel_directflow</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span>
+    <span class="n">rconcmodel_directflow_is_mainmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelIsMainmodelProperty</span><span class="p">()</span>
+    <span class="n">rconcmodel_directflow_typeid</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelTypeIDProperty</span><span class="p">()</span>
+
+    <span class="nd">@importtools</span><span class="o">.</span><span class="n">prepare_submodel</span><span class="p">(</span>
+        <span class="s2">&quot;rconcmodel_routingstore&quot;</span><span class="p">,</span> <span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span>
+    <span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_rconcmodel_routingstore_v1</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">rconcmodel</span><span class="p">:</span> <span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">refresh</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the given submodel that follows the |RConcModel_V1| interface and</span>
+<span class="sd">        is responsible for calculating the runoff concentration related to the routing</span>
+<span class="sd">        store.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland_gr4 import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; with model.add_rconcmodel_routingstore_v1(&quot;rconc_uh&quot;):</span>
+<span class="sd">        ...     uh(&quot;gr_uh1&quot;, x4=2.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.rconcmodel_routingstore.parameters.control.uh</span>
+<span class="sd">        uh(&quot;gr_uh1&quot;, x4=2.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="nd">@importtools</span><span class="o">.</span><span class="n">prepare_submodel</span><span class="p">(</span>
+        <span class="s2">&quot;rconcmodel_directflow&quot;</span><span class="p">,</span> <span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span>
+    <span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_rconcmodel_directflow_v1</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">rconcmodel</span><span class="p">:</span> <span class="n">rconcinterfaces</span><span class="o">.</span><span class="n">RConcModel_V1</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">refresh</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise the given submodel that follows the |RConcModel_V1| interface and</span>
+<span class="sd">        is responsible for calculating the runoff concentration related to the direct</span>
+<span class="sd">        runoff.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.gland_gr4 import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; with model.add_rconcmodel_directflow_v1(&quot;rconc_uh&quot;):</span>
+<span class="sd">        ...     uh(&quot;gr_uh2&quot;, x4=3.0)</span>
+<span class="sd">        &gt;&gt;&gt; model.rconcmodel_directflow.parameters.control.uh</span>
+<span class="sd">        uh(&quot;gr_uh2&quot;, x4=3.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_rconcmodel_waterbalance_routingstore</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">initial_conditions</span><span class="p">:</span> <span class="n">ConditionsModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Get the water balance of the routing store runoff concentration submodel if</span>
+<span class="sd">        used.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rconcmodel_routingstore</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rconcmodel_routingstore</span><span class="o">.</span><span class="n">get_waterbalance</span><span class="p">(</span>
+                <span class="n">initial_conditions</span><span class="p">[</span><span class="s2">&quot;model.rconcmodel_routingstore&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_rconcmodel_waterbalance_directflow</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">initial_conditions</span><span class="p">:</span> <span class="n">ConditionsModel</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Get the water balance of the direct flow runoff concentration submodel if</span>
+<span class="sd">        used.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rconcmodel_directflow</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rconcmodel_directflow</span><span class="o">.</span><span class="n">get_waterbalance</span><span class="p">(</span>
+                <span class="n">initial_conditions</span><span class="p">[</span><span class="s2">&quot;model.rconcmodel_directflow&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="mf">0.0</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.gland.gland_model</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

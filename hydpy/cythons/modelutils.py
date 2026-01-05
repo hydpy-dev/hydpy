@@ -1595,6 +1595,8 @@ class PyxWriter:
                 pyx(2, "self.new2old()")
         if self.model.OUTLET_METHODS or self.has_submodels:
             pyx(2, "self.update_outlets()")
+        if self.model.SENDER_METHODS or self.has_submodels:
+            pyx(2, "self.update_senders()")
         if seqs.factors or seqs.fluxes or seqs.states:
             pyx(2, "self.update_outputs()")
 
@@ -1606,7 +1608,6 @@ class PyxWriter:
         pyx(2, "with nogil:")
         pyx(3, "for i in range(i0, i1):")
         pyx(4, "self.simulate(i)")
-        pyx(4, "self.update_senders(i)")
         pyx(4, "self.update_receivers(i)")
         pyx(4, "self.save_data(i)")
 
@@ -1919,14 +1920,14 @@ class PyxWriter:
 
     def update_outlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._update_outlets_senders(lines=lines, group="outlets", idx_as_arg=False)
+        self._update_outlets_senders(lines=lines, group="outlets")
 
     def update_senders(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._update_outlets_senders(lines=lines, group="senders", idx_as_arg=True)
+        self._update_outlets_senders(lines=lines, group="senders")
 
     def _update_outlets_senders(
-        self, lines: PyxPxdLines, group: str, idx_as_arg: bool
+        self, lines: PyxPxdLines, group: Literal["outlets", "senders"]
     ) -> None:
 
         new_lines = PyxPxdLines()
@@ -1936,19 +1937,18 @@ class PyxWriter:
             lines=new_lines,
             name=f"update_{group}",
             methods=methods,
-            idx_as_arg=idx_as_arg,
+            idx_as_arg=False,
             inline=False,
         )
 
         lines.pxd.append(new_lines.pxd[0])
-        lines.pyx.extend(new_lines.pyx[: 1 + idx_as_arg])
+        lines.pyx.extend(new_lines.pyx[:1])
         if new_lines.pyx[-1].endswith(" pass") and self.has_submodels:
             del new_lines.pyx[-1]
 
-        methodcall = f"update_{group}({'idx' if idx_as_arg else ''})"
-        self._call_submodel_method(lines=lines, methodcall=methodcall)
+        self._call_submodel_method(lines=lines, methodcall=f"update_{group}()")
 
-        lines.pyx.extend(new_lines.pyx[1 + idx_as_arg :])
+        lines.pyx.extend(new_lines.pyx[1:])
 
         pyx = lines.pyx.add
         pyx(2, f"cdef {INT} i")

@@ -2509,7 +2509,6 @@ the available directories (calib_1 and calib_2).
         """
         for i in range(i0, i1):
             self.simulate(i)
-            self.update_senders(i)
             self.update_receivers(i)
             self.save_data(i)
 
@@ -2637,16 +2636,15 @@ the available directories (calib_1 and calib_2).
         for method in self.RECEIVER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
-    def update_senders(self, idx: int) -> None:
+    def update_senders(self) -> None:
         """Call all methods defined as "SENDER_METHODS" in the defined order and then
         update all sender nodes.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
-        self.idx_sim = idx
         for submodel in self.find_submodels(include_subsubmodels=False).values():
-            submodel.update_senders(idx)
+            submodel.update_senders()
         for method in self.SENDER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
         self._update_pointers_out(self.sequences.senders)
@@ -3346,8 +3344,8 @@ class RunModel(Model):
         You can integrate method |Model.simulate| into your workflows for tailor-made
         simulation runs.  Method |Model.simulate| is complete enough to allow for
         consecutive calls.  However, note that it does neither call |Model.save_data|,
-        |Model.update_receivers|, nor |Model.update_senders|.  Also, as done in the
-        following example, one would have to reset the related node sequences:
+        nor |Model.update_receivers|.  Also, as done in the following example, one
+        would have to reset the related node sequences:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -3391,6 +3389,7 @@ class RunModel(Model):
         self.run()
         self.new2old()
         self.update_outlets()
+        self.update_senders()
         self.update_outputs()
 
 
@@ -3686,6 +3685,7 @@ class ELSModel(SolverModel):
         self.update_observers()
         self.solve()
         self.update_outlets()
+        self.update_senders()
         self.update_outputs()
 
     def solve(self) -> bool:
@@ -4716,6 +4716,7 @@ class ELSIEModel(ELSModel):
             self.apply_implicit_euler_fallback()
             self.new2old()
         self.update_outlets()
+        self.update_senders()
         self.update_outputs()
 
     def apply_implicit_euler_fallback(self) -> None:

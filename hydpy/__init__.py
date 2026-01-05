@@ -120,7 +120,7 @@ from hydpy.exe.servertools import await_server, start_server
 from hydpy.exe.xmltools import XMLInterface, run_simulation, xml_validate
 
 
-__version__ = "6.2dev6"
+__version__ = "6.3dev0"
 
 pub.options = optiontools.Options()
 pub.indexer = indextools.Indexer()

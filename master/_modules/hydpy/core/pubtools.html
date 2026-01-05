@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.pubtools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.pubtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.pubtools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module provides features for handling public (global) project data.&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hydpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">filetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">indextools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">optiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">propertytools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">selectiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">timetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.cythons</span><span class="w"> </span><span class="kn">import</span> <span class="n">configutils</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_PubProperty</span><span class="p">(</span><span class="n">propertytools</span><span class="o">.</span><span class="n">DefaultProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fget</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Attribute </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> of module `pub` is not defined at the moment.&quot;</span>
+        <span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_ProjectnameProperty</span><span class="p">(</span><span class="n">_PubProperty</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The name of the current project and the project&#39;s root directory.</span>
+
+<span class="sd">    One can manually set |Pub.projectname|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import create_projectstructure, HydPy, pub, TestIO</span>
+<span class="sd">    &gt;&gt;&gt; pub.projectname = &quot;project_A&quot;</span>
+
+<span class="sd">    However, the usual way is to pass the project name to the constructor of class</span>
+<span class="sd">    |HydPy|, which automatically sets |Pub.projectname|:</span>
+
+<span class="sd">    &gt;&gt;&gt; hp = HydPy(&quot;project_B&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; pub.projectname</span>
+<span class="sd">    &#39;project_B&#39;</span>
+
+<span class="sd">    Changing |Pub.projectname| lets all file managers handled by the |pub| module</span>
+<span class="sd">    forget their eventually previously memorised but now outdated working directories:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO(clear_all=True), pub.options.printprogress(True):</span>
+<span class="sd">    ...     create_projectstructure(&quot;project_B&quot;)</span>
+<span class="sd">    ...     for idx, filemanager in enumerate(pub.filemanagers):</span>
+<span class="sd">    ...         filemanager.currentdir = f&quot;dir_{idx}&quot;  # doctest: +ELLIPSIS</span>
+<span class="sd">    Directory ...project_B...dir_0 has been created.</span>
+<span class="sd">    Directory ...project_B...dir_1 has been created.</span>
+<span class="sd">    Directory ...project_B...dir_2 has been created.</span>
+<span class="sd">    Directory ...project_B...dir_3 has been created.</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.projectname = &quot;project_C&quot;</span>
+<span class="sd">    &gt;&gt;&gt; import os</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO(clear_all=True), pub.options.printprogress(True):</span>
+<span class="sd">    ...     create_projectstructure(&quot;project_C&quot;)</span>
+<span class="sd">    ...     os.makedirs(&quot;project_C/conditions/test&quot;)</span>
+<span class="sd">    ...     for filemanager in pub.filemanagers:</span>
+<span class="sd">    ...         _ = filemanager.currentdir  # doctest: +ELLIPSIS</span>
+<span class="sd">    The name of the network manager&#39;s current working directory has not been \</span>
+<span class="sd">previously defined and is hence set to `default`.</span>
+<span class="sd">    Directory ...project_C...default has been created.</span>
+<span class="sd">    The name of the control manager&#39;s current working directory has not been \</span>
+<span class="sd">previously defined and is hence set to `default`.</span>
+<span class="sd">    Directory ...project_C...default has been created.</span>
+<span class="sd">    The name of the condition manager&#39;s current working directory has not been \</span>
+<span class="sd">previously defined and is hence set to `test`.</span>
+<span class="sd">    The name of the sequence manager&#39;s current working directory has not been \</span>
+<span class="sd">previously defined and is hence set to `default`.</span>
+<span class="sd">    Directory ...project_C...default has been created.</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">filemanager</span> <span class="ow">in</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">filemanagers</span><span class="p">:</span>
+                <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">call_fset</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="TimegridsProperty">
+<a class="viewcode-back" href="../../../pubtools.html#hydpy.core.pubtools.TimegridsProperty">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimegridsProperty</span><span class="p">(</span>
+    <span class="n">_PubProperty</span><span class="p">[</span>
+        <span class="p">(</span>
+            <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrids</span>
+            <span class="o">|</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrid</span>
+            <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span>
+                <span class="n">timetools</span><span class="o">.</span><span class="n">DateConstrArg</span><span class="p">,</span>
+                <span class="n">timetools</span><span class="o">.</span><span class="n">DateConstrArg</span><span class="p">,</span>
+                <span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrids</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|DefaultProperty| specialised for |Timegrids| objects.</span>
+
+<span class="sd">    For convenience, property |TimegridsProperty| can create a |Timegrids| object from</span>
+<span class="sd">    a combination of a first and last date (of type |str| or |Date|) and a step size</span>
+<span class="sd">    (of type |str| or |Period|):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub, Timegrid, Timegrids</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2010-01-01&quot;, &quot;1d&quot;</span>
+
+<span class="sd">    The given date and period information applies for the |Timegrids.init|, the</span>
+<span class="sd">    |Timegrids.sim|, and the |Timegrids.eval_| attribute:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.timegrids.init</span>
+<span class="sd">    Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="sd">             &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="sd">             &quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids.sim</span>
+<span class="sd">    Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="sd">             &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="sd">             &quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids.eval_</span>
+<span class="sd">    Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="sd">             &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="sd">             &quot;1d&quot;)</span>
+
+<span class="sd">    Alternatively, you can assign a ready |Timegrids| object directly:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = Timegrids(Timegrid(&quot;2000-01-01&quot;, &quot;2010-01-01&quot;, &quot;1d&quot;),</span>
+<span class="sd">    ...                           Timegrid(&quot;2000-01-01&quot;, &quot;2001-01-01&quot;, &quot;1d&quot;))</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids</span>
+<span class="sd">    Timegrids(init=Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="sd">                            &quot;2010-01-01 00:00:00&quot;,</span>
+<span class="sd">                            &quot;1d&quot;),</span>
+<span class="sd">              sim=Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="sd">                           &quot;2001-01-01 00:00:00&quot;,</span>
+<span class="sd">                           &quot;1d&quot;),</span>
+<span class="sd">              eval_=Timegrid(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="sd">                             &quot;2001-01-01 00:00:00&quot;,</span>
+<span class="sd">                             &quot;1d&quot;))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TimegridsProperty.call_fset">
+<a class="viewcode-back" href="../../../pubtools.html#hydpy.core.pubtools.TimegridsProperty.call_fset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fset</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrids</span>
+            <span class="o">|</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrid</span>
+            <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span>
+                <span class="n">timetools</span><span class="o">.</span><span class="n">DateConstrArg</span><span class="p">,</span>
+                <span class="n">timetools</span><span class="o">.</span><span class="n">DateConstrArg</span><span class="p">,</span>
+                <span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Try to convert the given input value(s).&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">timegrids</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrids</span><span class="p">(</span><span class="o">*</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">timegrids</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Timegrids</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="c1"># this will most likely fail, we just want to reuse</span>
+            <span class="c1"># the standard error message</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">call_fset</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">timegrids</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Pub">
+<a class="viewcode-back" href="../../../pubtools.html#hydpy.core.pubtools.Pub">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Pub</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class of the singleton module instance |pub|.</span>
+
+<span class="sd">    You can import |pub| like &quot;normal&quot; modules:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+
+<span class="sd">    However, if you try to access unprepared attributes, |Pub| returns the following</span>
+<span class="sd">    error message:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.timegrids</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: Attribute timegrids of module `pub` \</span>
+<span class="sd">is not defined at the moment.</span>
+
+<span class="sd">    After setting an attribute value successfully, it is accessible (we select the</span>
+<span class="sd">    `timegrids` attribute here, as its setter supplies a little magic to make defining</span>
+<span class="sd">    new |Timegrids| objects more convenient:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = None</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to define a new `Timegrids` object based on the \</span>
+<span class="sd">arguments `None`, the following error occurred: Initialising a `Timegrids` object \</span>
+<span class="sd">either requires one, two, or three `Timegrid` objects or two dates objects (of type \</span>
+<span class="sd">`Date`, `datetime`, or `str`) and one period object (of type `Period`, `timedelta`, \</span>
+<span class="sd">or `str`), but objects of the types `None, None, and None` are given.</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2001-01-01&quot;, &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids</span>
+<span class="sd">    Timegrids(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="sd">              &quot;2001-01-01 00:00:00&quot;,</span>
+<span class="sd">              &quot;1d&quot;)</span>
+
+<span class="sd">    After deleting it, the attribute is no longer accessible:</span>
+
+<span class="sd">    &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: Attribute timegrids of module `pub` \</span>
+<span class="sd">is not defined at the moment.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">options</span><span class="p">:</span> <span class="n">optiontools</span><span class="o">.</span><span class="n">Options</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">configutils</span><span class="o">.</span><span class="n">Config</span>
+    <span class="n">scriptfunctions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span>
+
+    <span class="n">projectname</span> <span class="o">=</span> <span class="n">_ProjectnameProperty</span><span class="p">()</span>
+    <span class="n">indexer</span> <span class="o">=</span> <span class="n">_PubProperty</span><span class="p">[</span><span class="n">indextools</span><span class="o">.</span><span class="n">Indexer</span><span class="p">,</span> <span class="n">indextools</span><span class="o">.</span><span class="n">Indexer</span><span class="p">]()</span>
+    <span class="n">networkmanager</span> <span class="o">=</span> <span class="n">_PubProperty</span><span class="p">[</span><span class="n">filetools</span><span class="o">.</span><span class="n">NetworkManager</span><span class="p">,</span> <span class="n">filetools</span><span class="o">.</span><span class="n">NetworkManager</span><span class="p">]()</span>
+    <span class="n">controlmanager</span> <span class="o">=</span> <span class="n">_PubProperty</span><span class="p">[</span><span class="n">filetools</span><span class="o">.</span><span class="n">ControlManager</span><span class="p">,</span> <span class="n">filetools</span><span class="o">.</span><span class="n">ControlManager</span><span class="p">]()</span>
+    <span class="n">conditionmanager</span> <span class="o">=</span> <span class="n">_PubProperty</span><span class="p">[</span>
+        <span class="n">filetools</span><span class="o">.</span><span class="n">ConditionManager</span><span class="p">,</span> <span class="n">filetools</span><span class="o">.</span><span class="n">ConditionManager</span>
+    <span class="p">]()</span>
+    <span class="n">sequencemanager</span> <span class="o">=</span> <span class="n">_PubProperty</span><span class="p">[</span>
+        <span class="n">filetools</span><span class="o">.</span><span class="n">SequenceManager</span><span class="p">,</span> <span class="n">filetools</span><span class="o">.</span><span class="n">SequenceManager</span>
+    <span class="p">]()</span>
+    <span class="n">timegrids</span> <span class="o">=</span> <span class="n">TimegridsProperty</span><span class="p">()</span>
+    <span class="n">selections</span> <span class="o">=</span> <span class="n">_PubProperty</span><span class="p">[</span><span class="n">selectiontools</span><span class="o">.</span><span class="n">Selections</span><span class="p">,</span> <span class="n">selectiontools</span><span class="o">.</span><span class="n">Selections</span><span class="p">]()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="n">doc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">optiontools</span><span class="o">.</span><span class="n">Options</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scriptfunctions</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">filemanagers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">filetools</span><span class="o">.</span><span class="n">FileManager</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Yield all file managers.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import HydPy, pub</span>
+<span class="sd">        &gt;&gt;&gt; hp = HydPy(&quot;test&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; for filemanager in pub.filemanagers:</span>
+<span class="sd">        ...     type(filemanager).__name__</span>
+<span class="sd">        &#39;NetworkManager&#39;</span>
+<span class="sd">        &#39;ControlManager&#39;</span>
+<span class="sd">        &#39;ConditionManager&#39;</span>
+<span class="sd">        &#39;SequenceManager&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">networkmanager</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">controlmanager</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">conditionmanager</span>
+        <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequencemanager</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.pubtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

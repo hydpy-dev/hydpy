@@ -1,0 +1,278 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>How to read the Reference Manual &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Definitions" href="definitions.html" />
+    <link rel="prev" title="User Guide" href="user_guide.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="definitions.html" title="Definitions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="user_guide.html" title="User Guide"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" accesskey="U">User Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">How to read the Reference Manual</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="user_guide.html">User Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">How to read the Reference Manual</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#integration-tests">Integration Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="definitions.html">Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="project_structure.html">Project structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options.html">Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simulation.html">Simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="user_guide.html"
+                          title="previous chapter">User Guide</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="definitions.html"
+                          title="next chapter">Definitions</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/how_to_read_the_reference_manual.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/how_to_read_the_reference_manual.html">6</a></li>
+<li><a href="../master/how_to_read_the_reference_manual.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="how-to-read-the-reference-manual">
+<span id="id1"></span><h1>How to read the Reference Manual<a class="headerlink" href="#how-to-read-the-reference-manual" title="Link to this heading">¶</a></h1>
+<p>When developing HydPy, we prefer flexibility over simplicity, and when writing the
+<a class="reference internal" href="reference_manual.html#reference-manual"><span class="std std-ref">Reference Manual</span></a>, we prefer transparency over graphicness.  In both cases, we
+follow some software standards not regularly used within the hydrological community.
+Therefore, it may take some time before you profit from the full strengths of HydPy.
+This section offers some guides to ease navigation through the <a class="reference internal" href="reference_manual.html#reference-manual"><span class="std std-ref">Reference Manual</span></a>
+and use its numerous Python code examples to understand the implemented models and
+improve your workflows.</p>
+<section id="integration-tests">
+<span id="id2"></span><h2>Integration Tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<p>Nowdadays, most software developers test their basic source code via other
+source code.  Writing and maintaining this additional code is much work,
+but one can easily automatise its execution.  Hence, one profits from
+this strategy at the latest when a software project becomes too large for
+repeated manual testing.</p>
+<p>However, for reliable automatic testing, one needs to be sure that the
+test code covers the different vital aspects of the code base thoroughly
+enough.  One common strategy is to build two test suites, one including the
+so-called unit tests and the other one the so-called integration tests.
+Unit tests focus on specific software functionalities and often try to
+cover all possible cases.  They lay the ground for software products that
+yield correct results even under rare circumstances.  Integration tests, on the
+other hand, evaluate the interplay of different functionalities.  Due to
+increased complexity, they do not cover all possible cases but strive
+to show that we get correct results for some relevant anticipated situations.
+These “situations” are often workflows describing how we are expecting
+users to work with the software.  Therefore, well-written integration tests
+do not serve for testing only, but can be instructive for new developers
+and sometimes even for users.</p>
+<p>The documentation of <em>HydPy</em> follows the approach to embed all performed
+unit and integration tests.  This very transparent approach allows the user
+to read and quickly repeat the tests, and thereby to learn to use <em>HydPy</em>
+correctly.</p>
+<p>When speaking of integration tests, we often mean tests showing that the
+individual components of a hydrological model are combined correctly, so
+that the model can perform rational calculations.  Like <em>HydPy</em> standardises
+model implementation, it suggests a certain structure for such tests.</p>
+<p>We use the integration test on the application model <a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a> as an
+example.  After some “usual” introductory remarks, we start with the
+<a class="reference internal" href="lland_dd.html#lland-dd-integration-tests"><span class="std std-ref">Integration tests</span></a> section and prepare some general settings.
+As we want our model to perform “real” simulations, we first define a
+simulation period and step size via the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object available in
+module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p>
+<p>Next, we prepare an object of the respective <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> subclass (here,
+<a class="reference internal" href="lland_dd.html#hydpy.models.lland_dd.Model" title="hydpy.models.lland_dd.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> of <a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a>) as well as an <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> and a <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a>
+object.  Through connecting these objects like in “real” projects, we check
+that <a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a> does not only calculate the correct outflow but passes it
+correctly to the downstream node (und thus potentially to other models
+downstream).  For routing models as <a class="reference internal" href="kinw_williams.html#module-hydpy.models.kinw_williams" title="hydpy.models.kinw_williams"><code class="xref py py-mod docutils literal notranslate"><span class="pre">kinw_williams</span></code></a>, we need to define
+additional upstream nodes, to make sure the model also receives its inflow
+correctly.</p>
+<p>Eventually, we define some control parameters relevant for all integration
+test examples.  For <a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a>, we decide to set parameter
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.NHRU" title="hydpy.models.lland.lland_control.NHRU"><code class="xref py py-class docutils literal notranslate"><span class="pre">NHRU</span></code></a> to one to focus only on one land-use type at a time.</p>
+<p>The last general step is to initialise an <a class="reference internal" href="testtools.html#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> object,
+which we use later for executing the individual integration test runs.
+Behind the scenes, our test object prepares an <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> object and uses
+it very similar like we would do in a “real” <em>HydPy</em> project.</p>
+<p>In the first example (<a class="reference internal" href="lland_dd.html#lland-dd-acker-summer"><span class="std std-ref">acre (summer)</span></a>), we decide to test
+<a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a> for the land-use type <a class="reference internal" href="lland.html#hydpy.models.lland.lland_constants.ACKER" title="hydpy.models.lland.lland_constants.ACKER"><code class="xref py py-const docutils literal notranslate"><span class="pre">ACKER</span></code></a> and set the
+land use parameter <a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.Lnk" title="hydpy.models.lland.lland_control.Lnk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Lnk</span></code></a> accordingly.  After that, we
+prepare all remaining control parameters.  We can define the parameter
+values as we would do within the control files of “real” <em>HydPy</em> projects.</p>
+<p>Next, we define the initial conditions.  Principally, we could pass them
+to the relevant state sequences directly, as we would do within the
+condition files of a “real” <em>HydPy</em> project.  But then we need to reset
+them after each integration test example (each simulation run changes the
+model states, and each subsequent run starts with the lastly calculated
+states by default).  To avoid additional resetting work, class
+<a class="reference internal" href="testtools.html#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> offers the <a class="reference internal" href="testtools.html#hydpy.core.testtools.Test.inits" title="hydpy.core.testtools.Test.inits"><code class="xref py py-const docutils literal notranslate"><span class="pre">inits</span></code></a> property.  We pass pairs of
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequence" title="hydpy.core.sequencetools.StateSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code></a> objects and initial values, which our test object memorises.
+Now it will reset each given state to the corresponding initial value
+before each test run.  Note that <a class="reference internal" href="testtools.html#hydpy.core.testtools.Test.inits" title="hydpy.core.testtools.Test.inits"><code class="xref py py-const docutils literal notranslate"><span class="pre">inits</span></code></a> also accepts <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequence" title="hydpy.core.sequencetools.LogSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequence</span></code></a>
+objects (see for example the documentation on application model <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a>,
+in which we define a single value for the unit hydrograph memory sequence
+<a class="reference internal" href="rconc.html#hydpy.models.rconc.rconc_logs.QUH" title="hydpy.models.rconc.rconc_logs.QUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">QUH</span></code></a>).</p>
+<p>Finally, we define all model input series.  <a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a> receives external
+meteorological input only, which we make available via the <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.series" title="hydpy.core.sequencetools.IOSequence.series"><code class="xref py py-const docutils literal notranslate"><span class="pre">series</span></code></a>
+property of the relevant <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequence" title="hydpy.core.sequencetools.InputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequence</span></code></a> objects (here we pass hard-coded
+values to, for example, the precipitation sequence <a class="reference internal" href="lland.html#hydpy.models.lland.lland_inputs.Nied" title="hydpy.models.lland.lland_inputs.Nied"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nied</span></code></a>).
+Routing models as <a class="reference internal" href="kinw_williams.html#module-hydpy.models.kinw_williams" title="hydpy.models.kinw_williams"><code class="xref py py-mod docutils literal notranslate"><span class="pre">kinw_williams</span></code></a> usually do not receive external input
+but inflow from upstream models.  More concretely, they pick data from the
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sim" title="hydpy.core.sequencetools.Sim"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sim</span></code></a> sequence(s) of their inlet <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> object(s) (in the documentation on
+<a class="reference internal" href="kinw_williams.html#module-hydpy.models.kinw_williams" title="hydpy.models.kinw_williams"><code class="xref py py-mod docutils literal notranslate"><span class="pre">kinw_williams</span></code></a>, we calculate a design flood-wave on-the-fly and assign it
+the simulation sequences of two inlet nodes).  In a “real” <em>HydPy</em> project,
+we usually would not provide any time-series data via Python source code
+but use more conventional file formats like NetCDF-CF (see <a class="reference internal" href="netcdftools.html#module-hydpy.core.netcdftools" title="hydpy.core.netcdftools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">netcdftools</span></code></a>).</p>
+<p>After all these preparations, we let our <a class="reference internal" href="testtools.html#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> object execute
+the first test example.  It (re)sets the initial conditions, calls the
+<a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.simulate" title="hydpy.core.hydpytools.HydPy.simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulate()</span></code></a> method and tabulates the original data of all <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequence" title="hydpy.core.sequencetools.InputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequence</span></code></a>
+and upstream <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sim" title="hydpy.core.sequencetools.Sim"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sim</span></code></a> objects as well the result data of all <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a>,
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequence" title="hydpy.core.sequencetools.StateSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code></a>, and downstream <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sim" title="hydpy.core.sequencetools.Sim"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sim</span></code></a> objects for each simulation time step.
+This huge table is hard to read but should suffice to follow each relevant
+aspect of the internal model behaviour.</p>
+<p>Note that the tabulated date also exists hard-coded in the related source
+file for regression testing.  Each time when we or, for example, Travis CI
+(see section <a class="reference internal" href="tests_and_documentation.html#tests-and-documentation"><span class="std std-ref">Tests &amp; documentation</span></a>) execute our test suite,
+Python’s <a class="reference external" href="https://docs.python.org/3/library/doctest.html#module-doctest" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">doctest</span></code></a> features compare the freshly calculated table with the
+hard-coded old table and report if they are not identical.  This sort of
+testing helps users to check if their <em>HydPy</em> installation works as
+documented and prevent developers from accidentally changing model features.</p>
+<p>The tabulated data is comprehensive and partly even redundant.  We only
+neglect the results of <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.AideSequence" title="hydpy.core.sequencetools.AideSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">AideSequence</span></code></a> objects (that usually handle temporary
+information not relevant for the user) and <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequence" title="hydpy.core.sequencetools.LogSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequence</span></code></a> objects (that
+typically provide access to data previously handled by other sequences).
+Redundancy is often due to testing both the “internal” and the “external”
+simulation results.  See for example the tabulated data of the integration
+tests of <a class="reference internal" href="kinw_williams.html#module-hydpy.models.kinw_williams" title="hydpy.models.kinw_williams"><code class="xref py py-mod docutils literal notranslate"><span class="pre">kinw_williams</span></code></a>, where the values of flux sequence
+<a class="reference internal" href="kinw.html#hydpy.models.kinw.kinw_fluxes.QA" title="hydpy.models.kinw.kinw_fluxes.QA"><code class="xref py py-class docutils literal notranslate"><span class="pre">QA</span></code></a> and the outlet node sequence <cite>output</cite> are
+identical. <a class="reference internal" href="kinw_williams.html#module-hydpy.models.kinw_williams" title="hydpy.models.kinw_williams"><code class="xref py py-mod docutils literal notranslate"><span class="pre">kinw_williams</span></code></a> first calculates the outflow values and then
+passes them to the downstream node.  Due to no other models being involved,
+the identity of both series gives us confidence  <a class="reference internal" href="kinw_williams.html#module-hydpy.models.kinw_williams" title="hydpy.models.kinw_williams"><code class="xref py py-mod docutils literal notranslate"><span class="pre">kinw_williams</span></code></a> integrates
+correctly with all relevant <em>HydPy</em> functionalities.</p>
+<p>When passing a filename to our test object (in example
+<a class="reference internal" href="lland_dd.html#lland-dd-acker-summer"><span class="std std-ref">acre (summer)</span></a>: “lland_dd_acker_summer”) it also creates an
+interactive HTML plot, stores it in the <cite>html_</cite> subpackage, and embeds it
+into the documentation.  This mechanism ensures that each graph is always
+in-sync with the considered <em>HydPy</em> version.  The additional arguments
+<cite>axis1</cite> and <cite>axis2</cite> allow modifying the initial plot configuration.</p>
+<p>We then continue the <a class="reference internal" href="lland_dd.html#lland-dd-integration-tests"><span class="std std-ref">Integration tests</span></a> section with example
+<a class="reference internal" href="lland_dd.html#lland-dd-wasser"><span class="std std-ref">water</span></a>, dealing with one of the water types of <a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a>.
+We only need to assign the constant <a class="reference internal" href="lland.html#hydpy.models.lland.lland_constants.WASSER" title="hydpy.models.lland.lland_constants.WASSER"><code class="xref py py-const docutils literal notranslate"><span class="pre">WASSER</span></code></a> to parameter
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.Lnk" title="hydpy.models.lland.lland_control.Lnk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Lnk</span></code></a> and call our test object again to get the next results.</p>
+<p>As mentioned initially, we try to cover the fundamental aspects of each
+model but cannot expect to check everything.  So reading all of its
+integration tests is a good starting point to understand a model.  After
+that, you can perform alternative experiments yourself.  If you find your
+analysis adds add valuable information to the existing test suite or even
+reveals a shortcoming of the model, please do not hesitate to provide it
+to us (see section <a class="reference internal" href="version_control.html#version-control"><span class="std std-ref">Version control</span></a>).</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="definitions.html" title="Definitions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="user_guide.html" title="User Guide"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" >User Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">How to read the Reference Manual</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

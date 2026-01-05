@@ -1,0 +1,1447 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>rconc &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"chtml": {"displayAlign": "left"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="rconc_uh" href="rconc_uh.html" />
+    <link rel="prev" title="HydPy-Rconc" href="HydPy-Rconc.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rconc_uh.html" title="rconc_uh"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Rconc.html" title="HydPy-Rconc"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Rconc.html" accesskey="U">HydPy-Rconc</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">rconc</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">rconc</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#method-features">Method Features</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V1"><code class="docutils literal notranslate"><span class="pre">Determine_Outflow_V1</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Set_Inflow_V1"><code class="docutils literal notranslate"><span class="pre">Set_Inflow_V1</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Get_Outflow_V1"><code class="docutils literal notranslate"><span class="pre">Get_Outflow_V1</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Sub_RConcModel"><code class="docutils literal notranslate"><span class="pre">Sub_RConcModel</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Sub_RConcModel.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Sub_RConcModel.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#parameter-features">Parameter Features</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#control-parameters">Control parameters</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH"><code class="docutils literal notranslate"><span class="pre">UH</span></code></a><ul>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH.NDIM"><code class="docutils literal notranslate"><span class="pre">UH.NDIM</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH.TYPE"><code class="docutils literal notranslate"><span class="pre">UH.TYPE</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH.TIME"><code class="docutils literal notranslate"><span class="pre">UH.TIME</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH.SPAN"><code class="docutils literal notranslate"><span class="pre">UH.SPAN</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH.strict_valuehandling"><code class="docutils literal notranslate"><span class="pre">UH.strict_valuehandling</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH.KEYWORDS"><code class="docutils literal notranslate"><span class="pre">UH.KEYWORDS</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH.set_gr_uh1"><code class="docutils literal notranslate"><span class="pre">UH.set_gr_uh1()</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH.set_gr_uh2"><code class="docutils literal notranslate"><span class="pre">UH.set_gr_uh2()</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH.name"><code class="docutils literal notranslate"><span class="pre">UH.name</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH.unit"><code class="docutils literal notranslate"><span class="pre">UH.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.RetentionTime"><code class="docutils literal notranslate"><span class="pre">RetentionTime</span></code></a><ul>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.RetentionTime.NDIM"><code class="docutils literal notranslate"><span class="pre">RetentionTime.NDIM</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.RetentionTime.TYPE"><code class="docutils literal notranslate"><span class="pre">RetentionTime.TYPE</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.RetentionTime.TIME"><code class="docutils literal notranslate"><span class="pre">RetentionTime.TIME</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.RetentionTime.SPAN"><code class="docutils literal notranslate"><span class="pre">RetentionTime.SPAN</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.RetentionTime.name"><code class="docutils literal notranslate"><span class="pre">RetentionTime.name</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.RetentionTime.unit"><code class="docutils literal notranslate"><span class="pre">RetentionTime.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages"><code class="docutils literal notranslate"><span class="pre">NmbStorages</span></code></a><ul>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages.NDIM"><code class="docutils literal notranslate"><span class="pre">NmbStorages.NDIM</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages.TYPE"><code class="docutils literal notranslate"><span class="pre">NmbStorages.TYPE</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages.TIME"><code class="docutils literal notranslate"><span class="pre">NmbStorages.TIME</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages.SPAN"><code class="docutils literal notranslate"><span class="pre">NmbStorages.SPAN</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages.name"><code class="docutils literal notranslate"><span class="pre">NmbStorages.name</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages.unit"><code class="docutils literal notranslate"><span class="pre">NmbStorages.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps"><code class="docutils literal notranslate"><span class="pre">NmbSteps</span></code></a><ul>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps.NDIM"><code class="docutils literal notranslate"><span class="pre">NmbSteps.NDIM</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps.TYPE"><code class="docutils literal notranslate"><span class="pre">NmbSteps.TYPE</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps.TIME"><code class="docutils literal notranslate"><span class="pre">NmbSteps.TIME</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps.name"><code class="docutils literal notranslate"><span class="pre">NmbSteps.name</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps.unit"><code class="docutils literal notranslate"><span class="pre">NmbSteps.unit</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps.SPAN"><code class="docutils literal notranslate"><span class="pre">NmbSteps.SPAN</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps.INIT"><code class="docutils literal notranslate"><span class="pre">NmbSteps.INIT</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#derived-parameters">Derived parameters</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC"><code class="docutils literal notranslate"><span class="pre">KSC</span></code></a><ul>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC.NDIM"><code class="docutils literal notranslate"><span class="pre">KSC.NDIM</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC.TYPE"><code class="docutils literal notranslate"><span class="pre">KSC.TYPE</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC.TIME"><code class="docutils literal notranslate"><span class="pre">KSC.TIME</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC.SPAN"><code class="docutils literal notranslate"><span class="pre">KSC.SPAN</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC.update"><code class="docutils literal notranslate"><span class="pre">KSC.update()</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC.name"><code class="docutils literal notranslate"><span class="pre">KSC.name</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC.unit"><code class="docutils literal notranslate"><span class="pre">KSC.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT"><code class="docutils literal notranslate"><span class="pre">DT</span></code></a><ul>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT.NDIM"><code class="docutils literal notranslate"><span class="pre">DT.NDIM</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT.TYPE"><code class="docutils literal notranslate"><span class="pre">DT.TYPE</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT.TIME"><code class="docutils literal notranslate"><span class="pre">DT.TIME</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT.SPAN"><code class="docutils literal notranslate"><span class="pre">DT.SPAN</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT.update"><code class="docutils literal notranslate"><span class="pre">DT.update()</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT.name"><code class="docutils literal notranslate"><span class="pre">DT.name</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT.unit"><code class="docutils literal notranslate"><span class="pre">DT.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#sequence-features">Sequence Features</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#flux-sequences">Flux sequences</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Inflow"><code class="docutils literal notranslate"><span class="pre">Inflow</span></code></a><ul>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Inflow.NDIM"><code class="docutils literal notranslate"><span class="pre">Inflow.NDIM</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Inflow.NUMERIC"><code class="docutils literal notranslate"><span class="pre">Inflow.NUMERIC</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Inflow.name"><code class="docutils literal notranslate"><span class="pre">Inflow.name</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Inflow.unit"><code class="docutils literal notranslate"><span class="pre">Inflow.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Outflow"><code class="docutils literal notranslate"><span class="pre">Outflow</span></code></a><ul>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Outflow.NDIM"><code class="docutils literal notranslate"><span class="pre">Outflow.NDIM</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Outflow.NUMERIC"><code class="docutils literal notranslate"><span class="pre">Outflow.NUMERIC</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Outflow.name"><code class="docutils literal notranslate"><span class="pre">Outflow.name</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Outflow.unit"><code class="docutils literal notranslate"><span class="pre">Outflow.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#state-sequences">State sequences</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_states.SC"><code class="docutils literal notranslate"><span class="pre">SC</span></code></a><ul>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_states.SC.NDIM"><code class="docutils literal notranslate"><span class="pre">SC.NDIM</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_states.SC.NUMERIC"><code class="docutils literal notranslate"><span class="pre">SC.NUMERIC</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_states.SC.SPAN"><code class="docutils literal notranslate"><span class="pre">SC.SPAN</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_states.SC.name"><code class="docutils literal notranslate"><span class="pre">SC.name</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_states.SC.unit"><code class="docutils literal notranslate"><span class="pre">SC.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l6"><a class="reference internal" href="#log-sequences">Log sequences</a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH"><code class="docutils literal notranslate"><span class="pre">QUH</span></code></a><ul>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH.NDIM"><code class="docutils literal notranslate"><span class="pre">QUH.NDIM</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH.NUMERIC"><code class="docutils literal notranslate"><span class="pre">QUH.NUMERIC</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH.SPAN"><code class="docutils literal notranslate"><span class="pre">QUH.SPAN</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH.refweights"><code class="docutils literal notranslate"><span class="pre">QUH.refweights</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH.name"><code class="docutils literal notranslate"><span class="pre">QUH.name</span></code></a></li>
+<li class="toctree-l8"><a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH.unit"><code class="docutils literal notranslate"><span class="pre">QUH.unit</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.rconc.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.rconc.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.rconc.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.rconc.LogSequences"><code class="docutils literal notranslate"><span class="pre">LogSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.rconc.StateSequences"><code class="docutils literal notranslate"><span class="pre">StateSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="rconc_uh.html">rconc_uh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rconc_nash.html">rconc_nash</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="HydPy-Rconc.html"
+                          title="previous chapter">HydPy-Rconc</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rconc_uh.html"
+                          title="next chapter">rconc_uh</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/rconc.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/rconc.html">6</a></li>
+<li><a href="../master/rconc.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="rconc">
+<span id="id1"></span><h1>HydPy-Rconc (base model)<a class="headerlink" href="#rconc" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.rconc">The HydPy-Rconc model family supplies features for calculating runoff
+concentration.</p>
+<section id="method-features">
+<h2>Method Features<a class="headerlink" href="#method-features" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_model.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_model.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_model.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdHocModel</span></code></a></p>
+<p>HydPy-Rconc (base model).</p>
+<dl class="simple">
+<dt>The following interface methods are available to main models using the defined model as a submodel:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Set_Inflow_V1" title="hydpy.models.rconc.rconc_model.Set_Inflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set_Inflow_V1</span></code></a> Set the runoff concentration input in mm/T.</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V1" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V1</span></code></a> Calculate the unit hydrograph output (convolution).</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a> Calculate the linear storage cascade output (state-space approach).</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Get_Outflow_V1" title="hydpy.models.rconc.rconc_model.Get_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_Outflow_V1</span></code></a> Get the previously calculated runoff concentration output in mm/T.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_model.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Rconc',</span> <span class="pre">'base</span> <span class="pre">model')</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_model.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_model.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_model.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_model.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_model.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.rconc.rconc_model">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_model.Determine_Outflow_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_model.</span></span><span class="sig-name descname"><span class="pre">Determine_Outflow_V1</span></span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_model.html#Determine_Outflow_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Calculate the unit hydrograph output (convolution).</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Requires the control parameter:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH" title="hydpy.models.rconc.rconc_control.UH"><code class="xref py py-class docutils literal notranslate"><span class="pre">UH</span></code></a></p>
+</dd>
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Inflow" title="hydpy.models.rconc.rconc_fluxes.Inflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inflow</span></code></a></p>
+</dd>
+<dt>Updates the log sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH" title="hydpy.models.rconc.rconc_logs.QUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">QUH</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Outflow" title="hydpy.models.rconc.rconc_fluxes.Outflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">Outflow</span></code></a></p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Examples:</p>
+<blockquote>
+<div><p>Prepare a unit hydrograph with only three ordinates representing a fast
+catchment response compared to the selected simulation step size:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;12h&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">control</span><span class="o">.</span><span class="n">uh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">control</span><span class="o">.</span><span class="n">uh</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<p>Without new input, the actual output is simply the first value stored in the
+logging sequence and the values of the logging sequence shift to the left:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">determine_outflow_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="go">outflow(1.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span>
+<span class="go">quh(3.0, 0.0, 0.0)</span>
+</pre></div>
+</div>
+<p>With a new input of 4 mm, the actual output consists of the first value stored
+in the logging sequence and the input value multiplied with the first unit
+hydrograph ordinate.  The updated logging sequence values result from
+multiplying input values and the remaining ordinates:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="mf">4.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">determine_outflow_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="go">outflow(4.2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span>
+<span class="go">quh(2.0, 0.8, 0.0)</span>
+</pre></div>
+</div>
+<p>The following example demonstrates the updating of a non-empty logging
+sequence:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="mf">4.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">determine_outflow_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="go">outflow(3.2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span>
+<span class="go">quh(2.8, 0.8, 0.0)</span>
+</pre></div>
+</div>
+<p>A unit hydrograph consisting of one ordinate routes the received input
+directly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">control</span><span class="o">.</span><span class="n">uh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">control</span><span class="o">.</span><span class="n">uh</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">determine_outflow_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="go">outflow(0.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span>
+<span class="go">quh(0.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="mf">4.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">determine_outflow_v1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="go">outflow(4.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span>
+<span class="go">quh(0.0)</span>
+</pre></div>
+</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_model.Determine_Outflow_V2">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_model.</span></span><span class="sig-name descname"><span class="pre">Determine_Outflow_V2</span></span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_model.html#Determine_Outflow_V2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Calculate the linear storage cascade output (state-space approach).</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Requires the control parameters:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages" title="hydpy.models.rconc.rconc_control.NmbStorages"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbStorages</span></code></a>
+<a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps" title="hydpy.models.rconc.rconc_control.NmbSteps"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbSteps</span></code></a></p>
+</dd>
+<dt>Requires the derived parameters:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT" title="hydpy.models.rconc.rconc_derived.DT"><code class="xref py py-class docutils literal notranslate"><span class="pre">DT</span></code></a>
+<a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC" title="hydpy.models.rconc.rconc_derived.KSC"><code class="xref py py-class docutils literal notranslate"><span class="pre">KSC</span></code></a></p>
+</dd>
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Inflow" title="hydpy.models.rconc.rconc_fluxes.Inflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inflow</span></code></a></p>
+</dd>
+<dt>Updates the state sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_states.SC" title="hydpy.models.rconc.rconc_states.SC"><code class="xref py py-class docutils literal notranslate"><span class="pre">SC</span></code></a></p>
+</dd>
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Outflow" title="hydpy.models.rconc.rconc_fluxes.Outflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">Outflow</span></code></a></p>
+</dd>
+</dl>
+</div></blockquote>
+<dl>
+<dt>Basic equations:</dt><dd><p><span class="math notranslate nohighlight">\(Outflow = KSC \cdot SC\)</span></p>
+<p><span class="math notranslate nohighlight">\(\frac{dSC}{dt} = Inflow - Outflow\)</span></p>
+</dd>
+</dl>
+<p>Note that the given base equations only hold for one single linear storage, while
+<a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a> supports a cascade of linear storages.  Also, the equations
+do not reflect the possibility of increasing numerical accuracy by decreasing the
+internal simulation step size.</p>
+<p>Examples:</p>
+<blockquote>
+<div><p>If the number of storages is zero, <a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a> routes the received
+input directly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbstorages</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">determine_outflow_v2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="go">outflow(2.0)</span>
+</pre></div>
+</div>
+<p>We solve the underlying ordinary differential equation via the explicit Euler
+method.  Nevertheless, defining arbitrarily high storage coefficients does not
+pose any stability problems due to truncating too-high outflow values:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">control</span><span class="o">.</span><span class="n">nmbsteps</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbstorages</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">ksc</span><span class="p">(</span><span class="n">inf</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">determine_outflow_v2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="go">outflow(2.0)</span>
+</pre></div>
+</div>
+<p>Increasing the number of internal calculation steps via parameter <a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps" title="hydpy.models.rconc.rconc_control.NmbSteps"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbSteps</span></code></a>
+results in higher numerical accuracy without violating the water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">ksc</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sc</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">determine_outflow_v2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="go">outflow(2.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sc</span>
+<span class="go">sc(0.0, 0.0, 0.0, 0.0, 0.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">control</span><span class="o">.</span><span class="n">nmbsteps</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sc</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">determine_outflow_v2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="go">outflow(0.084262)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sc</span>
+<span class="go">sc(0.714101, 0.542302, 0.353323, 0.202141, 0.103872)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">sc</span><span class="p">))</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">control</span><span class="o">.</span><span class="n">nmbsteps</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sc</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">determine_outflow_v2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="go">outflow(0.026159)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sc</span>
+<span class="go">sc(0.850033, 0.590099, 0.327565, 0.149042, 0.057103)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">sc</span><span class="p">))</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_model.Set_Inflow_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_model.</span></span><span class="sig-name descname"><span class="pre">Set_Inflow_V1</span></span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_model.html#Set_Inflow_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_model.Set_Inflow_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Set the runoff concentration input in mm/T.</p>
+<dl class="simple">
+<dt>Calculates the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Inflow" title="hydpy.models.rconc.rconc_fluxes.Inflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inflow</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_model.Get_Outflow_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_model.</span></span><span class="sig-name descname"><span class="pre">Get_Outflow_V1</span></span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_model.html#Get_Outflow_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_model.Get_Outflow_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a></p>
+<p>Get the previously calculated runoff concentration output in mm/T.</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Requires the flux sequence:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Outflow" title="hydpy.models.rconc.rconc_fluxes.Outflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">Outflow</span></code></a></p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;12h&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">retentiontime</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">get_outflow_v1</span><span class="p">()</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_model.Sub_RConcModel">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_model.</span></span><span class="sig-name descname"><span class="pre">Sub_RConcModel</span></span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_model.html#Sub_RConcModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_model.Sub_RConcModel" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdHocModel</span></code></a></p>
+<p>Base class for submodels that comply with the submodel interfaces defined in
+module <a class="reference internal" href="rconcinterfaces.html#module-hydpy.interfaces.rconcinterfaces" title="hydpy.interfaces.rconcinterfaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rconcinterfaces</span></code></a>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_model.Sub_RConcModel.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_model.Sub_RConcModel.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="parameter-features">
+<h2>Parameter Features<a class="headerlink" href="#parameter-features" title="Link to this heading">¶</a></h2>
+<section id="control-parameters">
+<h3>Control parameters<a class="headerlink" href="#control-parameters" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model rconc.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH" title="hydpy.models.rconc.rconc_control.UH"><code class="xref py py-func docutils literal notranslate"><span class="pre">UH()</span></code></a> Unit Hydrograph ordinates [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_control.RetentionTime" title="hydpy.models.rconc.rconc_control.RetentionTime"><code class="xref py py-func docutils literal notranslate"><span class="pre">RetentionTime()</span></code></a> Retention time of the linear storage cascade [T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages" title="hydpy.models.rconc.rconc_control.NmbStorages"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbStorages()</span></code></a> Number of storages of the linear storage cascade [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps" title="hydpy.models.rconc.rconc_control.NmbSteps"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbSteps()</span></code></a> Number of internal computation steps per simulation time step [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.rconc.rconc_control">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_control.</span></span><span class="sig-name descname"><span class="pre">UH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_control.html#UH"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Unit Hydrograph ordinates [-].</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V1" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V1</span></code></a></p>
+</dd>
+</dl>
+</div></blockquote>
+<p>The ordinates of the unit hydrograph can be set directly by calling the <a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH" title="hydpy.models.rconc.rconc_control.UH"><code class="xref py py-class docutils literal notranslate"><span class="pre">UH</span></code></a>
+instance with a list of float values as one positional argument:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.4</span><span class="p">,</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span>
+<span class="go">uh(0.1, 0.2, 0.4, 0.2, 0.1)</span>
+</pre></div>
+</div>
+<p>Alternatively, implemented geometries can be specified via a positional ‘option’
+parameter and parameterised with the corresponding arguments.</p>
+<p>We generate the ordinates of a unit hydrograph in the form of an isosceles triangle
+with a base length of 10 days:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span>
+<span class="go">uh(&quot;triangle&quot;, tb=10.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.02, 0.06, 0.1, 0.14, 0.18, 0.18, 0.14, 0.1, 0.06, 0.02</span>
+</pre></div>
+</div>
+<p>The value of <cite>tb</cite> depends on the current parameter step size:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;2d&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">uh</span>
+<span class="go">uh(&quot;triangle&quot;, tb=5.0)</span>
+</pre></div>
+</div>
+<p>Omitting the option string will result in an error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="n">tb</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to set the values of parameter `uh` of element `?`, the following error occurred: Exactly one positional argument is expected, but none or more than one is given.</span>
+</pre></div>
+</div>
+<p>Also, calling uh with more than one positional argument or with a positional
+argument of the wrong type is not allowed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">([</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">,</span><span class="mf">0.1</span><span class="p">],</span> <span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to set the values of parameter `uh` of element `?`, the following error occurred: Exactly one positional argument is expected, but none or more than one is given.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">While trying to set the values of parameter `uh` of element `?`, the following error occurred: The expected type of the positional argument is a sequence of floats but a value of `bool` is given.</span>
+</pre></div>
+</div>
+<p>The optional argument ‘tp’ specifies the position of the peak:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">tp</span><span class="o">=</span><span class="mf">7.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span>
+<span class="go">uh(&quot;triangle&quot;, tb=10.0, tp=7.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.014286, 0.042857, 0.071429, 0.1, 0.128571, 0.157143, 0.185714,</span>
+<span class="go">0.166667, 0.1, 0.033333</span>
+</pre></div>
+</div>
+<p>Any positive real numbers are allowed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="mf">9.5</span><span class="p">,</span> <span class="n">tp</span><span class="o">=</span><span class="mf">6.7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span>
+<span class="go">uh(&quot;triangle&quot;, tb=9.5, tp=6.7)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.015711, 0.047133, 0.078555, 0.109976, 0.141398, 0.17282, 0.199445,</span>
+<span class="go">0.150376, 0.075188, 0.009398</span>
+</pre></div>
+</div>
+<p>Parameter ‘tp’ must not be greater than ‘tb’:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">tp</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to set the values of parameter `uh` of element `?`, the following error occurred: Parameter &#39;tp&#39; must not be greater than &#39;tb&#39;.</span>
+</pre></div>
+</div>
+<p>In addition to the HBV96-oriented triangular unit hydrograph (with the general
+purpose of damping the flood pulse; see <span id="id2"><a class="reference internal" href="zbibliography.html#id56" title="Joakim Harlin. Hydrological modelling of extreme floods in Sweden. SMHI, 1992.">Harlin (1992)</a></span>), the unit
+hydrographs used in the GR4J model (which reflect the outflow of the two
+conceptional storages used in this approach; see <span id="id3"><a class="reference internal" href="zbibliography.html#id57" title="Charles Perrin, Claude Michel, and Vazken Andréassian. Modèles hydrologiques du génie rural (gr). Cemagref, UR Hydrosystèmes et Bioprocédés, 2007.">Perrin <em>et al.</em> (2007)</a></span>) are also
+available:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh1&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">6.3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span>
+<span class="go">uh(&quot;gr_uh1&quot;, x4=6.3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.010038, 0.046746, 0.099694, 0.16474, 0.239926, 0.324027, 0.11483</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh1&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh2&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">2.8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span>
+<span class="go">uh(&quot;gr_uh2&quot;, x4=2.8)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.038113, 0.177487, 0.368959, 0.292023, 0.112789, 0.010628</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh2&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.75643, 0.24357</span>
+</pre></div>
+</div>
+<p>According to <span id="id4"><a class="reference internal" href="zbibliography.html#id57" title="Charles Perrin, Claude Michel, and Vazken Andréassian. Modèles hydrologiques du génie rural (gr). Cemagref, UR Hydrosystèmes et Bioprocédés, 2007.">Perrin <em>et al.</em> (2007)</a></span>, the exponent ‘beta’ is 2.5 by default but
+can be changed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh1&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">6.3</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.06324, 0.115629, 0.149734, 0.177314, 0.201123, 0.222388, 0.070571</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh2&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">2.8</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.106717, 0.195124, 0.250762, 0.231417, 0.166382, 0.049598</span>
+</pre></div>
+</div>
+<p>The triangle unit hydrograph must not be called with the parameters for the
+GR4J-like unit hydrograph:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to set the values of parameter `uh` of element `?`, the following error occurred: Wrong arguments for option &#39;triangle&#39;.</span>
+</pre></div>
+</div>
+<p>The GR4J-based options cannot be mixed with the triangle parameters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh1&quot;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">tp</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to set the values of parameter `uh` of element `?`, the following error occurred: Wrong arguments for option &#39;gr_uh1&#39;.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh2&quot;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">tp</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to set the values of parameter `uh` of element `?`, the following error occurred: Wrong arguments for option &#39;gr_uh2&#39;.</span>
+</pre></div>
+</div>
+<p>The following tests examine the correct calculation of ordinates in edge cases:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh2&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh2&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh2&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.5, 0.5</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh2&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.181444, 0.637113, 0.181444</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">1.0)</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH.strict_valuehandling">
+<span class="sig-name descname"><span class="pre">strict_valuehandling</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH.strict_valuehandling" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH.KEYWORDS">
+<span class="sig-name descname"><span class="pre">KEYWORDS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'beta':</span> <span class="pre">('beta',</span> <span class="pre">&lt;class</span> <span class="pre">'float'&gt;,</span> <span class="pre">False,</span> <span class="pre">(None,</span> <span class="pre">None)),</span> <span class="pre">'tb':</span> <span class="pre">('tb',</span> <span class="pre">&lt;class</span> <span class="pre">'float'&gt;,</span> <span class="pre">False,</span> <span class="pre">(None,</span> <span class="pre">None)),</span> <span class="pre">'tp':</span> <span class="pre">('tp',</span> <span class="pre">&lt;class</span> <span class="pre">'float'&gt;,</span> <span class="pre">False,</span> <span class="pre">(None,</span> <span class="pre">None)),</span> <span class="pre">'x4':</span> <span class="pre">('x4',</span> <span class="pre">&lt;class</span> <span class="pre">'float'&gt;,</span> <span class="pre">False,</span> <span class="pre">(None,</span> <span class="pre">None))}</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH.KEYWORDS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH.set_gr_uh1">
+<span class="sig-name descname"><span class="pre">set_gr_uh1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x4</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_control.html#UH.set_gr_uh1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH.set_gr_uh1" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate and set the ordinates of a unit hydrograph as done by GR4J for
+modifying base flow.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH.set_gr_uh2">
+<span class="sig-name descname"><span class="pre">set_gr_uh2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x4</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_control.html#UH.set_gr_uh2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH.set_gr_uh2" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate and set the ordinates of a unit hydrograph as done by GR4J for
+modifying direct runoff.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'uh'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.UH.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'-'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.UH.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.RetentionTime">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_control.</span></span><span class="sig-name descname"><span class="pre">RetentionTime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_control.html#RetentionTime"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_control.RetentionTime" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Retention time of the linear storage cascade [T].</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.RetentionTime.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.RetentionTime.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.RetentionTime.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.RetentionTime.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.RetentionTime.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.RetentionTime.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.RetentionTime.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">None)</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.RetentionTime.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.RetentionTime.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'retentiontime'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.RetentionTime.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.RetentionTime.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'T'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.RetentionTime.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbStorages">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_control.</span></span><span class="sig-name descname"><span class="pre">NmbStorages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_control.html#NmbStorages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbStorages" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Number of storages of the linear storage cascade [-].</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a></p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Defining a value for parameter <a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages" title="hydpy.models.rconc.rconc_control.NmbStorages"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbStorages</span></code></a> automatically sets the shape of state
+sequence <a class="reference internal" href="#hydpy.models.rconc.rconc_states.SC" title="hydpy.models.rconc.rconc_states.SC"><code class="xref py py-class docutils literal notranslate"><span class="pre">SC</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbstorages</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sc</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(5,)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbStorages.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbStorages.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbStorages.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbStorages.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbStorages.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbStorages.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbStorages.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0,</span> <span class="pre">None)</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbStorages.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbStorages.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'nmbstorages'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbStorages.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbStorages.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'-'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbStorages.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbSteps">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_control.</span></span><span class="sig-name descname"><span class="pre">NmbSteps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_control.html#NmbSteps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbSteps" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Number of internal computation steps per simulation time step [-].</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a></p>
+</dd>
+</dl>
+</div></blockquote>
+<p>The default value of 1440 internal computation steps per day corresponds to 1
+computation step per minute.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;12h&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsteps</span><span class="p">(</span><span class="mf">4.2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsteps</span>
+<span class="go">nmbsteps(4.0)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbSteps.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbSteps.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbSteps.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbSteps.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbSteps.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbSteps.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbSteps.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'nmbsteps'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbSteps.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbSteps.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'-'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbSteps.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbSteps.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(1,</span> <span class="pre">None)</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbSteps.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_control.NmbSteps.INIT">
+<span class="sig-name descname"><span class="pre">INIT</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1440.0</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_control.NmbSteps.INIT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="derived-parameters">
+<h3>Derived parameters<a class="headerlink" href="#derived-parameters" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model rconc.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC" title="hydpy.models.rconc.rconc_derived.KSC"><code class="xref py py-func docutils literal notranslate"><span class="pre">KSC()</span></code></a> Coefficient of the individual storages of the linear storage cascade [1/T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT" title="hydpy.models.rconc.rconc_derived.DT"><code class="xref py py-func docutils literal notranslate"><span class="pre">DT()</span></code></a> Relative length of each simulation step [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.rconc.rconc_derived">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.KSC">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_derived.</span></span><span class="sig-name descname"><span class="pre">KSC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_derived.html#KSC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.KSC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Coefficient of the individual storages of the linear storage cascade [1/T].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.KSC.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.KSC.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.KSC.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.KSC.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.KSC.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.KSC.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.KSC.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">None)</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.KSC.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.KSC.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_derived.html#KSC.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.KSC.update" title="Link to this definition">¶</a></dt>
+<dd><p>Update <a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC" title="hydpy.models.rconc.rconc_derived.KSC"><code class="xref py py-class docutils literal notranslate"><span class="pre">KSC</span></code></a> based on
+<span class="math notranslate nohighlight">\(KSC = \frac{2 \cdot NmbStorages}{RetentionTime}\)</span>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s1">&#39;12h&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s1">&#39;1d&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">retentiontime</span><span class="p">(</span><span class="mf">8.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbstorages</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">ksc</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">ksc</span>
+<span class="go">ksc(0.5)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">retentiontime</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbstorages</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">ksc</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">ksc</span>
+<span class="go">ksc(inf)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.KSC.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ksc'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.KSC.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.KSC.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'1/T'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.KSC.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.DT">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_derived.</span></span><span class="sig-name descname"><span class="pre">DT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><span class="pre">SubParameters</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_derived.html#DT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.DT" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
+<p>Relative length of each simulation step [-].</p>
+<dl class="simple">
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.DT.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.DT.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.DT.TYPE">
+<span class="sig-name descname"><span class="pre">TYPE</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.DT.TYPE" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.DT.TIME">
+<span class="sig-name descname"><span class="pre">TIME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.DT.TIME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.DT.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">1.0)</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.DT.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.DT.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_derived.html#DT.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.DT.update" title="Link to this definition">¶</a></dt>
+<dd><p>Update <a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT" title="hydpy.models.rconc.rconc_derived.DT"><code class="xref py py-class docutils literal notranslate"><span class="pre">DT</span></code></a> based on <span class="math notranslate nohighlight">\(DT = \frac{1}{NmbSteps}\)</span>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;12h&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsteps</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">dt</span>
+<span class="go">dt(1.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsteps</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">dt</span>
+<span class="go">dt(0.2)</span>
+</pre></div>
+</div>
+<p>Note that the value assigned to parameter <a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps" title="hydpy.models.rconc.rconc_control.NmbSteps"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbSteps</span></code></a> depends on the current
+parameter step size (one day).  Due to the current simulation step size (one
+hour), the applied <a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps" title="hydpy.models.rconc.rconc_control.NmbSteps"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbSteps</span></code></a> value is five:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsteps</span><span class="o">.</span><span class="n">value</span>
+<span class="go">5</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.DT.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'dt'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.DT.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_derived.DT.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'-'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_derived.DT.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<section id="sequence-features">
+<h2>Sequence Features<a class="headerlink" href="#sequence-features" title="Link to this heading">¶</a></h2>
+<section id="flux-sequences">
+<h3>Flux sequences<a class="headerlink" href="#flux-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model rconc.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Inflow" title="hydpy.models.rconc.rconc_fluxes.Inflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Inflow()</span></code></a> Inflow [mm/T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Outflow" title="hydpy.models.rconc.rconc_fluxes.Outflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Outflow()</span></code></a> Outflow [mm/T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.rconc.rconc_fluxes">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_fluxes.Inflow">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_fluxes.</span></span><span class="sig-name descname"><span class="pre">Inflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelIOSequences" title="hydpy.core.sequencetools.ModelIOSequences"><span class="pre">ModelIOSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelIOSequence" title="hydpy.core.sequencetools.ModelIOSequence"><span class="pre">ModelIOSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FastAccessIOSequence" title="hydpy.core.sequencetools.FastAccessIOSequence"><span class="pre">FastAccessIOSequence</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_fluxes.html#Inflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_fluxes.Inflow" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a></p>
+<p>Inflow [mm/T].</p>
+<dl class="simple">
+<dt>Calculated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Set_Inflow_V1" title="hydpy.models.rconc.rconc_model.Set_Inflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set_Inflow_V1</span></code></a></p>
+</dd>
+<dt>Required by the methods:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V1" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V1</span></code></a>
+<a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_fluxes.Inflow.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_fluxes.Inflow.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_fluxes.Inflow.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_fluxes.Inflow.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_fluxes.Inflow.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'inflow'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_fluxes.Inflow.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_fluxes.Inflow.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mm/T'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_fluxes.Inflow.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_fluxes.Outflow">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_fluxes.</span></span><span class="sig-name descname"><span class="pre">Outflow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelIOSequences" title="hydpy.core.sequencetools.ModelIOSequences"><span class="pre">ModelIOSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelIOSequence" title="hydpy.core.sequencetools.ModelIOSequence"><span class="pre">ModelIOSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FastAccessIOSequence" title="hydpy.core.sequencetools.FastAccessIOSequence"><span class="pre">FastAccessIOSequence</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_fluxes.html#Outflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_fluxes.Outflow" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a></p>
+<p>Outflow [mm/T].</p>
+<dl class="simple">
+<dt>Calculated by the methods:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V1" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V1</span></code></a>
+<a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a></p>
+</dd>
+<dt>Required by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Get_Outflow_V1" title="hydpy.models.rconc.rconc_model.Get_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_Outflow_V1</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_fluxes.Outflow.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_fluxes.Outflow.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_fluxes.Outflow.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_fluxes.Outflow.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_fluxes.Outflow.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'outflow'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_fluxes.Outflow.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_fluxes.Outflow.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mm/T'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_fluxes.Outflow.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="state-sequences">
+<h3>State sequences<a class="headerlink" href="#state-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.</span></span><span class="sig-name descname"><span class="pre">StateSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequences</span></code></a></p>
+<p>State sequences of model rconc.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_states.SC" title="hydpy.models.rconc.rconc_states.SC"><code class="xref py py-func docutils literal notranslate"><span class="pre">SC()</span></code></a> Storage cascade for runoff concentration [mm].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.rconc.rconc_states">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_states.SC">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_states.</span></span><span class="sig-name descname"><span class="pre">SC</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelIOSequences" title="hydpy.core.sequencetools.ModelIOSequences"><span class="pre">ModelIOSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelIOSequence" title="hydpy.core.sequencetools.ModelIOSequence"><span class="pre">ModelIOSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FastAccessIOSequence" title="hydpy.core.sequencetools.FastAccessIOSequence"><span class="pre">FastAccessIOSequence</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_states.html#SC"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_states.SC" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequence" title="hydpy.core.sequencetools.StateSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code></a></p>
+<p>Storage cascade for runoff concentration [mm].</p>
+<dl class="simple">
+<dt>Updated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V2" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V2</span></code></a></p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_states.SC.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_states.SC.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_states.SC.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_states.SC.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_states.SC.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">None)</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_states.SC.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_states.SC.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'sc'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_states.SC.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_states.SC.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mm'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_states.SC.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="log-sequences">
+<h3>Log sequences<a class="headerlink" href="#log-sequences" title="Link to this heading">¶</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.</span></span><span class="sig-name descname"><span class="pre">LogSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequences" title="hydpy.core.sequencetools.LogSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequences</span></code></a></p>
+<p>Log sequences of model rconc.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH" title="hydpy.models.rconc.rconc_logs.QUH"><code class="xref py py-func docutils literal notranslate"><span class="pre">QUH()</span></code></a> All temporary outflow values of the unit hydrograph [mm/T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class" id="module-hydpy.models.rconc.rconc_logs">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_logs.QUH">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.rconc_logs.</span></span><span class="sig-name descname"><span class="pre">QUH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequences" title="hydpy.core.sequencetools.ModelSequences"><span class="pre">ModelSequences</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><span class="pre">ModelSequence</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.FastAccess" title="hydpy.core.variabletools.FastAccess"><span class="pre">FastAccess</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/rconc/rconc_logs.html#QUH"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.rconc.rconc_logs.QUH" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequence" title="hydpy.core.sequencetools.LogSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequence</span></code></a></p>
+<p>All temporary outflow values of the unit hydrograph [mm/T].</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Updated by the method:</dt><dd><p><a class="reference internal" href="#hydpy.models.rconc.rconc_model.Determine_Outflow_V1" title="hydpy.models.rconc.rconc_model.Determine_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Outflow_V1</span></code></a></p>
+</dd>
+</dl>
+</div></blockquote>
+<p>The last value is always set to zero to avoid biased results:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uh</span><span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span>
+<span class="go">quh(1.0, 2.0, 0.0)</span>
+</pre></div>
+</div>
+<p>For a wrong number of input values, <a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH" title="hydpy.models.rconc.rconc_logs.QUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">QUH</span></code></a> distributes their sum equally and emits
+the following warning:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">UserWarning</span>: <span class="n">Due to the following problem, log sequence `quh` of element `?` handling model `rconc` could be initialised with a averaged value only: While trying to set the value(s) of variable `quh`, the following error occurred: While trying to convert the value(s) `(1.0, 2.0, 3.0, 0.0)` to a numpy ndarray with shape `(3...)` and type `float`, the following error occurred: could not broadcast input array from shape (4...) into shape (3...)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span>
+<span class="go">quh(3.0, 3.0, 0.0)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_logs.QUH.NDIM">
+<span class="sig-name descname"><span class="pre">NDIM</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_logs.QUH.NDIM" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_logs.QUH.NUMERIC">
+<span class="sig-name descname"><span class="pre">NUMERIC</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_logs.QUH.NUMERIC" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_logs.QUH.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.0,</span> <span class="pre">None)</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_logs.QUH.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_logs.QUH.refweights">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">refweights</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_logs.QUH.refweights" title="Link to this definition">¶</a></dt>
+<dd><p>A vector with identical values (so that averaging the values of <a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH" title="hydpy.models.rconc.rconc_logs.QUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">QUH</span></code></a>
+results in the arithmetic mean value).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.rconc</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="o">.</span><span class="n">refweights</span><span class="p">)</span>
+<span class="go">1.0, 1.0, 1.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_logs.QUH.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'quh'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_logs.QUH.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.rconc.rconc_logs.QUH.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mm/T'</span></span><a class="headerlink" href="#hydpy.models.rconc.rconc_logs.QUH.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.rconc.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model rconc.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_control.UH" title="hydpy.models.rconc.rconc_control.UH"><code class="xref py py-func docutils literal notranslate"><span class="pre">UH()</span></code></a> Unit Hydrograph ordinates [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_control.RetentionTime" title="hydpy.models.rconc.rconc_control.RetentionTime"><code class="xref py py-func docutils literal notranslate"><span class="pre">RetentionTime()</span></code></a> Retention time of the linear storage cascade [T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbStorages" title="hydpy.models.rconc.rconc_control.NmbStorages"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbStorages()</span></code></a> Number of storages of the linear storage cascade [-].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_control.NmbSteps" title="hydpy.models.rconc.rconc_control.NmbSteps"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbSteps()</span></code></a> Number of internal computation steps per simulation time step [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.rconc.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model rconc.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.KSC" title="hydpy.models.rconc.rconc_derived.KSC"><code class="xref py py-func docutils literal notranslate"><span class="pre">KSC()</span></code></a> Coefficient of the individual storages of the linear storage cascade [1/T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_derived.DT" title="hydpy.models.rconc.rconc_derived.DT"><code class="xref py py-func docutils literal notranslate"><span class="pre">DT()</span></code></a> Relative length of each simulation step [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.rconc.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model rconc.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Inflow" title="hydpy.models.rconc.rconc_fluxes.Inflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Inflow()</span></code></a> Inflow [mm/T].</p></li>
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_fluxes.Outflow" title="hydpy.models.rconc.rconc_fluxes.Outflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Outflow()</span></code></a> Outflow [mm/T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.LogSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.</span></span><span class="sig-name descname"><span class="pre">LogSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.rconc.LogSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequences" title="hydpy.core.sequencetools.LogSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequences</span></code></a></p>
+<p>Log sequences of model rconc.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_logs.QUH" title="hydpy.models.rconc.rconc_logs.QUH"><code class="xref py py-func docutils literal notranslate"><span class="pre">QUH()</span></code></a> All temporary outflow values of the unit hydrograph [mm/T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.rconc.StateSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.rconc.</span></span><span class="sig-name descname"><span class="pre">StateSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.rconc.StateSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequences</span></code></a></p>
+<p>State sequences of model rconc.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.rconc.rconc_states.SC" title="hydpy.models.rconc.rconc_states.SC"><code class="xref py py-func docutils literal notranslate"><span class="pre">SC()</span></code></a> Storage cascade for runoff concentration [mm].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rconc_uh.html" title="rconc_uh"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Rconc.html" title="HydPy-Rconc"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Rconc.html" >HydPy-Rconc</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">rconc</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

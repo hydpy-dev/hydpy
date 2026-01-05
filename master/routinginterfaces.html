@@ -1,0 +1,645 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>routinginterfaces &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="soilinterfaces" href="soilinterfaces.html" />
+    <link rel="prev" title="rconcinterfaces" href="rconcinterfaces.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="soilinterfaces.html" title="soilinterfaces"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="rconcinterfaces.html" title="rconcinterfaces"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" accesskey="U">Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">routinginterfaces</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aetinterfaces.html">aetinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exchangeinterfaces.html">exchangeinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dischargeinterfaces.html">dischargeinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="petinterfaces.html">petinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="precipinterfaces.html">precipinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="radiationinterfaces.html">radiationinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rconcinterfaces.html">rconcinterfaces</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">routinginterfaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V1</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.typeid"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V1.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.prepare_bottomslope"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V1.prepare_bottomslope()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_depths_of_discontinuity"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V1.get_depths_of_discontinuity()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.use_waterdepth"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V1.use_waterdepth()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.use_waterlevel"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V1.use_waterlevel()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_wettedarea"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V1.get_wettedarea()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_surfacewidth"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V1.get_surfacewidth()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_discharge"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V1.get_discharge()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_celerity"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V1.get_celerity()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V2</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.typeid"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V2.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_depths_of_discontinuity"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V2.get_depths_of_discontinuity()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_waterdepth"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V2.use_waterdepth()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_waterlevel"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V2.use_waterlevel()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_wettedarea"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V2.use_wettedarea()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_waterdepth"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V2.get_waterdepth()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_waterlevel"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V2.get_waterlevel()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_wettedarea"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V2.get_wettedarea()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_wettedperimeter"><code class="docutils literal notranslate"><span class="pre">CrossSectionModel_V2.get_wettedperimeter()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase"><code class="docutils literal notranslate"><span class="pre">RoutingModelBase</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.typeid"><code class="docutils literal notranslate"><span class="pre">RoutingModelBase.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep"><code class="docutils literal notranslate"><span class="pre">RoutingModelBase.determine_maxtimestep()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.get_maxtimestep"><code class="docutils literal notranslate"><span class="pre">RoutingModelBase.get_maxtimestep()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep"><code class="docutils literal notranslate"><span class="pre">RoutingModelBase.set_timestep()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge"><code class="docutils literal notranslate"><span class="pre">RoutingModelBase.determine_discharge()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge"><code class="docutils literal notranslate"><span class="pre">RoutingModelBase.get_discharge()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.get_dischargevolume"><code class="docutils literal notranslate"><span class="pre">RoutingModelBase.get_dischargevolume()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V1</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.typeid"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V1.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.routingmodelsdownstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V1.routingmodelsdownstream</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.storagemodeldownstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V1.storagemodeldownstream</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V1.get_partialdischargeupstream()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V2</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.typeid"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V2.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.routingmodelsupstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V2.routingmodelsupstream</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.routingmodelsdownstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V2.routingmodelsdownstream</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.storagemodelupstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V2.storagemodelupstream</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.storagemodeldownstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V2.storagemodeldownstream</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargeupstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V2.get_partialdischargeupstream()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V2.get_partialdischargedownstream()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V3</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3.typeid"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V3.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3.routingmodelsupstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V3.routingmodelsupstream</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3.storagemodelupstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V3.storagemodelupstream</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream"><code class="docutils literal notranslate"><span class="pre">RoutingModel_V3.get_partialdischargedownstream()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1"><code class="docutils literal notranslate"><span class="pre">StorageModel_V1</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.typeid"><code class="docutils literal notranslate"><span class="pre">StorageModel_V1.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.routingmodelsupstream"><code class="docutils literal notranslate"><span class="pre">StorageModel_V1.routingmodelsupstream</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.routingmodelsdownstream"><code class="docutils literal notranslate"><span class="pre">StorageModel_V1.routingmodelsdownstream</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.set_timestep"><code class="docutils literal notranslate"><span class="pre">StorageModel_V1.set_timestep()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.update_storage"><code class="docutils literal notranslate"><span class="pre">StorageModel_V1.update_storage()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.get_watervolume"><code class="docutils literal notranslate"><span class="pre">StorageModel_V1.get_watervolume()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.get_waterlevel"><code class="docutils literal notranslate"><span class="pre">StorageModel_V1.get_waterlevel()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1"><code class="docutils literal notranslate"><span class="pre">ChannelModel_V1</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1.typeid"><code class="docutils literal notranslate"><span class="pre">ChannelModel_V1.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1.storagemodels"><code class="docutils literal notranslate"><span class="pre">ChannelModel_V1.storagemodels</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1.routingmodels"><code class="docutils literal notranslate"><span class="pre">ChannelModel_V1.routingmodels</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="soilinterfaces.html">soilinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stateinterfaces.html">stateinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tempinterfaces.html">tempinterfaces</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="rconcinterfaces.html"
+                          title="previous chapter">rconcinterfaces</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="soilinterfaces.html"
+                          title="next chapter">soilinterfaces</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/routinginterfaces.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/routinginterfaces.html">6</a></li>
+<li><a href="../master/routinginterfaces.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="routinginterfaces">
+<span id="id1"></span><h1>routinginterfaces<a class="headerlink" href="#routinginterfaces" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.interfaces.routinginterfaces">This module defines submodel interfaces for calculating 1-dimensional water flows.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.interfaces.routinginterfaces" title="hydpy.interfaces.routinginterfaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">routinginterfaces</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1" title="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossSectionModel_V1</span></code></a> Interface for calculating the discharge and related properties at a channel cross-section.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2" title="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossSectionModel_V2</span></code></a> Interface for calculating discharge-related properties at a channel cross-section.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase" title="hydpy.interfaces.routinginterfaces.RoutingModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModelBase</span></code></a> Base interface for routing models at inflow, central, and outflow locations.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V1</span></code></a> Interface for calculating the inflow into a channel.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V2</span></code></a> Interface for calculating the discharge between two channel segments.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V3</span></code></a> Interface for calculating the outflow of a channel.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1" title="hydpy.interfaces.routinginterfaces.StorageModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">StorageModel_V1</span></code></a> Interface for calculating the water amount stored in a single channel segment.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1" title="hydpy.interfaces.routinginterfaces.ChannelModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChannelModel_V1</span></code></a> Interface for handling routing and storage submodels.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.routinginterfaces.</span></span><span class="sig-name descname"><span class="pre">CrossSectionModel_V1</span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelInterface" title="hydpy.core.modeltools.SubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelInterface</span></code></a></p>
+<p>Interface for calculating the discharge and related properties at a channel
+cross-section.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1" title="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossSectionModel_V1</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.prepare_bottomslope">
+<span class="sig-name descname"><span class="pre">prepare_bottomslope</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bottomslope</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V1.prepare_bottomslope"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.prepare_bottomslope" title="Link to this definition">¶</a></dt>
+<dd><p>Set the bottom’s slope (in the longitudinal direction) [-].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_depths_of_discontinuity">
+<span class="sig-name descname"><span class="pre">get_depths_of_discontinuity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V1.get_depths_of_discontinuity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_depths_of_discontinuity" title="Link to this definition">¶</a></dt>
+<dd><p>Get all water depths that define points of discontinuity (except zero).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.use_waterdepth">
+<span class="sig-name descname"><span class="pre">use_waterdepth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">waterdepth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V1.use_waterdepth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.use_waterdepth" title="Link to this definition">¶</a></dt>
+<dd><p>Set the water depth in m and use it to calculate all other properties.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.use_waterlevel">
+<span class="sig-name descname"><span class="pre">use_waterlevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">waterlevel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V1.use_waterlevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.use_waterlevel" title="Link to this definition">¶</a></dt>
+<dd><p>Set the water level in m and use it to calculate all other properties.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_wettedarea">
+<span class="sig-name descname"><span class="pre">get_wettedarea</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V1.get_wettedarea"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_wettedarea" title="Link to this definition">¶</a></dt>
+<dd><p>Get the wetted area in m².</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_surfacewidth">
+<span class="sig-name descname"><span class="pre">get_surfacewidth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V1.get_surfacewidth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_surfacewidth" title="Link to this definition">¶</a></dt>
+<dd><p>Get the surface width in m.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_discharge">
+<span class="sig-name descname"><span class="pre">get_discharge</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V1.get_discharge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_discharge" title="Link to this definition">¶</a></dt>
+<dd><p>Get the discharge in m³/s.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_celerity">
+<span class="sig-name descname"><span class="pre">get_celerity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V1.get_celerity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_celerity" title="Link to this definition">¶</a></dt>
+<dd><p>Get the wave celerity in m/s.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.routinginterfaces.</span></span><span class="sig-name descname"><span class="pre">CrossSectionModel_V2</span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelInterface" title="hydpy.core.modeltools.SubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelInterface</span></code></a></p>
+<p>Interface for calculating discharge-related properties at a channel
+cross-section.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2" title="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossSectionModel_V2</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_depths_of_discontinuity">
+<span class="sig-name descname"><span class="pre">get_depths_of_discontinuity</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V2.get_depths_of_discontinuity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_depths_of_discontinuity" title="Link to this definition">¶</a></dt>
+<dd><p>Get all water depths that define points of discontinuity (except zero).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_waterdepth">
+<span class="sig-name descname"><span class="pre">use_waterdepth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">waterdepth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V2.use_waterdepth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_waterdepth" title="Link to this definition">¶</a></dt>
+<dd><p>Set the water depth in m and use it to calculate all other properties.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_waterlevel">
+<span class="sig-name descname"><span class="pre">use_waterlevel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">waterlevel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V2.use_waterlevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_waterlevel" title="Link to this definition">¶</a></dt>
+<dd><p>Set the water level in m and use it to calculate all other properties.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_wettedarea">
+<span class="sig-name descname"><span class="pre">use_wettedarea</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wettedarea</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V2.use_wettedarea"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_wettedarea" title="Link to this definition">¶</a></dt>
+<dd><p>Set the wetted area in m² and use it to calculate all other properties.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_waterdepth">
+<span class="sig-name descname"><span class="pre">get_waterdepth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V2.get_waterdepth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_waterdepth" title="Link to this definition">¶</a></dt>
+<dd><p>Get the water depth in m.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_waterlevel">
+<span class="sig-name descname"><span class="pre">get_waterlevel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V2.get_waterlevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_waterlevel" title="Link to this definition">¶</a></dt>
+<dd><p>Get the water level in m.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_wettedarea">
+<span class="sig-name descname"><span class="pre">get_wettedarea</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V2.get_wettedarea"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_wettedarea" title="Link to this definition">¶</a></dt>
+<dd><p>Get the wetted area in m².</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_wettedperimeter">
+<span class="sig-name descname"><span class="pre">get_wettedperimeter</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#CrossSectionModel_V2.get_wettedperimeter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_wettedperimeter" title="Link to this definition">¶</a></dt>
+<dd><p>Get the wetted perimeter in m.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModelBase">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.routinginterfaces.</span></span><span class="sig-name descname"><span class="pre">RoutingModelBase</span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModelBase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelInterface" title="hydpy.core.modeltools.SubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelInterface</span></code></a></p>
+<p>Base interface for routing models at inflow, central, and outflow locations.</p>
+<p>An essential note for model developers: All main models using submodels that follow
+the interface  <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V1</span></code></a>, <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V2</span></code></a>, or <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V3</span></code></a> must call
+<a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep" title="hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep"><code class="xref py py-func docutils literal notranslate"><span class="pre">determine_maxtimestep()</span></code></a>, <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep" title="hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_timestep()</span></code></a>, and
+<a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge" title="hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge"><code class="xref py py-func docutils literal notranslate"><span class="pre">determine_discharge()</span></code></a> in the mentioned order during each internal
+simulation step.  Before <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge" title="hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge"><code class="xref py py-func docutils literal notranslate"><span class="pre">determine_discharge()</span></code></a> is called, methods
+<a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge" title="hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_discharge()</span></code></a>, <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_partialdischargeupstream()</span></code></a>,
+and <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_partialdischargedownstream()</span></code></a> (if implemented) must return
+the “old” discharge previously calculated or read from condition files.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModelBase.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for the respective routing submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep">
+<span class="sig-name descname"><span class="pre">determine_maxtimestep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModelBase.determine_maxtimestep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the highest possible computation time step.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModelBase.get_maxtimestep">
+<span class="sig-name descname"><span class="pre">get_maxtimestep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModelBase.get_maxtimestep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.get_maxtimestep" title="Link to this definition">¶</a></dt>
+<dd><p>Get the highest possible computation time step in s.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep">
+<span class="sig-name descname"><span class="pre">set_timestep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModelBase.set_timestep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep" title="Link to this definition">¶</a></dt>
+<dd><p>Set the actual computation time step in s.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge">
+<span class="sig-name descname"><span class="pre">determine_discharge</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModelBase.determine_discharge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the discharge.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge">
+<span class="sig-name descname"><span class="pre">get_discharge</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModelBase.get_discharge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge" title="Link to this definition">¶</a></dt>
+<dd><p>Get the simulated total discharge in m³/s.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModelBase.get_dischargevolume">
+<span class="sig-name descname"><span class="pre">get_dischargevolume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModelBase.get_dischargevolume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase.get_dischargevolume" title="Link to this definition">¶</a></dt>
+<dd><p>Get the simulated total discharge in m.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.routinginterfaces.</span></span><span class="sig-name descname"><span class="pre">RoutingModel_V1</span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase" title="hydpy.interfaces.routinginterfaces.RoutingModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModelBase</span></code></a></p>
+<p>Interface for calculating the inflow into a channel.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V1.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V1</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V1.routingmodelsdownstream">
+<span class="sig-name descname"><span class="pre">routingmodelsdownstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelsProperty" title="hydpy.core.modeltools.SubmodelsProperty"><span class="pre">modeltools.SubmodelsProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><span class="pre">RoutingModel_V2</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3"><span class="pre">RoutingModel_V3</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.routingmodelsdownstream" title="Link to this definition">¶</a></dt>
+<dd><p>References to the neighbour routing models lying downstream.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V1.storagemodeldownstream">
+<span class="sig-name descname"><span class="pre">storagemodeldownstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelProperty" title="hydpy.core.modeltools.SubmodelProperty"><span class="pre">modeltools.SubmodelProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1" title="hydpy.interfaces.routinginterfaces.StorageModel_V1"><span class="pre">StorageModel_V1</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.storagemodeldownstream" title="Link to this definition">¶</a></dt>
+<dd><p>Required reference to the neighbour storage model downstream.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream">
+<span class="sig-name descname"><span class="pre">get_partialdischargeupstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clientdischarge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModel_V1.get_partialdischargeupstream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream" title="Link to this definition">¶</a></dt>
+<dd><p>Get the simulated partial discharge in m³/s.</p>
+<p>For multiple downstream models, <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_partialdischargeupstream()</span></code></a>
+returns the discharge portion that it attributes to the client model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V2">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.routinginterfaces.</span></span><span class="sig-name descname"><span class="pre">RoutingModel_V2</span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModel_V2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase" title="hydpy.interfaces.routinginterfaces.RoutingModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModelBase</span></code></a></p>
+<p>Interface for calculating the discharge between two channel segments.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V2.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V2</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V2.routingmodelsupstream">
+<span class="sig-name descname"><span class="pre">routingmodelsupstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelsProperty" title="hydpy.core.modeltools.SubmodelsProperty"><span class="pre">modeltools.SubmodelsProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1"><span class="pre">RoutingModel_V1</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><span class="pre">RoutingModel_V2</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.routingmodelsupstream" title="Link to this definition">¶</a></dt>
+<dd><p>References to the neighbour routing models lying upstream.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V2.routingmodelsdownstream">
+<span class="sig-name descname"><span class="pre">routingmodelsdownstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelsProperty" title="hydpy.core.modeltools.SubmodelsProperty"><span class="pre">modeltools.SubmodelsProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><span class="pre">RoutingModel_V2</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3"><span class="pre">RoutingModel_V3</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.routingmodelsdownstream" title="Link to this definition">¶</a></dt>
+<dd><p>References to the neighbour routing models lying downstream.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V2.storagemodelupstream">
+<span class="sig-name descname"><span class="pre">storagemodelupstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelProperty" title="hydpy.core.modeltools.SubmodelProperty"><span class="pre">modeltools.SubmodelProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1" title="hydpy.interfaces.routinginterfaces.StorageModel_V1"><span class="pre">StorageModel_V1</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.storagemodelupstream" title="Link to this definition">¶</a></dt>
+<dd><p>Required reference to the neighbour storage model upstream.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V2.storagemodeldownstream">
+<span class="sig-name descname"><span class="pre">storagemodeldownstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelProperty" title="hydpy.core.modeltools.SubmodelProperty"><span class="pre">modeltools.SubmodelProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1" title="hydpy.interfaces.routinginterfaces.StorageModel_V1"><span class="pre">StorageModel_V1</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.storagemodeldownstream" title="Link to this definition">¶</a></dt>
+<dd><p>Required reference to the neighbour storage model downstream.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargeupstream">
+<span class="sig-name descname"><span class="pre">get_partialdischargeupstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clientdischarge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModel_V2.get_partialdischargeupstream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargeupstream" title="Link to this definition">¶</a></dt>
+<dd><p>Get the simulated partial discharge in m³/s.</p>
+<p>For multiple downstream models, <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_partialdischargeupstream()</span></code></a>
+returns the discharge portion that it attributes to the client model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream">
+<span class="sig-name descname"><span class="pre">get_partialdischargedownstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clientdischarge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModel_V2.get_partialdischargedownstream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream" title="Link to this definition">¶</a></dt>
+<dd><p>Get the simulated partial discharge in m³/s.</p>
+<p>For multiple upstream models, <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_partialdischargedownstream()</span></code></a>
+returns the discharge portion that it attributes to the client model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V3">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.routinginterfaces.</span></span><span class="sig-name descname"><span class="pre">RoutingModel_V3</span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModel_V3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModelBase" title="hydpy.interfaces.routinginterfaces.RoutingModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModelBase</span></code></a></p>
+<p>Interface for calculating the outflow of a channel.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V3.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V3</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V3.routingmodelsupstream">
+<span class="sig-name descname"><span class="pre">routingmodelsupstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelsProperty" title="hydpy.core.modeltools.SubmodelsProperty"><span class="pre">modeltools.SubmodelsProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1"><span class="pre">RoutingModel_V1</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><span class="pre">RoutingModel_V2</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3.routingmodelsupstream" title="Link to this definition">¶</a></dt>
+<dd><p>References to the neighbour routing models lying upstream.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V3.storagemodelupstream">
+<span class="sig-name descname"><span class="pre">storagemodelupstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelProperty" title="hydpy.core.modeltools.SubmodelProperty"><span class="pre">modeltools.SubmodelProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1" title="hydpy.interfaces.routinginterfaces.StorageModel_V1"><span class="pre">StorageModel_V1</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3.storagemodelupstream" title="Link to this definition">¶</a></dt>
+<dd><p>Required reference to the neighbour storage model upstream.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream">
+<span class="sig-name descname"><span class="pre">get_partialdischargedownstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">clientdischarge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#RoutingModel_V3.get_partialdischargedownstream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream" title="Link to this definition">¶</a></dt>
+<dd><p>Get the simulated partial discharge in m³/s.</p>
+<p>For multiple upstream models, <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_partialdischargedownstream()</span></code></a>
+returns the discharge portion that it attributes to the client model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.StorageModel_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.routinginterfaces.</span></span><span class="sig-name descname"><span class="pre">StorageModel_V1</span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#StorageModel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelInterface" title="hydpy.core.modeltools.SubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelInterface</span></code></a></p>
+<p>Interface for calculating the water amount stored in a single channel segment.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.StorageModel_V1.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1" title="hydpy.interfaces.routinginterfaces.StorageModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">StorageModel_V1</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.StorageModel_V1.routingmodelsupstream">
+<span class="sig-name descname"><span class="pre">routingmodelsupstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelsProperty" title="hydpy.core.modeltools.SubmodelsProperty"><span class="pre">modeltools.SubmodelsProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1"><span class="pre">RoutingModel_V1</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><span class="pre">RoutingModel_V2</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3"><span class="pre">RoutingModel_V3</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.routingmodelsupstream" title="Link to this definition">¶</a></dt>
+<dd><p>Optional reference to the neighbour routing model upstream.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.StorageModel_V1.routingmodelsdownstream">
+<span class="sig-name descname"><span class="pre">routingmodelsdownstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelsProperty" title="hydpy.core.modeltools.SubmodelsProperty"><span class="pre">modeltools.SubmodelsProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1"><span class="pre">RoutingModel_V1</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><span class="pre">RoutingModel_V2</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3"><span class="pre">RoutingModel_V3</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.routingmodelsdownstream" title="Link to this definition">¶</a></dt>
+<dd><p>Optional reference to the neighbour routing model downstream.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.StorageModel_V1.set_timestep">
+<span class="sig-name descname"><span class="pre">set_timestep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#StorageModel_V1.set_timestep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.set_timestep" title="Link to this definition">¶</a></dt>
+<dd><p>Set the actual computation time step in s.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.StorageModel_V1.update_storage">
+<span class="sig-name descname"><span class="pre">update_storage</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#StorageModel_V1.update_storage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.update_storage" title="Link to this definition">¶</a></dt>
+<dd><p>Update the stored water content.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.StorageModel_V1.get_watervolume">
+<span class="sig-name descname"><span class="pre">get_watervolume</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#StorageModel_V1.get_watervolume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.get_watervolume" title="Link to this definition">¶</a></dt>
+<dd><p>Get the current water volume in 1000 m³.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.StorageModel_V1.get_waterlevel">
+<span class="sig-name descname"><span class="pre">get_waterlevel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#StorageModel_V1.get_waterlevel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1.get_waterlevel" title="Link to this definition">¶</a></dt>
+<dd><p>Get the current water level in m.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.ChannelModel_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.routinginterfaces.</span></span><span class="sig-name descname"><span class="pre">ChannelModel_V1</span></span><a class="reference internal" href="_modules/hydpy/interfaces/routinginterfaces.html#ChannelModel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelInterface" title="hydpy.core.modeltools.SubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelInterface</span></code></a></p>
+<p>Interface for handling routing and storage submodels.</p>
+<p>The purpose of any model that follows the <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1" title="hydpy.interfaces.routinginterfaces.ChannelModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChannelModel_V1</span></code></a> interface is to collect
+and connect the routing and storage submodels required to simulate the water flow
+through a single channel (without confluences or branches).  It can but must not be
+able to perform the actual simulation itself.  See <a class="reference internal" href="sw1d_channel.html#module-hydpy.models.sw1d_channel" title="hydpy.models.sw1d_channel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_channel</span></code></a> as an example,
+which usually delegates simulations to <a class="reference internal" href="sw1d_network.html#module-hydpy.models.sw1d_network" title="hydpy.models.sw1d_network"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_network</span></code></a>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.ChannelModel_V1.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1" title="hydpy.interfaces.routinginterfaces.ChannelModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">ChannelModel_V1</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.ChannelModel_V1.storagemodels">
+<span class="sig-name descname"><span class="pre">storagemodels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelsProperty" title="hydpy.core.modeltools.SubmodelsProperty"><span class="pre">modeltools.SubmodelsProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.StorageModel_V1" title="hydpy.interfaces.routinginterfaces.StorageModel_V1"><span class="pre">StorageModel_V1</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1.storagemodels" title="Link to this definition">¶</a></dt>
+<dd><p>References to the storage submodels.</p>
+<p>There must be one storage model for each channel segment.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.routinginterfaces.ChannelModel_V1.routingmodels">
+<span class="sig-name descname"><span class="pre">routingmodels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelsProperty" title="hydpy.core.modeltools.SubmodelsProperty"><span class="pre">modeltools.SubmodelsProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V1" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1"><span class="pre">RoutingModel_V1</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><span class="pre">RoutingModel_V2</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.interfaces.routinginterfaces.RoutingModel_V3" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3"><span class="pre">RoutingModel_V3</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.interfaces.routinginterfaces.ChannelModel_V1.routingmodels" title="Link to this definition">¶</a></dt>
+<dd><p>References to the routing submodels.</p>
+<p>There must be one routing model for each interface between two channel segments.
+Additionally, one routing model can be at the first position for simulating
+“longitudinal inflow” into the channel.  And there can be one routing model at the
+last position for calculating “longitudinal outflow”.</p>
+<p>Note that “inflow” and “outflow” here only refer to the location but not 
+necessarily to water increases or decreases in the channel’s water amount, as both 
+might be positive or negative, depending on the selected submodel.</p>
+<p>If neither the upstream channel model defines a routing model for its last 
+position nor the corresponding downstream channel model for its first position, 
+both channels cannot become connected.  If both channel models define routing 
+models for the mentioned positions, it is unclear which is relevant.  We suggest 
+the following convention.  Of course, add routing submodels that handle “external 
+longitudinal inflow” (e.g. <a class="reference internal" href="sw1d_q_in.html#module-hydpy.models.sw1d_q_in" title="hydpy.models.sw1d_q_in"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_q_in</span></code></a>) at the first position and routing submodels 
+that handle “external longitudinal outflow” (e.g. <a class="reference internal" href="sw1d_weir_out.html#module-hydpy.models.sw1d_weir_out" title="hydpy.models.sw1d_weir_out"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_weir_out</span></code></a>) at the last 
+position.  Add routing submodels that handle “internal longitudinal flow” (e.g. 
+<a class="reference internal" href="sw1d_lias.html#module-hydpy.models.sw1d_lias" title="hydpy.models.sw1d_lias"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_lias</span></code></a>) at the last position for places with confluences or without 
+tributaries.  For branches, add them to the first position.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="soilinterfaces.html" title="soilinterfaces"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="rconcinterfaces.html" title="rconcinterfaces"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" >Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">routinginterfaces</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

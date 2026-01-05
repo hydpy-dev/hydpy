@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.conv_idw_ed &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv_idw_ed</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.conv_idw_ed</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">|conv_idw_ed| extends |conv_idw| by taking an additional statistical relationship</span>
+<span class="sd">between the interpolated variable and an arbitrary independent variable into account.</span>
+<span class="sd">A typical use case is elevation-dependent temperature interpolation.  You can</span>
+<span class="sd">understand the approach of |conv_idw_ed| as a simplification of External Drift Kriging.</span>
+
+<span class="sd">The algorithm works as follows (we take elevation-dependent temperature interpolation</span>
+<span class="sd">as an example):</span>
+
+<span class="sd"> * Estimate the linear regression coefficients to model the relationship between air</span>
+<span class="sd">   temperature and elevation at the available stations for the current simulation time</span>
+<span class="sd">   step (or take the given default values).</span>
+<span class="sd"> * Use the resulting linear model to predict the temperature at the stations and the</span>
+<span class="sd">   interpolation target points.</span>
+<span class="sd"> * Calculate the residuals (differences between predictions and measurements) at all</span>
+<span class="sd">   stations.</span>
+<span class="sd"> * Interpolate the residuals based on the same inverse distance weighting approach as</span>
+<span class="sd">   applied by application model |conv_idw|.</span>
+<span class="sd"> * Combine the predicted temperature values and the interpolated residuals to gain the</span>
+<span class="sd">   final interpolation results at all target points.</span>
+
+<span class="sd">For perfect correlations between temperature and elevation, the interpolated values</span>
+<span class="sd">depend only on elevation.  If there is no correlation, the interpolated values depend</span>
+<span class="sd">solely on spatial proximity to the stations.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We start the following explanations with repeating the examples documented for</span>
+<span class="sd">application model |conv_idw|.  Hence, we first define identical test settings (please</span>
+<span class="sd">see the documentation on application model |conv_idw| for more information):</span>
+
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Element, Node, pub</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-01-04&quot;, &quot;1d&quot;</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.conv_idw_ed import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">&gt;&gt;&gt; in1, in2, in3 = Node(&quot;in1&quot;), Node(&quot;in2&quot;), Node(&quot;in3&quot;)</span>
+<span class="sd">&gt;&gt;&gt; element = Element(&quot;conv&quot;,</span>
+<span class="sd">...                   inlets=(in1, in2, in3),</span>
+<span class="sd">...                   outlets=[&quot;out1&quot;, &quot;out2&quot;, &quot;out3&quot;, &quot;out4&quot;])</span>
+
+<span class="sd">&gt;&gt;&gt; inputcoordinates(in1=(0.0, 3.0),</span>
+<span class="sd">...                  in2=(2.0, -1.0),</span>
+<span class="sd">...                  in3=(4.0, 2.0))</span>
+<span class="sd">&gt;&gt;&gt; outputcoordinates(out1=(0.0, 3.0),</span>
+<span class="sd">...                   out2=(3.0, -2.0),</span>
+<span class="sd">...                   out3=(1.0, 2.0),</span>
+<span class="sd">...                   out4=(1.0, 1.0))</span>
+<span class="sd">&gt;&gt;&gt; power(2.0)</span>
+<span class="sd">&gt;&gt;&gt; maxnmbinputs(3)</span>
+
+<span class="sd">&gt;&gt;&gt; element.model = model</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%Y-%m-%d&quot;</span>
+<span class="sd">&gt;&gt;&gt; with pub.options.checkseries(False):</span>
+<span class="sd">...     in1.sequences.sim.series = 1.0, nan, nan</span>
+<span class="sd">...     in2.sequences.sim.series = 3.0, 2.0, nan</span>
+<span class="sd">...     in3.sequences.sim.series = 4.0, nan, nan</span>
+
+<span class="sd">Next, we prepare the additional parameters of |conv_idw_ed|.  Most importantly, we</span>
+<span class="sd">define the values of the independent variable for all input and output nodes:</span>
+
+<span class="sd">&gt;&gt;&gt; inputheights(in1=0.0,</span>
+<span class="sd">...              in2=2.0,</span>
+<span class="sd">...              in3=4.0)</span>
+<span class="sd">&gt;&gt;&gt; outputheights(out1=0.0,</span>
+<span class="sd">...               out2=1.0,</span>
+<span class="sd">...               out3=2.0,</span>
+<span class="sd">...               out4=3.0)</span>
+
+<span class="sd">In our example calculations, we use three input nodes.  However, we first set the</span>
+<span class="sd">number of data-points that must be available to estimate the linear model to four,</span>
+<span class="sd">which of course is impossible.  Hence, |conv_idw_ed| will always use the default</span>
+<span class="sd">values.  We set both of them to zero and thus effectively disable the &quot;external drift&quot;</span>
+<span class="sd">functionality so that |conv_idw_ed| works exactly like |conv_idw|:</span>
+
+<span class="sd">&gt;&gt;&gt; minnmbinputs(4)</span>
+<span class="sd">&gt;&gt;&gt; defaultconstant(0.0)</span>
+<span class="sd">&gt;&gt;&gt; defaultfactor(0.0)</span>
+
+<span class="sd">Under the given configuration, |conv_idw_ed| reproduces the results of the test</span>
+<span class="sd">examples documented for application model |conv_idw| precisely:</span>
+
+<span class="sd">&gt;&gt;&gt; test()</span>
+<span class="sd">|       date |           inputs | actualconstant | actualfactor |           inputpredictions |                outputpredictions |           inputresiduals |                 outputresiduals |                 outputs | in1 | in2 | in3 | out1 | out2 | out3 | out4 |</span>
+<span class="sd">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">| 2000-01-01 | 1.0  3.0     4.0 |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | 1.0  3.0             4.0 | 1.0  3.0  1.75              2.4 | 1.0  3.0  1.75      2.4 | 1.0 | 3.0 | 4.0 |  1.0 |  3.0 | 1.75 |  2.4 |</span>
+<span class="sd">| 2000-01-02 | nan  2.0     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  2.0             nan | 2.0  2.0   2.0              2.0 | 2.0  2.0   2.0      2.0 | nan | 2.0 | nan |  2.0 |  2.0 |  2.0 |  2.0 |</span>
+<span class="sd">| 2000-01-03 | nan  nan     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  nan             nan | nan  nan   nan              nan | nan  nan   nan      nan | nan | nan | nan |  nan |  nan |  nan |  nan |</span>
+
+<span class="sd">&gt;&gt;&gt; maxnmbinputs(2)</span>
+<span class="sd">&gt;&gt;&gt; test()</span>
+<span class="sd">|       date |           inputs | actualconstant | actualfactor |           inputpredictions |                outputpredictions |           inputresiduals |                          outputresiduals |                          outputs | in1 | in2 | in3 | out1 |     out2 |     out3 | out4 |</span>
+<span class="sd">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">| 2000-01-01 | 1.0  3.0     4.0 |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | 1.0  3.0             4.0 | 1.0  3.105263  1.545455              2.0 | 1.0  3.105263  1.545455      2.0 | 1.0 | 3.0 | 4.0 |  1.0 | 3.105263 | 1.545455 |  2.0 |</span>
+<span class="sd">| 2000-01-02 | nan  2.0     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  2.0             nan | nan       2.0       nan              2.0 | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |</span>
+<span class="sd">| 2000-01-03 | nan  nan     nan |            0.0 |          0.0 | 0.0  0.0               0.0 | 0.0  0.0  0.0                0.0 | nan  nan             nan | nan       nan       nan              nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |</span>
+
+<span class="sd">Now we enable the &quot;external drift&quot; functionality by providing non-zero default values.</span>
+<span class="sd">Hence, |conv_idw_ed| employs the same linear model in all simulation time steps:</span>
+
+<span class="sd">&gt;&gt;&gt; maxnmbinputs(3)</span>
+<span class="sd">&gt;&gt;&gt; defaultfactor(1.0)</span>
+<span class="sd">&gt;&gt;&gt; defaultconstant(2.0)</span>
+<span class="sd">&gt;&gt;&gt; test()</span>
+<span class="sd">|       date |           inputs | actualconstant | actualfactor |           inputpredictions |                outputpredictions |             inputresiduals |                       outputresiduals |                    outputs | in1 | in2 | in3 | out1 | out2 |    out3 | out4 |</span>
+<span class="sd">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">| 2000-01-01 | 1.0  3.0     4.0 |            2.0 |          1.0 | 2.0  4.0               6.0 | 2.0  3.0  4.0                5.0 | -1.0  -1.0            -2.0 | -1.0  -1.1  -1.15625             -1.2 | 1.0  1.9  2.84375      3.8 | 1.0 | 3.0 | 4.0 |  1.0 |  1.9 | 2.84375 |  3.8 |</span>
+<span class="sd">| 2000-01-02 | nan  2.0     nan |            2.0 |          1.0 | 2.0  4.0               6.0 | 2.0  3.0  4.0                5.0 |  nan  -2.0             nan | -2.0  -2.0      -2.0             -2.0 | 0.0  1.0      2.0      3.0 | nan | 2.0 | nan |  0.0 |  1.0 |     2.0 |  3.0 |</span>
+<span class="sd">| 2000-01-03 | nan  nan     nan |            2.0 |          1.0 | 2.0  4.0               6.0 | 2.0  3.0  4.0                5.0 |  nan   nan             nan |  nan   nan       nan              nan | nan  nan      nan      nan | nan | nan | nan |  nan |  nan |     nan |  nan |</span>
+
+<span class="sd">If we set the required number of data-points to three (two would also be fine),</span>
+<span class="sd">|conv_idw_ed| estimates the parameters of the linear model (|ActualFactor| and</span>
+<span class="sd">|ActualConstant|) in the first time step on its own, and falls back to the default</span>
+<span class="sd">values in the remaining time steps:</span>
+
+<span class="sd">&gt;&gt;&gt; minnmbinputs(2)</span>
+<span class="sd">&gt;&gt;&gt; test()</span>
+<span class="sd">|       date |           inputs | actualconstant | actualfactor |                     inputpredictions |                               outputpredictions |                      inputresiduals |                                 outputresiduals |                       outputs | in1 | in2 | in3 | out1 |  out2 |     out3 | out4 |</span>
+<span class="sd">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">| 2000-01-01 | 1.0  3.0     4.0 |       1.166667 |         0.75 | 1.166667  2.666667          4.166667 | 1.166667  1.916667  2.666667           3.416667 | -0.166667  0.333333       -0.166667 | -0.166667  0.258333  -0.096354         0.033333 | 1.0  2.175  2.570312     3.45 | 1.0 | 3.0 | 4.0 |  1.0 | 2.175 | 2.570312 | 3.45 |</span>
+<span class="sd">| 2000-01-02 | nan  2.0     nan |            2.0 |          1.0 |      2.0       4.0               6.0 |      2.0       3.0       4.0                5.0 |       nan      -2.0             nan |      -2.0      -2.0       -2.0             -2.0 | 0.0    1.0       2.0      3.0 | nan | 2.0 | nan |  0.0 |   1.0 |      2.0 |  3.0 |</span>
+<span class="sd">| 2000-01-03 | nan  nan     nan |            2.0 |          1.0 |      2.0       4.0               6.0 |      2.0       3.0       4.0                5.0 |       nan       nan             nan |       nan       nan        nan              nan | nan    nan       nan      nan | nan | nan | nan |  nan |   nan |      nan |  nan |</span>
+
+<span class="sd">The final example shows that everything works as expected for the edge cases of perfect</span>
+<span class="sd">and missing correlation. In the first time step, there is a perfect (negative)</span>
+<span class="sd">correlation at the input nodes.  Hence, all residuals (calculated for the input nodes</span>
+<span class="sd">and interpolated for the output nodes) are zero.  In the second time step, there is no</span>
+<span class="sd">correlation.  Hence, all values predicted by the linear model are the same.  The third</span>
+<span class="sd">time step shows that |conv_idw_ed| handles the special (but not uncommon) case of</span>
+<span class="sd">missing variability in the input values well:</span>
+
+<span class="sd">&gt;&gt;&gt; in1.sequences.sim.series = 4.0, 0.0, 0.0</span>
+<span class="sd">&gt;&gt;&gt; in2.sequences.sim.series = 3.0, 1.0, 0.0</span>
+<span class="sd">&gt;&gt;&gt; in3.sequences.sim.series = 2.0, 0.0, 0.0</span>
+<span class="sd">&gt;&gt;&gt; test()</span>
+<span class="sd">|       date |           inputs | actualconstant | actualfactor |                     inputpredictions |                               outputpredictions |                      inputresiduals |                                 outputresiduals |                      outputs | in1 | in2 | in3 | out1 | out2 |     out3 | out4 |</span>
+<span class="sd">-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">| 2000-01-01 | 4.0  3.0     2.0 |            4.0 |         -0.5 |      4.0       3.0               2.0 |      4.0       3.5       3.0                2.5 |       0.0       0.0             0.0 |       0.0       0.0        0.0              0.0 | 4.0   3.5       3.0      2.5 | 4.0 | 3.0 | 2.0 |  4.0 |  3.5 |      3.0 |  2.5 |</span>
+<span class="sd">| 2000-01-02 | 0.0  1.0     0.0 |       0.333333 |          0.0 | 0.333333  0.333333          0.333333 | 0.333333  0.333333  0.333333           0.333333 | -0.333333  0.666667       -0.333333 | -0.333333  0.516667  -0.192708         0.066667 | 0.0  0.85  0.140625      0.4 | 0.0 | 1.0 | 0.0 |  0.0 | 0.85 | 0.140625 |  0.4 |</span>
+<span class="sd">| 2000-01-03 | 0.0  0.0     0.0 |            0.0 |          0.0 |      0.0       0.0               0.0 |      0.0       0.0       0.0                0.0 |       0.0       0.0             0.0 |       0.0       0.0        0.0              0.0 | 0.0   0.0       0.0      0.0 | 0.0 | 0.0 | 0.0 |  0.0 |  0.0 |      0.0 |  0.0 |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.conv</span><span class="w"> </span><span class="kn">import</span> <span class="n">conv_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../conv_idw_ed.html#hydpy.models.conv_idw_ed.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|conv_idw_ed.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;Conv-IDW-ED&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;inverse distance weighted interpolation with external drift&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Pick_Inputs_V1</span><span class="p">,)</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Return_Mean_V1</span><span class="p">,</span> <span class="n">conv_model</span><span class="o">.</span><span class="n">Interpolate_InverseDistance_V1</span><span class="p">)</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_ActualConstant_ActualFactor_V1</span><span class="p">,</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_InputPredictions_V1</span><span class="p">,</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_OutputPredictions_V1</span><span class="p">,</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_InputResiduals_V1</span><span class="p">,</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_OutputResiduals_V1</span><span class="p">,</span>
+        <span class="n">conv_model</span><span class="o">.</span><span class="n">Calc_Outputs_V3</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">conv_model</span><span class="o">.</span><span class="n">Pass_Outputs_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.conv_idw_ed</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

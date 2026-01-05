@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.auxs.interptools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.auxs.interptools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.auxs.interptools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module enables model developers to easily include linear and nonlinear</span>
+<span class="sd">interpolation techniques into their model methods.</span>
+
+<span class="sd">The implemented classes |SimpleInterpolator| and |SeasonalInterpolator| serve as base</span>
+<span class="sd">classes for (very complex) control parameters.  Subclassing them is sufficient for</span>
+<span class="sd">making the functionalities of the modules |interptools|, |anntools|, and |ppolytools|</span>
+<span class="sd">available to the user.</span>
+
+<span class="sd">The relevant models perform the interpolation during simulation runs, so we implemented</span>
+<span class="sd">the related methods in the Cython extension module |interputils|.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hydpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">propertytools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">timetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">variabletools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.cythons</span><span class="w"> </span><span class="kn">import</span> <span class="n">interputils</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">pyplot</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">OptionalImport</span><span class="p">(</span><span class="s2">&quot;pyplot&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;matplotlib.pyplot&quot;</span><span class="p">],</span> <span class="nb">locals</span><span class="p">())</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_Labeled</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">xlabel</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;XLABEL&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">xlabel</span><span class="p">:</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">xlabel</span><span class="p">)</span>
+        <span class="n">ylabel</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;YLABEL&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ylabel</span><span class="p">:</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="InterpAlgorithm">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.InterpAlgorithm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InterpAlgorithm</span><span class="p">(</span><span class="n">_Labeled</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for defining interpolation algorithms usable by classes</span>
+<span class="sd">    |SimpleInterpolator| and |SeasonalInterpolator|.&quot;&quot;&quot;</span>
+
+    <span class="n">nmb_inputs</span><span class="p">:</span> <span class="n">propertytools</span><span class="o">.</span><span class="n">BaseProperty</span><span class="p">[</span><span class="n">Never</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The number of input values.&quot;&quot;&quot;</span>
+    <span class="n">inputs</span><span class="p">:</span> <span class="n">propertytools</span><span class="o">.</span><span class="n">BaseProperty</span><span class="p">[</span><span class="n">Never</span><span class="p">,</span> <span class="n">VectorFloat</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The current input values.&quot;&quot;&quot;</span>
+    <span class="n">nmb_outputs</span><span class="p">:</span> <span class="n">propertytools</span><span class="o">.</span><span class="n">BaseProperty</span><span class="p">[</span><span class="n">Never</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The lastly calculated output values.&quot;&quot;&quot;</span>
+    <span class="n">outputs</span><span class="p">:</span> <span class="n">propertytools</span><span class="o">.</span><span class="n">BaseProperty</span><span class="p">[</span><span class="n">Never</span><span class="p">,</span> <span class="n">VectorFloat</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The lastly calculated output values.&quot;&quot;&quot;</span>
+    <span class="n">output_derivatives</span><span class="p">:</span> <span class="n">propertytools</span><span class="o">.</span><span class="n">BaseProperty</span><span class="p">[</span><span class="n">Never</span><span class="p">,</span> <span class="n">VectorFloat</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The lastly calculated first-order derivatives.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="InterpAlgorithm.calculate_values">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.InterpAlgorithm.calculate_values">[docs]</a>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the output values based on the input values defined previously.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="InterpAlgorithm.calculate_derivatives">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.InterpAlgorithm.calculate_derivatives">[docs]</a>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_derivatives</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the derivatives of the output values with respect to the input</span>
+<span class="sd">        value of the given index.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="InterpAlgorithm.verify">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.InterpAlgorithm.verify">[docs]</a>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Raise a |RuntimeError| if the actual |InterpAlgorithm| object is</span>
+<span class="sd">        ill-defined.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="InterpAlgorithm.assignrepr">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.InterpAlgorithm.assignrepr">[docs]</a>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assignrepr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">indent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a string representation of the actual |InterpAlgorithm| object</span>
+<span class="sd">        prefixed with the given string.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="InterpAlgorithm.print_table">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.InterpAlgorithm.print_table">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">:</span> <span class="n">VectorFloat</span> <span class="o">|</span> <span class="n">MatrixFloat</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process the given input data and print the interpolated output values as</span>
+<span class="sd">        well as all partial first-order derivatives.</span>
+
+<span class="sd">        The documentation on class |PPoly| includes some examples of a strictly</span>
+<span class="sd">        univariate interpolator.  Here, we take up some examples discussed for class</span>
+<span class="sd">        |ANN| to show that method |InterpAlgorithm.print_table| also correctly reports</span>
+<span class="sd">        all outputs and derivatives for multivariate interpolators.</span>
+
+<span class="sd">        A single-input single-output example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import ANN, nan</span>
+<span class="sd">        &gt;&gt;&gt; ann = ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,</span>
+<span class="sd">        ...           weights_input=4.0, weights_output=3.0,</span>
+<span class="sd">        ...           intercepts_hidden=-16.0, intercepts_output=-1.0)</span>
+<span class="sd">        &gt;&gt;&gt; ann.print_table([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0])</span>
+<span class="sd">        x    y          dy/dx</span>
+<span class="sd">        0.0  -1.0       0.000001</span>
+<span class="sd">        1.0  -0.999982  0.000074</span>
+<span class="sd">        2.0  -0.998994  0.004023</span>
+<span class="sd">        3.0  -0.946041  0.211952</span>
+<span class="sd">        4.0  0.5        3.0</span>
+<span class="sd">        5.0  1.946041   0.211952</span>
+<span class="sd">        6.0  1.998994   0.004023</span>
+<span class="sd">        7.0  1.999982   0.000074</span>
+<span class="sd">        8.0  2.0        0.000001</span>
+
+<span class="sd">        A multivariate example (three input and two output values result in six partial</span>
+<span class="sd">        derivatives):</span>
+
+<span class="sd">        &gt;&gt;&gt; ann.nmb_inputs = 3</span>
+<span class="sd">        &gt;&gt;&gt; ann.nmb_neurons = (4,)</span>
+<span class="sd">        &gt;&gt;&gt; ann.nmb_outputs = 2</span>
+<span class="sd">        &gt;&gt;&gt; ann.weights_input = [[ 0.2, -0.1, -1.7,  0.6],</span>
+<span class="sd">        ...                      [ 0.9,  0.2,  0.8,  0.0],</span>
+<span class="sd">        ...                      [-0.5, -1.0,  2.3, -0.4]]</span>
+<span class="sd">        &gt;&gt;&gt; ann.weights_output = [[ 0.0,  2.0],</span>
+<span class="sd">        ...                       [-0.5,  1.0],</span>
+<span class="sd">        ...                       [ 0.4,  2.4],</span>
+<span class="sd">        ...                       [ 0.8, -0.9]]</span>
+<span class="sd">        &gt;&gt;&gt; ann.intercepts_hidden = [ 0.9,  0.0, -0.4, -0.2]</span>
+<span class="sd">        &gt;&gt;&gt; ann.intercepts_output = [ 1.3, -2.0]</span>
+<span class="sd">        &gt;&gt;&gt; ann.print_table([[-0.1,  1.3,  1.6]])</span>
+<span class="sd">        x1    x2   x3   y1        y2        dy1/dx1   dy2/dx1    dy1/dx2   dy2/dx2   \</span>
+<span class="sd">dy1/dx3   dy2/dx3</span>
+<span class="sd">        -0.1  1.3  1.6  1.822222  1.876983  0.099449  -0.103039  -0.01303  0.365739  \</span>
+<span class="sd">0.027041  -0.203965</span>
+
+<span class="sd">        A combined example (two inputs, one output):</span>
+
+<span class="sd">        &gt;&gt;&gt; ANN(nmb_inputs=2, nmb_neurons=(2, 1), nmb_outputs=1,</span>
+<span class="sd">        ...     weights_input=[[1000.0, 500.0],</span>
+<span class="sd">        ...                    [1000.0, 500.0]],</span>
+<span class="sd">        ...     weights_hidden=[[[1000.0],</span>
+<span class="sd">        ...                      [-1000.0]]],</span>
+<span class="sd">        ...     weights_output=[[1.0]],</span>
+<span class="sd">        ...     intercepts_hidden=[[-750.0, -750.0],</span>
+<span class="sd">        ...                        [-750.0, nan]],</span>
+<span class="sd">        ...     intercepts_output=[0.0],</span>
+<span class="sd">        ... ).print_table([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])</span>
+<span class="sd">        x1   x2   y    dy/dx1  dy/dx2</span>
+<span class="sd">        0.0  0.0  0.0  0.0     0.0</span>
+<span class="sd">        1.0  0.0  1.0  0.0     0.0</span>
+<span class="sd">        0.0  1.0  1.0  0.0     0.0</span>
+<span class="sd">        1.0  1.0  0.0  0.0     0.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span>
+
+        <span class="n">ni</span><span class="p">,</span> <span class="n">no</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nmb_outputs</span>
+        <span class="n">nt</span> <span class="o">=</span> <span class="n">ni</span> <span class="o">+</span> <span class="n">no</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nt</span> <span class="o">+</span> <span class="n">ni</span> <span class="o">*</span> <span class="n">no</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+        <span class="n">xns</span> <span class="o">=</span> <span class="s2">&quot;x&quot;</span> <span class="k">if</span> <span class="n">ni</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;x</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ni</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">yns</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span> <span class="k">if</span> <span class="n">no</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;y</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">no</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="n">ni</span><span class="p">]</span> <span class="o">=</span> <span class="n">xns</span>
+        <span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">ni</span><span class="p">:</span><span class="n">nt</span><span class="p">]</span> <span class="o">=</span> <span class="n">yns</span>
+        <span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">nt</span><span class="p">:]</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;d</span><span class="si">{</span><span class="n">yn</span><span class="si">}</span><span class="s2">/d</span><span class="si">{</span><span class="n">xn</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">xn</span><span class="p">,</span> <span class="n">yn</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">xns</span><span class="p">,</span> <span class="n">yns</span><span class="p">)]</span>
+
+        <span class="c1"># Mypy problem? See issue https://github.com/python/mypy/issues/8586:</span>
+        <span class="n">xs_</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">ri</span><span class="p">,</span> <span class="n">xs_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xs</span><span class="p">):</span>
+            <span class="n">ri</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">xs_</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="n">xs_</span> <span class="o">=</span> <span class="p">(</span><span class="n">xs_</span><span class="p">,)</span>
+            <span class="k">for</span> <span class="n">xi</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xs_</span><span class="p">):</span>
+                <span class="n">table</span><span class="p">[</span><span class="n">ri</span><span class="p">,</span> <span class="n">xi</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">xi</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">yi</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">):</span>
+                <span class="n">table</span><span class="p">[</span><span class="n">ri</span><span class="p">,</span> <span class="n">ni</span> <span class="o">+</span> <span class="n">yi</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ni</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">calculate_derivatives</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">yi</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">no</span><span class="p">):</span>
+                    <span class="n">table</span><span class="p">[</span><span class="n">ri</span><span class="p">,</span> <span class="n">nt</span> <span class="o">+</span> <span class="n">no</span> <span class="o">*</span> <span class="n">xi</span> <span class="o">+</span> <span class="n">yi</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_derivatives</span><span class="p">[</span><span class="n">yi</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">table</span><span class="p">[:,</span> <span class="n">j</span><span class="p">])</span>
+            <span class="n">table</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">length</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">table</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="o">*</span><span class="n">row</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;  &quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="InterpAlgorithm.plot">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.InterpAlgorithm.plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">xmin</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">xmax</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">idx_input</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">idx_output</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the relationship between particular input (`idx_input`) and output</span>
+<span class="sd">        (`idx_output`) values defined by the actual |InterpAlgorithm| object.</span>
+
+<span class="sd">        You need to define the lower and the upper bound of the x-axis via arguments</span>
+<span class="sd">        `xmin` and `xmax`.  You can increase or decrease the accuracy of the plot by</span>
+<span class="sd">        changing the number of points evaluated within this interval (default is 100).</span>
+<span class="sd">        For visual configuration, pass arbitrary |matplotlib| `pyplot` plotting</span>
+<span class="sd">        arguments as keyword arguments.</span>
+
+<span class="sd">        See the documentation on classes |ANN| and |PPoly| for some examples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">xs_</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
+        <span class="n">ys_</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">xs_</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">x__</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">xs_</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_input</span><span class="p">]</span> <span class="o">=</span> <span class="n">x__</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+            <span class="n">ys_</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="n">idx_output</span><span class="p">]</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xs_</span><span class="p">,</span> <span class="n">ys_</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_labels</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BaseInterpolator">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.BaseInterpolator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseInterpolator</span><span class="p">(</span><span class="n">_Labeled</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for |SimpleInterpolator| and |SeasonalInterpolator|.&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TIME</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class name in lowercase letters.&quot;&quot;&quot;</span>
+    <span class="n">subvars</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">SubParameters</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The |SubParameters| object containing the current |BaseInterpolator| object.&quot;&quot;&quot;</span>
+    <span class="n">subpars</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">SubParameters</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The |SubParameters| object containing the current |BaseInterpolator| object.&quot;&quot;&quot;</span>
+    <span class="n">fastaccess</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">FastAccessParameter</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The `fastaccess` object providing access to the interpolator functionalities</span>
+<span class="sd">    implemented in Cython.&quot;&quot;&quot;</span>
+
+    <span class="n">__hydpy__subclasscounter__</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__init_subclass__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">subclasscounter</span> <span class="o">=</span> <span class="n">variabletools</span><span class="o">.</span><span class="n">Variable</span><span class="o">.</span><span class="n">__hydpy__subclasscounter__</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">variabletools</span><span class="o">.</span><span class="n">Variable</span><span class="o">.</span><span class="n">__hydpy__subclasscounter__</span> <span class="o">=</span> <span class="n">subclasscounter</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">__hydpy__subclasscounter__</span> <span class="o">=</span> <span class="n">subclasscounter</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__hydpy__let_par_set_shape__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="SimpleInterpolator">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SimpleInterpolator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleInterpolator</span><span class="p">(</span><span class="n">BaseInterpolator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parameter base class for handling interpolation problems.</span>
+
+<span class="sd">    |SimpleInterpolator| serves as a base class for parameter objects that accept</span>
+<span class="sd">    an |InterpAlgorithm| object as their &quot;value&quot;, which allows model users to select</span>
+<span class="sd">    interpolation algorithms and configure them according to the data at hand.  If, for</span>
+<span class="sd">    example, linear interpolation is sufficient, one can prepare and hand over a</span>
+<span class="sd">    |PPoly| object:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.auxs.interptools import SimpleInterpolator</span>
+<span class="sd">    &gt;&gt;&gt; simpleinterpolator = SimpleInterpolator(None)</span>
+<span class="sd">    &gt;&gt;&gt; simpleinterpolator</span>
+<span class="sd">    simpleinterpolator(?)</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import ANN, PPoly, print_vector</span>
+<span class="sd">    &gt;&gt;&gt; simpleinterpolator(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.0]))</span>
+<span class="sd">    &gt;&gt;&gt; simpleinterpolator</span>
+<span class="sd">    simpleinterpolator(</span>
+<span class="sd">        PPoly(</span>
+<span class="sd">            Poly(x0=0.0, cs=(0.0, 2.0)),</span>
+<span class="sd">        )</span>
+<span class="sd">    )</span>
+
+<span class="sd">    Besides handling an |InterpAlgorithm| object and connecting it to its model</span>
+<span class="sd">    instance, |SimpleInterpolator| provides no own functionalities.  Instead, its</span>
+<span class="sd">    user-available properties and methods call the identically named properties and</span>
+<span class="sd">    methods of the handled interpolator, thereby passing all possible arguments without</span>
+<span class="sd">    modification.  Hence, read the documentation on the subclasses of |InterpAlgorithm|</span>
+<span class="sd">    for further information.</span>
+
+<span class="sd">    The following technical checks ensure the proper implementation of all delegations:</span>
+
+<span class="sd">    &gt;&gt;&gt; simpleinterpolator(ANN(nmb_inputs=2, nmb_outputs=3))</span>
+<span class="sd">    &gt;&gt;&gt; simpleinterpolator.nmb_inputs</span>
+<span class="sd">    2</span>
+<span class="sd">    &gt;&gt;&gt; simpleinterpolator.nmb_outputs</span>
+<span class="sd">    3</span>
+<span class="sd">    &gt;&gt;&gt; simpleinterpolator.algorithm.inputs = 1.0, 2.0</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(simpleinterpolator.inputs)</span>
+<span class="sd">    1.0, 2.0</span>
+<span class="sd">    &gt;&gt;&gt; simpleinterpolator.algorithm.outputs = 3.0, 4.0, 5.0</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(simpleinterpolator.outputs)</span>
+<span class="sd">    3.0, 4.0, 5.0</span>
+<span class="sd">    &gt;&gt;&gt; simpleinterpolator.algorithm.output_derivatives = 6.0, 7.0, 8.0</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(simpleinterpolator.output_derivatives)</span>
+<span class="sd">    6.0, 7.0, 8.0</span>
+<span class="sd">    &gt;&gt;&gt; from unittest.mock import patch</span>
+<span class="sd">    &gt;&gt;&gt; with patch.object(ANN, &quot;verify&quot;) as mock:</span>
+<span class="sd">    ...     assert simpleinterpolator.verify() is None</span>
+<span class="sd">    &gt;&gt;&gt; mock.assert_called_with()</span>
+<span class="sd">    &gt;&gt;&gt; with patch.object(ANN, &quot;calculate_values&quot;) as mock:</span>
+<span class="sd">    ...     assert simpleinterpolator.calculate_values() is None</span>
+<span class="sd">    &gt;&gt;&gt; mock.assert_called_with()</span>
+<span class="sd">    &gt;&gt;&gt; with patch.object(ANN, &quot;calculate_derivatives&quot;) as mock:</span>
+<span class="sd">    ...     assert simpleinterpolator.calculate_derivatives(3) is None</span>
+<span class="sd">    &gt;&gt;&gt; mock.assert_called_with(3)</span>
+<span class="sd">    &gt;&gt;&gt; with patch.object(ANN, &quot;print_table&quot;) as mock:</span>
+<span class="sd">    ...     assert simpleinterpolator.print_table(xs=[1.0, 2.0]) is None</span>
+<span class="sd">    &gt;&gt;&gt; mock.assert_called_with(xs=[1.0, 2.0])</span>
+<span class="sd">    &gt;&gt;&gt; kwargs = dict(xmin=0.0, xmax=1.0, idx_input=1, idx_output=2, points=10, opt=&quot;?&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; with patch.object(ANN, &quot;plot&quot;) as mock:</span>
+<span class="sd">    ...     mock.return_value = &quot;figure&quot;</span>
+<span class="sd">    ...     assert simpleinterpolator.plot(**kwargs) == &quot;figure&quot;</span>
+<span class="sd">    &gt;&gt;&gt; mock.assert_called_with(**kwargs)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span> <span class="o">=</span> <span class="s2">&quot;interputils.SimpleInterpolator&quot;</span>
+
+    <span class="n">_algorithm</span><span class="p">:</span> <span class="n">InterpAlgorithm</span> <span class="o">|</span> <span class="kc">None</span>
+
+    <span class="n">__simpleinterpolator</span><span class="p">:</span> <span class="n">interputils</span><span class="o">.</span><span class="n">SimpleInterpolator</span> <span class="o">|</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subvars</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">SubParameters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subvars</span> <span class="o">=</span> <span class="n">subvars</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span> <span class="o">=</span> <span class="n">subvars</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fastaccess</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">FastAccessParameter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_algorithm</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__simpleinterpolator</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_refresh</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__hydpy__connect_variable2subgroup__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect the actual |SimpleInterpolator| object with the given</span>
+<span class="sd">        |SubParameters| object.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fastaccess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__simpleinterpolator</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">:</span> <span class="n">InterpAlgorithm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_algorithm</span> <span class="o">=</span> <span class="n">algorithm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__simpleinterpolator</span> <span class="o">=</span> <span class="n">interputils</span><span class="o">.</span><span class="n">SimpleInterpolator</span><span class="p">(</span><span class="n">algorithm</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__simpleinterpolator</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">algorithm</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InterpAlgorithm</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The handled interpolation algorithm.</span>
+
+<span class="sd">        Trying to access the &quot;I&quot; object before defining it results in the following</span>
+<span class="sd">        error:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.auxs.interptools import SimpleInterpolator</span>
+<span class="sd">        &gt;&gt;&gt; SimpleInterpolator(None).algorithm</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: For parameter `simpleinterpolator` of element `?`, no \</span>
+<span class="sd">interpolator has been defined so far.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_algorithm</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_algorithm</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;For parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">, no interpolator has &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;been defined so far.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nmb_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of input values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">nmb_inputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nmb_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of output values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">nmb_outputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VectorFloat</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The current input values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">inputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VectorFloat</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The current input values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">outputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">output_derivatives</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VectorFloat</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The current input values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">output_derivatives</span>
+
+<div class="viewcode-block" id="SimpleInterpolator.update">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SimpleInterpolator.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Do nothing (this method only ensures compatibility with |Parameter|).&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="SimpleInterpolator.verify">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SimpleInterpolator.verify">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Raise a |RuntimeError| if the current |InterpAlgorithm| object shows</span>
+<span class="sd">        inconsistencies.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SimpleInterpolator.calculate_values">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SimpleInterpolator.calculate_values">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_values</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the output values based on the input values defined previously.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SimpleInterpolator.calculate_derivatives">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SimpleInterpolator.calculate_derivatives">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_derivatives</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the derivatives of the output values with respect to the input</span>
+<span class="sd">        value of the given index.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">calculate_derivatives</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SimpleInterpolator.print_table">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SimpleInterpolator.print_table">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">:</span> <span class="n">VectorFloat</span> <span class="o">|</span> <span class="n">MatrixFloat</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process the given input data and print the interpolated output values as</span>
+<span class="sd">        well as all partial first-order derivatives.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">print_table</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="n">xs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SimpleInterpolator.plot">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SimpleInterpolator.plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">xmin</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">xmax</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">idx_input</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">idx_output</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the relationship between particular input (`idx_input`) and output</span>
+<span class="sd">        (`idx_output`) values defined by the actual |InterpAlgorithm| object.&quot;&quot;&quot;</span>
+        <span class="n">figure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithm</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">xmin</span><span class="o">=</span><span class="n">xmin</span><span class="p">,</span>
+            <span class="n">xmax</span><span class="o">=</span><span class="n">xmax</span><span class="p">,</span>
+            <span class="n">idx_input</span><span class="o">=</span><span class="n">idx_input</span><span class="p">,</span>
+            <span class="n">idx_output</span><span class="o">=</span><span class="n">idx_output</span><span class="p">,</span>
+            <span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_labels</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">figure</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_algorithm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(?)&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_algorithm</span><span class="o">.</span><span class="n">assignrepr</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;    &quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">),</span> <span class="s2">&quot;)&quot;</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SeasonalInterpolator">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SeasonalInterpolator">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SeasonalInterpolator</span><span class="p">(</span><span class="n">BaseInterpolator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represent interpolation patterns showing an annual cycle.</span>
+
+<span class="sd">    Class |SeasonalInterpolator| is an alternative implementation of class</span>
+<span class="sd">    |SeasonalParameter| designed for handling multiple |InterpAlgorithm| objects that</span>
+<span class="sd">    are valid for different times of the year.  The total output of</span>
+<span class="sd">    |SeasonalInterpolator| is the weighted mean of the outputs of its |InterpAlgorithm|</span>
+<span class="sd">    objects.  The required weights depend on the season and are available within the</span>
+<span class="sd">    |SeasonalInterpolator.ratios| matrix.</span>
+
+<span class="sd">    To explain this in more detail, we modify an example of the documentatiob on class</span>
+<span class="sd">    |SeasonalParameter|.  Let us define a |SeasonalInterpolator| object that contains</span>
+<span class="sd">    interpolators for January 1, March 1, and July 1, two of type |ANN| and one of type</span>
+<span class="sd">    |PPoly|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import ANN, Poly, PPoly, pub, SeasonalInterpolator</span>
+<span class="sd">    &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-10-01&quot;, &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator = SeasonalInterpolator(None)</span>
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator(</span>
+<span class="sd">    ...     _1_1_12=ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,</span>
+<span class="sd">    ...                 weights_input=0.0, weights_output=0.0,</span>
+<span class="sd">    ...                 intercepts_hidden=0.0, intercepts_output=1.0),</span>
+<span class="sd">    ...     _7_1_12=ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,</span>
+<span class="sd">    ...                 weights_input=4.0, weights_output=3.0,</span>
+<span class="sd">    ...                 intercepts_hidden=-16.0, intercepts_output=-1.0),</span>
+<span class="sd">    ...     _3_1_12=PPoly(Poly(x0=0.0, cs=(-1.0,))))</span>
+
+<span class="sd">    The confusing time order in the initialisation call above does not pose a problem,</span>
+<span class="sd">    as class |SeasonalInterpolator| performs time sorting internally:</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator</span>
+<span class="sd">    seasonalinterpolator(</span>
+<span class="sd">        toy_1_1_12_0_0=ANN(</span>
+<span class="sd">            weights_input=[[0.0]],</span>
+<span class="sd">            weights_output=[[0.0]],</span>
+<span class="sd">            intercepts_hidden=[[0.0]],</span>
+<span class="sd">            intercepts_output=[1.0],</span>
+<span class="sd">        ),</span>
+<span class="sd">        toy_3_1_12_0_0=PPoly(</span>
+<span class="sd">            Poly(x0=0.0, cs=(-1.0,)),</span>
+<span class="sd">        ),</span>
+<span class="sd">        toy_7_1_12_0_0=ANN(</span>
+<span class="sd">            weights_input=[[4.0]],</span>
+<span class="sd">            weights_output=[[3.0]],</span>
+<span class="sd">            intercepts_hidden=[[-16.0]],</span>
+<span class="sd">            intercepts_output=[-1.0],</span>
+<span class="sd">        ),</span>
+<span class="sd">    )</span>
+
+<span class="sd">    Use method |SeasonalInterpolator.plot| to visualise all interpolators at once:</span>
+
+<span class="sd">    &gt;&gt;&gt; figure = seasonalinterpolator.plot(xmin=0.0, xmax=8.0)</span>
+
+<span class="sd">    You can use the `pyplot` API of `matplotlib` to modify the figure or to save it to</span>
+<span class="sd">    disk (or print it to the screen, in case the interactive mode of `matplotlib` is</span>
+<span class="sd">    disabled):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.testtools import save_autofig</span>
+<span class="sd">    &gt;&gt;&gt; save_autofig(&quot;SeasonalInterpolator_plot.png&quot;, figure=figure)</span>
+
+<span class="sd">    .. image:: SeasonalInterpolator_plot.png</span>
+
+<span class="sd">    Property |SeasonalInterpolator.shape| reflects the number of required weighting</span>
+<span class="sd">    ratios for each time of year (in this example, 366 days per year) and each</span>
+<span class="sd">    interpolator (in this example, three):</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.shape</span>
+<span class="sd">    (366, 3)</span>
+
+<span class="sd">    The following plot shows the |SeasonalInterpolator.ratios| used for weighting (note</span>
+<span class="sd">    that the missing values for October, November, and December are irrelevant for the</span>
+<span class="sd">    initialisation period):</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; from matplotlib import pyplot</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.docs import autofigs</span>
+<span class="sd">        &gt;&gt;&gt; import os</span>
+<span class="sd">        &gt;&gt;&gt; for idx, toy in enumerate(seasonalinterpolator.toys):</span>
+<span class="sd">        ...     _ = pyplot.plot(seasonalinterpolator.ratios[:, idx], label=str(toy))</span>
+<span class="sd">        &gt;&gt;&gt; _ = pyplot.legend()</span>
+<span class="sd">        &gt;&gt;&gt; _ = pyplot.xticks(ticks=[0, 60, 182], labels=[&quot;Jan 1&quot;, &quot;Mar 1&quot;, &quot;Jul 1&quot;])</span>
+<span class="sd">        &gt;&gt;&gt; filename = &quot;SeasonalInterpolator_ratios.png&quot;</span>
+<span class="sd">        &gt;&gt;&gt; pyplot.savefig(os.path.join(autofigs.__path__[0], filename))</span>
+<span class="sd">        &gt;&gt;&gt; pyplot.clf()</span>
+
+<span class="sd">    ... image:: SeasonalInterpolator_ratios.png</span>
+
+<span class="sd">    For example, on July 1 (which is the 183rd day of a leap year), only the output of</span>
+<span class="sd">    the third interpolator is relevant:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_vector</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(seasonalinterpolator.ratios[182])</span>
+<span class="sd">    0.0, 0.0, 1.0</span>
+
+<span class="sd">    On June 30 and July 2, the second and the first interpolators are also relevant:</span>
+
+<span class="sd">    &gt;&gt;&gt; print_vector(seasonalinterpolator.ratios[181])</span>
+<span class="sd">    0.0, 0.008197, 0.991803</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(seasonalinterpolator.ratios[183])</span>
+<span class="sd">    0.005435, 0.0, 0.994565</span>
+
+<span class="sd">    Inserting data, processing this data, and fetching the output works as explained</span>
+<span class="sd">    for class |SimpleInterpolator|, except that you must additionally pass the index of</span>
+<span class="sd">    the actual time of year.  For example, the index value `182` activates the third</span>
+<span class="sd">    interpolator only, configured as in the first example of the documentation on |ANN|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; for input_ in range(9):</span>
+<span class="sd">    ...     seasonalinterpolator.inputs[0] = input_</span>
+<span class="sd">    ...     seasonalinterpolator.calculate_values(182)</span>
+<span class="sd">    ...     round_([input_, seasonalinterpolator.outputs[0]])</span>
+<span class="sd">    0, -1.0</span>
+<span class="sd">    1, -0.999982</span>
+<span class="sd">    2, -0.998994</span>
+<span class="sd">    3, -0.946041</span>
+<span class="sd">    4, 0.5</span>
+<span class="sd">    5, 1.946041</span>
+<span class="sd">    6, 1.998994</span>
+<span class="sd">    7, 1.999982</span>
+<span class="sd">    8, 2.0</span>
+
+<span class="sd">    To demonstrate that the final output values are the weighted mean of the output</span>
+<span class="sd">    values of the different interpolators, we repeat the above example for January 13.</span>
+<span class="sd">    For this day of the year, the first and the second interpolator have ratios of 0.8</span>
+<span class="sd">    and 0.2, respectively:</span>
+
+<span class="sd">    &gt;&gt;&gt; print_vector(seasonalinterpolator.ratios[12])</span>
+<span class="sd">    0.8, 0.2, 0.0</span>
+
+<span class="sd">    Both interpolators calculate constant values.  The sum of the outputs of the first</span>
+<span class="sd">    (1.0) and the second interpolator (-1.0) multiplied with their weights for January</span>
+<span class="sd">    13 is 0.6.</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.calculate_values(12)</span>
+<span class="sd">    &gt;&gt;&gt; round_(seasonalinterpolator.outputs[0])</span>
+<span class="sd">    0.6</span>
+
+<span class="sd">    It is of great importance that all contained interpolators are consistent.  Class</span>
+<span class="sd">    |SeasonalInterpolator| performs some related checks:</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator = SeasonalInterpolator(None)</span>
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.calculate_values(0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: The parameter `seasonalinterpolator` of element `?` has not been \</span>
+<span class="sd">properly prepared so far.</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator(1)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: Type `int` is not (a subclass of) type `InterpAlgorithm`.</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator(_13_1_12=PPoly(Poly(x0=0.0, cs=(0.0,))))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to add a season specific interpolator to parameter \</span>
+<span class="sd">`seasonalinterpolator` of element `?`, the following error occurred: While trying to \</span>
+<span class="sd">initialise a TOY object based on argument value `_13_1_12` of type `str`, the \</span>
+<span class="sd">following error occurred: While trying to retrieve the month, the following error \</span>
+<span class="sd">occurred: The value of property `month` of TOY (time of year) objects must lie within \</span>
+<span class="sd">the range `(1, 12)`, but the given value is `13`.</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator(PPoly(Poly(x0=0.0, cs=(0.0,))))</span>
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator</span>
+<span class="sd">    seasonalinterpolator(</span>
+<span class="sd">        PPoly(</span>
+<span class="sd">            Poly(x0=0.0, cs=(0.0,)),</span>
+<span class="sd">        )</span>
+<span class="sd">    )</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator(PPoly(Poly(x0=0.0, cs=(0.0,))),</span>
+<span class="sd">    ...                      _7_1_12=PPoly(Poly(x0=1.0, cs=(1.0,))),</span>
+<span class="sd">    ...                      _3_1_12=PPoly(Poly(x0=20, cs=(1.0,))))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: Type `SeasonalInterpolator` accepts either a single positional \</span>
+<span class="sd">argument or an arbitrary number of keyword arguments, but for the corresponding \</span>
+<span class="sd">parameter of element `?` 1 positional and 2 keyword arguments have been given.</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator(_1_1_12=ANN(nmb_inputs=2, nmb_outputs=1),</span>
+<span class="sd">    ...                      _7_1_12=PPoly(Poly(x0=1.0, cs=(1.0,))),</span>
+<span class="sd">    ...                      _3_1_12=PPoly(Poly(x0=20, cs=(1.0,))))</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: The number of input and output values of all interpolators \</span>
+<span class="sd">handled by parameter `seasonalinterpolator` of element `?` must be defined in advance \</span>
+<span class="sd">and be the same, which is not the case for at least two given interpolators.</span>
+
+<span class="sd">    For safety, each failure results in a total loss of the previously defined</span>
+<span class="sd">    interpolators:</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator</span>
+<span class="sd">    seasonalinterpolator()</span>
+
+<span class="sd">    You can add interpolators via attribute access:</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.toy_1_1_12 = PPoly(Poly(x0=0.0, cs=(0.0,)))</span>
+
+<span class="sd">    If you set an attribute, everything updates automatically, e.g.:</span>
+
+<span class="sd">    &gt;&gt;&gt; round_(seasonalinterpolator.ratios[0])</span>
+<span class="sd">    1.0</span>
+
+<span class="sd">    The mentioned safety checks also apply when adding interpolators via attribute</span>
+<span class="sd">    access:</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.toy_7_1_12 = ANN(nmb_inputs=2, nmb_outputs=1)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to assign a new interpolator to parameter \</span>
+<span class="sd">`seasonalinterpolator` of element `?` based on the string `toy_7_1_12`, the following \</span>
+<span class="sd">error occurred: The number of input and output values of all interpolators handled by \</span>
+<span class="sd">parameter `seasonalinterpolator` of element `?` must be defined in advance and be the \</span>
+<span class="sd">same, which is not the case for at least two given interpolators.</span>
+
+<span class="sd">    Besides setting new interpolators, getting and deleting them also works:</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.toy_1_1_12 = PPoly(Poly(x0=0.0, cs=(0.0,)))</span>
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.toy_1_1_12</span>
+<span class="sd">    PPoly(</span>
+<span class="sd">        Poly(x0=0.0, cs=(0.0,)),</span>
+<span class="sd">    )</span>
+<span class="sd">    &gt;&gt;&gt; del seasonalinterpolator.toy_1_1_12</span>
+
+<span class="sd">    There are two error messages related to specific attribute access problems:</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.toy_1_1_12</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: While trying to look up for an interpolator handled by parameter \</span>
+<span class="sd">`seasonalinterpolator` of element `?` based on the string `toy_1_1_12`, the following \</span>
+<span class="sd">error occurred: No interpolator is registered under a TOY object named `toy_1_1_12_0_0`.</span>
+
+<span class="sd">    &gt;&gt;&gt; del seasonalinterpolator.toy_1_1_12</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: While trying to remove an interpolator from parameter \</span>
+<span class="sd">`seasonalinterpolator` of element `?` based on the string `toy_1_1_12`, the following \</span>
+<span class="sd">error occurred: No interpolator is registered under a TOY object named `toy_1_1_12_0_0`.</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.toy_1_1_12 = 1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: While trying to assign a new interpolator to parameter \</span>
+<span class="sd">`seasonalinterpolator` of element `?` based on the string `toy_1_1_12`, the following \</span>
+<span class="sd">error occurred: Value `1` of type `int` has been given, but an object of type \</span>
+<span class="sd">`InterpAlgorithm` is required.</span>
+
+<span class="sd">    Setting and deleting &quot;normal&quot; attributes is supported:</span>
+
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.temp = 999</span>
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.temp</span>
+<span class="sd">    999</span>
+<span class="sd">    &gt;&gt;&gt; del seasonalinterpolator.temp</span>
+<span class="sd">    &gt;&gt;&gt; seasonalinterpolator.temp</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: &#39;SeasonalInterpolator&#39; object has no attribute &#39;temp&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span> <span class="o">=</span> <span class="s2">&quot;interputils.SeasonalInterpolator&quot;</span>
+
+    <span class="n">nmb_algorithms</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="n">_toy2algorithm</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">TOY</span><span class="p">,</span> <span class="n">InterpAlgorithm</span><span class="p">]]</span>
+    <span class="n">_do_refresh</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">__seasonalinterpolator</span><span class="p">:</span> <span class="n">interputils</span><span class="o">.</span><span class="n">SeasonalInterpolator</span> <span class="o">|</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subvars</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">SubParameters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subvars</span> <span class="o">=</span> <span class="n">subvars</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span> <span class="o">=</span> <span class="n">subvars</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fastaccess</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">FastAccessParameter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__seasonalinterpolator</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_refresh</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__algorithm</span><span class="p">:</span> <span class="n">InterpAlgorithm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">algorithm</span><span class="p">:</span> <span class="n">InterpAlgorithm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">algorithm</span><span class="p">:</span> <span class="n">InterpAlgorithm</span><span class="p">,</span> <span class="o">**</span><span class="n">algorithms</span><span class="p">:</span> <span class="n">InterpAlgorithm</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_do_refresh</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">algorithm</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">algorithm</span> <span class="ow">and</span> <span class="n">algorithms</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Type `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` accepts either a single positional &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;argument or an arbitrary number of keyword arguments, but for &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;the corresponding parameter of element &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicename</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">` </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">algorithm</span><span class="p">)</span><span class="si">}</span><span class="s2"> positional &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">algorithms</span><span class="p">)</span><span class="si">}</span><span class="s2"> keyword arguments have been given.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">algorithm</span><span class="p">:</span>
+                <span class="n">algorithms</span><span class="p">[</span><span class="s2">&quot;_1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">algorithm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">toystr</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">algorithms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">InterpAlgorithm</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Type `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` is not (a subclass of) type &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;`InterpAlgorithm`.&quot;</span>
+                    <span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_toyalgorithpair</span><span class="p">(</span><span class="n">toystr</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                    <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;While trying to add a season specific interpolator to &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;parameter `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` of element &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicename</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">`&quot;</span>
+                    <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">exc</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_do_refresh</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_add_toyalgorithpair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">InterpAlgorithm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">toy_new</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">TOY</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">toy_new</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+        <span class="n">secs_new</span> <span class="o">=</span> <span class="n">toy_new</span><span class="o">.</span><span class="n">seconds_passed</span>
+        <span class="k">if</span> <span class="n">secs_new</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">seconds_passed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">toy_new</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">toy_old</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="p">[:]):</span>
+                <span class="n">secs_old</span> <span class="o">=</span> <span class="n">toy_old</span><span class="o">.</span><span class="n">seconds_passed</span>
+                <span class="k">if</span> <span class="n">secs_new</span> <span class="o">==</span> <span class="n">secs_old</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">toy_new</span><span class="p">,</span> <span class="n">value</span>
+                    <span class="k">break</span>
+                <span class="k">if</span> <span class="n">secs_new</span> <span class="o">&lt;</span> <span class="n">secs_old</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">toy_new</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                    <span class="k">break</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__hydpy__connect_variable2subgroup__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect the actual |SeasonalInterpolator| object with the given</span>
+<span class="sd">        |SubParameters| object.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fastaccess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__seasonalinterpolator</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SeasonalInterpolator.refresh">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SeasonalInterpolator.refresh">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare the actual |SeasonalInterpolator| object for calculations.</span>
+
+<span class="sd">        Class |SeasonalInterpolator| stores its |InterpAlgorithm| objects by reference.</span>
+<span class="sd">        Therefore, despite all automated refreshings (explained in the general</span>
+<span class="sd">        documentation on class |SeasonalInterpolator|), it is still possible to destroy</span>
+<span class="sd">        the inner consistency of a |SeasonalInterpolator| instance:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import ANN, SeasonalInterpolator</span>
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator = SeasonalInterpolator(None)</span>
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator.simulationstep = &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; jan = ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,</span>
+<span class="sd">        ...           weights_input=0.0, weights_output=0.0,</span>
+<span class="sd">        ...           intercepts_hidden=0.0, intercepts_output=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator(_1_1_12=jan)</span>
+<span class="sd">        &gt;&gt;&gt; jan.nmb_inputs, jan.nmb_outputs = 2, 3</span>
+<span class="sd">        &gt;&gt;&gt; jan.nmb_inputs, jan.nmb_outputs</span>
+<span class="sd">        (2, 3)</span>
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator.nmb_inputs, seasonalinterpolator.nmb_outputs</span>
+<span class="sd">        (1, 1)</span>
+
+<span class="sd">        Due to the Cython implementation of the actual interpolation, such an</span>
+<span class="sd">        inconsistencies might result in a program crash without any informative error</span>
+<span class="sd">        message.  Therefore, whenever you are think some inconsistency might have crept</span>
+<span class="sd">        in and you want to repair it, call method |SeasonalInterpolator.refresh|</span>
+<span class="sd">        manually:</span>
+
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator.refresh()</span>
+<span class="sd">        &gt;&gt;&gt; jan.nmb_inputs, jan.nmb_outputs</span>
+<span class="sd">        (2, 3)</span>
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator.nmb_inputs, seasonalinterpolator.nmb_outputs</span>
+<span class="sd">        (2, 3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_refresh</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__seasonalinterpolator</span> <span class="o">=</span> <span class="n">interputils</span><span class="o">.</span><span class="n">SeasonalInterpolator</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span>
+                <span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seasonalinterpolator</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_shape</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_algorithms</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_interp</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_seasonalinterpolator</span><span class="o">.</span><span class="n">ratios</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__seasonalinterpolator</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="SeasonalInterpolator.update">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SeasonalInterpolator.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Do nothing (this method only ensures compatibility with |Parameter|).&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="SeasonalInterpolator.verify">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SeasonalInterpolator.verify">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Raise a |RuntimeError| and remove all handled interpolators if they are</span>
+<span class="sd">        defined inconsistently.</span>
+
+<span class="sd">        Class |SeasonalInterpolator| stores its |InterpAlgorithm| objects by reference.</span>
+<span class="sd">        Therefore, despite all automated refreshings (explained in the general</span>
+<span class="sd">        documentation on class |SeasonalInterpolator|), it is still possible to destroy</span>
+<span class="sd">        the inner consistency of a |SeasonalInterpolator| instance:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import ANN, pub, SeasonalInterpolator</span>
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator = SeasonalInterpolator(None)</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.simulationstep = &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; jan = ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,</span>
+<span class="sd">        ...           weights_input=0.0, weights_output=0.0,</span>
+<span class="sd">        ...           intercepts_hidden=0.0, intercepts_output=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator(_1_1_12=jan)</span>
+<span class="sd">        &gt;&gt;&gt; jan.nmb_inputs, jan.nmb_outputs = 2, 3</span>
+<span class="sd">        &gt;&gt;&gt; jan.nmb_inputs, jan.nmb_outputs</span>
+<span class="sd">        (2, 3)</span>
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator.nmb_inputs, seasonalinterpolator.nmb_outputs</span>
+<span class="sd">        (1, 1)</span>
+
+<span class="sd">        Due to the Cython implementation of the actual interpolation, such an</span>
+<span class="sd">        inconsistencies might result in a program crash without any informative error</span>
+<span class="sd">        message.  Therefore, whenever you are think some inconsistency might have crept</span>
+<span class="sd">        in, and you want to know if your suspicion is correct, call method</span>
+<span class="sd">        |SeasonalInterpolator.verify|.</span>
+
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator.verify()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: The number of input and output values of all interpolators \</span>
+<span class="sd">handled by parameter `seasonalinterpolator` of element `?` must be defined in advance \</span>
+<span class="sd">and be the same, which is not the case for at least two given interpolators.</span>
+
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator</span>
+<span class="sd">        seasonalinterpolator()</span>
+
+<span class="sd">        &gt;&gt;&gt; seasonalinterpolator.verify()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: Seasonal interpolators need to handle at least one \</span>
+<span class="sd">interpolation algorithm object, but for parameter `seasonalinterpolator` of element \</span>
+<span class="sd">`?` none is defined so far.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Seasonal interpolators need to handle at least one interpolation &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;algorithm object, but for parameter &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> none is defined so far.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">seasonalinterpolator</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nmb_inputs</span> <span class="o">!=</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_inputs</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">nmb_outputs</span> <span class="o">!=</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_outputs</span>
+            <span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The number of input and output values of all interpolators &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;handled by parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> must be &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;defined in advance and be the same, which is not the case for &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;at least two given interpolators.&quot;</span>
+                <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_interp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ratios</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratios</span>
+        <span class="n">ratios</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">toys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">toys</span>
+        <span class="n">centred</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">TOY</span><span class="o">.</span><span class="n">centred_timegrid</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">tdx</span><span class="p">,</span> <span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">rel</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">centred</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">rel</span><span class="p">:</span>
+                <span class="n">xnew</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">TOY</span><span class="p">(</span><span class="n">date</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx_1</span><span class="p">,</span> <span class="n">x_1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">toys</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">x_1</span> <span class="o">&gt;</span> <span class="n">xnew</span><span class="p">:</span>
+                        <span class="n">idx_0</span> <span class="o">=</span> <span class="n">idx_1</span> <span class="o">-</span> <span class="mi">1</span>
+                        <span class="n">x_0</span> <span class="o">=</span> <span class="n">toys</span><span class="p">[</span><span class="n">idx_0</span><span class="p">]</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">idx_0</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                    <span class="n">idx_1</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">x_0</span> <span class="o">=</span> <span class="n">toys</span><span class="p">[</span><span class="n">idx_0</span><span class="p">]</span>
+                    <span class="n">x_1</span> <span class="o">=</span> <span class="n">toys</span><span class="p">[</span><span class="n">idx_1</span><span class="p">]</span>
+                <span class="n">ratios</span><span class="p">[</span><span class="n">tdx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">ratios</span><span class="p">[</span><span class="n">tdx</span><span class="p">,</span> <span class="n">idx_1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">xnew</span> <span class="o">-</span> <span class="n">x_0</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">x_1</span> <span class="o">-</span> <span class="n">x_0</span><span class="p">)</span>
+                <span class="n">ratios</span><span class="p">[</span><span class="n">tdx</span><span class="p">,</span> <span class="n">idx_0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">ratios</span><span class="p">[</span><span class="n">tdx</span><span class="p">,</span> <span class="n">idx_1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The shape of array |SeasonalInterpolator.ratios|.&quot;&quot;&quot;</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratios</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Private on purpose.&quot;&quot;&quot;</span>
+        <span class="n">nmb_weights</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">(</span><span class="s2">&quot;366d&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+        <span class="n">nmb_weights</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">nmb_weights</span><span class="p">,</span> <span class="mi">10</span><span class="p">)))</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">nmb_weights</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_algorithms</span><span class="p">)</span>
+        <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fastaccess</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">ratios</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">NP_FLOAT</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">toys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">TOY</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A sorted |tuple| of all contained |TOY| objects.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">toy</span> <span class="k">for</span> <span class="p">(</span><span class="n">toy</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">algorithms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">InterpAlgorithm</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A sorted |tuple| of all handled interpolators.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">seasonalinterpolator</span> <span class="k">for</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">seasonalinterpolator</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ratios</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MatrixFloat</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The ratios for weighting the interpolator outputs.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seasonalinterpolator</span><span class="o">.</span><span class="n">ratios</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_seasonalinterpolator</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">interputils</span><span class="o">.</span><span class="n">SeasonalInterpolator</span><span class="p">:</span>
+        <span class="n">seasonalinterpolator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__seasonalinterpolator</span>
+        <span class="k">if</span> <span class="n">seasonalinterpolator</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">seasonalinterpolator</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> has not been properly &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;prepared so far.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nmb_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The general number of input values of the interpolators.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_inputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VectorFloat</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The general input data for the interpolators.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seasonalinterpolator</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nmb_outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The general number of output values of all interpolators.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_seasonalinterpolator</span><span class="o">.</span><span class="n">nmb_outputs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">outputs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VectorFloat</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The weighted output of the interpolators.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_seasonalinterpolator</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SeasonalInterpolator.calculate_values">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SeasonalInterpolator.calculate_values">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the weighted output values based on the input values defined</span>
+<span class="sd">        previously for the given index referencing the actual time of year.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_seasonalinterpolator</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SeasonalInterpolator.plot">
+<a class="viewcode-back" href="../../../interptools.html#hydpy.auxs.interptools.SeasonalInterpolator.plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">xmin</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">xmax</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">idx_input</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">idx_output</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">legend</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pyplot</span><span class="o">.</span><span class="n">Figure</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call method |InterpAlgorithm.plot| of all currently handled</span>
+<span class="sd">        |InterpAlgorithm| objects.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">toy</span><span class="p">,</span> <span class="n">seasonalinterpolator</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">figure</span> <span class="o">=</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                <span class="n">xmin</span><span class="o">=</span><span class="n">xmin</span><span class="p">,</span>
+                <span class="n">xmax</span><span class="o">=</span><span class="n">xmax</span><span class="p">,</span>
+                <span class="n">idx_input</span><span class="o">=</span><span class="n">idx_input</span><span class="p">,</span>
+                <span class="n">idx_output</span><span class="o">=</span><span class="n">idx_output</span><span class="p">,</span>
+                <span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">toy</span><span class="p">),</span>
+                <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">legend</span><span class="p">:</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_labels</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">figure</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">InterpAlgorithm</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;toy_&quot;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">selected</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">TOY</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">available</span><span class="p">,</span> <span class="n">algorithm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">selected</span> <span class="o">==</span> <span class="n">available</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">algorithm</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;No interpolator is registered under a TOY object named &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">timetools</span><span class="o">.</span><span class="n">TOY</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;While trying to look up for an interpolator handled by &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> based on the string &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&#39; object has no attribute &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;toy_&quot;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">InterpAlgorithm</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">value_of_type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2"> has been &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;given, but an object of type `InterpAlgorithm` is required.&quot;</span>
+                    <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_add_toyalgorithpair</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;While trying to assign a new interpolator to parameter &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> based on the string `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;toy_&quot;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">selected</span> <span class="o">=</span> <span class="n">timetools</span><span class="o">.</span><span class="n">TOY</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">available</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">selected</span> <span class="o">==</span> <span class="n">available</span><span class="p">:</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;No interpolator is registered under a TOY object named &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">timetools</span><span class="o">.</span><span class="n">TOY</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                    <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+                <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;While trying to remove an interpolator from parameter &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> based on the string `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">`&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">object</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">TOY</span><span class="p">,</span> <span class="n">InterpAlgorithm</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">()&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">toys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">timetools</span><span class="o">.</span><span class="n">TOY0</span><span class="p">):</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">assignrepr</span><span class="p">(</span><span class="s2">&quot;    &quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">toy</span><span class="p">,</span> <span class="n">seasonalinterpolator</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">seasonalinterpolator</span><span class="o">.</span><span class="n">assignrepr</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">toy</span><span class="si">}</span><span class="s2">=&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">,&quot;</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_toy2algorithm</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import ANN, pub, SeasonalInterpolator</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-01-02&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; si = SeasonalInterpolator(None)</span>
+<span class="sd">        &gt;&gt;&gt; si(</span>
+<span class="sd">        ...     ANN(nmb_inputs=1, nmb_neurons=(1,), nmb_outputs=1,</span>
+<span class="sd">        ...         weights_input=0.0, weights_output=0.0,</span>
+<span class="sd">        ...         intercepts_hidden=0.0, intercepts_output=1.0))</span>
+<span class="sd">        &gt;&gt;&gt; sorted(set(dir(si)) - set(object.__dir__(si)))</span>
+<span class="sd">        [&#39;toy_1_1_0_0_0&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">toy</span><span class="p">)</span> <span class="k">for</span> <span class="n">toy</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">toys</span><span class="p">]</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.auxs.interptools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

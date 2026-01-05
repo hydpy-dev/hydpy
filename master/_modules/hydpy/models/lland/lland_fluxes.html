@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.lland.lland_fluxes &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.lland.lland_fluxes</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.lland.lland_fluxes</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequencetools</span>
+
+<span class="c1"># ...from lland</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.lland</span><span class="w"> </span><span class="kn">import</span> <span class="n">lland_masks</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.lland</span><span class="w"> </span><span class="kn">import</span> <span class="n">lland_sequences</span>
+
+
+<span class="c1"># inflow</span>
+
+
+<div class="viewcode-block" id="QZ">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QZ">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QZ</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Zufluss in das Teilgebiet (inflow into the subcatchment) [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QZH">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QZH">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QZH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abflussspende in das Teilgebiet (inflow into the subcatchment) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<span class="c1"># meteorological input</span>
+
+
+<div class="viewcode-block" id="DailySunshineDuration">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.DailySunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailySunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Daily sunshine duration [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyPossibleSunshineDuration">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.DailyPossibleSunshineDuration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyPossibleSunshineDuration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Astronomically possible daily sunshine duration [h].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="GlobalRadiation">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.GlobalRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GlobalRadiation</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Globalstrahlung (global radiation) [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="NKor">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.NKor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NKor</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Korrigierter Niederschlag (corrected precipitation) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="TKor">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.TKor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TKor</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Korrigierte Lufttemperatur (corrected air temperature) [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ATKor">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.ATKor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ATKor</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Lufttemperatur für die Schneeschmelze oberhalb der &quot;alpinitäts-Grenzwerte&quot;</span>
+<span class="sd">    |AGGH| und |AGSH| (air temperature for calculating snowmelt above the &quot;alpinity</span>
+<span class="sd">    thresholds&quot; |AGGH| and |AGSH|) [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WindSpeed2m">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WindSpeed2m">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WindSpeed2m</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wind speed at a height of 2 m above the ground for grass [m/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="ReducedWindSpeed2m">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.ReducedWindSpeed2m">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReducedWindSpeed2m</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Land-use-specific wind speed at a height of 2 m above the ground [m/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SaturationVapourPressure">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SaturationVapourPressure">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SaturationVapourPressure</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Saturation vapour pressure [hPa].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SaturationVapourPressureInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SaturationVapourPressureInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SaturationVapourPressureInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sättigungsdampdruck unmittelbar oberhalb der Oberfläche des interzepierten</span>
+<span class="sd">    Schnees (saturation vapour pressure directly above the surface of the intercepted</span>
+<span class="sd">    snow) [hPa].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SaturationVapourPressureSnow">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SaturationVapourPressureSnow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SaturationVapourPressureSnow</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Saturation vapour pressure snow [hPa].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SaturationVapourPressureSlope">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SaturationVapourPressureSlope">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SaturationVapourPressureSlope</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The slope of the saturation vapour pressure curve [hPa/K].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ActualVapourPressure">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.ActualVapourPressure">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActualVapourPressure</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual vapour pressure [hPa].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="TZ">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.TZ">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TZ</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Bodentemperatur in der Tiefe z (soil temperature at depth z) [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WG">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WG">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WG</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;Dynamischer&quot; Bodenwärmestrom (&quot;dynamic&quot; soil heat flux) [W/m²].</span>
+
+<span class="sd">    With positive values, the soil looses heat to the atmosphere or the</span>
+<span class="sd">    snow-layer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="NetShortwaveRadiationInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.NetShortwaveRadiationInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NetShortwaveRadiationInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Kurzwellige Netto-Strahlungsbilanz für den interzipierten Schnee (net shortwave</span>
+<span class="sd">    radiation for intercepted snow) [W/m²].</span>
+
+<span class="sd">    With positive values, the soil gains heat from radiation.  Without intercepted</span>
+<span class="sd">    snow, |NetShortwaveRadiationInz| is |numpy.nan|.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="NetShortwaveRadiationSnow">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.NetShortwaveRadiationSnow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NetShortwaveRadiationSnow</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Kurzwellige Netto-Strahlungsbilanz für Schneeoberflächen (net shortwave</span>
+<span class="sd">    radiation for snow surfaces) [W/m²].</span>
+
+<span class="sd">    With positive values, the soil gains heat from radiation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="NetLongwaveRadiationInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.NetLongwaveRadiationInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NetLongwaveRadiationInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Langwellige Nettostrahlung des interzepierten Schnees (net longwave radiation</span>
+<span class="sd">    of the intercepted snow [W/m²].</span>
+
+<span class="sd">    With positive values, the snow-layer gains heat from radiation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="NetLongwaveRadiationSnow">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.NetLongwaveRadiationSnow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NetLongwaveRadiationSnow</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Net longwave radiation for snow-surfaces [W/m²].</span>
+
+<span class="sd">    With positive values, the snow-layer gains heat from radiation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="NetRadiationInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.NetRadiationInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NetRadiationInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Nettostrahlung des interzepierten Schnees (total net radiation of the</span>
+<span class="sd">    intercepted snow [W/m²].</span>
+
+<span class="sd">    With positive values, the soil gains heat from radiation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="NetRadiationSnow">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.NetRadiationSnow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NetRadiationSnow</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Total net radiation for snow-surfaces [W/m²].</span>
+
+<span class="sd">    With positive values, the snow-layer gains heat from radiation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="NBes">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.NBes">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NBes</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gesamter Bestandsniederschlag (total stand precipitation) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SBes">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SBes">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SBes</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Schneeanteil Bestandsniederschlag (frozen stand precipitation) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SnowIntMax">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SnowIntMax">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SnowIntMax</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Schneeinterzeptionsspeicherkapazität (capacity of the snow interception</span>
+<span class="sd">    storage) [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SnowIntRate">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SnowIntRate">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SnowIntRate</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Anteil des im Schneeinterzeptionsspeicher zurückgehaltenen Niederschlags</span>
+<span class="sd">    (ratio between the snow interception rate and precipitation) [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="NBesInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.NBesInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NBesInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gesamter Bestandsniederschlag, der den Schneeinterzeptionsspeicher erreicht</span>
+<span class="sd">    (total stand precipitation reaching the snow interception storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SBesInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SBesInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SBesInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gefrorener Bestandsniederschlag, der den Schneeinterzeptionsspeicher erreicht</span>
+<span class="sd">    (frozen amount of stand precipitation reaching the snow interception storage)</span>
+<span class="sd">    [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WNiedInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WNiedInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WNiedInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Niederschlagsbedingter Wärmestrom in den Schneeinterzeptionsspeicher (heat flux</span>
+<span class="sd">    into the snow interception storage due to precipitation) [W/m²].</span>
+
+<span class="sd">    With positive values, the snow layer gains heat from precipitation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ActualAlbedoInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.ActualAlbedoInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActualAlbedoInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aktuelle Albedo der Oberfläche des interzeptierten Schnees (the current albedo</span>
+<span class="sd">    of the surface of the intercepted snow) [-].</span>
+
+<span class="sd">    If there is no intercepted snow, the value of |ActualAlbedoInz| is |numpy.nan|.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WaDaInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WaDaInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WaDaInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wasserdargebot des Schneeinterzeptionsspeichers (water leaving the snow</span>
+<span class="sd">    interception storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SchmPotInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SchmPotInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchmPotInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potentielle Schmelze des interzepierten Schnees (potential amount of snow</span>
+<span class="sd">    melting within the snow interception storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SchmInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SchmInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchmInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tatsächliche Schmelze des interzepierten Schnees (actual amount of snow</span>
+<span class="sd">    melting within the snow cover) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="GefrPotInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.GefrPotInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GefrPotInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potentielles Wiedergefrieren des interzipierten Schnees (potential amount</span>
+<span class="sd">    of water refreezing within the snow interception storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="GefrInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.GefrInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GefrInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tatsächliche Wiedergefrieren des interzipierten Schnees (actual amount of</span>
+<span class="sd">    water refreezing within the snow interception storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="EvSInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.EvSInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EvSInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tatsächliche Verdunstung des interzepierten Schnees (actual evaporation of</span>
+<span class="sd">    the intercepted snow) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="EvI">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.EvI">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EvI</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tatsächliche Verdunstung von Interzeptions- und permanenten Wasserflächen</span>
+<span class="sd">    (actual  evaporation from interception storages and water areas) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="EvB">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.EvB">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EvB</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tatsächliche Verdunstung von Bodenwasser (actual evaporation of soil</span>
+<span class="sd">    water) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="EvS">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.EvS">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EvS</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tatsächliche Schneeverdunstung (actual evaporation of snow-water) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WGTF">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WGTF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WGTF</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mit dem Grad-Tag-Verfahren berechneter Wärmeestrom in die Schneedecke</span>
+<span class="sd">    (heat flux into the snow layer calculated with the degree-day method)</span>
+<span class="sd">    [W/m²].</span>
+
+<span class="sd">    With positive values, the snow layer gains heat from the atmosphere and</span>
+<span class="sd">    from radiation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="USG">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.USG">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">USG</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Umwandlung Schnee in Gletschereis (transformation of snow into glacier ice</span>
+<span class="sd">    [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Glets</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="AWGTF">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.AWGTF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AWGTF</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mit dem Grad-Tag-Verfahren berechneter Wärmeestrom in die Schneedecke oberhalb</span>
+<span class="sd">    der &quot;alpinitäts-Grenzwerte&quot; |AGGH| und |AGSH| (heat flux into the snow layer above</span>
+<span class="sd">    the &quot;alpinity thresholds&quot; |AGGH| and |AGSH| calculated with the degree-day method)</span>
+<span class="sd">    [W/m²].</span>
+
+<span class="sd">    With positive values, the snow layer gains heat from the atmosphere and</span>
+<span class="sd">    from radiation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WNied">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WNied">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WNied</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Niederschlagsbedingter Wärmestrom in die Schneedecke (heat flux</span>
+<span class="sd">    into the snow layer due to precipitation) [W/m²].</span>
+
+<span class="sd">    With positive values, the snow layer gains heat from precipitation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="AWNied">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.AWNied">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AWNied</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Niederschlagsbedingter Wärmestrom in die Schneedecke oberhalb der</span>
+<span class="sd">    &quot;alpinitäts-Grenzwerte&quot; |AGGH| und |AGSH| (heat flux into the snow layer above the</span>
+<span class="sd">    &quot;alpinity thresholds&quot; |AGGH| and |AGSH| due to precipitation)</span>
+<span class="sd">    [mm/T].</span>
+
+<span class="sd">    With positive values, the snow layer gains heat from precipitation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="TempSSurface">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.TempSSurface">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TempSSurface</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Schneetemperatur an der Schneeoberfläche (the snow temperature at the</span>
+<span class="sd">    snow surface) [°C].</span>
+
+<span class="sd">    Note that the value of sequence |TempSSurface| is |numpy.nan| for</span>
+<span class="sd">    snow-free surfaces.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="ActualAlbedo">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.ActualAlbedo">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActualAlbedo</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aktuelle Albedo der relevanten Oberfläche (the current albedo of</span>
+<span class="sd">    the relevant surface) [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SchmPot">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SchmPot">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchmPot</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potentielle Schneeschmelze (potential amount of water melting within the</span>
+<span class="sd">    snow cover) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SchmPotGl">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SchmPotGl">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchmPotGl</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potentielle Gletscherschmelze (potential glacier melting) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Glets</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Schm">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.Schm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Schm</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tatsächliche Schneeschmelze (actual amount of water melting within the</span>
+<span class="sd">    snow cover) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SchmGl">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SchmGl">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SchmGl</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tatsächliche Gletscherschmelze (actual glacier melting) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Glets</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="GefrPot">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.GefrPot">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GefrPot</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potentielles Schnee-Wiedergefrieren (potential amount of water</span>
+<span class="sd">    refreezing within the snow cover) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Gefr">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.Gefr">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Gefr</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Tatsächliche Schnee-Wiedergefrieren (actual amount of water</span>
+<span class="sd">    refreezing within the snow cover) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WLatInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WLatInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WLatInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Latente Wärmestrom interzepierter Schnee/Atmosphäre (latent heat flux between</span>
+<span class="sd">    the intercepted snow and the atmosphere) [W/m²].</span>
+
+<span class="sd">    With positive values, the snow-layer looses heat to the atmosphere.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WLatSnow">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WLatSnow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WLatSnow</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Latente Wärmestrom Schnee/Atmosphäre (latent heat flux between</span>
+<span class="sd">    the snow-layer and the atmosphere) [W/m²].</span>
+
+<span class="sd">    With positive values, the snow-layer looses heat to the atmosphere.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WSensInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WSensInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WSensInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fühlbare Wärmestrom interzipierter Schnee/Atmosphäre (sensible heat flux</span>
+<span class="sd">    between the intercepted snow and the atmosphere) [W/m²].</span>
+
+<span class="sd">    With positive values, the snow-layer looses heat to the atmosphere.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WSensSnow">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WSensSnow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WSensSnow</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fühlbare Wärmestrom Schnee/Atmosphäre (sensible heat flux between</span>
+<span class="sd">    the snow-layer and the atmosphere) [W/m²].</span>
+
+<span class="sd">    With positive values, the snow-layer looses heat to the atmosphere.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WSurfInz">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WSurfInz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WSurfInz</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wärmestrom vom Körper des interzepierten Schnees bis zu dessen Schneeoberfläche</span>
+<span class="sd">    (heat flux from the body of the intercepted snow to its surface) [W/m²].</span>
+
+<span class="sd">    With positive values, the snow-layer looses heat to the atmosphere.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Forest</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WSurf">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WSurf">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WSurf</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wärmestrom von der Schneedecke zur Schneeoberfläche (heat flux from</span>
+<span class="sd">    the snow layer to the snow surface) [W/m²].</span>
+
+<span class="sd">    With positive values, the snow-layer looses heat to the atmosphere.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SFF">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.SFF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SFF</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relativer Anteil des gefrorenen Bodenwassers bis zu einer Tiefe von</span>
+<span class="sd">    2z (relative proportion of frozen soil water) [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Soil</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="FVG">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.FVG">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FVG</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Frostversiegelungsgrad (degree of frost sealing) [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Soil</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WaDa">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.WaDa">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WaDa</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wasserdargebot (water reaching the soil routine) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Land</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="QDB">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QDB">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QDB</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Direktabfluss-Abgabe aus dem Bodenspeicher (direct runoff release</span>
+<span class="sd">    from the soil storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="QIB1">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QIB1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QIB1</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Erste Komponente der Interflow-Abgabe aus dem Bodenspeicher (first</span>
+<span class="sd">    component of the interflow release from the soil storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="QIB2">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QIB2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QIB2</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Zweite Komponente der Interflow-Abgabe aus dem Bodenspeicher (second</span>
+<span class="sd">    component of the interflow release from the soil storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="QBB">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QBB">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QBB</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Basisabfluss-Abgabe aus dem Bodenspeicher (base flow release</span>
+<span class="sd">    from the soil storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="QKap">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QKap">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QKap</span><span class="p">(</span><span class="n">lland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Kapillarer Aufstieg in den Bodenspeicher (capillary rise to soil</span>
+<span class="sd">    storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">lland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="QDGZ">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QDGZ">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QDGZ</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gesamtzufluss in beide Direktabfluss-Gebietsspeicher (total inflow to both</span>
+<span class="sd">    direct runoff storages) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QDGZ1">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QDGZ1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QDGZ1</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Zufluss in den trägeren Direktabfluss-Gebietsspeicher (inflow to the slow direct</span>
+<span class="sd">    runoff storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QDGZ2">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QDGZ2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QDGZ2</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Zufluss in den dynamischeren Direktabfluss-Gebietsspeicher (inflow to the fast</span>
+<span class="sd">    direct runoff storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QIGZ1">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QIGZ1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QIGZ1</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; &quot;Zufluss in den ersten Zwischenabfluss-Gebietsspeicher (inflow to the first</span>
+<span class="sd">    interflow storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QIGZ2">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QIGZ2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QIGZ2</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Zufluss in den zweiten Zwischenabfluss-Gebietsspeicher (inflow to the second</span>
+<span class="sd">    interflow storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QBGZ">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QBGZ">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QBGZ</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Zufluss in den Basisabfluss-Gebietsspeicher (inflow to the base flow storage)</span>
+<span class="sd">    [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QDGA1">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QDGA1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QDGA1</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abfluss aus dem trägeren Direktabfluss-Gebietsspeicher (outflow from the slow</span>
+<span class="sd">    direct runoff storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QDGA2">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QDGA2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QDGA2</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abfluss aus dem dynamischeren Direktabfluss-Gebietsspeicher (outflow from the</span>
+<span class="sd">    fast direct runoff storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QIGA1">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QIGA1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QIGA1</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abfluss aus dem &quot;unteren&quot; Zwischenabfluss-Gebietsspeicher (outflow from the</span>
+<span class="sd">    first interflow storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QIGA2">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QIGA2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QIGA2</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abfluss aus dem &quot;oberen&quot; Zwischenabfluss-Gebietsspeicher (outflow from the</span>
+<span class="sd">    second interflow storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QBGA">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QBGA">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QBGA</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abfluss aus dem Basisabfluss-Gebietsspeicher (outflow from the base flow</span>
+<span class="sd">    storage) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QAH">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QAH">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QAH</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abflussspende des Teilgebiets (runoff at the catchment outlet) [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QA">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_fluxes.QA">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QA</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abfluss des Teilgebiets (runoff at the catchment outlet) [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.lland.lland_fluxes</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

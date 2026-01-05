@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.hland.hland_fluxes &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hland.hland_fluxes</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.hland.hland_fluxes</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequencetools</span>
+
+<span class="c1"># ...from hland</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.hland</span><span class="w"> </span><span class="kn">import</span> <span class="n">hland_masks</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.hland</span><span class="w"> </span><span class="kn">import</span> <span class="n">hland_sequences</span>
+
+
+<div class="viewcode-block" id="PC">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.PC">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PC</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Corrected precipitation [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Complete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="EI">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.EI">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EI</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interception evaporation [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Interception</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="TF">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.TF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TF</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Throughfall [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Interception</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SPL">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.SPL">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SPL</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subbasin-internal redistribution loss of the snow&#39;s ice content [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Snow</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WCL">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.WCL">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WCL</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subbasin-internal redistribution loss of the snow&#39;s water content [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Snow</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SPG">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.SPG">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SPG</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subbasin-internal redistribution gain of the snow&#39;s ice content [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Snow</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="WCG">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.WCG">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WCG</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subbasin-internal redistribution gain of the snow&#39;s water content [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Snow</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="GlMelt">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.GlMelt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GlMelt</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Glacier melt [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Glacier</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Melt">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.Melt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Melt</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux2DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual melting of frozen water stored in the snow layer [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Snow</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Refr">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.Refr">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Refr</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux2DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual (re)freezing of liquid water stored in the snow layer [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Snow</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="In_">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.In_">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">In_</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Snow module release/soil module inflow [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Snow</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="R">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.R">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">R</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Effective soil response [mm/T].</span>
+
+<span class="sd">    Note that PREVAH uses the abbreviation `DSUZ` instead of the HBV96 abbreviation `R`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Soil</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SR">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.SR">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SR</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sealed surface runoff [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Sealed</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="EA">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.EA">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EA</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual soil evaporation [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Soil</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="CFPot">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.CFPot">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CFPot</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potential capillary flow [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Soil</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="CF">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.CF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CF</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual capillary flow [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">Soil</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="InUZ">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.InUZ">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InUZ</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Inflow to the upper zone layer [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="Perc">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.Perc">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Perc</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Percolation from the upper to the lower zone layer [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DP">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.DP">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DP</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Deep percolation rate [mm/T].</span>
+
+<span class="sd">    Note that PREVAH uses the abbreviation `Perc`, which is also the abbreviation used</span>
+<span class="sd">    by HBV96.  However, |Perc| is 0-dimensional while |DP| is 1-dimensional, which is</span>
+<span class="sd">    why we need to define separate sequence classes with different names.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">UpperZone</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Q0">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.Q0">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Q0</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Outflow from the upper zone layer [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QVs1">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.QVs1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QVs1</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Percolation from the surface flow reservoir [mm/T].</span>
+
+<span class="sd">    Note that COSERO uses the abbreviation `QVS1ZON` instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">UpperZone</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="QAb1">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.QAb1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QAb1</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface flow [mm/T].</span>
+
+<span class="sd">    Note that COSERO uses the abbreviation `QAB1ZON` instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">UpperZone</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="QVs2">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.QVs2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QVs2</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Percolation from the interflow reservoir [mm/T].</span>
+
+<span class="sd">    Note that COSERO uses the abbreviation `QVS2ZON` instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">UpperZone</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="QAb2">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.QAb2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QAb2</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interflow [mm/T].</span>
+
+<span class="sd">    Note that COSERO uses the abbreviation `QAB2ZON` instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">UpperZone</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="EL">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.EL">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EL</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual lake evaporation [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">ILake</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Q1">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.Q1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Q1</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Outflow from the lower zone layer [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="RS">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.RS">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RS</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface runoff [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">UpperZone</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="RI">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.RI">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RI</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interflow [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">UpperZone</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="GR1">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.GR1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GR1</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recharge into the fast response groundwater reservoir [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">UpperZone</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="RG1">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.RG1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RG1</span><span class="p">(</span><span class="n">hland_sequences</span><span class="o">.</span><span class="n">Flux1DSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Discharge from the fast response groundwater reservoir [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">hland_masks</span><span class="o">.</span><span class="n">UpperZone</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="GR2">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.GR2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GR2</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recharge into the first-order slow response groundwater reservoir [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="RG2">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.RG2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RG2</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Discharge from the first-order slow response groundwater reservoir [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="GR3">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.GR3">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GR3</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recharge into the second-order slow response groundwater reservoir [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="RG3">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.RG3">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RG3</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Discharge from the second-order slow response groundwater reservoir [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="InRC">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.InRC">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InRC</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Input of the runoff concentration submodel [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="OutRC">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.OutRC">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OutRC</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Output of the runoff concentration submodel [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="RO">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.RO">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RO</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sum of all flow components [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="RA">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.RA">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RA</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual abstraction from runoff [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="RT">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.RT">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RT</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Total model outflow [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="QT">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_fluxes.QT">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QT</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Total model outflow [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hland.hland_fluxes</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

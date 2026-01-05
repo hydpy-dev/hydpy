@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.typingtools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.typingtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.typingtools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module implements some &quot;types&quot; to be used for static (and eventually dynamical)</span>
+<span class="sd">typing.&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">Collection</span><span class="p">,</span>
+    <span class="n">Generator</span><span class="p">,</span>
+    <span class="n">Hashable</span><span class="p">,</span>
+    <span class="n">Iterable</span><span class="p">,</span>
+    <span class="n">Iterator</span><span class="p">,</span>
+    <span class="n">Mapping</span><span class="p">,</span>
+    <span class="n">Sized</span><span class="p">,</span>
+    <span class="n">Sequence</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractContextManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Any</span><span class="p">,</span>
+    <span class="n">cast</span><span class="p">,</span>
+    <span class="n">ClassVar</span><span class="p">,</span>
+    <span class="n">Concatenate</span><span class="p">,</span>
+    <span class="n">Final</span><span class="p">,</span>
+    <span class="n">Generic</span><span class="p">,</span>
+    <span class="n">get_type_hints</span><span class="p">,</span>
+    <span class="n">Literal</span><span class="p">,</span>
+    <span class="n">NamedTuple</span><span class="p">,</span>
+    <span class="n">NewType</span><span class="p">,</span>
+    <span class="n">NoReturn</span><span class="p">,</span>
+    <span class="n">Optional</span><span class="p">,</span>
+    <span class="n">overload</span><span class="p">,</span>
+    <span class="n">Protocol</span><span class="p">,</span>
+    <span class="n">TextIO</span><span class="p">,</span>
+    <span class="n">TypeAlias</span><span class="p">,</span>
+    <span class="n">TypedDict</span><span class="p">,</span>
+    <span class="n">TypeVar</span><span class="p">,</span>
+    <span class="n">TYPE_CHECKING</span><span class="p">,</span>
+    <span class="n">Union</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">assert_never</span><span class="p">,</span> <span class="n">Never</span><span class="p">,</span> <span class="n">ParamSpec</span><span class="p">,</span> <span class="n">Self</span><span class="p">,</span> <span class="n">Unpack</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+
+<span class="c1"># ...from hydpy</span>
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">devicetools</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">hydpytools</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.cythons</span><span class="w"> </span><span class="kn">import</span> <span class="n">pointerutils</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+<span class="n">T_co</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T_co&quot;</span><span class="p">,</span> <span class="n">covariant</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">T_contra</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T_contra&quot;</span><span class="p">,</span> <span class="n">contravariant</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">T1</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T1&quot;</span><span class="p">)</span>
+<span class="n">T2</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T2&quot;</span><span class="p">)</span>
+<span class="n">T3</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T3&quot;</span><span class="p">)</span>
+
+<span class="n">P</span> <span class="o">=</span> <span class="n">ParamSpec</span><span class="p">(</span><span class="s2">&quot;P&quot;</span><span class="p">)</span>
+
+<span class="n">Name</span> <span class="o">=</span> <span class="n">NewType</span><span class="p">(</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+<span class="n">Name</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Type for strings that represent names.&quot;&quot;&quot;</span>
+
+
+<span class="n">Mayberable1</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span>
+<span class="n">Mayberable2</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T1</span> <span class="o">|</span> <span class="n">T2</span><span class="p">]]</span>
+<span class="n">Mayberable3</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T1</span> <span class="o">|</span> <span class="n">T2</span> <span class="o">|</span> <span class="n">T3</span><span class="p">]]</span>
+<span class="n">MayNonerable1</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T</span><span class="p">]]]</span>
+<span class="n">MayNonerable2</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T1</span> <span class="o">|</span> <span class="n">T2</span><span class="p">]]]</span>
+<span class="n">MayNonerable3</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">T1</span> <span class="o">|</span> <span class="n">T2</span> <span class="o">|</span> <span class="n">T3</span><span class="p">]]]</span>
+
+<span class="n">Collection1</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Collection</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span>
+<span class="n">Collection2</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">Collection</span><span class="p">[</span><span class="n">T1</span> <span class="o">|</span> <span class="n">T2</span><span class="p">]]</span>
+<span class="n">Collection3</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">,</span> <span class="n">Collection</span><span class="p">[</span><span class="n">T1</span> <span class="o">|</span> <span class="n">T2</span> <span class="o">|</span> <span class="n">T3</span><span class="p">]]</span>
+
+<span class="n">Sequence1</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span>
+<span class="n">Sequence2</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">T1</span> <span class="o">|</span> <span class="n">T2</span><span class="p">]]</span>
+<span class="n">Sequence3</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">T1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">T3</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">T1</span> <span class="o">|</span> <span class="n">T2</span> <span class="o">|</span> <span class="n">T3</span><span class="p">]]</span>
+
+<span class="n">Float_co</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Float_co&quot;</span><span class="p">,</span> <span class="n">covariant</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">Float1</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Float1&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">Float2</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;Float2&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="n">NDArrayObject</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">generic</span><span class="p">]</span>
+<span class="n">NDArrayFloat</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+<span class="n">NDArrayInt</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">]</span>
+<span class="n">NDArrayBool</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">bool_</span><span class="p">]</span>
+
+<span class="n">Vector</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">T</span><span class="p">]</span>
+<span class="n">VectorObject</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">generic</span><span class="p">]</span>
+<span class="n">VectorFloat</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+<span class="n">VectorInt</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">]</span>
+<span class="n">VectorBool</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">bool_</span><span class="p">]</span>
+<span class="n">VectorInput</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">T</span><span class="p">],</span> <span class="n">Vector</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span>
+<span class="n">VectorInputObject</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">object</span><span class="p">],</span> <span class="n">VectorObject</span><span class="p">]</span>
+<span class="n">VectorInputFloat</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">VectorFloat</span><span class="p">]</span>
+<span class="n">VectorInputInt</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">VectorInt</span><span class="p">]</span>
+<span class="n">VectorInputBool</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="n">VectorBool</span><span class="p">]</span>
+
+<span class="n">Matrix</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">T</span><span class="p">]</span>
+<span class="n">MatrixObject</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">generic</span><span class="p">]</span>
+<span class="n">MatrixFloat</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+<span class="n">MatrixInt</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">]</span>
+<span class="n">MatrixBool</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">bool_</span><span class="p">]</span>
+<span class="n">MatrixBytes</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">bytes_</span><span class="p">]</span>
+<span class="n">MatrixInput</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">T</span><span class="p">]],</span> <span class="n">Matrix</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span>
+<span class="n">MatrixInputObject</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">VectorInputObject</span><span class="p">],</span> <span class="n">MatrixObject</span><span class="p">]</span>
+<span class="n">MatrixInputFloat</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">VectorInputFloat</span><span class="p">],</span> <span class="n">MatrixFloat</span><span class="p">]</span>
+<span class="n">MatrixInputInt</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">VectorInputInt</span><span class="p">],</span> <span class="n">MatrixInt</span><span class="p">]</span>
+<span class="n">MatrixInputBool</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">VectorBool</span><span class="p">],</span> <span class="n">MatrixBool</span><span class="p">]</span>
+
+<span class="n">Tensor</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">T</span><span class="p">]</span>
+<span class="n">TensorObject</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">generic</span><span class="p">]</span>
+<span class="n">TensorFloat</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+<span class="n">TensorInt</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">]</span>
+<span class="n">TensorBool</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">bool_</span><span class="p">]</span>
+<span class="n">TensorInput</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">T</span><span class="p">]]],</span> <span class="n">Tensor</span><span class="p">[</span><span class="n">T</span><span class="p">]]</span>
+<span class="n">TensorInputObject</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">MatrixInputObject</span><span class="p">],</span> <span class="n">TensorObject</span><span class="p">]</span>
+<span class="n">TensorInputFloat</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">MatrixInputFloat</span><span class="p">],</span> <span class="n">TensorFloat</span><span class="p">]</span>
+<span class="n">TensorInputInt</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">MatrixInputInt</span><span class="p">],</span> <span class="n">TensorInt</span><span class="p">]</span>
+<span class="n">TensorInputBool</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">MatrixInputBool</span><span class="p">],</span> <span class="n">TensorBool</span><span class="p">]</span>
+
+<span class="n">NestedFloat</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span>
+    <span class="nb">float</span><span class="p">,</span> <span class="n">NDArrayFloat</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">&quot;NestedFloat&quot;</span><span class="p">],</span> <span class="n">Sequence</span><span class="p">[</span><span class="s2">&quot;NestedFloat&quot;</span><span class="p">]</span>
+<span class="p">]</span>
+
+<span class="n">ArrayFloat</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span>
+    <span class="s2">&quot;ArrayFloat&quot;</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">VectorFloat</span><span class="p">,</span> <span class="n">MatrixFloat</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">VectorFloat</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">ConditionsSubmodel</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">NDArrayFloat</span><span class="p">]]</span>
+<span class="n">ConditionsModel</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ConditionsSubmodel</span><span class="p">]</span>
+<span class="n">Conditions</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ConditionsModel</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="SharableConfiguration">
+<a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.SharableConfiguration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SharableConfiguration</span><span class="p">(</span><span class="n">TypedDict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Specification of the configuration data that main models can share with their</span>
+<span class="sd">    submodels.&quot;&quot;&quot;</span>
+
+    <span class="n">landtype_constants</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Constants</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Land cover type-related constants.&quot;&quot;&quot;</span>
+    <span class="n">soiltype_constants</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Constants</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Soil type-related constants.&quot;&quot;&quot;</span>
+    <span class="n">landtype_refindices</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">NameParameter</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reference to a land cover type-related index parameter.&quot;&quot;&quot;</span>
+    <span class="n">soiltype_refindices</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">NameParameter</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reference to a soil type-related index parameter.&quot;&quot;&quot;</span>
+    <span class="n">refweights</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reference to a weighting parameter (probably handling the size of some </span>
+<span class="sd">    computational subunits like the area of hydrological response units).&quot;&quot;&quot;</span></div>
+
+
+
+<span class="n">DeployMode</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span>
+    <span class="s2">&quot;newsim&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;oldsim&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;obs&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;obs_newsim&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;obs_oldsim&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;oldsim_bi&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;obs_bi&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;obs_oldsim_bi&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;newsim_update&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;obs_newsim_update&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+<span class="n">LineStyle</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span><span class="p">,</span> <span class="s2">&quot;-.&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;solid&quot;</span><span class="p">,</span> <span class="s2">&quot;dashed&quot;</span><span class="p">,</span> <span class="s2">&quot;dashdot&quot;</span><span class="p">,</span> <span class="s2">&quot;dotted&quot;</span><span class="p">]</span>
+<span class="n">StepSize</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;daily&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="s2">&quot;monthly&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;yearly&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CyParametersProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The protocol for the `parameters` attribute of Cython extension classes.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model-specific implementations</span>
+<span class="sd">    automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CySequencesProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The protocol for the `sequences` attribute of Cython extension classes.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model-specific implementations</span>
+<span class="sd">    automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="CyModelProtocol">
+<a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.CyModelProtocol">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CyModelProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The protocol of Cython extension classes for defining efficient model</span>
+<span class="sd">    implementations.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model-specific implementations</span>
+<span class="sd">    automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">idx_sim</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">parameters</span><span class="p">:</span> <span class="n">CyParametersProtocol</span>
+    <span class="n">sequences</span><span class="p">:</span> <span class="n">CySequencesProtocol</span></div>
+
+
+
+<div class="viewcode-block" id="CySubstepModelProtocol">
+<a class="viewcode-back" href="../../../typingtools.html#hydpy.core.typingtools.CySubstepModelProtocol">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CySubstepModelProtocol</span><span class="p">(</span><span class="n">CyModelProtocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The protocol of Cython extension classes for defining efficient model</span>
+<span class="sd">    implementations compatible with class |SubstepModel|.</span>
+
+<span class="sd">    Class |Cythonizer| generates the actual, model-specific implementations</span>
+<span class="sd">    automatically.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">timeleft</span><span class="p">:</span> <span class="nb">float</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The time left within the current simulation step [s].&quot;&quot;&quot;</span></div>
+
+
+
+<span class="n">SeriesFileType</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;npy&quot;</span><span class="p">,</span> <span class="s2">&quot;asc&quot;</span><span class="p">,</span> <span class="s2">&quot;nc&quot;</span><span class="p">]</span>
+<span class="n">SeriesAggregationType</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">]</span>
+<span class="n">SeriesConventionType</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;model-specific&quot;</span><span class="p">,</span> <span class="s2">&quot;HydPy&quot;</span><span class="p">]</span>
+
+<span class="n">l1</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">MethodGroup</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span>
+    <span class="s2">&quot;RECEIVER_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;INLET_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RUN_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PART_ODE_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;FULL_ODE_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ADD_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;INTERFACE_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;OUTLET_METHODS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SENDER_METHODS&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">LinkInputOutputSequenceGroup</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span>
+    <span class="s2">&quot;inlets&quot;</span><span class="p">,</span> <span class="s2">&quot;outlets&quot;</span><span class="p">,</span> <span class="s2">&quot;observers&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">,</span> <span class="s2">&quot;senders&quot;</span><span class="p">,</span> <span class="s2">&quot;inputs&quot;</span><span class="p">,</span> <span class="s2">&quot;outputs&quot;</span>
+<span class="p">]</span>
+
+<span class="n">LinkInputSequenceGroup</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span>
+    <span class="s2">&quot;inlets&quot;</span><span class="p">,</span> <span class="s2">&quot;outlets&quot;</span><span class="p">,</span> <span class="s2">&quot;observers&quot;</span><span class="p">,</span> <span class="s2">&quot;receivers&quot;</span><span class="p">,</span> <span class="s2">&quot;senders&quot;</span><span class="p">,</span> <span class="s2">&quot;inputs&quot;</span>
+<span class="p">]</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;AbstractContextManager&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Any&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ArrayFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;assert_never&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Callable&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;cast&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Concatenate&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ClassVar&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Collection&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Conditions&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ConditionsModel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ConditionsSubmodel&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CyModelProtocol&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CySubstepModelProtocol&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Collection1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Collection2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Collection3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DeployMode&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Final&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Generator&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Generic&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_type_hints&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Hashable&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Iterable&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Iterator&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LineStyle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LinkInputOutputSequenceGroup&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LinkInputSequenceGroup&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Literal&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;l1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Mapping&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Matrix&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixBool&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixBytes&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixInput&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixInputBool&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixInputFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixInputInt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixInputObject&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MatrixInt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Mayberable1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Mayberable2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Mayberable3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MayNonerable1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MayNonerable2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MayNonerable3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MethodGroup&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Name&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NamedTuple&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NDArray&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NDArrayBool&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NDArrayFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NDArrayInt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NDArrayObject&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NestedFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Never&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NewType&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;NoReturn&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Optional&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;overload&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;P&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ParamSpec&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Protocol&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Self&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SeriesAggregationType&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SeriesConventionType&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SeriesFileType&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Sequence&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Sequence1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Sequence2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Sequence3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SharableConfiguration&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Sized&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;StepSize&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;T&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;T_co&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;T_contra&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;T1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;T2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;T3&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Tensor&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TensorBool&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TensorFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TensorInput&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TensorInputBool&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TensorInputFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TensorInputInt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TensorInputObject&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TensorInt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TextIO&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TypeAlias&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TypeVar&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TypedDict&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TYPE_CHECKING&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Union&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Unpack&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Vector&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorBool&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorInput&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorInputBool&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorInputFloat&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorInputInt&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorInputObject&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;VectorInt&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.typingtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

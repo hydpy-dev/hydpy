@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.propertytools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.propertytools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.propertytools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module implements |property| like classes with similar or additional</span>
+<span class="sd">behaviour.&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard-library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="BaseDescriptor">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.BaseDescriptor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseDescriptor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for defining descriptors.&quot;&quot;&quot;</span>
+
+    <span class="n">objtype</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span>
+    <span class="n">module</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="vm">__doc__</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="BaseDescriptor.set_doc">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.BaseDescriptor.set_doc">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_doc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Assign the given docstring to the property instance and, if possible,</span>
+<span class="sd">        to the `__test__` dictionary of the module of its owner class.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">doc</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;module&quot;</span><span class="p">):</span>
+                <span class="n">ref</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">objtype</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;__test__&quot;</span><span class="p">][</span><span class="n">ref</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__set_name__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objtype</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objtype</span> <span class="o">=</span> <span class="n">objtype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">module</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmodule</span><span class="p">(</span><span class="n">objtype</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">module</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;__test__&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">module</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="s2">&quot;__test__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;__doc__&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">doc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_doc</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="FGet">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.FGet">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FGet</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">T_co</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Callback protocol for getter functions.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_co</span><span class="p">:</span> <span class="o">...</span></div>
+
+
+
+<div class="viewcode-block" id="FSet">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.FSet">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FSet</span><span class="p">(</span><span class="n">Protocol</span><span class="p">[</span><span class="n">T_contra</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Callback protocol for setter functions.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">__value</span><span class="p">:</span> <span class="n">T_contra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span></div>
+
+
+
+<div class="viewcode-block" id="FDel">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.FDel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FDel</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Callback protocol for deleter functions.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">__obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="o">...</span></div>
+
+
+
+<div class="viewcode-block" id="BaseProperty">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.BaseProperty">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseProperty</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">],</span> <span class="n">BaseDescriptor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Abstract base class for deriving classes similar to |property|.</span>
+
+<span class="sd">    |BaseProperty| provides the abstract methods |BaseProperty.call_fget|,</span>
+<span class="sd">    |BaseProperty.call_fset|, and |BaseProperty.call_fdel|, which are the</span>
+<span class="sd">    appropriate places to add custom functionalities (e.g. caching).  See</span>
+<span class="sd">    subclass |Property| for an example, which mimics the behaviour of the</span>
+<span class="sd">    built-in |property| function.</span>
+
+<span class="sd">    |BaseProperty| property uses dummy getter, setter and deleter functions</span>
+<span class="sd">    to indicate than at an actual getter, setter or deleter function is missing.</span>
+<span class="sd">    In case they are called due to the wrong implementation of a |BaseProperty|</span>
+<span class="sd">    subclass, they raise a |RuntimeError|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.propertytools import BaseProperty</span>
+<span class="sd">    &gt;&gt;&gt; BaseProperty._fgetdummy(None)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError</span>
+
+<span class="sd">    &gt;&gt;&gt; BaseProperty._fsetdummy(None, None)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError</span>
+
+<span class="sd">    &gt;&gt;&gt; BaseProperty._fdeldummy(None)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">fget</span><span class="p">:</span> <span class="n">FGet</span><span class="p">[</span><span class="n">T_co</span><span class="p">]</span>
+    <span class="n">fset</span><span class="p">:</span> <span class="n">FSet</span><span class="p">[</span><span class="n">T_contra</span><span class="p">]</span>
+    <span class="n">fdel</span><span class="p">:</span> <span class="n">FDel</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fgetdummy</span><span class="p">(</span><span class="n">__obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_co</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fsetdummy</span><span class="p">(</span><span class="n">__obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">__value</span><span class="p">:</span> <span class="n">T_contra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fdeldummy</span><span class="p">(</span><span class="n">__obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="n">objtype</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">objtype</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">T_co</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">objtype</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span> <span class="o">|</span> <span class="n">T_co</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fgetdummy</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Attribute `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` of object &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicephrase</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2"> is not gettable.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">call_fget</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T_contra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fset</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fsetdummy</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Attribute `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` of object &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicephrase</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2"> is not settable.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_fset</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delete__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fdeldummy</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Attribute `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` of object &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicephrase</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2"> is not deletable.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">call_fdel</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BaseProperty.call_fget">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.BaseProperty.call_fget">[docs]</a>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_co</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Method for implementing unique getter functionalities.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="BaseProperty.call_fset">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.BaseProperty.call_fset">[docs]</a>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T_contra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Method for implementing unique setter functionalities.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="BaseProperty.call_fdel">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.BaseProperty.call_fdel">[docs]</a>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fdel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Method for implementing unique deleter functionalities.&quot;&quot;&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Property">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.Property">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Property</span><span class="p">(</span><span class="n">BaseProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class |Property| mimics the behaviour of the built-in function |property|.</span>
+
+<span class="sd">    The only advantage of |Property| over |property| is that it allows defining</span>
+<span class="sd">    different input and output types statically.  If the input and output types</span>
+<span class="sd">    are identical, prefer |property|, which is probably faster.</span>
+
+<span class="sd">    The following test class implements its attribute `x` by defining</span>
+<span class="sd">    all three &quot;property methods&quot; (`getter`/`fget`, `setter`/`fset`,</span>
+<span class="sd">    `deleter`/`fdel`), but its attribute `y` by defining none of them:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.propertytools import Property</span>
+<span class="sd">    &gt;&gt;&gt; class Test:</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     def __init__(self):</span>
+<span class="sd">    ...         self._x = None</span>
+<span class="sd">    ...         self._y = None</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     @Property</span>
+<span class="sd">    ...     def x(self):</span>
+<span class="sd">    ...         return self._x</span>
+<span class="sd">    ...     @x.setter</span>
+<span class="sd">    ...     def x(self, value):</span>
+<span class="sd">    ...         self._x = value</span>
+<span class="sd">    ...     @x.deleter</span>
+<span class="sd">    ...     def x(self):</span>
+<span class="sd">    ...         self._x = None</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     y = Property()</span>
+
+<span class="sd">    After initialising a test object, you can use its attribute `x` as expected:</span>
+
+<span class="sd">    &gt;&gt;&gt; test = Test()</span>
+<span class="sd">    &gt;&gt;&gt; test.x</span>
+<span class="sd">    &gt;&gt;&gt; test.x = 2</span>
+<span class="sd">    &gt;&gt;&gt; test.x</span>
+<span class="sd">    2</span>
+<span class="sd">    &gt;&gt;&gt; del test.x</span>
+<span class="sd">    &gt;&gt;&gt; test.x</span>
+
+<span class="sd">    When trying to invoke attribute `y`, you get the following error messages:</span>
+
+<span class="sd">    &gt;&gt;&gt; test.y</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: Attribute `y` of object `test` is not gettable.</span>
+
+<span class="sd">    &gt;&gt;&gt; test.y = 1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: Attribute `y` of object `test` is not settable.</span>
+
+<span class="sd">    &gt;&gt;&gt; del test.y</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: Attribute `y` of object `test` is not deletable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">fget</span><span class="p">:</span> <span class="n">FGet</span><span class="p">[</span><span class="n">T_co</span><span class="p">]</span> <span class="o">=</span> <span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fgetdummy</span><span class="p">,</span>
+        <span class="n">fset</span><span class="p">:</span> <span class="n">FSet</span><span class="p">[</span><span class="n">T_contra</span><span class="p">]</span> <span class="o">=</span> <span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fsetdummy</span><span class="p">,</span>
+        <span class="n">fdel</span><span class="p">:</span> <span class="n">FDel</span> <span class="o">=</span> <span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fdeldummy</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="o">=</span> <span class="n">fget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_doc</span><span class="p">(</span><span class="n">fget</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span> <span class="o">=</span> <span class="n">fset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span> <span class="o">=</span> <span class="n">fdel</span>
+
+<div class="viewcode-block" id="Property.call_fget">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.Property.call_fget">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_co</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call `fget` without additional functionalities.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Property.call_fset">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.Property.call_fset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T_contra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call `fset` without additional functionalities.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Property.call_fdel">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.Property.call_fdel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fdel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call `fdel` without additional functionalities.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Property.getter">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.Property.getter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fget</span><span class="p">:</span> <span class="n">FGet</span><span class="p">[</span><span class="n">T_co</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Property</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given getter function and its docstring to the property and</span>
+<span class="sd">        return it.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="o">=</span> <span class="n">fget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_doc</span><span class="p">(</span><span class="n">fget</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Property.setter">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.Property.setter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fset</span><span class="p">:</span> <span class="n">FSet</span><span class="p">[</span><span class="n">T_contra</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Property</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given setter function to the property and return it.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span> <span class="o">=</span> <span class="n">fset</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Property.deleter">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.Property.deleter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deleter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fdel</span><span class="p">:</span> <span class="n">FDel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Property</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given deleter function to the property and return it.&quot;&quot;&quot;</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;fdel&quot;</span><span class="p">,</span> <span class="n">fdel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ProtectedProperty">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.ProtectedProperty">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProtectedProperty</span><span class="p">(</span><span class="n">BaseProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A |property|-like class which prevents getting an attribute before setting it.</span>
+
+<span class="sd">    Some attributes need preparations before being accessible.  Consider the case</span>
+<span class="sd">    where a property of a Python class (being part of the API) links to an attribute</span>
+<span class="sd">    of a Cython extension class (not part of the API).  If the Cython attribute is,</span>
+<span class="sd">    for example, a vector requiring memory allocation, trying to query this vector</span>
+<span class="sd">    before it has been initialised results in a program crash.  Using</span>
+<span class="sd">    |ProtectedProperty| is a means to prevent such problems.</span>
+
+<span class="sd">    The following class `Test` defines most simple getter, setter, and deleter</span>
+<span class="sd">    functions for its only property `x`:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.propertytools import ProtectedProperty</span>
+<span class="sd">    &gt;&gt;&gt; class Test:</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     def __init__(self):</span>
+<span class="sd">    ...         self._x = None</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     x = ProtectedProperty()</span>
+<span class="sd">    ...     @x.getter</span>
+<span class="sd">    ...     def x(self):</span>
+<span class="sd">    ...         &quot;Test&quot;</span>
+<span class="sd">    ...         return self._x</span>
+<span class="sd">    ...     @x.setter</span>
+<span class="sd">    ...     def x(self, value):</span>
+<span class="sd">    ...         self._x = value</span>
+<span class="sd">    ...     @x.deleter</span>
+<span class="sd">    ...     def x(self):</span>
+<span class="sd">    ...         self._x = None</span>
+
+<span class="sd">    Trying to query `x` directly after initialising a `Test` object results in an</span>
+<span class="sd">    |AttributeNotReady| error:</span>
+
+<span class="sd">    &gt;&gt;&gt; test = Test()</span>
+<span class="sd">    &gt;&gt;&gt; test.x</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: Attribute `x` of object `test` \</span>
+<span class="sd">has not been prepared so far.</span>
+
+<span class="sd">    After setting a value, you can query this value as expected:</span>
+
+<span class="sd">    &gt;&gt;&gt; test.x = 1</span>
+<span class="sd">    &gt;&gt;&gt; test.x</span>
+<span class="sd">    1</span>
+
+<span class="sd">    After deleting the value, the protection mechanism applies again:</span>
+
+<span class="sd">    &gt;&gt;&gt; del test.x</span>
+<span class="sd">    &gt;&gt;&gt; test.x</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: Attribute `x` of object `test` \</span>
+<span class="sd">has not been prepared so far.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">fget</span><span class="p">:</span> <span class="n">FGet</span><span class="p">[</span><span class="n">T_co</span><span class="p">]</span> <span class="o">=</span> <span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fgetdummy</span><span class="p">,</span>
+        <span class="n">fset</span><span class="p">:</span> <span class="n">FSet</span><span class="p">[</span><span class="n">T_contra</span><span class="p">]</span> <span class="o">=</span> <span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fsetdummy</span><span class="p">,</span>
+        <span class="n">fdel</span><span class="p">:</span> <span class="n">FDel</span> <span class="o">=</span> <span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fdeldummy</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="o">=</span> <span class="n">fget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_doc</span><span class="p">(</span><span class="n">fget</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span> <span class="o">=</span> <span class="n">fset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span> <span class="o">=</span> <span class="n">fdel</span>
+
+<div class="viewcode-block" id="ProtectedProperty.call_fget">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.ProtectedProperty.call_fget">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_co</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;When ready, call `fget`; otherwise, raise an |AttributeNotReady|</span>
+<span class="sd">        exception.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isready</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Attribute `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` of object </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicephrase</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;has not been prepared so far.&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProtectedProperty.call_fset">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.ProtectedProperty.call_fset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T_contra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call `fset` and mark the attribute as ready.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="nb">vars</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="ProtectedProperty.call_fdel">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.ProtectedProperty.call_fdel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fdel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call `fdel` and mark the attribute as not ready.&quot;&quot;&quot;</span>
+        <span class="nb">vars</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProtectedProperty.isready">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.ProtectedProperty.isready">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">isready</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return |True| or |False| to indicate if the protected</span>
+<span class="sd">        property is ready for the given object.  If the object is</span>
+<span class="sd">        unknown, |ProtectedProperty.isready| returns |False|.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProtectedProperty.getter">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.ProtectedProperty.getter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fget</span><span class="p">:</span> <span class="n">FGet</span><span class="p">[</span><span class="n">T_co</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">ProtectedProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given getter function and its docstring to the property</span>
+<span class="sd">        and return it.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="o">=</span> <span class="n">fget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_doc</span><span class="p">(</span><span class="n">fget</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="ProtectedProperty.setter">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.ProtectedProperty.setter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fset</span><span class="p">:</span> <span class="n">FSet</span><span class="p">[</span><span class="n">T_contra</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">ProtectedProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given setter function to the property and return it.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span> <span class="o">=</span> <span class="n">fset</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="ProtectedProperty.deleter">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.ProtectedProperty.deleter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deleter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fdel</span><span class="p">:</span> <span class="n">FDel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ProtectedProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given deleter function to the property and return it.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span> <span class="o">=</span> <span class="n">fdel</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+</div>
+
+
+
+<span class="n">ProtectedPropertyStr</span> <span class="o">=</span> <span class="n">ProtectedProperty</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+<span class="sd">&quot;&quot;&quot;|ProtectedProperty| for handling |str| objects.&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="ProtectedProperties">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.ProtectedProperties">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProtectedProperties</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Iterable for |ProtectedProperty| objects.</span>
+
+<span class="sd">    You can collect an arbitrary number of |ProtectedProperty| objects within a</span>
+<span class="sd">    |ProtectedProperties| object.  Its |ProtectedProperties.allready| method</span>
+<span class="sd">    allows checking the status of all properties at ones:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core import propertytools as pt</span>
+<span class="sd">    &gt;&gt;&gt; class Test:</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     @pt.ProtectedProperty</span>
+<span class="sd">    ...     def x(self):</span>
+<span class="sd">    ...         return &quot;this is x&quot;</span>
+<span class="sd">    ...     @x.setter</span>
+<span class="sd">    ...     def x(self, value):</span>
+<span class="sd">    ...         pass</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     @pt.ProtectedProperty</span>
+<span class="sd">    ...     def z(self):</span>
+<span class="sd">    ...         return &quot;this is z&quot;</span>
+<span class="sd">    ...     @z.setter</span>
+<span class="sd">    ...     def z(self, value):</span>
+<span class="sd">    ...         pass</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     protectedproperties = pt.ProtectedProperties(x, z)</span>
+
+<span class="sd">    &gt;&gt;&gt; test1 = Test()</span>
+<span class="sd">    &gt;&gt;&gt; test1.x = None</span>
+<span class="sd">    &gt;&gt;&gt; test2 = Test()</span>
+<span class="sd">    &gt;&gt;&gt; test2.x = None</span>
+<span class="sd">    &gt;&gt;&gt; test2.z = None</span>
+<span class="sd">    &gt;&gt;&gt; Test.protectedproperties.allready(test1)</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; Test.protectedproperties.allready(test2)</span>
+<span class="sd">    True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__properties</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">ProtectedProperty</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">properties</span><span class="p">:</span> <span class="n">ProtectedProperty</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__properties</span> <span class="o">=</span> <span class="n">properties</span>
+
+<div class="viewcode-block" id="ProtectedProperties.allready">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.ProtectedProperties.allready">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">allready</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return |True| or |False| to indicate whether all protected</span>
+<span class="sd">        properties are ready or not.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__properties</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">prop</span><span class="o">.</span><span class="n">isready</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">ProtectedProperty</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__properties</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="DependentProperty">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DependentProperty">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DependentProperty</span><span class="p">(</span><span class="n">BaseProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|property|-like class which prevents accessing a dependent attribute</span>
+<span class="sd">    before preparing certain other attributes.</span>
+
+<span class="sd">    Please read the documentation on class |ProtectedProperty|, from which we</span>
+<span class="sd">    take the following example.  `x` is a simple |ProtectedProperty| again,</span>
+<span class="sd">    but time we add the |DependentProperty| `y`:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core import propertytools as pt</span>
+<span class="sd">    &gt;&gt;&gt; class Test:</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     def __init__(self):</span>
+<span class="sd">    ...         self._x = None</span>
+<span class="sd">    ...         self._y = None</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     @pt.ProtectedProperty</span>
+<span class="sd">    ...     def x(self):</span>
+<span class="sd">    ...         return self._x</span>
+<span class="sd">    ...     @x.setter</span>
+<span class="sd">    ...     def x(self, value):</span>
+<span class="sd">    ...         self._x = value</span>
+<span class="sd">    ...     @x.deleter</span>
+<span class="sd">    ...     def x(self):</span>
+<span class="sd">    ...         self._x = None</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     y = pt.DependentProperty(protected=(x,))</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     @y.getter</span>
+<span class="sd">    ...     def y(self):</span>
+<span class="sd">    ...         return self._y</span>
+<span class="sd">    ...     @y.setter</span>
+<span class="sd">    ...     def y(self, value):</span>
+<span class="sd">    ...         self._y = value</span>
+<span class="sd">    ...     @y.deleter</span>
+<span class="sd">    ...     def y(self):</span>
+<span class="sd">    ...         self._y = None</span>
+
+<span class="sd">    Initially, due to `x` not being prepared, there is no way to get, set, or</span>
+<span class="sd">    delete attribute `y`:</span>
+
+<span class="sd">    &gt;&gt;&gt; test = Test()</span>
+<span class="sd">    &gt;&gt;&gt; test.y</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: Attribute `y` of object `test` \</span>
+<span class="sd">is not usable so far.  At least, you have to prepare attribute `x` first.</span>
+<span class="sd">    &gt;&gt;&gt; test.y = 1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: Attribute `y` of object `test` \</span>
+<span class="sd">is not usable so far.  At least, you have to prepare attribute `x` first.</span>
+<span class="sd">    &gt;&gt;&gt; del test.y</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: Attribute `y` of object `test` \</span>
+<span class="sd">is not usable so far.  At least, you have to prepare attribute `x` first.</span>
+
+<span class="sd">    After assigning a value to `x`, `y` behaves like a common property:</span>
+
+<span class="sd">    &gt;&gt;&gt; test.x = &quot;anything&quot;</span>
+<span class="sd">    &gt;&gt;&gt; test.y = 1</span>
+<span class="sd">    &gt;&gt;&gt; test.y</span>
+<span class="sd">    1</span>
+<span class="sd">    &gt;&gt;&gt; del test.y</span>
+<span class="sd">    &gt;&gt;&gt; test.y</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">protected</span><span class="p">:</span> <span class="n">ProtectedProperties</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">protected</span><span class="p">:</span> <span class="n">ProtectedProperties</span><span class="p">,</span>
+        <span class="n">fget</span><span class="p">:</span> <span class="n">FGet</span><span class="p">[</span><span class="n">T_co</span><span class="p">]</span> <span class="o">=</span> <span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fgetdummy</span><span class="p">,</span>
+        <span class="n">fset</span><span class="p">:</span> <span class="n">FSet</span><span class="p">[</span><span class="n">T_contra</span><span class="p">]</span> <span class="o">=</span> <span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fsetdummy</span><span class="p">,</span>
+        <span class="n">fdel</span><span class="p">:</span> <span class="n">FDel</span> <span class="o">=</span> <span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fdeldummy</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protected</span> <span class="o">=</span> <span class="n">protected</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="o">=</span> <span class="n">fget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_doc</span><span class="p">(</span><span class="n">fget</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span> <span class="o">=</span> <span class="n">fset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span> <span class="o">=</span> <span class="n">fdel</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">req</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">protected</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">req</span><span class="o">.</span><span class="n">isready</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Attribute `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` of object &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">devicephrase</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="si">}</span><span class="s2"> is not usable &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;so far.  At least, you have to prepare attribute &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">req</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` first.&quot;</span>
+                <span class="p">)</span>
+
+<div class="viewcode-block" id="DependentProperty.call_fget">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DependentProperty.call_fget">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_co</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call `fget` when all required attributes are ready; otherwise, raise</span>
+<span class="sd">        an |AttributeNotReady| error.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__check</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DependentProperty.call_fset">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DependentProperty.call_fset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T_contra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call `fset` when all required attributes are ready; otherwise, raise</span>
+<span class="sd">        an |AttributeNotReady| error.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__check</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DependentProperty.call_fdel">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DependentProperty.call_fdel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fdel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Call `fdel` when all required attributes are ready; otherwise, raise</span>
+<span class="sd">        an |AttributeNotReady| error.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__check</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DependentProperty.getter">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DependentProperty.getter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">getter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fget</span><span class="p">:</span> <span class="n">FGet</span><span class="p">[</span><span class="n">T_co</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DependentProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given getter function and its docstring to the property and</span>
+<span class="sd">        return it.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="o">=</span> <span class="n">fget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_doc</span><span class="p">(</span><span class="n">fget</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="DependentProperty.setter">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DependentProperty.setter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">setter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fset</span><span class="p">:</span> <span class="n">FSet</span><span class="p">[</span><span class="n">T_contra</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">DependentProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given setter function to the property and return it.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span> <span class="o">=</span> <span class="n">fset</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="DependentProperty.deleter">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DependentProperty.deleter">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deleter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fdel</span><span class="p">:</span> <span class="n">FDel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DependentProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given deleter function to the property and return it.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span> <span class="o">=</span> <span class="n">fdel</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="DefaultProperty">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DefaultProperty">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DefaultProperty</span><span class="p">(</span><span class="n">BaseProperty</span><span class="p">[</span><span class="n">T_contra</span><span class="p">,</span> <span class="n">T_co</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|property|-like class which uses the getter function to return a default</span>
+<span class="sd">    value unless a custom value is available.</span>
+
+<span class="sd">    In the following example, the default value of property `x` is one:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.propertytools import DefaultProperty</span>
+<span class="sd">    &gt;&gt;&gt; class Test:</span>
+<span class="sd">    ...</span>
+<span class="sd">    ...     @DefaultProperty</span>
+<span class="sd">    ...     def x(self):</span>
+<span class="sd">    ...         &quot;Default property x.&quot;</span>
+<span class="sd">    ...         return 1</span>
+
+<span class="sd">    Initially, property `x` returns the default value defined by its getter function:</span>
+
+<span class="sd">    &gt;&gt;&gt; test = Test()</span>
+<span class="sd">    &gt;&gt;&gt; test.x</span>
+<span class="sd">    1</span>
+
+<span class="sd">    Assigned custom values override such default values:</span>
+
+<span class="sd">    &gt;&gt;&gt; test.x = 3</span>
+<span class="sd">    &gt;&gt;&gt; test.x</span>
+<span class="sd">    3</span>
+
+<span class="sd">    After removing the custom value, it is again up to the getter function to return</span>
+<span class="sd">    the default value:</span>
+
+<span class="sd">    &gt;&gt;&gt; del test.x</span>
+<span class="sd">    &gt;&gt;&gt; test.x</span>
+<span class="sd">    1</span>
+
+<span class="sd">    Trying to delete a not existing custom value does not harm:</span>
+
+<span class="sd">    &gt;&gt;&gt; del test.x</span>
+
+<span class="sd">    The documentation string of the getter functions serves as the documentation</span>
+<span class="sd">    string of the default property:</span>
+
+<span class="sd">    &gt;&gt;&gt; Test.x.__doc__</span>
+<span class="sd">    &#39;Default property x.&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fget</span><span class="p">:</span> <span class="n">FGet</span><span class="p">[</span><span class="n">T_co</span><span class="p">]</span> <span class="o">=</span> <span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fgetdummy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fget</span> <span class="o">=</span> <span class="n">fget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_doc</span><span class="p">(</span><span class="n">fget</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fsetowndummy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fdel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fdelowndummy</span>
+
+<div class="viewcode-block" id="DefaultProperty.call_fget">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DefaultProperty.call_fget">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fget</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">T_co</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If available, return the predefined custom value; otherwise, return</span>
+<span class="sd">        the value defined by the getter function.&quot;&quot;&quot;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">T_co</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">vars</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="DefaultProperty.call_fset">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DefaultProperty.call_fset">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">T_contra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Store the given custom value.&quot;&quot;&quot;</span>
+        <span class="nb">vars</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
+
+
+<div class="viewcode-block" id="DefaultProperty.call_fdel">
+<a class="viewcode-back" href="../../../propertytools.html#hydpy.core.propertytools.DefaultProperty.call_fdel">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_fdel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove the predefined custom value.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="nb">vars</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fsetowndummy</span><span class="p">(</span><span class="n">__obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">__value</span><span class="p">:</span> <span class="n">T_contra</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Do nothing.&quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fdelowndummy</span><span class="p">(</span><span class="n">__obj</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Do nothing.&quot;&quot;&quot;</span></div>
+
+
+
+<span class="n">DefaultPropertyBool</span> <span class="o">=</span> <span class="n">DefaultProperty</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span>
+<span class="sd">&quot;&quot;&quot;|DefaultProperty| for handling |bool| objects.&quot;&quot;&quot;</span>
+
+<span class="n">DefaultPropertyStr</span> <span class="o">=</span> <span class="n">DefaultProperty</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+<span class="sd">&quot;&quot;&quot;|DefaultProperty| for handling |str| objects.&quot;&quot;&quot;</span>
+
+<span class="n">DefaultPropertySeriesFileType</span> <span class="o">=</span> <span class="n">DefaultProperty</span><span class="p">[</span><span class="n">SeriesFileType</span><span class="p">,</span> <span class="n">SeriesFileType</span><span class="p">]</span>
+<span class="sd">&quot;&quot;&quot;|DefaultProperty| for handling |SeriesFileType| literals.&quot;&quot;&quot;</span>
+
+<span class="n">DefaultPropertySeriesAggregationType</span> <span class="o">=</span> <span class="n">DefaultProperty</span><span class="p">[</span>
+    <span class="n">SeriesAggregationType</span><span class="p">,</span> <span class="n">SeriesAggregationType</span>
+<span class="p">]</span>
+<span class="sd">&quot;&quot;&quot;|DefaultProperty| for handling |SeriesAggregationType| literals.&quot;&quot;&quot;</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.propertytools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

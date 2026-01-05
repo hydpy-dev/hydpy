@@ -1,0 +1,68 @@
+.. |AddItem| replace:: :class:`~hydpy.core.itemtools.AddItem`
+.. |ChangeItem| replace:: :class:`~hydpy.core.itemtools.ChangeItem`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |ExchangeItem| replace:: :class:`~hydpy.core.itemtools.ExchangeItem`
+.. |False| replace:: :const:`False`
+.. |GetItem| replace:: :class:`~hydpy.core.itemtools.GetItem`
+.. |IOSequence.activate_ram| replace:: :func:`~hydpy.core.sequencetools.IOSequence.activate_ram`
+.. |IOSequence.series| replace:: :const:`~hydpy.core.sequencetools.IOSequence.series`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |None| replace:: :const:`None`
+.. |Options| replace:: :class:`~hydpy.core.optiontools.Options`
+.. |Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+.. |Selection| replace:: :class:`~hydpy.core.selectiontools.Selection`
+.. |SequenceManager| replace:: :class:`~hydpy.core.filetools.SequenceManager`
+.. |SetItem| replace:: :class:`~hydpy.core.itemtools.SetItem`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |XMLBase.find| replace:: :func:`~hydpy.auxs.xmltools.XMLBase.find`
+.. |XMLBase| replace:: :class:`~hydpy.auxs.xmltools.XMLBase`
+.. |XMLConditions| replace:: :class:`~hydpy.auxs.xmltools.XMLConditions`
+.. |XMLExchange| replace:: :class:`~hydpy.auxs.xmltools.XMLExchange`
+.. |XMLInterface.devices| replace:: :const:`~hydpy.auxs.xmltools.XMLInterface.devices`
+.. |XMLInterface.elements| replace:: :const:`~hydpy.auxs.xmltools.XMLInterface.elements`
+.. |XMLInterface.selections| replace:: :const:`~hydpy.auxs.xmltools.XMLInterface.selections`
+.. |XMLInterface.validate_xml| replace:: :func:`~hydpy.auxs.xmltools.XMLInterface.validate_xml`
+.. |XMLInterface| replace:: :class:`~hydpy.auxs.xmltools.XMLInterface`
+.. |XMLItemgroup| replace:: :class:`~hydpy.auxs.xmltools.XMLItemgroup`
+.. |XMLModel| replace:: :class:`~hydpy.auxs.xmltools.XMLModel`
+.. |XMLNode| replace:: :class:`~hydpy.auxs.xmltools.XMLNode`
+.. |XMLSelector.selections| replace:: :const:`~hydpy.auxs.xmltools.XMLSelector.selections`
+.. |XMLSeries| replace:: :class:`~hydpy.auxs.xmltools.XMLSeries`
+.. |XMLSubseries.load_series| replace:: :func:`~hydpy.auxs.xmltools.XMLSubseries.load_series`
+.. |XMLSubseries.prepare_series| replace:: :func:`~hydpy.auxs.xmltools.XMLSubseries.prepare_series`
+.. |XMLSubseries| replace:: :class:`~hydpy.auxs.xmltools.XMLSubseries`
+.. |XMLSubvars| replace:: :class:`~hydpy.auxs.xmltools.XMLSubvars`
+.. |XMLVar| replace:: :class:`~hydpy.auxs.xmltools.XMLVar`
+.. |XSDWriter.write_xsd| replace:: :func:`~hydpy.auxs.xmltools.XSDWriter.write_xsd`
+.. |XSDWriter| replace:: :class:`~hydpy.auxs.xmltools.XSDWriter`
+.. |classmethod| replace:: :class:`classmethod`
+.. |find| replace:: :func:`~hydpy.auxs.xmltools.find`
+.. |hland_v1| replace:: :mod:`~hydpy.models.hland_v1`
+.. |hstream_v1| replace:: :mod:`~hydpy.models.hstream_v1`
+.. |hyd| replace:: :mod:`~hydpy.exe.hyd`
+.. |list| replace:: :class:`list`
+.. |prepare_full_example_1| replace:: :func:`~hydpy.examples.prepare_full_example_1`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |run_simulation| replace:: :func:`~hydpy.auxs.xmltools.run_simulation`
+.. |run_subprocess| replace:: :func:`~hydpy.exe.commandtools.run_subprocess`
+.. |set| replace:: :class:`set`
+.. |strip| replace:: :func:`~hydpy.auxs.xmltools.strip`
+.. |xmltools| replace:: :mod:`~hydpy.auxs.xmltools`
+.. |collections.defaultdict| replace:: :class:`~collections.defaultdict`
+.. |hland_control.Alpha| replace:: :class:`~hydpy.models.hland.hland_control.Alpha`
+.. |hland_control.RfCF| replace:: :class:`~hydpy.models.hland.hland_control.RfCF`
+.. |hland_control.SfCF| replace:: :class:`~hydpy.models.hland.hland_control.SfCF`
+.. |hland_fluxes.QT| replace:: :class:`~hydpy.models.hland.hland_fluxes.QT`
+.. |hland_states.SM| replace:: :class:`~hydpy.models.hland.hland_states.SM`
+.. |hstream_control.Lag| replace:: :class:`~hydpy.models.hstream.hstream_control.Lag`
+
+.. _xmltools:
+
+xmltools
+========
+
+.. automodule:: hydpy.auxs.xmltools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

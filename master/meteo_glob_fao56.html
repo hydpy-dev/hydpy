@@ -1,0 +1,515 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>meteo_glob_fao56 &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="meteo_glob_morsim" href="meteo_glob_morsim.html" />
+    <link rel="prev" title="meteo_precip_io" href="meteo_precip_io.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="meteo_glob_morsim.html" title="meteo_glob_morsim"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="meteo_precip_io.html" title="meteo_precip_io"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Meteo.html" accesskey="U">HydPy-Meteo</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">meteo_glob_fao56</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="meteo.html">meteo</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_glob_io.html">meteo_glob_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_clear_glob_io.html">meteo_clear_glob_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_psun_sun_glob_io.html">meteo_psun_sun_glob_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_temp_io.html">meteo_temp_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_precip_io.html">meteo_precip_io</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">meteo_glob_fao56</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-tests">Integration tests</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#daily-simulation">daily simulation</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hourly-simulation">hourly simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_glob_fao56.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.meteo_glob_fao56.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.meteo_glob_fao56.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.meteo_glob_fao56.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_glob_fao56.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_glob_fao56.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_glob_fao56.FactorSequences"><code class="docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_glob_fao56.FixedParameters"><code class="docutils literal notranslate"><span class="pre">FixedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_glob_fao56.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.meteo_glob_fao56.InputSequences"><code class="docutils literal notranslate"><span class="pre">InputSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_glob_morsim.html">meteo_glob_morsim</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_sun_fao56.html">meteo_sun_fao56</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_sun_morsim.html">meteo_sun_morsim</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="meteo_precip_io.html"
+                          title="previous chapter">meteo_precip_io</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="meteo_glob_morsim.html"
+                          title="next chapter">meteo_glob_morsim</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/meteo_glob_fao56.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/meteo_glob_fao56.html">6</a></li>
+<li><a href="../master/meteo_glob_fao56.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="meteo-glob-fao56">
+<span id="id1"></span><h1>HydPy-Meteo-Glob-FAO56 (global radiation estimation adopted from FAO56)<a class="headerlink" href="#meteo-glob-fao56" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.meteo_glob_fao56"><a class="reference internal" href="#module-hydpy.models.meteo_glob_fao56" title="hydpy.models.meteo_glob_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_glob_fao56</span></code></a> follows the guideline provided by <span id="id2"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>.  There
+are a few differences, but, at least for the following example calculations, they seem
+to be of minor importance.  See the documentation on the individual methods for more
+detailed information.</p>
+<p><a class="reference internal" href="#module-hydpy.models.meteo_glob_fao56" title="hydpy.models.meteo_glob_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_glob_fao56</span></code></a> is tested for daily and hourly simulation time steps.  We are
+confident that it also works fine for steps shorter than one hour.  Applying it on step
+sizes  longer one day or between one hour and one day is not advisable (your
+contributions to  extend its applicability are welcome, of course).  There is also a
+geographic restriction due to the calculation of the longwave radiation, which fails
+during polar nights (again, contributions are welcome).</p>
+<section id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to_read_the_reference_manual.html#integration-tests"><span class="std std-ref">Integration Tests</span></a> first.</p>
+</div>
+<p>Application model <a class="reference internal" href="#module-hydpy.models.meteo_glob_fao56" title="hydpy.models.meteo_glob_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_glob_fao56</span></code></a> calculates multiple meteorological factors
+hydrological models could require.  Many require <a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.GlobalRadiation" title="hydpy.models.meteo.meteo_fluxes.GlobalRadiation"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalRadiation</span></code></a> for
+calculating net shortwave radiation.  Some also require
+<a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_factors.PossibleSunshineDuration" title="hydpy.models.meteo.meteo_factors.PossibleSunshineDuration"><code class="xref py py-class docutils literal notranslate"><span class="pre">PossibleSunshineDuration</span></code></a> or <a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.ClearSkySolarRadiation" title="hydpy.models.meteo.meteo_fluxes.ClearSkySolarRadiation"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClearSkySolarRadiation</span></code></a> to
+guess cloudiness for calculating net longwave radiation.  Here, we select
+<a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.GlobalRadiation" title="hydpy.models.meteo.meteo_fluxes.GlobalRadiation"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalRadiation</span></code></a> and <a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.ClearSkySolarRadiation" title="hydpy.models.meteo.meteo_fluxes.ClearSkySolarRadiation"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClearSkySolarRadiation</span></code></a> by importing
+their globally available aliases, which we hand over to the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> instances <cite>node1</cite>
+and <cite>node2</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">Node</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.aliases</span><span class="w"> </span><span class="kn">import</span> <span class="n">meteo_fluxes_GlobalRadiation</span><span class="p">,</span> <span class="n">meteo_fluxes_ClearSkySolarRadiation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node1</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="s2">&quot;node1&quot;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="n">meteo_fluxes_GlobalRadiation</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node2</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="s2">&quot;node2&quot;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="n">meteo_fluxes_ClearSkySolarRadiation</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, we can prepare an instance of <a class="reference internal" href="#module-hydpy.models.meteo_glob_fao56" title="hydpy.models.meteo_glob_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_glob_fao56</span></code></a> and assign it to an element
+connected to the prepared nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.meteo_glob_fao56</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;element&quot;</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="p">(</span><span class="n">node1</span><span class="p">,</span> <span class="n">node2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<section id="daily-simulation">
+<span id="meteo-glob-fao56-daily-simulation"></span><h3>daily simulation<a class="headerlink" href="#daily-simulation" title="Link to this heading">¶</a></h3>
+<p>The first example deals with a daily simulation time step.  We calculate the radiation
+terms on 6 July in Uccle (Brussels, Belgium) and take all input data from example 18 of
+<span id="id3"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-07-06&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-07-07&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latitude</span><span class="p">(</span><span class="mf">50.8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">angstromconstant</span><span class="p">(</span><span class="mf">0.25</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">angstromfactor</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;%Y-</span><span class="si">%d</span><span class="s2">-%m&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="o">.</span><span class="n">sunshineduration</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">9.25</span>
+</pre></div>
+</div>
+<p>Both for <a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.GlobalRadiation" title="hydpy.models.meteo.meteo_fluxes.GlobalRadiation"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalRadiation</span></code></a> and <a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.ClearSkySolarRadiation" title="hydpy.models.meteo.meteo_fluxes.ClearSkySolarRadiation"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClearSkySolarRadiation</span></code></a>, the
+differences to the results given by <span id="id4"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span> are significantly less than
+1 %:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_259__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_259__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|       date | sunshineduration | earthsundistance | solardeclination | sunsethourangle | solartimeangle | possiblesunshineduration | extraterrestrialradiation | clearskysolarradiation | globalradiation |      node1 |     node2 |</span>
+<span class="go">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-06-07 |             9.25 |         0.967121 |         0.394547 |        2.106601 |            nan |                16.093247 |                475.201614 |              356.40121 |      255.367464 | 255.367464 | 356.40121 |</span>
+</pre></div></div></div></pre></div></div><p>All getters specified by the <a class="reference internal" href="radiationinterfaces.html#hydpy.interfaces.radiationinterfaces.RadiationModel_V1" title="hydpy.interfaces.radiationinterfaces.RadiationModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadiationModel_V1</span></code></a> interface return the correct data:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_possiblesunshineduration</span><span class="p">())</span>
+<span class="go">16.093247</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_sunshineduration</span><span class="p">())</span>
+<span class="go">9.25</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_clearskysolarradiation</span><span class="p">())</span>
+<span class="go">356.40121</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_globalradiation</span><span class="p">())</span>
+<span class="go">255.367464</span>
+</pre></div>
+</div>
+</section>
+<section id="hourly-simulation">
+<span id="meteo-glob-fao56-hourly-simulation"></span><h3>hourly simulation<a class="headerlink" href="#hourly-simulation" title="Link to this heading">¶</a></h3>
+<p>The second example deals with an hourly simulation over multiple time steps.  We
+calculate the different radiation terms from 30 September to 1 October in N’Diaye
+(Senegal) and take (or try to derive as well as possible) all parameter and input
+values from example 19 of <span id="id5"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>.</p>
+<p>Example 19 of <span id="id6"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span> gives results for the intervals between 2 and 3
+o’clock and between 14 and 15 o’clock only.  We assume these clock times refer to
+UTC-1:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span> <span class="o">=</span> <span class="o">-</span><span class="mi">60</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utclongitude</span> <span class="o">=</span> <span class="o">-</span><span class="mi">15</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2001-09-30 02:00&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-10-01 15:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1h&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">latitude</span><span class="p">(</span><span class="mf">16.0</span> <span class="o">+</span> <span class="mf">0.13</span> <span class="o">/</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">longitude</span><span class="p">(</span><span class="o">-</span><span class="mf">16.25</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We reuse the Ångström coefficients from the first example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">angstromconstant</span><span class="p">(</span><span class="mf">0.25</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">angstromfactor</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parameters</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;%Y-</span><span class="si">%d</span><span class="s2">-%m %H:00&quot;</span>
+</pre></div>
+</div>
+<p>We set the sunshine duration constant at 80 % during the first daytime period and let
+it linearly increase from 82 % to 88 % in the (incomplete) second daytime period.  The
+exceedance of the potential sunshine duration during both sunsets does not affect the
+results negatively.  At the end of the simulation period, the given sunshine duration
+of 88 % corresponds to a ratio of global radiation and clear sky radiation of
+approximately 0.92, which is an intermediate result of <span id="id7"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="o">.</span><span class="n">sunshineduration</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="o">.</span><span class="n">sunshineduration</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="o">.</span><span class="n">sunshineduration</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">27</span><span class="p">:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.82</span><span class="p">,</span> <span class="mf">0.88</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Again, the calculated <a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.GlobalRadiation" title="hydpy.models.meteo.meteo_fluxes.GlobalRadiation"><code class="xref py py-class docutils literal notranslate"><span class="pre">GlobalRadiation</span></code></a> and
+<a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.ClearSkySolarRadiation" title="hydpy.models.meteo.meteo_fluxes.ClearSkySolarRadiation"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClearSkySolarRadiation</span></code></a> differ significantly less than 1 % from the
+results given by <span id="id8"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;meteo_glob_fao56_hourly&quot;</span><span class="p">,</span>
+<span class="gp">... </span>     <span class="n">axis1</span><span class="o">=</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">globalradiation</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">clearskysolarradiation</span><span class="p">))</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_260__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_260__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|             date | sunshineduration | earthsundistance | solardeclination | sunsethourangle | solartimeangle | possiblesunshineduration | extraterrestrialradiation | clearskysolarradiation | globalradiation |      node1 |      node2 |</span>
+<span class="go">--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2001-30-09 02:00 |              0.0 |         0.999717 |        -0.070087 |        1.550377 |      -2.460182 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-30-09 03:00 |              0.0 |         0.999717 |        -0.070087 |        1.550377 |      -2.198383 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-30-09 04:00 |              0.0 |         0.999717 |        -0.070087 |        1.550377 |      -1.936583 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-30-09 05:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |      -1.674784 |                   0.0248 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-30-09 06:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |      -1.412985 |                      1.0 |                178.407465 |             133.805599 |      115.964852 | 115.964852 | 133.805599 |</span>
+<span class="go">| 2001-30-09 07:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |      -1.151185 |                      1.0 |                505.051438 |             378.788578 |      328.283435 | 328.283435 | 378.788578 |</span>
+<span class="go">| 2001-30-09 08:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |      -0.889386 |                      1.0 |                795.455571 |             596.591678 |      517.046121 | 517.046121 | 596.591678 |</span>
+<span class="go">| 2001-30-09 09:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |      -0.627587 |                      1.0 |               1029.829301 |             772.371976 |      669.389046 | 669.389046 | 772.371976 |</span>
+<span class="go">| 2001-30-09 10:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |      -0.365787 |                      1.0 |               1192.200448 |             894.150336 |      774.930291 | 774.930291 | 894.150336 |</span>
+<span class="go">| 2001-30-09 11:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |      -0.103988 |                      1.0 |               1271.503685 |             953.627764 |      826.477395 | 826.477395 | 953.627764 |</span>
+<span class="go">| 2001-30-09 12:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |       0.157812 |                      1.0 |               1262.334627 |              946.75097 |      820.517508 | 820.517508 |  946.75097 |</span>
+<span class="go">| 2001-30-09 13:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |       0.419611 |                      1.0 |               1165.318132 |             873.988599 |      757.456786 | 757.456786 | 873.988599 |</span>
+<span class="go">| 2001-30-09 14:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |        0.68141 |                      1.0 |                987.065712 |             740.299284 |      641.592713 | 641.592713 | 740.299284 |</span>
+<span class="go">| 2001-30-09 15:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |        0.94321 |                      1.0 |                739.724976 |             554.793732 |      480.821234 | 480.821234 | 554.793732 |</span>
+<span class="go">| 2001-30-09 16:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |       1.205009 |                      1.0 |                440.151786 |             330.113839 |      286.098661 | 286.098661 | 330.113839 |</span>
+<span class="go">| 2001-30-09 17:00 |              0.8 |         0.999717 |        -0.070087 |        1.550377 |       1.466809 |                 0.819208 |                108.761559 |              81.571169 |       80.296089 |  80.296089 |  81.571169 |</span>
+<span class="go">| 2001-30-09 18:00 |              0.0 |         0.999717 |        -0.070087 |        1.550377 |       1.728608 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-30-09 19:00 |              0.0 |         0.999717 |        -0.070087 |        1.550377 |       1.990407 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-30-09 20:00 |              0.0 |         0.999717 |        -0.070087 |        1.550377 |       2.252207 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-30-09 21:00 |              0.0 |         0.999717 |        -0.070087 |        1.550377 |       2.514006 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-30-09 22:00 |              0.0 |         0.999717 |        -0.070087 |        1.550377 |       2.775806 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-30-09 23:00 |              0.0 |         0.999717 |        -0.070087 |        1.550377 |       3.037605 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-01-10 00:00 |              0.0 |         1.000283 |        -0.076994 |        1.548357 |      -2.982399 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-01-10 01:00 |              0.0 |         1.000283 |        -0.076994 |        1.548357 |        -2.7206 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-01-10 02:00 |              0.0 |         1.000283 |        -0.076994 |        1.548357 |        -2.4588 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-01-10 03:00 |              0.0 |         1.000283 |        -0.076994 |        1.548357 |      -2.197001 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-01-10 04:00 |              0.0 |         1.000283 |        -0.076994 |        1.548357 |      -1.935202 |                      0.0 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-01-10 05:00 |             0.82 |         1.000283 |        -0.076994 |        1.548357 |      -1.673402 |                 0.022362 |                       0.0 |                    0.0 |             0.0 |        0.0 |        0.0 |</span>
+<span class="go">| 2001-01-10 06:00 |         0.826667 |         1.000283 |        -0.076994 |        1.548357 |      -1.411603 |                      1.0 |                177.554837 |             133.166127 |      117.778042 | 117.778042 | 133.166127 |</span>
+<span class="go">| 2001-01-10 07:00 |         0.833333 |         1.000283 |        -0.076994 |        1.548357 |      -1.149804 |                      1.0 |                 504.08327 |             378.062452 |      336.055513 | 336.055513 | 378.062452 |</span>
+<span class="go">| 2001-01-10 08:00 |             0.84 |         1.000283 |        -0.076994 |        1.548357 |      -0.888004 |                      1.0 |                794.257553 |             595.693165 |      532.152561 | 532.152561 | 595.693165 |</span>
+<span class="go">| 2001-01-10 09:00 |         0.846667 |         1.000283 |        -0.076994 |        1.548357 |      -0.626205 |                      1.0 |               1028.302789 |             771.227092 |      692.390544 | 692.390544 | 771.227092 |</span>
+<span class="go">| 2001-01-10 10:00 |         0.853333 |         1.000283 |        -0.076994 |        1.548357 |      -0.364405 |                      1.0 |                1190.26918 |             892.701885 |      805.415479 | 805.415479 | 892.701885 |</span>
+<span class="go">| 2001-01-10 11:00 |             0.86 |         1.000283 |        -0.076994 |        1.548357 |      -0.102606 |                      1.0 |               1269.118986 |              951.83924 |      863.000911 | 863.000911 |  951.83924 |</span>
+<span class="go">| 2001-01-10 12:00 |         0.866667 |         1.000283 |        -0.076994 |        1.548357 |       0.159193 |                      1.0 |               1259.478722 |             944.609042 |      860.643794 | 860.643794 | 944.609042 |</span>
+<span class="go">| 2001-01-10 13:00 |         0.873333 |         1.000283 |        -0.076994 |        1.548357 |       0.420993 |                      1.0 |               1162.005357 |             871.504018 |      797.910345 | 797.910345 | 871.504018 |</span>
+<span class="go">| 2001-01-10 14:00 |             0.88 |         1.000283 |        -0.076994 |        1.548357 |       0.682792 |                      1.0 |                983.341538 |             737.506154 |      678.505661 | 678.505661 | 737.506154 |</span>
+</pre></div></div></div><a href="meteo_glob_fao56_hourly.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_glob_fao56.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_glob_fao56.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/meteo_glob_fao56.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.meteo_glob_fao56.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdHocModel</span></code></a>, <a class="reference internal" href="radiationinterfaces.html#hydpy.interfaces.radiationinterfaces.RadiationModel_V1" title="hydpy.interfaces.radiationinterfaces.RadiationModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadiationModel_V1</span></code></a></p>
+<p>HydPy-Meteo-Glob-FAO56 (global radiation estimation adopted from FAO56).</p>
+<dl class="simple">
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Calc_EarthSunDistance_V1" title="hydpy.models.meteo.meteo_model.Calc_EarthSunDistance_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_EarthSunDistance_V1</span></code></a> Calculate the relative inverse distance between the Earth and the sun according to <span id="id9"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Calc_SolarDeclination_V1" title="hydpy.models.meteo.meteo_model.Calc_SolarDeclination_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SolarDeclination_V1</span></code></a> Calculate the solar declination according to <span id="id10"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Calc_SunsetHourAngle_V1" title="hydpy.models.meteo.meteo_model.Calc_SunsetHourAngle_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SunsetHourAngle_V1</span></code></a> Calculate the sunset hour angle according to <span id="id11"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Calc_SolarTimeAngle_V1" title="hydpy.models.meteo.meteo_model.Calc_SolarTimeAngle_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SolarTimeAngle_V1</span></code></a> Calculate the solar time angle at the midpoint of the current period according to <span id="id12"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Calc_PossibleSunshineDuration_V1" title="hydpy.models.meteo.meteo_model.Calc_PossibleSunshineDuration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PossibleSunshineDuration_V1</span></code></a> Calculate the astronomically possible sunshine duration according to <span id="id13"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Calc_ExtraterrestrialRadiation_V1" title="hydpy.models.meteo.meteo_model.Calc_ExtraterrestrialRadiation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ExtraterrestrialRadiation_V1</span></code></a> Calculate the extraterrestrial radiation according to <span id="id14"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Calc_ClearSkySolarRadiation_V1" title="hydpy.models.meteo.meteo_model.Calc_ClearSkySolarRadiation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ClearSkySolarRadiation_V1</span></code></a> Calculate the clear sky solar radiation according to <span id="id15"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V1" title="hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_GlobalRadiation_V1</span></code></a> Calculate the global radiation according to <span id="id16"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span>.</p></li>
+</ul>
+</dd>
+<dt>The following interface methods are available to main models using the defined model as a submodel:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Process_Radiation_V1" title="hydpy.models.meteo.meteo_model.Process_Radiation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Process_Radiation_V1</span></code></a> Interface method for radiation-related submodels that executes all “run methods”.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Get_PossibleSunshineDuration_V1" title="hydpy.models.meteo.meteo_model.Get_PossibleSunshineDuration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_PossibleSunshineDuration_V1</span></code></a> Get the potential sunshine duration in h.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Get_SunshineDuration_V2" title="hydpy.models.meteo.meteo_model.Get_SunshineDuration_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_SunshineDuration_V2</span></code></a> Get the actual sunshine duration in h.</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Get_ClearSkySolarRadiation_V1" title="hydpy.models.meteo.meteo_model.Get_ClearSkySolarRadiation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_ClearSkySolarRadiation_V1</span></code></a> Get the clear sky solar radiation in W/m².</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_model.Get_GlobalRadiation_V1" title="hydpy.models.meteo.meteo_model.Get_GlobalRadiation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_GlobalRadiation_V1</span></code></a> Get the global radiation in W/m².</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.meteo_glob_fao56.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Meteo-Glob-FAO56',</span> <span class="pre">'global</span> <span class="pre">radiation</span> <span class="pre">estimation</span> <span class="pre">adopted</span> <span class="pre">from</span> <span class="pre">FAO56')</span></span><a class="headerlink" href="#hydpy.models.meteo_glob_fao56.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.meteo_glob_fao56.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.meteo_glob_fao56.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.meteo_glob_fao56.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(&lt;class</span> <span class="pre">'hydpy.models.meteo.meteo_model.Process_Radiation_V1'&gt;,)</span></span><a class="headerlink" href="#hydpy.models.meteo_glob_fao56.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_glob_fao56.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_glob_fao56.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.meteo_glob_fao56.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model meteo_glob_fao56.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_control.Latitude" title="hydpy.models.meteo.meteo_control.Latitude"><code class="xref py py-func docutils literal notranslate"><span class="pre">Latitude()</span></code></a> The latitude [decimal degrees].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_control.Longitude" title="hydpy.models.meteo.meteo_control.Longitude"><code class="xref py py-func docutils literal notranslate"><span class="pre">Longitude()</span></code></a> The longitude [decimal degrees].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_control.AngstromConstant" title="hydpy.models.meteo.meteo_control.AngstromConstant"><code class="xref py py-func docutils literal notranslate"><span class="pre">AngstromConstant()</span></code></a> The Ångström “a” coefficient for calculating global radiation [-].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_control.AngstromFactor" title="hydpy.models.meteo.meteo_control.AngstromFactor"><code class="xref py py-func docutils literal notranslate"><span class="pre">AngstromFactor()</span></code></a> The Ångström “b” coefficient for calculating global radiation [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_glob_fao56.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_glob_fao56.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.meteo_glob_fao56.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model meteo_glob_fao56.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_derived.DOY" title="hydpy.models.meteo.meteo_derived.DOY"><code class="xref py py-func docutils literal notranslate"><span class="pre">DOY()</span></code></a> References the “global” day of the year index array [-].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_derived.MOY" title="hydpy.models.meteo.meteo_derived.MOY"><code class="xref py py-func docutils literal notranslate"><span class="pre">MOY()</span></code></a> References the “global” month of the year index array [-].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_derived.Hours" title="hydpy.models.meteo.meteo_derived.Hours"><code class="xref py py-func docutils literal notranslate"><span class="pre">Hours()</span></code></a> The length of the actual simulation step size in hours [h].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_derived.Days" title="hydpy.models.meteo.meteo_derived.Days"><code class="xref py py-func docutils literal notranslate"><span class="pre">Days()</span></code></a> The length of the actual simulation step size in days [d].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_derived.SCT" title="hydpy.models.meteo.meteo_derived.SCT"><code class="xref py py-func docutils literal notranslate"><span class="pre">SCT()</span></code></a> References the “global” standard clock time array [h].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_derived.UTCLongitude" title="hydpy.models.meteo.meteo_derived.UTCLongitude"><code class="xref py py-func docutils literal notranslate"><span class="pre">UTCLongitude()</span></code></a> Longitude of the centre of the local time zone [°].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_derived.LatitudeRad" title="hydpy.models.meteo.meteo_derived.LatitudeRad"><code class="xref py py-func docutils literal notranslate"><span class="pre">LatitudeRad()</span></code></a> The latitude [rad].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_glob_fao56.FactorSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_glob_fao56.</span></span><span class="sig-name descname"><span class="pre">FactorSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.meteo_glob_fao56.FactorSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequences" title="hydpy.core.sequencetools.FactorSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></p>
+<p>Factor sequences of model meteo_glob_fao56.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_factors.EarthSunDistance" title="hydpy.models.meteo.meteo_factors.EarthSunDistance"><code class="xref py py-func docutils literal notranslate"><span class="pre">EarthSunDistance()</span></code></a> The relative inverse distance between the Earth and the sun [-].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_factors.SolarDeclination" title="hydpy.models.meteo.meteo_factors.SolarDeclination"><code class="xref py py-func docutils literal notranslate"><span class="pre">SolarDeclination()</span></code></a> Solar declination [-].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_factors.SunsetHourAngle" title="hydpy.models.meteo.meteo_factors.SunsetHourAngle"><code class="xref py py-func docutils literal notranslate"><span class="pre">SunsetHourAngle()</span></code></a> Sunset hour angle [rad].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_factors.SolarTimeAngle" title="hydpy.models.meteo.meteo_factors.SolarTimeAngle"><code class="xref py py-func docutils literal notranslate"><span class="pre">SolarTimeAngle()</span></code></a> Solar time angle [rad].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_factors.PossibleSunshineDuration" title="hydpy.models.meteo.meteo_factors.PossibleSunshineDuration"><code class="xref py py-func docutils literal notranslate"><span class="pre">PossibleSunshineDuration()</span></code></a> Astronomically possible sunshine duration [h].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_glob_fao56.FixedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_glob_fao56.</span></span><span class="sig-name descname"><span class="pre">FixedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.meteo_glob_fao56.FixedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Fixed parameters of model meteo_glob_fao56.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fixed.Pi" title="hydpy.models.meteo.meteo_fixed.Pi"><code class="xref py py-func docutils literal notranslate"><span class="pre">Pi()</span></code></a> π [-].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fixed.SolarConstant" title="hydpy.models.meteo.meteo_fixed.SolarConstant"><code class="xref py py-func docutils literal notranslate"><span class="pre">SolarConstant()</span></code></a> Solar constant [W/m²].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_glob_fao56.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_glob_fao56.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.meteo_glob_fao56.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model meteo_glob_fao56.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.ExtraterrestrialRadiation" title="hydpy.models.meteo.meteo_fluxes.ExtraterrestrialRadiation"><code class="xref py py-func docutils literal notranslate"><span class="pre">ExtraterrestrialRadiation()</span></code></a> Extraterrestial radiation [W/m²].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.ClearSkySolarRadiation" title="hydpy.models.meteo.meteo_fluxes.ClearSkySolarRadiation"><code class="xref py py-func docutils literal notranslate"><span class="pre">ClearSkySolarRadiation()</span></code></a> Clear sky solar radiation [W/m²].</p></li>
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_fluxes.GlobalRadiation" title="hydpy.models.meteo.meteo_fluxes.GlobalRadiation"><code class="xref py py-func docutils literal notranslate"><span class="pre">GlobalRadiation()</span></code></a> Global radiation [W/m²].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.meteo_glob_fao56.InputSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.meteo_glob_fao56.</span></span><span class="sig-name descname"><span class="pre">InputSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.meteo_glob_fao56.InputSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequences" title="hydpy.core.sequencetools.InputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequences</span></code></a></p>
+<p>Input sequences of model meteo_glob_fao56.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="meteo.html#hydpy.models.meteo.meteo_inputs.SunshineDuration" title="hydpy.models.meteo.meteo_inputs.SunshineDuration"><code class="xref py py-func docutils literal notranslate"><span class="pre">SunshineDuration()</span></code></a> Sunshine duration [h].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="meteo_glob_morsim.html" title="meteo_glob_morsim"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="meteo_precip_io.html" title="meteo_precip_io"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Meteo.html" >HydPy-Meteo</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">meteo_glob_fao56</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

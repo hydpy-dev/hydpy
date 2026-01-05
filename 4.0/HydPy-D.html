@@ -1,0 +1,268 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HydPy-D (DAM) &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dam" href="dam.html" />
+    <link rel="prev" title="evap_v001" href="evap_v001.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dam.html" title="dam"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="evap_v001.html" title="evap_v001"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" accesskey="U">Model Collection</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">HydPy-D (DAM)</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="hydpy-d-dam">
+<span id="hydpy-d"></span><h1>HydPy-D (DAM)<a class="headerlink" href="#hydpy-d-dam" title="Permalink to this headline">¶</a></h1>
+<p>The HydPy-D model family implements dams and similar natural and
+anthropogenic flow barriers.</p>
+<p>At the current state of development, all its application models rely
+on an adaptive explicit Runge-Kutta method. This integration method
+allows for performing simulations with adjustable numerical precision.
+However, it works best for continuous differential equations. Hence,
+most process equations of base model <a class="reference internal" href="dam.html#module-hydpy.models.dam" title="hydpy.models.dam"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam</span></code></a> are either continuous by nature
+or are “regularisable”, meaning one can smooth their discontinuities by
+a degree one considers useful.</p>
+<p>Each application model provides a different combination of control
+capabilities.. Many take “remote locations” into account, for example,
+to release additional water to the downstream river channel to increase
+water stages at remote gauges.</p>
+<p>All application models are tested and ready for use.  However, please note
+that some improvements in style and structure (e.g. changes in some
+variable names) might be necessary for the future. At the moment, it is a
+little hard to pick the correct application model.  We will have to find
+a way to prevent selecting the right model becoming too hard when the
+set of application models grows.  For the moment, the following overview
+over the first five application models might be helpful:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 76%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Does the dam model…</p></th>
+<th class="head"><p>v001</p></th>
+<th class="head"><p>v002</p></th>
+<th class="head"><p>v003</p></th>
+<th class="head"><p>v004</p></th>
+<th class="head"><p>v005</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>…calculate the demand at a remote location itself?</p></td>
+<td><p>yes</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>…lie in a river upstream of the remote location?</p></td>
+<td><p>yes</p></td>
+<td><p>yes</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-even"><td><p>…tell another model if it cannot supply the remote demand?</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>…discharge to another remote location for flood protection?</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>yes</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p>…ask for additional water supply from a remote location?</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>yes</p></td>
+</tr>
+<tr class="row-odd"><td><p>…allow for discharge from a remote location for flood protection?</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>no</p></td>
+<td><p>yes</p></td>
+</tr>
+</tbody>
+</table>
+<p>These five application models are independent implementations, developed
+for the forecasting system of the German federal state of Saxony and run
+by the <a class="reference external" href="https://www.umwelt.sachsen.de/umwelt/wasser/72.htm">Landeshochwasserzentrum (LHWZ)</a>.  More recently, we added the
+application models <a class="reference internal" href="dam_v006.html#module-hydpy.models.dam_v006" title="hydpy.models.dam_v006"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v006</span></code></a>, <a class="reference internal" href="dam_v007.html#module-hydpy.models.dam_v007" title="hydpy.models.dam_v007"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v007</span></code></a>, and <a class="reference internal" href="dam_v008.html#module-hydpy.models.dam_v008" title="hydpy.models.dam_v008"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v008</span></code></a> on behalf of
+the <a class="reference external" href="https://www.bafg.de/EN">German Federal Institute of Hydrology (BfG)</a>.  Conceptionally, these
+<em>HydPy</em> models correspond the <a class="reference external" href="http://www.larsim.de/das-modell/">LARSIM</a> models “SEEG” (controlled lake),
+“RUEC” (retention basin) and “TALS” (reservoir).</p>
+<p><a class="reference internal" href="dam_v001.html#module-hydpy.models.dam_v001" title="hydpy.models.dam_v001"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v001</span></code></a> has been the starting point for the development of the
+other application models. Hence its documentation is very comprehensive,
+and it seems to be a good starting point to become acquainted with any
+of the application models prepared so far.</p>
+<p>Base model:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dam.html">dam</a></li>
+</ul>
+</div>
+<p>Application model:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="dam_v001.html">dam_v001</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dam_v002.html">dam_v002</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dam_v003.html">dam_v003</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dam_v004.html">dam_v004</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dam_v005.html">dam_v005</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dam_v006.html">dam_v006 (controlled lake)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dam_v007.html">dam_v007 (retention basin)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dam_v008.html">dam_v008 (reservoir)</a></li>
+</ul>
+</div>
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modelcollection.html">Model Collection</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="HydPy-A.html">HydPy-A (RIMO/RIDO)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-C.html">HydPy-C (Conv)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-E.html">HydPy-E (Evap)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">HydPy-D (DAM)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="dam.html">dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v001.html">dam_v001</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v002.html">dam_v002</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v003.html">dam_v003</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v004.html">dam_v004</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v005.html">dam_v005</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v006.html">dam_v006 (controlled lake)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v007.html">dam_v007 (retention basin)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dam_v008.html">dam_v008 (reservoir)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-T.html">HydPy-T (TESTING)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="evap_v001.html"
+                        title="previous chapter">evap_v001</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dam.html"
+                        title="next chapter">dam</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/HydPy-D.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../5.0/HydPy-D.html">5.0</a></li>
+<li><a href="../4.0/HydPy-D.html">4.0</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dam.html" title="dam"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="evap_v001.html" title="evap_v001"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modelcollection.html" >Model Collection</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">HydPy-D (DAM)</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

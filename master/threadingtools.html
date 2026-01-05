@@ -1,0 +1,572 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>threadingtools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="timetools" href="timetools.html" />
+    <link rel="prev" title="testtools" href="testtools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="timetools.html" title="timetools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="testtools.html" title="testtools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">threadingtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">threadingtools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability"><code class="docutils literal notranslate"><span class="pre">Parallelisability</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.sequential_elements"><code class="docutils literal notranslate"><span class="pre">Parallelisability.sequential_elements</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.parallel_elements"><code class="docutils literal notranslate"><span class="pre">Parallelisability.parallel_elements</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.sequential_nodes"><code class="docutils literal notranslate"><span class="pre">Parallelisability.sequential_nodes</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.parallel_nodes"><code class="docutils literal notranslate"><span class="pre">Parallelisability.parallel_nodes</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.transition_nodes"><code class="docutils literal notranslate"><span class="pre">Parallelisability.transition_nodes</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.threadingtools.Queue"><code class="docutils literal notranslate"><span class="pre">Queue</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Queue.upstream2downstream"><code class="docutils literal notranslate"><span class="pre">Queue.upstream2downstream</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Queue.starters"><code class="docutils literal notranslate"><span class="pre">Queue.starters</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Queue.dependencies"><code class="docutils literal notranslate"><span class="pre">Queue.dependencies</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Queue.from_devices"><code class="docutils literal notranslate"><span class="pre">Queue.from_devices()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Queue.from_queue"><code class="docutils literal notranslate"><span class="pre">Queue.from_queue()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Queue.register"><code class="docutils literal notranslate"><span class="pre">Queue.register()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Queue.task_done"><code class="docutils literal notranslate"><span class="pre">Queue.task_done()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Queue.join"><code class="docutils literal notranslate"><span class="pre">Queue.join()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.threadingtools.Worker"><code class="docutils literal notranslate"><span class="pre">Worker</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.threadingtools.Worker.run"><code class="docutils literal notranslate"><span class="pre">Worker.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.threadingtools.check_threading"><code class="docutils literal notranslate"><span class="pre">check_threading()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="testtools.html"
+                          title="previous chapter">testtools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="timetools.html"
+                          title="next chapter">timetools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/threadingtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/threadingtools.html">6</a></li>
+<li><a href="../master/threadingtools.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="threadingtools">
+<span id="id1"></span><h1>threadingtools<a class="headerlink" href="#threadingtools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.core.threadingtools">This module implements HydPy’s fundamental features for performing multi-threaded
+simulation runs.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.threadingtools" title="hydpy.core.threadingtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">threadingtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability" title="hydpy.core.threadingtools.Parallelisability"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parallelisability</span></code></a> An analyser for the “parallelisability” of a network.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> A “Last In - First Out” queue for executing the parallelisable parts of a network more efficiently via multi-threading.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.threadingtools.Worker" title="hydpy.core.threadingtools.Worker"><code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code></a> A worker that interacts with the current <a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> instance and is responsible for processing nodes and elements in an individual thread.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.threadingtools.check_threading" title="hydpy.core.threadingtools.check_threading"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_threading()</span></code></a> Execute one “sequential”, then two “parallel”, and finally another “sequential” simulation run, and check if the time series calculated for all nodes are identical in all cases.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Parallelisability">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.threadingtools.</span></span><span class="sig-name descname"><span class="pre">Parallelisability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><span class="pre">Nodes</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><span class="pre">Elements</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/threadingtools.html#Parallelisability"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.threadingtools.Parallelisability" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>An analyser for the “parallelisability” of a network.</p>
+<p>We explain the meaning of the members of class <a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability" title="hydpy.core.threadingtools.Parallelisability"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parallelisability</span></code></a> based on the
+small example project created by function <a class="reference internal" href="testtools.html#hydpy.core.testtools.prepare_receiver_example" title="hydpy.core.testtools.prepare_receiver_example"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_receiver_example()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_receiver_example</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span> <span class="o">=</span> <span class="n">prepare_receiver_example</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You can initialise <a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability" title="hydpy.core.threadingtools.Parallelisability"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parallelisability</span></code></a> objects manually, but it usually is
+sufficient to access the object made available by property
+<a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.parallelisability" title="hydpy.core.hydpytools.HydPy.parallelisability"><code class="xref py py-const docutils literal notranslate"><span class="pre">parallelisability</span></code></a> of class <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">parallelisability</span>
+</pre></div>
+</div>
+<p>The members <a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.parallel_elements" title="hydpy.core.threadingtools.Parallelisability.parallel_elements"><code class="xref py py-attr docutils literal notranslate"><span class="pre">parallel_elements</span></code></a> and
+<a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.sequential_elements" title="hydpy.core.threadingtools.Parallelisability.sequential_elements"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sequential_elements</span></code></a> divide those elements that can be simulated
+in parallel and those that must be simulated sequentially:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">parallel_elements</span>
+<span class="go">Elements(&quot;l1&quot;, &quot;l2&quot;, &quot;l3&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sequential_elements</span>
+<span class="go">Elements(&quot;d&quot;, &quot;s12&quot;, &quot;s23&quot;, &quot;s34&quot;)</span>
+</pre></div>
+</div>
+<p>The members <a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.parallel_nodes" title="hydpy.core.threadingtools.Parallelisability.parallel_nodes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">parallel_nodes</span></code></a> and
+<a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.sequential_nodes" title="hydpy.core.threadingtools.Parallelisability.sequential_nodes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sequential_nodes</span></code></a> list all nodes connected to at least one
+element that is an item of <a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.parallel_elements" title="hydpy.core.threadingtools.Parallelisability.parallel_elements"><code class="xref py py-attr docutils literal notranslate"><span class="pre">parallel_elements</span></code></a> or
+<a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.sequential_elements" title="hydpy.core.threadingtools.Parallelisability.sequential_elements"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sequential_elements</span></code></a>, respectively:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">parallel_nodes</span>
+<span class="go">Nodes(&quot;n1a&quot;, &quot;n2&quot;, &quot;n3&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sequential_nodes</span>
+<span class="go">Nodes(&quot;n1a&quot;, &quot;n1b&quot;, &quot;n2&quot;, &quot;n3&quot;, &quot;n4&quot;)</span>
+</pre></div>
+</div>
+<p>Nodes that mark a transition between the “parallelisable” and “non-parallelisable”
+parts of a network, and are thus listed both in <a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.parallel_nodes" title="hydpy.core.threadingtools.Parallelisability.parallel_nodes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">parallel_nodes</span></code></a>
+and <a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.sequential_nodes" title="hydpy.core.threadingtools.Parallelisability.sequential_nodes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sequential_nodes</span></code></a>, need special treatment during simulation
+runs and are hence separately available via the member
+<a class="reference internal" href="#hydpy.core.threadingtools.Parallelisability.transition_nodes" title="hydpy.core.threadingtools.Parallelisability.transition_nodes"><code class="xref py py-attr docutils literal notranslate"><span class="pre">transition_nodes</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">transition_nodes</span>
+<span class="go">Nodes(&quot;n1a&quot;, &quot;n2&quot;, &quot;n3&quot;)</span>
+</pre></div>
+</div>
+<p>The reason why the analysed network is not completely parallelisable is the usage
+of the receiver node mechanism.  The <a class="reference internal" href="dam_v001.html#module-hydpy.models.dam_v001" title="hydpy.models.dam_v001"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v001</span></code></a> model handled by element <cite>d</cite> tries
+to prevent low flow situations at a downstream location and therefore gets
+information from this place via the receiver node <cite>n2</cite>.  Hence, calculating the
+latest water release of <cite>d</cite> requires up-to-date discharge information from <cite>n2</cite>,
+which prevents applying the “temporal chunking” strategy, on which HydPy’s
+multi-threading approach is grounded:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">d</span>
+<span class="go">Element(&quot;d&quot;,</span>
+<span class="go">        inlets=&quot;n1a&quot;,</span>
+<span class="go">        outlets=&quot;n1b&quot;,</span>
+<span class="go">        receivers=&quot;n2&quot;)</span>
+</pre></div>
+</div>
+<p>However, if we tell node <cite>n2</cite> not to pass freshly simulated but already available
+discharge values to <cite>d</cite> by changing its <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node.deploymode" title="hydpy.core.devicetools.Node.deploymode"><code class="xref py py-const docutils literal notranslate"><span class="pre">deploymode</span></code></a>, the need for <cite>d</cite> to wait
+for other models to contribute to the total discharge at <cite>n2</cite> disappears, and the
+complete network becomes parallelisable:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">deploymode</span>
+<span class="go">&#39;newsim&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;oldsim&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">parallelisability</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">parallel_elements</span>
+<span class="go">Elements(&quot;d&quot;, &quot;l1&quot;, &quot;l2&quot;, &quot;l3&quot;, &quot;s12&quot;, &quot;s23&quot;, &quot;s34&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sequential_elements</span>
+<span class="go">Elements()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">parallel_nodes</span>
+<span class="go">Nodes(&quot;n1a&quot;, &quot;n1b&quot;, &quot;n2&quot;, &quot;n3&quot;, &quot;n4&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">sequential_nodes</span>
+<span class="go">Nodes()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">transition_nodes</span>
+<span class="go">Nodes()</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Parallelisability.sequential_elements">
+<span class="sig-name descname"><span class="pre">sequential_elements</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><span class="pre">Elements</span></a></span><a class="headerlink" href="#hydpy.core.threadingtools.Parallelisability.sequential_elements" title="Link to this definition">¶</a></dt>
+<dd><p>All non-parallelisable elements.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Parallelisability.parallel_elements">
+<span class="sig-name descname"><span class="pre">parallel_elements</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><span class="pre">Elements</span></a></span><a class="headerlink" href="#hydpy.core.threadingtools.Parallelisability.parallel_elements" title="Link to this definition">¶</a></dt>
+<dd><p>All parallelisable elements.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Parallelisability.sequential_nodes">
+<span class="sig-name descname"><span class="pre">sequential_nodes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><span class="pre">Nodes</span></a></span><a class="headerlink" href="#hydpy.core.threadingtools.Parallelisability.sequential_nodes" title="Link to this definition">¶</a></dt>
+<dd><p>All nodes with a connection to at least one non-parallelisable element.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Parallelisability.parallel_nodes">
+<span class="sig-name descname"><span class="pre">parallel_nodes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><span class="pre">Nodes</span></a></span><a class="headerlink" href="#hydpy.core.threadingtools.Parallelisability.parallel_nodes" title="Link to this definition">¶</a></dt>
+<dd><p>All nodes with a connection to at least one parallelisable element.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Parallelisability.transition_nodes">
+<span class="sig-name descname"><span class="pre">transition_nodes</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><span class="pre">Nodes</span></a></span><a class="headerlink" href="#hydpy.core.threadingtools.Parallelisability.transition_nodes" title="Link to this definition">¶</a></dt>
+<dd><p>All nodes with a connection to at least one parallelisable and one 
+non-parallelisable element.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Queue">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.threadingtools.</span></span><span class="sig-name descname"><span class="pre">Queue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">starters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">devicetools.NodeOrElement</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dependencies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">devicetools.NodeOrElement</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upstream2downstream</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">devicetools.NodeOrElement</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">devicetools.NodeOrElement</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/threadingtools.html#Queue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.threadingtools.Queue" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/queue.html#queue.LifoQueue" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">LifoQueue</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code>]</p>
+<p>A “Last In - First Out” queue for executing the parallelisable parts of a
+network more efficiently via multi-threading.</p>
+<p>For most users, <a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> is more of an implementation detail that is never directly
+used.  However, if you intend to quench the last bit of performance out of HydPy,
+you can create custom <a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> instances that fit better to your network and model
+configurations at hand, and pass them to method <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.simulate_multithreaded" title="hydpy.core.hydpytools.HydPy.simulate_multithreaded"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulate_multithreaded()</span></code></a>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Queue.upstream2downstream">
+<span class="sig-name descname"><span class="pre">upstream2downstream</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Final</span><span class="p"><span class="pre">[</span></span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">devicetools.NodeOrElement</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">devicetools.NodeOrElement</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.core.threadingtools.Queue.upstream2downstream" title="Link to this definition">¶</a></dt>
+<dd><p>A mapping that lists for all nodes and elements, which neighbouring elements or 
+nodes must wait for their processing completion.   In other words, each key 
+(node or element) represents one of the dependencies of the corresponding list’s 
+items (elements or nodes).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Queue.starters">
+<span class="sig-name descname"><span class="pre">starters</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Final</span><span class="p"><span class="pre">[</span></span><span class="pre">Sequence</span><span class="p"><span class="pre">[</span></span><span class="pre">devicetools.NodeOrElement</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.core.threadingtools.Queue.starters" title="Link to this definition">¶</a></dt>
+<dd><p>All nodes and elements that do not have any dependencies.  These can be 
+processed right at the start of a multi-threaded simulation.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Queue.dependencies">
+<span class="sig-name descname"><span class="pre">dependencies</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Final</span><span class="p"><span class="pre">[</span></span><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">devicetools.NodeOrElement</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.core.threadingtools.Queue.dependencies" title="Link to this definition">¶</a></dt>
+<dd><p>The number of dependencies of all nodes and elements.  An element with three
+dependencies is connected to three nodes that must be processed until itself has
+all information required simulation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Queue.from_devices">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_devices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><span class="pre">Nodes</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><span class="pre">Elements</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.14)"><span class="pre">Self</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/threadingtools.html#Queue.from_devices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.threadingtools.Queue.from_devices" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new <a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> instance and determine its members from the given
+(parallelisable) devices.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Queue.from_queue">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_queue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.14)"><span class="pre">Self</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.14)"><span class="pre">Self</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/threadingtools.html#Queue.from_queue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.threadingtools.Queue.from_queue" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new <a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> instance and take its members from the given <a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a>
+instance.</p>
+<p>This copy-like mechanism makes the information contained by old <a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a>
+instances already used in a multi-threaded simulation run reusable.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Queue.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/threadingtools.html#Queue.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.threadingtools.Queue.register" title="Link to this definition">¶</a></dt>
+<dd><p>Put all <a class="reference internal" href="#hydpy.core.threadingtools.Queue.starters" title="hydpy.core.threadingtools.Queue.starters"><code class="xref py py-attr docutils literal notranslate"><span class="pre">starters</span></code></a> into the queue.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Queue.task_done">
+<span class="sig-name descname"><span class="pre">task_done</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">upstream</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">devicetools.NodeOrElement</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#BaseException" title="(in Python v3.14)"><span class="pre">BaseException</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/threadingtools.html#Queue.task_done"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.threadingtools.Queue.task_done" title="Link to this definition">¶</a></dt>
+<dd><p>Take the given readily processed node or element, determine which elements
+or nodes become ready for processing, and put them into the queue.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Queue.join">
+<span class="sig-name descname"><span class="pre">join</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/threadingtools.html#Queue.join"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.threadingtools.Queue.join" title="Link to this definition">¶</a></dt>
+<dd><p>Block the queue until all nodes and elements have been processed.</p>
+<p>If something is wrong, method <a class="reference internal" href="#hydpy.core.threadingtools.Queue.join" title="hydpy.core.threadingtools.Queue.join"><code class="xref py py-func docutils literal notranslate"><span class="pre">join()</span></code></a> tries (with the help of method
+<a class="reference internal" href="#hydpy.core.threadingtools.Worker.run" title="hydpy.core.threadingtools.Worker.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">run()</span></code></a> of class <a class="reference internal" href="#hydpy.core.threadingtools.Worker" title="hydpy.core.threadingtools.Worker"><code class="xref py py-class docutils literal notranslate"><span class="pre">Worker</span></code></a>) to report the first error that occurred in one
+of the threads:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">simulate_period</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">hp</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">&#39;NoneType&#39; object is not callable</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Worker">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.threadingtools.</span></span><span class="sig-name descname"><span class="pre">Worker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">queue_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><span class="pre">Queue</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><span class="pre">Elements</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/threadingtools.html#Worker"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.threadingtools.Worker" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/threading.html#threading.Thread" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Thread</span></code></a></p>
+<p>A worker that interacts with the current <a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> instance and is responsible
+for processing nodes and elements in an individual thread.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.Worker.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/threadingtools.html#Worker.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.threadingtools.Worker.run" title="Link to this definition">¶</a></dt>
+<dd><p>Query the next device from the current <a class="reference internal" href="#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> instance, update the relevant
+time series data, and perform a simulation if the device is an element.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.core.threadingtools.check_threading">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.threadingtools.</span></span><span class="sig-name descname"><span class="pre">check_threading</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><span class="pre">HydPy</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sequence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence" title="hydpy.core.sequencetools.IOSequence"><span class="pre">IOSequence</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">pause</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="timetools.html#hydpy.core.timetools.Date" title="hydpy.core.timetools.Date"><span class="pre">Date</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/threadingtools.html#check_threading"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.threadingtools.check_threading" title="Link to this definition">¶</a></dt>
+<dd><p>Execute one “sequential”, then two “parallel”, and finally another “sequential”
+simulation run, and check if the time series calculated for all nodes are identical
+in all cases.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.threadingtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_threading</span>
+</pre></div>
+</div>
+<p>Tests based on the HydPy-L-Land example project (with the primary goal of checking
+if all deploy modes are properly supported):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">lahn_leun</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kalk</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">lahn_kalk</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">54.019337, 37.257561, 31.865308, 28.359542</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">,</span> <span class="s2">&quot;1996-01-03&quot;</span><span class="p">)</span>
+<span class="go">54.019337, 37.257561, 31.865308, 28.359542</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;oldsim&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">-=</span> <span class="mf">10.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">44.019337, 27.257561, 21.865308, 18.359542</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;obs&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">11.672862, 10.100089, 8.984317, 8.202706</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;obs&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">11.672862, 10.100089, 8.984317, 8.202706</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">nan</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">checkseries</span><span class="p">(</span><span class="kc">False</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">leun</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">series</span><span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">nan</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">nan</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">11.672862, nan, 8.984317, nan</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;obs_newsim&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">11.672862, 37.257561, 8.984317, 28.359542</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;obs_oldsim&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">32.3697</span><span class="p">,</span> <span class="mf">17.210443</span><span class="p">,</span> <span class="mf">12.930066</span><span class="p">,</span> <span class="mf">10.20133</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">11.672862, 27.310532, 8.984317, 18.404036</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;newsim&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">leun</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">32.3697</span><span class="p">,</span> <span class="mf">17.210443</span><span class="p">,</span> <span class="mf">12.930066</span><span class="p">,</span> <span class="mf">10.20133</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">54.019337, 37.257561, 31.865308, 28.359542</span>
+</pre></div>
+</div>
+<p>Tests based on the interpolation example project (with the primary goal of checking
+if the input node mechanism is properly supported within the parallelisable part
+of a network):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_interpolation_example</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span> <span class="o">=</span> <span class="n">prepare_interpolation_example</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">q12</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">0.853716, 0.864633, 1.037645</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">in1</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;oldsim&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">in1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">in1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">series</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">in1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">q12</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">0.853716, 0.864633, 1.037645</span>
+</pre></div>
+</div>
+<p>Tests based on the receiver example project (with the primary goal of checking if
+all deploy modes are properly supported around the transitions between the
+parallelisable and the non-parallelisable parts of a network):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_receiver_example</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span> <span class="o">=</span> <span class="n">prepare_receiver_example</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n4</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">receivers</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
+<span class="go">2.324939, 2.0521, 1.834626, 1.822902, 1.853202, 1.876488</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;oldsim&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n4</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">d</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">receivers</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">series</span><span class="p">)</span>
+<span class="go">2.324939, 2.0521, 1.834626, 1.822902, 1.853202, 1.876488</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;obs&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n4</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;obs_oldsim&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">nan</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n4</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">deploymode</span> <span class="o">=</span> <span class="s2">&quot;obs_newsim&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">nan</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">n4</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">4.649878, 4.1042, 3.669253, 3.480431, 3.363932, 3.263707</span>
+</pre></div>
+</div>
+<p>Tests based on the collective example project (with the primary goals of checking
+if collective elements and the output node mechanism are properly supported):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">prepare_collective_example</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span> <span class="o">=</span> <span class="n">prepare_collective_example</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">check_threading</span><span class="p">(</span><span class="n">hp</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">c3_out</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">)</span>
+<span class="go">0.409196, 0.386017, 0.337494, 0.279784, 0.203433, 0.071322</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="timetools.html" title="timetools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="testtools.html" title="testtools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">threadingtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,397 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Quick Start &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User Guide" href="user_guide.html" />
+    <link rel="prev" title="Example Projects" href="example_projects.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user_guide.html" title="User Guide"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="example_projects.html" title="Example Projects"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Quick Start</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#starting-python">Starting Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-python">Using Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-hydpy">Run HydPy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="example_projects.html"
+                          title="previous chapter">Example Projects</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="user_guide.html"
+                          title="next chapter">User Guide</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/quickstart.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/quickstart.html">6</a></li>
+<li><a href="../5.0/quickstart.html">5.0</a></li>
+<li><a href="../4.0/quickstart.html">4.0</a></li>
+<li><a href="../master/quickstart.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="quick-start">
+<span id="quickstart"></span><h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading">¶</a></h1>
+<p>This documentation includes countless <a class="reference external" href="https://docs.python.org/library/doctest.html">doctest</a>  examples, which you can easily repeat
+via copy-paste to gain insights into all the details of HydPy.  At first, it may be
+overwhelming, so you need to get adjusted and find the relevant starting points that
+match your skills and aims.  If you want to take advantage of HydPy’s full flexibility
+by using it as a Python library and are already familiar with Python, go to the
+<a class="reference internal" href="simulation.html#simulation-python"><span class="std std-ref">Simulation &gt; Python</span></a> subsection.  Without Python experience,
+you should review the following paragraphs beforehand.  If you are, in contrast,
+primarily interested in executing standard workflows, for example, in the context of
+flood forecasting, you might prefer starting with the <a class="reference internal" href="simulation.html#simulation-xml"><span class="std std-ref">Simulation &gt; XML</span></a> subsection.</p>
+<section id="starting-python">
+<h2>Starting Python<a class="headerlink" href="#starting-python" title="Link to this heading">¶</a></h2>
+<p>The best first experience comes with using HydPy interactively.  Therefore, one first
+must start a Python shell.  The most basic choice is the <a class="reference external" href="https://docs.python.org/tutorial/interpreter.html">Python Interpreter</a>.  With a
+default installation on Windows, you can type <cite>py</cite> into a console like the command
+prompt (cmd), which tells the <a class="reference external" href="https://docs.python.org/3/using/windows.html#launcher">Python Launcher</a> to search for the interpreter of the
+currently preferable Python version installed on your computer (usually, the most
+recent one) and start it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">C</span><span class="p">:</span>\<span class="o">&gt;</span><span class="n">py</span>
+<span class="n">Python</span> <span class="mf">3.13.1</span>
+<span class="n">Type</span> <span class="s2">&quot;help&quot;</span><span class="p">,</span> <span class="s2">&quot;copyright&quot;</span><span class="p">,</span> <span class="s2">&quot;credits&quot;</span> <span class="ow">or</span> <span class="s2">&quot;license&quot;</span> <span class="k">for</span> <span class="n">more</span> <span class="n">information</span><span class="o">.</span>
+<span class="o">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>To start learning Python (and HydPy), a good choice is Python’s Integrated Development
+and Learning Environment <a class="reference external" href="https://docs.python.org/3/library/idle.html">IDLE</a>, which also comes with regular Python distributions.
+Open its shell via the Windows menu or by writing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">py</span> <span class="o">-</span><span class="n">m</span> <span class="n">idlelib</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/IDLE-shell.png"><img alt="_images/IDLE-shell.png" src="_images/IDLE-shell.png" width="700" />
+</a>
+<p>The two mentioned options require a regular Python installation on your computer. The
+following command also works with HydPy installed independently from a regular Python
+distribution via its Windows installer:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hyd</span><span class="o">.</span><span class="n">py</span> <span class="n">start_shell</span>
+<span class="o">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>You may want to save modified or freshly created examples in Python scripts.  For a
+start, <a class="reference external" href="https://docs.python.org/3/library/idle.html">IDLE</a> does not only provide the (initially opened) shell window but can also
+open multiple editor windows (click on File <span class="raw-html">&rarr;</span> New File):</p>
+<a class="reference internal image-reference" href="_images/IDLE-editor.png"><img alt="_images/IDLE-editor.png" src="_images/IDLE-editor.png" width="700" />
+</a>
+<p>When seriously starting to work with Python, consider using more capable shells like
+<a class="reference external" href="https://ipython.org/">IPython</a> or complex Integrated Development Environments like <a class="reference external" href="https://www.jetbrains.com/pycharm">Pycharm</a>.</p>
+</section>
+<section id="using-python">
+<h2>Using Python<a class="headerlink" href="#using-python" title="Link to this heading">¶</a></h2>
+<p>Understanding the functioning of HydPy requires only basic Python knowledge, to which
+this subsection offers a brief introduction.</p>
+<p>In the shell, the <cite>&gt;&gt;&gt;</cite> symbol tells you that Python is expecting your first action.
+First, do some math and see if you get the correct result:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+<p>Assignments work with <cite>=</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span>
+<span class="go">4</span>
+</pre></div>
+</div>
+<p>Checks for equality and identity rely on <cite>==</cite> and <cite>is</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="mf">4.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">==</span> <span class="n">y</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="ow">is</span> <span class="n">y</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p><cite>!=</cite> and <cite>is not</cite> are their counterparts:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">!=</span> <span class="n">y</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">y</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Many functions like <a class="reference external" href="https://docs.python.org/3/library/functions.html#print" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">print()</span></code></a> accept both positional and keyword arguments:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>  <span class="c1"># three positional arguments</span>
+<span class="go">1 &lt; 2</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; is True&quot;</span><span class="p">)</span>  <span class="c1"># three positional and one keyword argument</span>
+<span class="go">1 &lt; 2 is True</span>
+</pre></div>
+</div>
+<p>Python uses colons and indentations instead of brackets to define control flow
+structures, such as if-else clauses:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;yes&quot;</span><span class="p">)</span>
+<span class="gp">... </span><span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;no&quot;</span><span class="p">)</span>
+<span class="go">yes</span>
+</pre></div>
+</div>
+<p>The most common way of defining loops is using <cite>for … in …</cite> expressions:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+<span class="gp">... </span>    <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="go">4</span>
+<span class="go">36</span>
+<span class="go">16</span>
+</pre></div>
+</div>
+<p>Write <cite>import …</cite> to import another library completely or <cite>import … from …</cite> to
+load one or more of its members:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">hydpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">HydPy</span><span class="p">,</span> <span class="n">pub</span>
+</pre></div>
+</div>
+<p><cite>.</cite> serves for member access:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span> <span class="ow">is</span> <span class="n">pub</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>In <cite>assert …</cite>, <cite>assert</cite> checks if <cite>…</cite> is true:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span> <span class="o">==</span> <span class="mi">60</span>  <span class="c1"># right, so nothing happens</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span> <span class="o">==</span> <span class="o">-</span><span class="mi">60</span>  <span class="c1"># wrong, hence an AssertionError</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AssertionError</span>
+</pre></div>
+</div>
+<p>The <cite>with</cite> statement usually starts something and undoes it after finishing the
+following indented block:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span><span class="p">(</span><span class="o">-</span><span class="mi">60</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span> <span class="o">==</span> <span class="o">-</span><span class="mi">60</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">utcoffset</span> <span class="o">==</span> <span class="mi">60</span>
+</pre></div>
+</div>
+<p>In Python, everything is an object, and every object allows you to inspect it to find
+out about its features:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span>  <span class="c1"># What type has `obj`?</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dir</span><span class="p">(</span><span class="n">obj</span><span class="p">)[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>  <span class="c1"># What are it&#39;s members?</span>
+<span class="go">[&#39;title&#39;, &#39;translate&#39;, &#39;upper&#39;, &#39;zfill&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obj</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>  <span class="c1"># What does its method `upper` do?</span>
+<span class="go">&#39;TEST&#39;</span>
+</pre></div>
+</div>
+<p>Assigning an object to a variable does not involve copying it.  One merely gets another
+reference (or pointer) to the same object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">list1</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">list2</span> <span class="o">=</span> <span class="n">list1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">list1</span> <span class="ow">is</span> <span class="n">list2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">list2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">list1</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The same holds for passing objects to functions:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">append_value</span><span class="p">(</span><span class="n">list_</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">list_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">append_value</span><span class="p">(</span><span class="n">list2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">list1</span> <span class="o">==</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Python provides functions for making flat and deep copies of objects.  “Deep
+copying” means that an object <strong>and</strong> its subobjects are copied.  This effort is
+favourable in some situations but results in additional memory usage and
+computation time.  HydPy’s Cython-based extension classes, and thus HydPy in
+general, do <strong>not</strong> support deep copying.</p>
+</div>
+</section>
+<section id="run-hydpy">
+<span id="id1"></span><h2>Run HydPy<a class="headerlink" href="#run-hydpy" title="Link to this heading">¶</a></h2>
+<p>After this first dive into Python’s syntax, we introduce you to HydPy.  For an easy
+start, please download and unzip the <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> example project into a
+working directory of your choice.</p>
+<p>Now open, for example, the <cite>IDLE</cite> shell as explained above and activate the selected
+directory.  Let us, therefore, first define the working directory’s path as a string.
+We take “C:/temp” as an example, but you can specify any other directory (on Windows,
+you could also write r”C:\temp” for “C:\\temp”):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">workingdir</span> <span class="o">=</span> <span class="s2">&quot;C:/temp&quot;</span>
+</pre></div>
+</div>
+<p>Now, import Python’s <a class="reference external" href="https://docs.python.org/3/library/os.html#module-os" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">os</span></code></a> module and use its <cite>chdir</cite> function to activate the
+preferred working directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">workingdir</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The now-activated directory should contain a subdirectory named <cite>HydPy-H-Lahn</cite>
+containing, for example, the sub-subdirectory <cite>network</cite>.  The following code line
+checks this:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workingdir</span><span class="p">,</span> <span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;network&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>After these preparatory steps, we finally get started with HydPy.  HydPy is a so-called
+“site package”, and, in Python, site package names are by convention lowercase:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">hydpy</span>
+</pre></div>
+</div>
+<p>The entry point to each project is the central <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> class.  Initialise it by passing
+the project’s name to it:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">HydPy</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Equally prominent throughout this documentation is the <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> module, which allows for
+the specification of general information.  Here, we use it to define the first date,
+the last date, and the time step size of the considered simulation period in the
+simplest possible manner:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;1996-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1997-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<p>Now, there are numerous ways to proceed.  We choose the most straightforward one
+(without deviating from a single default) and call method  <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.prepare_everything" title="hydpy.core.hydpytools.HydPy.prepare_everything"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_everything()</span></code></a>
+of class <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a>, which “prepares everything” so far as to leave the <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> instance
+in a simulation-ready state:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">prepare_everything</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The catchment outlet of the <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> example project is named <cite>lahn_kalk</cite>.
+The following example demonstrates how to query the discharge values simulated for this
+outlet:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">lahn_kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">[:</span><span class="mi">6</span><span class="p">])</span>
+<span class="go">nan, nan, nan, nan, nan, nan</span>
+</pre></div>
+</div>
+<p><code class="xref py py-const docutils literal notranslate"><span class="pre">nan</span></code> means “not a number”, indicating missing values.  In this example, the
+<code class="xref py py-const docutils literal notranslate"><span class="pre">nan</span></code> values tell us we have not performed a simulation run.  We catch up on this
+by calling method <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.simulate" title="hydpy.core.hydpytools.HydPy.simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulate()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Now, we can inspect the freshly calculated discharge values:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">lahn_kalk</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">[:</span><span class="mi">6</span><span class="p">])</span>
+<span class="go">54.019337, 37.257561, 31.865308, 28.359542, 26.191386, 25.047099</span>
+</pre></div>
+</div>
+<p>You could now write the results to file, print them into a figure, evaluate them
+statistically, or change some configurations and repeat the simulation if you don’t
+like them.  As a last example, we compare the  complete simulated discharge time series
+with the available measurements of gauge Kalkofen by plotting them:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">lahn_kalk</span><span class="o">.</span><span class="n">plot_allseries</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/Kalkofen_Qsim_vs_Qobs.png" src="_images/Kalkofen_Qsim_vs_Qobs.png" />
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>If the desired time series plot does not appear automatically (which depends on
+your configuration of the <a class="reference external" href="https://matplotlib.org/stable/index.html#module-matplotlib" title="(in Matplotlib v3.10.8)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code></a> library), type the following commands:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pyplot</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>As you can see, a few lines of code are often enough to let HydPy execute complex tasks
+in a standard manner.  However, HydPy offers fine-grained control, allowing you to
+define specific workflows to solve individual problems.  Take your time to understand
+these first examples fully and then follow the more detailed explanations in the
+<a class="reference internal" href="simulation.html#simulation-python"><span class="std std-ref">Simulation &gt; Python</span></a> and <a class="reference internal" href="simulation.html#simulation-xml"><span class="std std-ref">Simulation &gt; XML</span></a> sections.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="user_guide.html" title="User Guide"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="example_projects.html" title="Example Projects"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Quick Start</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

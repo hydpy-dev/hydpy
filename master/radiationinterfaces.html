@@ -1,0 +1,316 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>radiationinterfaces &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="rconcinterfaces" href="rconcinterfaces.html" />
+    <link rel="prev" title="precipinterfaces" href="precipinterfaces.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rconcinterfaces.html" title="rconcinterfaces"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="precipinterfaces.html" title="precipinterfaces"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" accesskey="U">Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">radiationinterfaces</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aetinterfaces.html">aetinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exchangeinterfaces.html">exchangeinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dischargeinterfaces.html">dischargeinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="petinterfaces.html">petinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="precipinterfaces.html">precipinterfaces</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">radiationinterfaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V1</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.typeid"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V1.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.process_radiation"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V1.process_radiation()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_possiblesunshineduration"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V1.get_possiblesunshineduration()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_sunshineduration"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V1.get_sunshineduration()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_clearskysolarradiation"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V1.get_clearskysolarradiation()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_globalradiation"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V1.get_globalradiation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V2"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V2</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V2.typeid"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V2.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V2.get_globalradiation"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V2.get_globalradiation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V3"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V3</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V3.typeid"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V3.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V3.get_clearskysolarradiation"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V3.get_clearskysolarradiation()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V3.get_globalradiation"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V3.get_globalradiation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V4</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4.typeid"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V4.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4.get_possiblesunshineduration"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V4.get_possiblesunshineduration()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4.get_sunshineduration"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V4.get_sunshineduration()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4.get_globalradiation"><code class="docutils literal notranslate"><span class="pre">RadiationModel_V4.get_globalradiation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="rconcinterfaces.html">rconcinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="routinginterfaces.html">routinginterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="soilinterfaces.html">soilinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="stateinterfaces.html">stateinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tempinterfaces.html">tempinterfaces</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="precipinterfaces.html"
+                          title="previous chapter">precipinterfaces</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="rconcinterfaces.html"
+                          title="next chapter">rconcinterfaces</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/radiationinterfaces.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/radiationinterfaces.html">6</a></li>
+<li><a href="../master/radiationinterfaces.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="radiationinterfaces">
+<span id="id1"></span><h1>radiationinterfaces<a class="headerlink" href="#radiationinterfaces" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.interfaces.radiationinterfaces">This module defines submodel interfaces for providing radiation-related data.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.interfaces.radiationinterfaces" title="hydpy.interfaces.radiationinterfaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">radiationinterfaces</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1" title="hydpy.interfaces.radiationinterfaces.RadiationModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadiationModel_V1</span></code></a> Simple interface for determining all data in one step.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V2" title="hydpy.interfaces.radiationinterfaces.RadiationModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadiationModel_V2</span></code></a> Pure getter interface for global radiation.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V3" title="hydpy.interfaces.radiationinterfaces.RadiationModel_V3"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadiationModel_V3</span></code></a> Pure getter interface for clear-sky solar radiation and global radiation.</p></li>
+<li><p><a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4" title="hydpy.interfaces.radiationinterfaces.RadiationModel_V4"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadiationModel_V4</span></code></a> Pure getter interface for possible sunshine duration, actual sunshine duration, and global radiation.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.radiationinterfaces.</span></span><span class="sig-name descname"><span class="pre">RadiationModel_V1</span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SharableSubmodelInterface" title="hydpy.core.modeltools.SharableSubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SharableSubmodelInterface</span></code></a></p>
+<p>Simple interface for determining all data in one step.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V1.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1" title="hydpy.interfaces.radiationinterfaces.RadiationModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadiationModel_V1</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V1.process_radiation">
+<span class="sig-name descname"><span class="pre">process_radiation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V1.process_radiation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.process_radiation" title="Link to this definition">¶</a></dt>
+<dd><p>Read and calculate all eventually required sunshine and radiation data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_possiblesunshineduration">
+<span class="sig-name descname"><span class="pre">get_possiblesunshineduration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V1.get_possiblesunshineduration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_possiblesunshineduration" title="Link to this definition">¶</a></dt>
+<dd><p>Get the possible sunshine duration in h.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_sunshineduration">
+<span class="sig-name descname"><span class="pre">get_sunshineduration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V1.get_sunshineduration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_sunshineduration" title="Link to this definition">¶</a></dt>
+<dd><p>Get the sunshine duration in h.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_clearskysolarradiation">
+<span class="sig-name descname"><span class="pre">get_clearskysolarradiation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V1.get_clearskysolarradiation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_clearskysolarradiation" title="Link to this definition">¶</a></dt>
+<dd><p>Get the clear sky solar radiation in W/m².</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_globalradiation">
+<span class="sig-name descname"><span class="pre">get_globalradiation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V1.get_globalradiation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V1.get_globalradiation" title="Link to this definition">¶</a></dt>
+<dd><p>Get the global radiation in W/m².</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V2">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.radiationinterfaces.</span></span><span class="sig-name descname"><span class="pre">RadiationModel_V2</span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V2" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SharableSubmodelInterface" title="hydpy.core.modeltools.SharableSubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SharableSubmodelInterface</span></code></a></p>
+<p>Pure getter interface for global radiation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V2.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V2.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V2" title="hydpy.interfaces.radiationinterfaces.RadiationModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadiationModel_V2</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V2.get_globalradiation">
+<span class="sig-name descname"><span class="pre">get_globalradiation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V2.get_globalradiation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V2.get_globalradiation" title="Link to this definition">¶</a></dt>
+<dd><p>Get the global radiation in W/m².</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V3">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.radiationinterfaces.</span></span><span class="sig-name descname"><span class="pre">RadiationModel_V3</span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V3" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SharableSubmodelInterface" title="hydpy.core.modeltools.SharableSubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SharableSubmodelInterface</span></code></a></p>
+<p>Pure getter interface for clear-sky solar radiation and global radiation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V3.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">3</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></span><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V3.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V3" title="hydpy.interfaces.radiationinterfaces.RadiationModel_V3"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadiationModel_V3</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V3.get_clearskysolarradiation">
+<span class="sig-name descname"><span class="pre">get_clearskysolarradiation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V3.get_clearskysolarradiation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V3.get_clearskysolarradiation" title="Link to this definition">¶</a></dt>
+<dd><p>Get the clear sky solar radiation in W/m².</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V3.get_globalradiation">
+<span class="sig-name descname"><span class="pre">get_globalradiation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V3.get_globalradiation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V3.get_globalradiation" title="Link to this definition">¶</a></dt>
+<dd><p>Get the global radiation in W/m².</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V4">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.radiationinterfaces.</span></span><span class="sig-name descname"><span class="pre">RadiationModel_V4</span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V4"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SharableSubmodelInterface" title="hydpy.core.modeltools.SharableSubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SharableSubmodelInterface</span></code></a></p>
+<p>Pure getter interface for possible sunshine duration, actual sunshine duration,
+and global radiation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V4.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4" title="hydpy.interfaces.radiationinterfaces.RadiationModel_V4"><code class="xref py py-class docutils literal notranslate"><span class="pre">RadiationModel_V4</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V4.get_possiblesunshineduration">
+<span class="sig-name descname"><span class="pre">get_possiblesunshineduration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V4.get_possiblesunshineduration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4.get_possiblesunshineduration" title="Link to this definition">¶</a></dt>
+<dd><p>Get the possible sunshine duration in h.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V4.get_sunshineduration">
+<span class="sig-name descname"><span class="pre">get_sunshineduration</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V4.get_sunshineduration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4.get_sunshineduration" title="Link to this definition">¶</a></dt>
+<dd><p>Get the sunshine duration in h.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.radiationinterfaces.RadiationModel_V4.get_globalradiation">
+<span class="sig-name descname"><span class="pre">get_globalradiation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/radiationinterfaces.html#RadiationModel_V4.get_globalradiation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.radiationinterfaces.RadiationModel_V4.get_globalradiation" title="Link to this definition">¶</a></dt>
+<dd><p>Get the global radiation in W/m².</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rconcinterfaces.html" title="rconcinterfaces"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="precipinterfaces.html" title="precipinterfaces"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" >Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">radiationinterfaces</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

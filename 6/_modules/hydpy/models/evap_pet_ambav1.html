@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.evap_pet_ambav1 &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap_pet_ambav1</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.evap_pet_ambav1</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN</span>
+<span class="sd">.. _`German Meteorological Service (DWD)`: https://www.dwd.de/EN/specialusers/agriculture/agriculture_node.html</span>
+<span class="sd">.. _`MORSIM/AMBAV issue`: https://github.com/hydpy-dev/hydpy/issues/118</span>
+
+<span class="sd">|evap_pet_ambav1| is a submodel that supplies its main model with estimates of</span>
+<span class="sd">potential evapotranspiration from soils and potential evaporation from interception</span>
+<span class="sd">storages and water areas.  It closely follows version 1.0 of the AMBAV model, as</span>
+<span class="sd">described by :cite:t:`ref-Löpmeier2014`, which was developed and used by the German</span>
+<span class="sd">Meteorological Service (DWD) to calculate soil evapotranspiration and interception</span>
+<span class="sd">evaporation for different crops based on the Penman-Monteith equation.  We added a</span>
+<span class="sd">routine for calculating evaporation from water areas based on the pure Penman equation.</span>
+<span class="sd">The `MORSIM/AMBAV issue`_ on GitHub discusses this and other decisions in detail.  We</span>
+<span class="sd">implemented |evap_pet_ambav1| on behalf of the `German Federal Institute of Hydrology</span>
+<span class="sd">(BfG)`_ for modelling large river basins in central Europe.</span>
+
+<span class="sd">|evap_pet_ambav1| requires additional data about the catchment&#39;s current state, which</span>
+<span class="sd">it usually queries from its main model, if possible:</span>
+
+<span class="sd"> * The current air temperature.</span>
+<span class="sd"> * The current precipitation.</span>
+<span class="sd"> * The snow cover degree.</span>
+
+<span class="sd">Additionally, |evap_pet_ambav1| requires radiation-related data (potential sunshine</span>
+<span class="sd">duration, actual sunshine duration, and global radiation) that must be supplied by a</span>
+<span class="sd">&quot;real&quot; submodel that complies with the |RadiationModel_V1| or the |RadiationModel_V4|</span>
+<span class="sd">interface.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">The design of the following integration tests is similar to the one chosen for</span>
+<span class="sd">|evap_aet_morsim| to ease the comparison of both models.</span>
+
+<span class="sd">We prepare a simulation period of three days for the first examples:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;2000-08-01&quot;, &quot;2000-08-04&quot;, &quot;1d&quot;</span>
+
+<span class="sd">According to the intended usage as a submodel, |evap_pet_ambav1| requires no</span>
+<span class="sd">connections to any nodes.  Hence, assigning a model instance to a blank |Element|</span>
+<span class="sd">instance is sufficient:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Element</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.models.evap_pet_ambav1 import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep(&quot;1h&quot;)</span>
+<span class="sd">&gt;&gt;&gt; element = Element(&quot;element&quot;)</span>
+<span class="sd">&gt;&gt;&gt; element.model = model</span>
+
+<span class="sd">The following parameter settings are comparable to the ones selected for</span>
+<span class="sd">|evap_aet_morsim|:</span>
+
+<span class="sd">&gt;&gt;&gt; nmbhru(1)</span>
+<span class="sd">&gt;&gt;&gt; hrutype(0)</span>
+<span class="sd">&gt;&gt;&gt; measuringheightwindspeed(10.0)</span>
+<span class="sd">&gt;&gt;&gt; leafalbedo(0.2)</span>
+<span class="sd">&gt;&gt;&gt; leafalbedosnow(0.8)</span>
+<span class="sd">&gt;&gt;&gt; groundalbedo(0.2)</span>
+<span class="sd">&gt;&gt;&gt; groundalbedosnow(0.8)</span>
+<span class="sd">&gt;&gt;&gt; leafareaindex(5.0)</span>
+<span class="sd">&gt;&gt;&gt; cropheight(10.0)</span>
+<span class="sd">&gt;&gt;&gt; leafresistance(40.0)</span>
+
+<span class="sd">The following parameters have no direct equivalents in |evap_aet_morsim|:</span>
+
+<span class="sd">&gt;&gt;&gt; wetsoilresistance(100.0)</span>
+<span class="sd">&gt;&gt;&gt; soilresistanceincrease(1.0)</span>
+<span class="sd">&gt;&gt;&gt; wetnessthreshold(0.5)</span>
+<span class="sd">&gt;&gt;&gt; cloudtypefactor(0.2)</span>
+<span class="sd">&gt;&gt;&gt; nightcloudfactor(1.0)</span>
+
+<span class="sd">We add submodels of type |meteo_temp_io|, |meteo_precip_io|, |meteo_psun_sun_glob_io|,</span>
+<span class="sd">and |dummy_snowcover| that supply additional information on the catchment&#39;s state</span>
+<span class="sd">instead of complicating the comparisons by introducing complex main or submodels:</span>
+
+<span class="sd">&gt;&gt;&gt; with model.add_tempmodel_v2(&quot;meteo_temp_io&quot;):</span>
+<span class="sd">...     hruarea(1.0)</span>
+<span class="sd">...     temperatureaddend(0.0)</span>
+<span class="sd">&gt;&gt;&gt; with model.add_precipmodel_v2(&quot;meteo_precip_io&quot;):</span>
+<span class="sd">...     hruarea(1.0)</span>
+<span class="sd">...     precipitationfactor(1.0)</span>
+<span class="sd">&gt;&gt;&gt; with model.add_radiationmodel_v4(&quot;meteo_psun_sun_glob_io&quot;):</span>
+<span class="sd">...     pass</span>
+<span class="sd">&gt;&gt;&gt; with model.add_snowcovermodel_v1(&quot;dummy_snowcover&quot;):</span>
+<span class="sd">...     pass</span>
+
+<span class="sd">Now, we can initialise an |IntegrationTest| object:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%d/%m&quot;</span>
+
+<span class="sd">The following meteorological input and snow cover data also agree with the first</span>
+<span class="sd">|evap_aet_morsim| examples:</span>
+
+<span class="sd">&gt;&gt;&gt; inputs.windspeed.series = 2.0</span>
+<span class="sd">&gt;&gt;&gt; inputs.relativehumidity.series = 80.0</span>
+<span class="sd">&gt;&gt;&gt; inputs.atmosphericpressure.series = 1000.0</span>
+<span class="sd">&gt;&gt;&gt; model.tempmodel.sequences.inputs.temperature.series = 15.0</span>
+<span class="sd">&gt;&gt;&gt; model.radiationmodel.sequences.inputs.sunshineduration.series = 6.0</span>
+<span class="sd">&gt;&gt;&gt; model.radiationmodel.sequences.inputs.possiblesunshineduration.series = 16.0</span>
+<span class="sd">&gt;&gt;&gt; model.radiationmodel.sequences.inputs.globalradiation.series = 190.0</span>
+<span class="sd">&gt;&gt;&gt; model.snowcovermodel.sequences.inputs.snowcover.series = 0.0</span>
+
+<span class="sd">Only |evap_pet_ambav1| requires precipitation data to simulate the wetness of the</span>
+<span class="sd">topmost soil layer for adjusting the soil surface&#39;s albedo and resistance.  We define</span>
+<span class="sd">precipitation to occur on the second day:</span>
+
+<span class="sd">&gt;&gt;&gt; model.precipmodel.sequences.inputs.precipitation.series = 0.0, 10.0, 0.0</span>
+
+<span class="sd">In contrast to |evap_aet_morsim|, |evap_pet_ambav1| even requires logged values when</span>
+<span class="sd">applied on daily timesteps to keep track of the temporal persistency of the topmost</span>
+<span class="sd">soil layer&#39;s wetness:</span>
+
+<span class="sd">&gt;&gt;&gt; test.inits = ((states.soilresistance, 100.0),</span>
+<span class="sd">...               (logs.loggedprecipitation, [0.0]),</span>
+<span class="sd">...               (logs.loggedpotentialsoilevapotranspiration, [1.0]))</span>
+
+<span class="sd">.. _evap_pet_ambav1_vegetation_daily:</span>
+
+<span class="sd">vegetation</span>
+<span class="sd">__________</span>
+
+<span class="sd">The following configuration corresponds to the</span>
+<span class="sd">:ref:`evap_aet_morsim_non_tree_vegetation`, :ref:`evap_aet_morsim_deciduous_trees`,</span>
+<span class="sd">and :ref:`evap_aet_morsim_conifers` examples of |evap_aet_morsim| because</span>
+<span class="sd">|evap_pet_ambav1| does not handle different kinds of vegetation distinctly:</span>
+
+<span class="sd">&gt;&gt;&gt; interception(True)</span>
+<span class="sd">&gt;&gt;&gt; soil(True)</span>
+<span class="sd">&gt;&gt;&gt; plant(True)</span>
+<span class="sd">&gt;&gt;&gt; water(False)</span>
+
+<span class="sd">In the |evap_aet_morsim| examples, the resulting soil evapotranspiration values differ</span>
+<span class="sd">due to different amounts of intercepted water.  In contrast, |evap_pet_ambav1|</span>
+<span class="sd">calculates only potential values and thus does not consider storage contents.  The</span>
+<span class="sd">differences between the individual days stem from the changing topmost soil layer&#39;s</span>
+<span class="sd">wetness.  In this context, note that the precipitation event of the second day only</span>
+<span class="sd">affects the results of the third day and later:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |  date | relativehumidity | windspeed | atmosphericpressure | airtemperature | windspeed10m | sunshineduration | possiblesunshineduration | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | dryairpressure | airdensity | currentalbedo | adjustedcloudcoverage | aerodynamicresistance | actualsurfaceresistance | snowcover | precipitation | dailyprecipitation | globalradiation | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | potentialinterceptionevaporation | potentialsoilevapotranspiration | dailypotentialsoilevapotranspiration | waterevaporation | dailywaterevaporation | cloudcoverage | soilresistance |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01/08 |             80.0 |       2.0 |              1000.0 |           15.0 |          2.0 |              6.0 |                     16.0 |                17.053462 |                      1.097868 |             13.64277 |      986.35723 |   1.202725 |           0.2 |                 0.375 |                  47.0 |               55.393952 |       0.0 |           0.0 |                0.0 |           190.0 |                 152.0 |            75.942081 |    76.057919 |     5.704344 |                         3.301949 |                        2.292368 |                                  1.0 |              0.0 |                   0.0 |         0.375 |          124.0 |</span>
+<span class="sd">    | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |          2.0 |              6.0 |                     16.0 |                17.053462 |                      1.097868 |             13.64277 |      986.35723 |   1.202725 |           0.2 |                 0.375 |                  47.0 |                57.24078 |       0.0 |          10.0 |                0.0 |           190.0 |                 152.0 |            75.942081 |    76.057919 |     5.704344 |                         3.301949 |                        2.269236 |                             2.292368 |              0.0 |                   0.0 |         0.375 |          148.0 |</span>
+<span class="sd">    | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |          2.0 |              6.0 |                     16.0 |                17.053462 |                      1.097868 |             13.64277 |      986.35723 |   1.202725 |           0.2 |                 0.375 |                  47.0 |               52.869385 |       0.0 |           0.0 |               10.0 |           190.0 |                 152.0 |            75.942081 |    76.057919 |     5.704344 |                         3.301949 |                        2.324763 |                             2.269236 |              0.0 |                   0.0 |         0.375 |          100.0 |</span>
+
+<span class="sd">.. _evap_pet_ambav1_water_area_daily:</span>
+
+<span class="sd">water area</span>
+<span class="sd">__________</span>
+
+<span class="sd">Switching from vegetated soil to an open water area requires setting the crop height to</span>
+<span class="sd">zero:</span>
+
+<span class="sd">&gt;&gt;&gt; interception(False)</span>
+<span class="sd">&gt;&gt;&gt; soil(False)</span>
+<span class="sd">&gt;&gt;&gt; plant(False)</span>
+<span class="sd">&gt;&gt;&gt; water(True)</span>
+<span class="sd">&gt;&gt;&gt; cropheight(0.0)</span>
+
+<span class="sd">While |evap_aet_morsim| estimates an evaporation rate of 3.2 mm/day in the</span>
+<span class="sd">:ref:`evap_water_area` example, |evap_pet_ambav1| estimates only 1.9 mm/day:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |  date | relativehumidity | windspeed | atmosphericpressure | airtemperature | windspeed10m | sunshineduration | possiblesunshineduration | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | dryairpressure | airdensity | currentalbedo | adjustedcloudcoverage | aerodynamicresistance | actualsurfaceresistance | snowcover | precipitation | dailyprecipitation | globalradiation | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | potentialinterceptionevaporation | potentialsoilevapotranspiration | dailypotentialsoilevapotranspiration | waterevaporation | dailywaterevaporation | cloudcoverage | soilresistance |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01/08 |             80.0 |       2.0 |              1000.0 |           15.0 |          2.0 |              6.0 |                     16.0 |                17.053462 |                      1.097868 |             13.64277 |      986.35723 |   1.202725 |           0.2 |                 0.375 |            376.487589 |                     0.0 |       0.0 |           0.0 |                0.0 |           190.0 |                 152.0 |            75.942081 |    76.057919 |          0.0 |                              0.0 |                             0.0 |                                  1.0 |         1.890672 |              1.890672 |         0.375 |            nan |</span>
+<span class="sd">    | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |          2.0 |              6.0 |                     16.0 |                17.053462 |                      1.097868 |             13.64277 |      986.35723 |   1.202725 |           0.2 |                 0.375 |            376.487589 |                     0.0 |       0.0 |          10.0 |                0.0 |           190.0 |                 152.0 |            75.942081 |    76.057919 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         1.890672 |              1.890672 |         0.375 |            nan |</span>
+<span class="sd">    | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |          2.0 |              6.0 |                     16.0 |                17.053462 |                      1.097868 |             13.64277 |      986.35723 |   1.202725 |           0.2 |                 0.375 |            376.487589 |                     0.0 |       0.0 |           0.0 |               10.0 |           190.0 |                 152.0 |            75.942081 |    76.057919 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         1.890672 |              1.890672 |         0.375 |            nan |</span>
+
+<span class="sd">.. _evap_pet_ambav1_snow_daily:</span>
+
+<span class="sd">snow</span>
+<span class="sd">____</span>
+
+<span class="sd">Now, we demonstrate the effect of snow on potential evapotranspiration from land areas</span>
+<span class="sd">by setting different snow cover degrees:</span>
+
+<span class="sd">&gt;&gt;&gt; interception(True)</span>
+<span class="sd">&gt;&gt;&gt; soil(True)</span>
+<span class="sd">&gt;&gt;&gt; plant(True)</span>
+<span class="sd">&gt;&gt;&gt; water(False)</span>
+<span class="sd">&gt;&gt;&gt; cropheight(10.0)</span>
+<span class="sd">&gt;&gt;&gt; model.snowcovermodel.sequences.inputs.snowcover.series = [0.0], [0.5], [1.0]</span>
+
+<span class="sd">We set all precipitation values to 10 mm to focus only on the influence of the snow</span>
+<span class="sd">cover:</span>
+
+<span class="sd">&gt;&gt;&gt; model.precipmodel.sequences.inputs.precipitation.series = 10.0</span>
+<span class="sd">&gt;&gt;&gt; test.inits.loggedprecipitation = 10.0</span>
+
+<span class="sd">In contrast to |evap_aet_morsim|, as discussed in the</span>
+<span class="sd">:ref:`evap_aet_morsim_snow_on_non_tree_vegetation` example, |evap_pet_ambav1| never</span>
+<span class="sd">suppresses evapotranspiration completely but adjusts the current albedo to the given</span>
+<span class="sd">snow-specific values, which are usually larger than those of the leaf and soil surfaces</span>
+<span class="sd">and so usually reduces evapotranspiration:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |  date | relativehumidity | windspeed | atmosphericpressure | airtemperature | windspeed10m | sunshineduration | possiblesunshineduration | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | dryairpressure | airdensity | currentalbedo | adjustedcloudcoverage | aerodynamicresistance | actualsurfaceresistance | snowcover | precipitation | dailyprecipitation | globalradiation | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | potentialinterceptionevaporation | potentialsoilevapotranspiration | dailypotentialsoilevapotranspiration | waterevaporation | dailywaterevaporation | cloudcoverage | soilresistance |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01/08 |             80.0 |       2.0 |              1000.0 |           15.0 |          2.0 |              6.0 |                     16.0 |                17.053462 |                      1.097868 |             13.64277 |      986.35723 |   1.202725 |           0.2 |                 0.375 |                  47.0 |               52.869385 |       0.0 |          10.0 |               10.0 |           190.0 |                 152.0 |            75.942081 |    76.057919 |     5.704344 |                         3.301949 |                        2.324763 |                                  1.0 |              0.0 |                   0.0 |         0.375 |          100.0 |</span>
+<span class="sd">    | 02/08 |             80.0 |       2.0 |              1000.0 |           15.0 |          2.0 |              6.0 |                     16.0 |                17.053462 |                      1.097868 |             13.64277 |      986.35723 |   1.202725 |           0.5 |                 0.375 |                  47.0 |               52.869385 |       0.5 |          10.0 |               10.0 |           190.0 |                  95.0 |            71.952081 |    23.047919 |     1.728594 |                         2.224354 |                        1.566074 |                             2.324763 |              0.0 |                   0.0 |         0.375 |          100.0 |</span>
+<span class="sd">    | 03/08 |             80.0 |       2.0 |              1000.0 |           15.0 |          2.0 |              6.0 |                     16.0 |                17.053462 |                      1.097868 |             13.64277 |      986.35723 |   1.202725 |           0.8 |                 0.375 |                  47.0 |               52.869385 |       1.0 |          10.0 |               10.0 |           190.0 |                  38.0 |            67.962081 |   -29.962081 |    -2.247156 |                         1.146759 |                        0.807385 |                             1.566074 |              0.0 |                   0.0 |         0.375 |          100.0 |</span>
+
+<span class="sd">.. _evap_pet_ambav1_hourly_simulation_land:</span>
+
+<span class="sd">hourly simulation, land</span>
+<span class="sd">_______________________</span>
+
+<span class="sd">The following examples deal with an hourly simulation step:</span>
+
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;2000-08-03&quot;, &quot;2000-08-04&quot;, &quot;1h&quot;</span>
+
+<span class="sd">We need to restore the values of all time-dependent parameters:</span>
+
+<span class="sd">&gt;&gt;&gt; for parameter in model.parameters.fixed:</span>
+<span class="sd">...     parameter.restore()</span>
+
+<span class="sd">As in the :ref:`evap_aet_morsim_hourly_simulation_land` example, we switch to using</span>
+<span class="sd">|meteo_glob_morsim| instead of |meteo_psun_sun_glob_io| to gain the radiation-related</span>
+<span class="sd">data:</span>
+
+<span class="sd">&gt;&gt;&gt; with model.add_radiationmodel_v1(&quot;meteo_glob_morsim&quot;):</span>
+<span class="sd">...     latitude(54.1)</span>
+<span class="sd">...     longitude(9.7)</span>
+<span class="sd">...     angstromconstant(0.25)</span>
+<span class="sd">...     angstromfactor(0.5)</span>
+<span class="sd">...     angstromalternative(0.15)</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+
+<span class="sd">The following meteorological input data also agree with the</span>
+<span class="sd">:ref:`evap_aet_morsim_hourly_simulation_land` example of |evap_aet_morsim|:</span>
+
+<span class="sd">&gt;&gt;&gt; inputs.atmosphericpressure.series = (</span>
+<span class="sd">...     1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1015.0, 1016.0, 1016.0,</span>
+<span class="sd">...     1016.0, 1016.0, 1016.0, 1016.0, 1016.0, 1016.0, 1016.0, 1016.0, 1016.0, 1016.0,</span>
+<span class="sd">...     1016.0, 1016.0, 1017.0, 1017.0)</span>
+<span class="sd">&gt;&gt;&gt; inputs.windspeed.series = (</span>
+<span class="sd">...     0.8, 0.8, 0.8, 0.8, 0.8, 0.6, 0.9, 0.9, 0.9, 1.3, 1.5, 1.2, 1.3, 1.5, 1.9, 1.9,</span>
+<span class="sd">...     2.3, 2.4, 2.5, 2.5, 2.2, 1.7, 1.7, 2.3)</span>
+<span class="sd">&gt;&gt;&gt; inputs.relativehumidity.series = (</span>
+<span class="sd">...     95.1, 94.9, 95.9, 96.7, 97.2, 97.5, 97.7, 97.4, 96.8, 86.1, 76.8, 71.8, 67.5,</span>
+<span class="sd">...     66.1, 63.4, 62.4, 61.1, 62.1, 67.0, 74.5, 81.2, 86.9, 90.1, 90.9)</span>
+<span class="sd">&gt;&gt;&gt; model.radiationmodel.sequences.inputs.sunshineduration.series = (</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.5, 0.7, 0.8, 0.5, 0.4, 0.5,</span>
+<span class="sd">...     0.5, 0.3, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0)</span>
+
+<span class="sd">In contrast to |evap_aet_morsim|, |evap_pet_ambav1| does not require &quot;daily&quot; averages</span>
+<span class="sd">or sums of meteorological input data but calculates, e.g., hourly water area</span>
+<span class="sd">evaporation values and aggregates them to daily values later.  But it needs to remember</span>
+<span class="sd">the last determined cloud coverage degree (which is only estimateable at daytime) and</span>
+<span class="sd">other factors related to the topmost soil layer&#39;s wetness calculations:</span>
+
+<span class="sd">&gt;&gt;&gt; test.inits = (</span>
+<span class="sd">...     (states.soilresistance, 100.0),</span>
+<span class="sd">...     (states.cloudcoverage, 0.3),</span>
+<span class="sd">...     (logs.loggedprecipitation, 0.0),</span>
+<span class="sd">...     (logs.loggedwaterevaporation, 0.0),</span>
+<span class="sd">...     (logs.loggedpotentialsoilevapotranspiration, 0.0),</span>
+<span class="sd">...     (model.radiationmodel.sequences.logs.loggedsunshineduration,</span>
+<span class="sd">...      [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.3, 0.0,</span>
+<span class="sd">...       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),</span>
+<span class="sd">...     (model.radiationmodel.sequences.logs.loggedunadjustedglobalradiation,</span>
+<span class="sd">...      [0.0, 0.0, 0.0, 0.0, 0.0, 27.777778, 55.555556, 138.888889, 222.222222,</span>
+<span class="sd">...       305.555556, 333.333333, 388.888889, 527.777778, 444.444444, 250.0,</span>
+<span class="sd">...       222.222222, 166.666667, 111.111111, 55.555556, 27.777778, 0.0, 0.0, 0.0,</span>
+<span class="sd">...       0.0]))</span>
+
+<span class="sd">The contrived day is warm, free of snow and rain:</span>
+
+<span class="sd">&gt;&gt;&gt; model.tempmodel.sequences.inputs.temperature.series = (</span>
+<span class="sd">...     16.9, 16.6, 16.4, 16.3, 16.0, 15.9, 16.0, 16.6, 17.4, 19.0, 20.3, 21.4, 21.3,</span>
+<span class="sd">...     21.8, 22.9, 22.7, 22.5, 21.9, 21.4, 20.7, 19.4, 17.8, 17.0, 16.4)</span>
+<span class="sd">&gt;&gt;&gt; model.snowcovermodel.sequences.inputs.snowcover.series = 0.0</span>
+<span class="sd">&gt;&gt;&gt; model.precipmodel.sequences.inputs.precipitation.series = 0.0</span>
+
+<span class="sd">Considering the :ref:`evap_aet_morsim_hourly_simulation_land` example,</span>
+<span class="sd">|evap_pet_ambav1| estimates higher potential interception evaporation rates and</span>
+<span class="sd">potential soil evapotranspiration rates that are (as to be expected) higher but roughly</span>
+<span class="sd">comparable to the actual soil evapotranspiration rates of |evap_aet_morsim|:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;evap_pet_ambav1_hourly_simulation_land&quot;,</span>
+<span class="sd">    ...      axis1=(fluxes.potentialinterceptionevaporation,</span>
+<span class="sd">    ...             fluxes.potentialsoilevapotranspiration))</span>
+<span class="sd">    |                date | relativehumidity | windspeed | atmosphericpressure | airtemperature | windspeed10m | sunshineduration | possiblesunshineduration | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | dryairpressure | airdensity | currentalbedo | adjustedcloudcoverage | aerodynamicresistance | actualsurfaceresistance | snowcover | precipitation | dailyprecipitation | globalradiation | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | potentialinterceptionevaporation | potentialsoilevapotranspiration | dailypotentialsoilevapotranspiration | waterevaporation | dailywaterevaporation | cloudcoverage | soilresistance |</span>
+<span class="sd">    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-08-03 00:00:00 |             95.1 |       0.8 |              1015.0 |           16.9 |          0.8 |              0.0 |                      0.0 |                19.254836 |                      1.221127 |            18.311349 |     996.688651 |   1.210743 |           0.2 |                   0.3 |                 117.5 |               84.848485 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            66.097029 |   -66.097029 |    -8.262129 |                         -0.04742 |                       -0.037873 |                                  0.0 |              0.0 |                   0.0 |           0.3 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 01:00:00 |             94.9 |       0.8 |              1015.0 |           16.6 |          0.8 |              0.0 |                      0.0 |                18.891521 |                      1.200918 |            17.928054 |     997.071946 |   1.212171 |           0.2 |                   0.3 |                 117.5 |               84.848485 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |             66.49025 |    -66.49025 |    -8.311281 |                        -0.047169 |                        -0.03759 |                            -0.037873 |              0.0 |                   0.0 |           0.3 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 02:00:00 |             95.9 |       0.8 |              1015.0 |           16.4 |          0.8 |              0.0 |                      0.0 |                18.652661 |                      1.187604 |            17.887902 |     997.112098 |   1.213026 |           0.2 |                   0.3 |                 117.5 |               84.848485 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            66.746025 |   -66.746025 |    -8.343253 |                        -0.048737 |                       -0.038782 |                            -0.075462 |              0.0 |                   0.0 |           0.3 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 03:00:00 |             96.7 |       0.8 |              1015.0 |           16.3 |          0.8 |              0.0 |                      0.0 |                18.534226 |                      1.180995 |            17.922597 |     997.077403 |   1.213429 |           0.2 |                   0.3 |                 117.5 |               84.848485 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            66.871985 |   -66.871985 |    -8.358998 |                        -0.049972 |                       -0.039735 |                            -0.114244 |              0.0 |                   0.0 |           0.3 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 04:00:00 |             97.2 |       0.8 |              1015.0 |           16.0 |          0.8 |              0.0 |                 0.429734 |                18.182867 |                      1.161352 |            17.673747 |     997.326253 |   1.214802 |           0.2 |                   0.3 |                 117.5 |               61.046495 |       0.0 |           0.0 |                0.0 |        1.943686 |              1.554949 |            67.350953 |   -65.796004 |    -6.103894 |                        -0.051541 |                       -0.043408 |                            -0.153979 |              0.0 |                   0.0 |           0.3 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 05:00:00 |             97.5 |       0.6 |              1015.0 |           15.9 |          0.6 |              0.0 |                      1.0 |                18.067051 |                      1.154867 |            17.615375 |     997.384625 |   1.215249 |           0.2 |                   0.0 |            156.666667 |               44.486064 |       0.0 |           0.0 |                0.0 |       21.932441 |             17.545953 |             74.18377 |   -56.637817 |    -2.831891 |                        -0.047351 |                       -0.042938 |                            -0.197387 |              0.0 |                   0.0 |           0.0 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 06:00:00 |             97.7 |       0.9 |              1015.0 |           16.0 |          0.9 |              0.0 |                      1.0 |                18.182867 |                      1.161352 |            17.764661 |     997.235339 |    1.21476 |           0.2 |                   0.0 |            104.444444 |               44.486064 |       0.0 |           0.0 |                0.0 |       57.256187 |             45.804949 |            76.052657 |   -30.247708 |    -1.512385 |                        -0.022926 |                       -0.019874 |                            -0.240325 |              0.0 |                   0.0 |           0.0 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 07:00:00 |             97.4 |       0.9 |              1015.0 |           16.6 |          0.9 |              0.0 |                      1.0 |                18.891521 |                      1.200918 |            18.400342 |     996.599658 |   1.211956 |           0.2 |                   0.0 |            104.444444 |               44.486064 |       0.0 |           0.0 |                0.0 |      109.332844 |             87.466275 |            78.286958 |     9.179317 |     0.458966 |                         0.012762 |                        0.011094 |                            -0.260199 |              0.0 |                   0.0 |           0.0 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 08:00:00 |             96.8 |       0.9 |              1016.0 |           17.4 |          0.9 |              0.0 |                      1.0 |                19.873972 |                      1.255448 |            19.238005 |     996.761995 |   1.209438 |           0.2 |                   0.0 |            104.444444 |               44.486064 |       0.0 |           0.0 |                0.0 |      170.949152 |            136.759322 |            80.758678 |    56.000644 |     2.800032 |                         0.056776 |                        0.049541 |                            -0.249105 |              0.0 |                   0.0 |           0.0 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 09:00:00 |             86.1 |       1.3 |              1016.0 |           19.0 |          1.3 |              0.2 |                      1.0 |                21.973933 |                      1.370827 |            18.919557 |     997.080443 |   1.202958 |           0.2 |                   0.2 |             72.307692 |               44.486064 |       0.0 |           0.0 |                0.0 |      311.762624 |              249.4101 |            83.807053 |   165.603046 |     8.280152 |                         0.192493 |                        0.160555 |                            -0.199564 |              0.0 |                   0.0 |           0.2 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 10:00:00 |             76.8 |       1.5 |              1016.0 |           20.3 |          1.5 |              0.5 |                      1.0 |                23.820593 |                      1.471068 |            18.294216 |     997.705784 |    1.19791 |           0.2 |                   0.5 |             62.666667 |               44.486064 |       0.0 |           0.0 |                0.0 |      501.583299 |            401.266639 |            78.072984 |   323.193655 |    16.159683 |                         0.383595 |                        0.314757 |                            -0.039008 |              0.0 |                   0.0 |           0.5 |          100.0 |</span>
+<span class="sd">    | 2000-08-03 11:00:00 |             71.8 |       1.2 |              1016.0 |           21.4 |          1.2 |              0.7 |                      1.0 |                25.487706 |                      1.560666 |            18.300173 |     997.699827 |   1.193433 |           0.2 |                   0.7 |             78.333333 |               45.139282 |       0.0 |           0.0 |                0.0 |      615.018727 |            492.014981 |            65.479184 |   426.535797 |     21.32679 |                         0.489898 |                         0.41859 |                             0.275749 |              0.0 |                   0.0 |           0.7 |          124.0 |</span>
+<span class="sd">    | 2000-08-03 12:00:00 |             67.5 |       1.3 |              1016.0 |           21.3 |          1.3 |              0.8 |                      1.0 |                 25.33205 |                      1.552334 |            17.099134 |     998.900866 |   1.194376 |           0.2 |                   0.8 |             72.307692 |               45.591614 |       0.0 |           0.0 |                0.0 |      626.544326 |            501.235461 |            55.933117 |   445.302344 |    22.265117 |                         0.525472 |                        0.442652 |                              0.69434 |              0.0 |                   0.0 |           0.8 |          148.0 |</span>
+<span class="sd">    | 2000-08-03 13:00:00 |             66.1 |       1.5 |              1016.0 |           21.8 |          1.5 |              0.5 |                      1.0 |                26.118719 |                       1.59437 |            17.264473 |     998.735527 |   1.192277 |           0.2 |                   0.5 |             62.666667 |               45.923379 |       0.0 |           0.0 |                0.0 |      496.133417 |            396.906734 |            74.712412 |   322.194322 |    16.109716 |                         0.427223 |                         0.35209 |                             1.136991 |              0.0 |                   0.0 |           0.5 |          172.0 |</span>
+<span class="sd">    | 2000-08-03 14:00:00 |             63.4 |       1.9 |              1016.0 |           22.9 |          1.9 |              0.4 |                      1.0 |                27.924898 |                      1.690242 |            17.704385 |     998.295615 |   1.187651 |           0.2 |                   0.4 |             49.473684 |               46.177112 |       0.0 |           0.0 |                0.0 |      419.520994 |            335.616795 |            74.509683 |   261.107112 |    13.055356 |                         0.415078 |                        0.329249 |                             1.489082 |              0.0 |                   0.0 |           0.4 |          196.0 |</span>
+<span class="sd">    | 2000-08-03 15:00:00 |             62.4 |       1.9 |              1016.0 |           22.7 |          1.9 |              0.5 |                      1.0 |                27.588616 |                      1.672458 |            17.215297 |     998.784703 |   1.188672 |           0.2 |                   0.5 |             49.473684 |               46.377447 |       0.0 |           0.0 |                0.0 |      387.887354 |            310.309883 |            66.706608 |   243.603275 |    12.180164 |                          0.40046 |                        0.316867 |                             1.818331 |              0.0 |                   0.0 |           0.5 |          220.0 |</span>
+<span class="sd">    | 2000-08-03 16:00:00 |             61.1 |       2.3 |              1016.0 |           22.5 |          2.3 |              0.5 |                      1.0 |                27.255876 |                      1.654832 |             16.65334 |      999.34666 |   1.189726 |           0.2 |                   0.5 |             40.869565 |               46.539635 |       0.0 |           0.0 |                0.0 |      278.496873 |            222.797499 |            61.019556 |   161.777943 |     8.088897 |                         0.357306 |                         0.27009 |                             2.135198 |              0.0 |                   0.0 |           0.5 |          244.0 |</span>
+<span class="sd">    | 2000-08-03 17:00:00 |             62.1 |       2.4 |              1016.0 |           21.9 |          2.4 |              0.3 |                      1.0 |                26.278588 |                      1.602891 |            16.319003 |     999.680997 |   1.192295 |           0.2 |                   0.3 |             39.166667 |               46.673625 |       0.0 |           0.0 |                0.0 |      137.138608 |            109.710886 |            65.667044 |    44.043842 |     2.202192 |                         0.240721 |                        0.178882 |                             2.405288 |              0.0 |                   0.0 |           0.3 |          268.0 |</span>
+<span class="sd">    | 2000-08-03 18:00:00 |             67.0 |       2.5 |              1016.0 |           21.4 |          2.5 |              0.1 |                      1.0 |                25.487706 |                      1.560666 |            17.076763 |     998.923237 |    1.19398 |           0.2 |                   0.1 |                  37.6 |               46.786182 |       0.0 |           0.0 |                0.0 |       51.080715 |             40.864572 |            67.356303 |   -26.491731 |    -1.324587 |                           0.1512 |                        0.110539 |                             2.584171 |              0.0 |                   0.0 |           0.1 |          292.0 |</span>
+<span class="sd">    | 2000-08-03 19:00:00 |             74.5 |       2.5 |              1016.0 |           20.7 |          2.5 |              0.0 |                      1.0 |                24.415439 |                      1.503132 |            18.189502 |     997.810498 |   1.196326 |           0.2 |                   0.0 |                  37.6 |               46.882068 |       0.0 |           0.0 |                0.0 |       13.632816 |             10.906253 |            67.127904 |   -56.221651 |    -2.811083 |                         0.080478 |                        0.058384 |                             2.694709 |              0.0 |                   0.0 |           0.0 |          316.0 |</span>
+<span class="sd">    | 2000-08-03 20:00:00 |             81.2 |       2.2 |              1016.0 |           19.4 |          2.2 |              0.0 |                   0.1364 |                 22.52831 |                      1.401035 |            18.292988 |     997.707012 |   1.201595 |           0.2 |                   0.0 |             42.727273 |              143.134128 |       0.0 |           0.0 |                0.0 |        0.185943 |              0.148755 |            68.417789 |   -68.269035 |    -7.835236 |                         0.024911 |                        0.012051 |                             2.753093 |              0.0 |                   0.0 |           0.0 |          340.0 |</span>
+<span class="sd">    | 2000-08-03 21:00:00 |             86.9 |       1.7 |              1016.0 |           17.8 |          1.7 |              0.0 |                      0.0 |                20.381763 |                      1.283491 |            17.711752 |     998.288248 |   1.208466 |           0.2 |                   0.0 |             55.294118 |              220.606061 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            70.667062 |   -70.667062 |    -8.833383 |                        -0.015625 |                       -0.006654 |                             2.765144 |              0.0 |                   0.0 |           0.0 |          364.0 |</span>
+<span class="sd">    | 2000-08-03 22:00:00 |             90.1 |       1.7 |              1017.0 |           17.0 |          1.7 |              0.0 |                      0.0 |                19.377294 |                      1.227926 |            17.458941 |     999.541059 |   1.213114 |           0.2 |                   0.0 |             55.294118 |              229.198312 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            71.684719 |   -71.684719 |     -8.96059 |                         -0.02696 |                       -0.011041 |                              2.75849 |              0.0 |                   0.0 |           0.0 |          388.0 |</span>
+<span class="sd">    | 2000-08-03 23:00:00 |             90.9 |       2.3 |              1017.0 |           16.4 |          2.3 |              0.0 |                      0.0 |                18.652661 |                      1.187604 |            16.955269 |    1000.044731 |   1.215856 |           0.2 |                   0.0 |             40.869565 |              237.366255 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            72.396674 |   -72.396674 |    -9.049584 |                        -0.019425 |                       -0.006339 |                             2.747449 |              0.0 |                   0.0 |           0.0 |          412.0 |</span>
+
+<span class="sd">.. _evap_pet_ambav1_hourly_simulation_water:</span>
+
+<span class="sd">hourly simulation, water</span>
+<span class="sd">________________________</span>
+
+<span class="sd">|evap_pet_ambav1| also calculates hourly water evaporation values, which show a clear</span>
+<span class="sd">diurnal pattern not apparent in the generally aggregated water evaporation values of</span>
+<span class="sd">|evap_aet_morsim| in example :ref:`evap_aet_morsim_hourly_simulation_water`:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test.inits.loggedwaterevaporation = 0.1</span>
+<span class="sd">    &gt;&gt;&gt; interception(False)</span>
+<span class="sd">    &gt;&gt;&gt; soil(False)</span>
+<span class="sd">    &gt;&gt;&gt; plant(False)</span>
+<span class="sd">    &gt;&gt;&gt; water(True)</span>
+<span class="sd">    &gt;&gt;&gt; cropheight(0.0)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;evap_pet_ambav1_hourly_simulation_water&quot;,</span>
+<span class="sd">    ...      axis1=(fluxes.waterevaporation, fluxes.dailywaterevaporation))</span>
+<span class="sd">    |                date | relativehumidity | windspeed | atmosphericpressure | airtemperature | windspeed10m | sunshineduration | possiblesunshineduration | saturationvapourpressure | saturationvapourpressureslope | actualvapourpressure | dryairpressure | airdensity | currentalbedo | adjustedcloudcoverage | aerodynamicresistance | actualsurfaceresistance | snowcover | precipitation | dailyprecipitation | globalradiation | netshortwaveradiation | netlongwaveradiation | netradiation | soilheatflux | potentialinterceptionevaporation | potentialsoilevapotranspiration | dailypotentialsoilevapotranspiration | waterevaporation | dailywaterevaporation | cloudcoverage | soilresistance |</span>
+<span class="sd">    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-08-03 00:00:00 |             95.1 |       0.8 |              1015.0 |           16.9 |          0.8 |              0.0 |                      0.0 |                19.254836 |                      1.221127 |            18.311349 |     996.688651 |   1.210743 |           0.2 |                   0.3 |            941.218972 |                     0.0 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            66.097029 |   -66.097029 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.061946 |              2.238054 |           0.3 |            nan |</span>
+<span class="sd">    | 2000-08-03 01:00:00 |             94.9 |       0.8 |              1015.0 |           16.6 |          0.8 |              0.0 |                      0.0 |                18.891521 |                      1.200918 |            17.928054 |     997.071946 |   1.212171 |           0.2 |                   0.3 |            941.218972 |                     0.0 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |             66.49025 |    -66.49025 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.061919 |              2.076136 |           0.3 |            nan |</span>
+<span class="sd">    | 2000-08-03 02:00:00 |             95.9 |       0.8 |              1015.0 |           16.4 |          0.8 |              0.0 |                      0.0 |                18.652661 |                      1.187604 |            17.887902 |     997.112098 |   1.213026 |           0.2 |                   0.3 |            941.218972 |                     0.0 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            66.746025 |   -66.746025 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.062108 |              1.914028 |           0.3 |            nan |</span>
+<span class="sd">    | 2000-08-03 03:00:00 |             96.7 |       0.8 |              1015.0 |           16.3 |          0.8 |              0.0 |                      0.0 |                18.534226 |                      1.180995 |            17.922597 |     997.077403 |   1.213429 |           0.2 |                   0.3 |            941.218972 |                     0.0 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            66.871985 |   -66.871985 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.062257 |              1.751771 |           0.3 |            nan |</span>
+<span class="sd">    | 2000-08-03 04:00:00 |             97.2 |       0.8 |              1015.0 |           16.0 |          0.8 |              0.0 |                 0.429734 |                18.182867 |                      1.161352 |            17.673747 |     997.326253 |   1.214802 |           0.2 |                   0.3 |            941.218972 |                     0.0 |       0.0 |           0.0 |                0.0 |        1.943686 |              1.554949 |            67.350953 |   -65.796004 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.060973 |              1.590798 |           0.3 |            nan |</span>
+<span class="sd">    | 2000-08-03 05:00:00 |             97.5 |       0.6 |              1015.0 |           15.9 |          0.6 |              0.0 |                      1.0 |                18.067051 |                      1.154867 |            17.615375 |     997.384625 |   1.215249 |           0.2 |                   0.0 |           1254.958629 |                     0.0 |       0.0 |           0.0 |                0.0 |       21.932441 |             17.545953 |             74.18377 |   -56.637817 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.052482 |              1.438317 |           0.0 |            nan |</span>
+<span class="sd">    | 2000-08-03 06:00:00 |             97.7 |       0.9 |              1015.0 |           16.0 |          0.9 |              0.0 |                      1.0 |                18.182867 |                      1.161352 |            17.764661 |     997.235339 |    1.21476 |           0.2 |                   0.0 |            836.639086 |                     0.0 |       0.0 |           0.0 |                0.0 |       57.256187 |             45.804949 |            76.052657 |   -30.247708 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.027784 |              1.310533 |           0.0 |            nan |</span>
+<span class="sd">    | 2000-08-03 07:00:00 |             97.4 |       0.9 |              1015.0 |           16.6 |          0.9 |              0.0 |                      1.0 |                18.891521 |                      1.200918 |            18.400342 |     996.599658 |   1.211956 |           0.2 |                   0.0 |            836.639086 |                     0.0 |       0.0 |           0.0 |                0.0 |      109.332844 |             87.466275 |            78.286958 |     9.179317 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         0.009247 |               1.21978 |           0.0 |            nan |</span>
+<span class="sd">    | 2000-08-03 08:00:00 |             96.8 |       0.9 |              1016.0 |           17.4 |          0.9 |              0.0 |                      1.0 |                19.873972 |                      1.255448 |            19.238005 |     996.761995 |   1.209438 |           0.2 |                   0.0 |            836.639086 |                     0.0 |       0.0 |           0.0 |                0.0 |      170.949152 |            136.759322 |            80.758678 |    56.000644 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         0.054509 |              1.174289 |           0.0 |            nan |</span>
+<span class="sd">    | 2000-08-03 09:00:00 |             86.1 |       1.3 |              1016.0 |           19.0 |          1.3 |              0.2 |                      1.0 |                21.973933 |                      1.370827 |            18.919557 |     997.080443 |   1.202958 |           0.2 |                   0.2 |            579.211675 |                     0.0 |       0.0 |           0.0 |                0.0 |      311.762624 |              249.4101 |            83.807053 |   165.603046 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         0.168431 |               1.24272 |           0.2 |            nan |</span>
+<span class="sd">    | 2000-08-03 10:00:00 |             76.8 |       1.5 |              1016.0 |           20.3 |          1.5 |              0.5 |                      1.0 |                23.820593 |                      1.471068 |            18.294216 |     997.705784 |    1.19791 |           0.2 |                   0.5 |            501.983452 |                     0.0 |       0.0 |           0.0 |                0.0 |      501.583299 |            401.266639 |            78.072984 |   323.193655 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |          0.33605 |               1.47877 |           0.5 |            nan |</span>
+<span class="sd">    | 2000-08-03 11:00:00 |             71.8 |       1.2 |              1016.0 |           21.4 |          1.2 |              0.7 |                      1.0 |                25.487706 |                      1.560666 |            18.300173 |     997.699827 |   1.193433 |           0.2 |                   0.7 |            627.479315 |                     0.0 |       0.0 |           0.0 |                0.0 |      615.018727 |            492.014981 |            65.479184 |   426.535797 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         0.448309 |              1.827078 |           0.7 |            nan |</span>
+<span class="sd">    | 2000-08-03 12:00:00 |             67.5 |       1.3 |              1016.0 |           21.3 |          1.3 |              0.8 |                      1.0 |                 25.33205 |                      1.552334 |            17.099134 |     998.900866 |   1.194376 |           0.2 |                   0.8 |            579.211675 |                     0.0 |       0.0 |           0.0 |                0.0 |      626.544326 |            501.235461 |            55.933117 |   445.302344 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         0.469143 |              2.196221 |           0.8 |            nan |</span>
+<span class="sd">    | 2000-08-03 13:00:00 |             66.1 |       1.5 |              1016.0 |           21.8 |          1.5 |              0.5 |                      1.0 |                26.118719 |                       1.59437 |            17.264473 |     998.735527 |   1.192277 |           0.2 |                   0.5 |            501.983452 |                     0.0 |       0.0 |           0.0 |                0.0 |      496.133417 |            396.906734 |            74.712412 |   322.194322 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         0.347617 |              2.443838 |           0.5 |            nan |</span>
+<span class="sd">    | 2000-08-03 14:00:00 |             63.4 |       1.9 |              1016.0 |           22.9 |          1.9 |              0.4 |                      1.0 |                27.924898 |                      1.690242 |            17.704385 |     998.295615 |   1.187651 |           0.2 |                   0.4 |            396.302725 |                     0.0 |       0.0 |           0.0 |                0.0 |      419.520994 |            335.616795 |            74.509683 |   261.107112 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |          0.29431 |              2.638148 |           0.4 |            nan |</span>
+<span class="sd">    | 2000-08-03 15:00:00 |             62.4 |       1.9 |              1016.0 |           22.7 |          1.9 |              0.5 |                      1.0 |                27.588616 |                      1.672458 |            17.215297 |     998.784703 |   1.188672 |           0.2 |                   0.5 |            396.302725 |                     0.0 |       0.0 |           0.0 |                0.0 |      387.887354 |            310.309883 |            66.706608 |   243.603275 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |          0.27556 |              2.813707 |           0.5 |            nan |</span>
+<span class="sd">    | 2000-08-03 16:00:00 |             61.1 |       2.3 |              1016.0 |           22.5 |          2.3 |              0.5 |                      1.0 |                27.255876 |                      1.654832 |             16.65334 |      999.34666 |   1.189726 |           0.2 |                   0.5 |            327.380512 |                     0.0 |       0.0 |           0.0 |                0.0 |      278.496873 |            222.797499 |            61.019556 |   161.777943 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         0.193958 |              2.907665 |           0.5 |            nan |</span>
+<span class="sd">    | 2000-08-03 17:00:00 |             62.1 |       2.4 |              1016.0 |           21.9 |          2.4 |              0.3 |                      1.0 |                26.278588 |                      1.602891 |            16.319003 |     999.680997 |   1.192295 |           0.2 |                   0.3 |            313.739657 |                     0.0 |       0.0 |           0.0 |                0.0 |      137.138608 |            109.710886 |            65.667044 |    44.043842 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         0.070342 |              2.878007 |           0.3 |            nan |</span>
+<span class="sd">    | 2000-08-03 18:00:00 |             67.0 |       2.5 |              1016.0 |           21.4 |          2.5 |              0.1 |                      1.0 |                25.487706 |                      1.560666 |            17.076763 |     998.923237 |    1.19398 |           0.2 |                   0.1 |            301.190071 |                     0.0 |       0.0 |           0.0 |                0.0 |       51.080715 |             40.864572 |            67.356303 |   -26.491731 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |         -0.00517 |              2.772837 |           0.1 |            nan |</span>
+<span class="sd">    | 2000-08-03 19:00:00 |             74.5 |       2.5 |              1016.0 |           20.7 |          2.5 |              0.0 |                      1.0 |                24.415439 |                      1.503132 |            18.189502 |     997.810498 |   1.196326 |           0.2 |                   0.0 |            301.190071 |                     0.0 |       0.0 |           0.0 |                0.0 |       13.632816 |             10.906253 |            67.127904 |   -56.221651 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.040413 |              2.632424 |           0.0 |            nan |</span>
+<span class="sd">    | 2000-08-03 20:00:00 |             81.2 |       2.2 |              1016.0 |           19.4 |          2.2 |              0.0 |                   0.1364 |                 22.52831 |                      1.401035 |            18.292988 |     997.707012 |   1.201595 |           0.2 |                   0.0 |            342.261444 |                     0.0 |       0.0 |           0.0 |                0.0 |        0.185943 |              0.148755 |            68.417789 |   -68.269035 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.057386 |              2.475038 |           0.0 |            nan |</span>
+<span class="sd">    | 2000-08-03 21:00:00 |             86.9 |       1.7 |              1016.0 |           17.8 |          1.7 |              0.0 |                      0.0 |                20.381763 |                      1.283491 |            17.711752 |     998.288248 |   1.208466 |           0.2 |                   0.0 |            442.926575 |                     0.0 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            70.667062 |   -70.667062 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.062884 |              2.312154 |           0.0 |            nan |</span>
+<span class="sd">    | 2000-08-03 22:00:00 |             90.1 |       1.7 |              1017.0 |           17.0 |          1.7 |              0.0 |                      0.0 |                19.377294 |                      1.227926 |            17.458941 |     999.541059 |   1.213114 |           0.2 |                   0.0 |            442.926575 |                     0.0 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            71.684719 |   -71.684719 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.064246 |              2.147909 |           0.0 |            nan |</span>
+<span class="sd">    | 2000-08-03 23:00:00 |             90.9 |       2.3 |              1017.0 |           16.4 |          2.3 |              0.0 |                      0.0 |                18.652661 |                      1.187604 |            16.955269 |    1000.044731 |   1.215856 |           0.2 |                   0.0 |            327.380512 |                     0.0 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            72.396674 |   -72.396674 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.063192 |              1.984717 |           0.0 |            nan |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">petinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">precipinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">radiationinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">tempinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">stateinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.evap</span><span class="w"> </span><span class="kn">import</span> <span class="n">evap_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../evap_pet_ambav1.html#hydpy.models.evap_pet_ambav1.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_TempModel_V1</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_TempModel_V2B</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_PrecipModel_V1</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_PrecipModel_V2B</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_RadiationModel_V1</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_RadiationModel_V4</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_SnowCoverModel_V1</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Sub_ETModel</span><span class="p">,</span>
+    <span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V2</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|evap_pet_ambav1.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;Evap-PET-AMBAV-1.0&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;potential evapotranspiration based on AMBAV 1.0&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_PotentialInterceptionEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_PotentialSoilEvapotranspiration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_PotentialWaterEvaporation_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">INTERFACE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_PotentialInterceptionEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_PotentialSoilEvapotranspiration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_PotentialWaterEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Get_PotentialWaterEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Get_PotentialInterceptionEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Get_PotentialSoilEvapotranspiration_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Process_RadiationModel_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PossibleSunshineDuration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SunshineDuration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_GlobalRadiation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_AirTemperature_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Return_AdjustedWindSpeed_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_WindSpeed10m_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SaturationVapourPressure_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SaturationVapourPressureSlope_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_ActualVapourPressure_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_DryAirPressure_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_AirDensity_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_CurrentAlbedo_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_NetShortwaveRadiation_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Update_CloudCoverage_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_AdjustedCloudCoverage_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_NetLongwaveRadiation_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_NetRadiation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_AerodynamicResistance_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_DailyPrecipitation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_DailyPotentialSoilEvapotranspiration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Update_SoilResistance_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_ActualSurfaceResistance_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialSoilEvapotranspiration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Return_Evaporation_PenmanMonteith_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SnowCover_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SoilHeatFlux_V4</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_WaterEvaporation_V4</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_AirTemperature_TempModel_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_AirTemperature_TempModel_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SnowCover_SnowCoverModel_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialInterceptionEvaporation_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_Precipitation_PrecipModel_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_Precipitation_PrecipModel_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_Precipitation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Update_LoggedPrecipitation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Update_LoggedPotentialSoilEvapotranspiration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Update_LoggedWaterEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_DailyWaterEvaporation_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">tempinterfaces</span><span class="o">.</span><span class="n">TempModel_V1</span><span class="p">,</span>
+        <span class="n">tempinterfaces</span><span class="o">.</span><span class="n">TempModel_V2</span><span class="p">,</span>
+        <span class="n">precipinterfaces</span><span class="o">.</span><span class="n">PrecipModel_V1</span><span class="p">,</span>
+        <span class="n">precipinterfaces</span><span class="o">.</span><span class="n">PrecipModel_V2</span><span class="p">,</span>
+        <span class="n">radiationinterfaces</span><span class="o">.</span><span class="n">RadiationModel_V1</span><span class="p">,</span>
+        <span class="n">radiationinterfaces</span><span class="o">.</span><span class="n">RadiationModel_V4</span><span class="p">,</span>
+        <span class="n">stateinterfaces</span><span class="o">.</span><span class="n">SnowCoverModel_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="n">tempmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span>
+        <span class="n">tempinterfaces</span><span class="o">.</span><span class="n">TempModel_V1</span><span class="p">,</span> <span class="n">tempinterfaces</span><span class="o">.</span><span class="n">TempModel_V2</span>
+    <span class="p">)</span>
+    <span class="n">precipmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span>
+        <span class="n">precipinterfaces</span><span class="o">.</span><span class="n">PrecipModel_V1</span><span class="p">,</span> <span class="n">precipinterfaces</span><span class="o">.</span><span class="n">PrecipModel_V2</span>
+    <span class="p">)</span>
+    <span class="n">radiationmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span>
+        <span class="n">radiationinterfaces</span><span class="o">.</span><span class="n">RadiationModel_V1</span><span class="p">,</span> <span class="n">radiationinterfaces</span><span class="o">.</span><span class="n">RadiationModel_V4</span>
+    <span class="p">)</span>
+    <span class="n">snowcovermodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span><span class="n">stateinterfaces</span><span class="o">.</span><span class="n">SnowCoverModel_V1</span><span class="p">)</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap_pet_ambav1</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.ga_garto_submodel1 &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.ga_garto_submodel1</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.ga_garto_submodel1</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. _`issue 91`: https://github.com/hydpy-dev/hydpy/issues/91</span>
+
+<span class="sd">|ga_garto_submodel1| satisfies the |SoilModel_V1| interface and works like the</span>
+<span class="sd">stand-alone model |ga_garto|, although slight deviations are possible depending on</span>
+<span class="sd">how the main model calls the different interface methods.  |ga_garto_submodel1| is the</span>
+<span class="sd">first submodel implemented into the *HydPy* framework.  Hence, we discussed its</span>
+<span class="sd">development extensively in `issue 91`.  For concrete application examples and further</span>
+<span class="sd">information, see the documentation of method |lland_model.Calc_BoWa_SoilModel_V1| and</span>
+<span class="sd">the integration tests :ref:`lland_dd_acker_garto` of application model |lland_dd| and</span>
+<span class="sd">:ref:`lland_knauf_acker_heavy_garto_daily` of application model |lland_knauf|.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from ga</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.ga</span><span class="w"> </span><span class="kn">import</span> <span class="n">ga_control</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.ga</span><span class="w"> </span><span class="kn">import</span> <span class="n">ga_model</span>
+
+
+<span class="n">ADDITIONAL_CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">ga_control</span><span class="o">.</span><span class="n">NmbSoils</span><span class="p">,)</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../ga_garto_submodel1.html#hydpy.models.ga_garto_submodel1.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">ga_model</span><span class="o">.</span><span class="n">Base_SoilModel_V1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|ga_garto_submodel1.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;GA-GARTO-Sub1&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">&quot;submodel for calculating the Green-Ampt / Talbot-Ogden infiltration with &quot;</span>
+            <span class="s2">&quot;redistribution&quot;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">INTERFACE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Set_InitialSurfaceWater_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Set_ActualSurfaceWater_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Set_SoilWaterSupply_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Set_SoilWaterDemand_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Execute_Infiltration_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Add_SoilWater_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Remove_SoilWater_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Get_Percolation_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Get_Infiltration_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Get_SoilWaterAddition_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Get_SoilWaterRemoval_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Get_SoilWaterContent_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Return_RelativeMoisture_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Return_Conductivity_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Return_CapillaryDrive_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Return_DryDepth_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Return_LastActiveBin_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Active_Bin_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Percolate_FilledBin_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Shift_Front_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Redistribute_Front_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Infiltrate_WettingFrontBins_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Merge_FrontDepthOvershootings_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Merge_SoilDepthOvershootings_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Water_AllBins_V1</span><span class="p">,</span>
+        <span class="n">ga_model</span><span class="o">.</span><span class="n">Withdraw_AllBins_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.ga_garto_submodel1</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+.. |IUH.update| replace:: :func:`~hydpy.auxs.iuhtools.IUH.update`
+.. |IUH| replace:: :class:`~hydpy.auxs.iuhtools.IUH`
+.. |LinearStorageCascade.c| replace:: :const:`~hydpy.auxs.iuhtools.LinearStorageCascade.c`
+.. |LinearStorageCascade.k| replace:: :const:`~hydpy.auxs.iuhtools.LinearStorageCascade.k`
+.. |LinearStorageCascade.log_c| replace:: :const:`~hydpy.auxs.iuhtools.LinearStorageCascade.log_c`
+.. |LinearStorageCascade.log_k| replace:: :const:`~hydpy.auxs.iuhtools.LinearStorageCascade.log_k`
+.. |LinearStorageCascade.n| replace:: :const:`~hydpy.auxs.iuhtools.LinearStorageCascade.n`
+.. |PrimaryParameterIUH| replace:: :class:`~hydpy.auxs.iuhtools.PrimaryParameterIUH`
+.. |SecondaryParameterIUH| replace:: :class:`~hydpy.auxs.iuhtools.SecondaryParameterIUH`
+.. |TranslationDiffusionEquation.a| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.a`
+.. |TranslationDiffusionEquation.b| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.b`
+.. |TranslationDiffusionEquation.d| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.d`
+.. |TranslationDiffusionEquation.u| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.u`
+.. |TranslationDiffusionEquation.x| replace:: :const:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation.x`
+.. |TranslationDiffusionEquation| replace:: :class:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation`
+.. |armatools| replace:: :mod:`~hydpy.auxs.armatools`
+.. |float| replace:: :class:`float`
+
+.. _iuhtools:
+
+iuhtools
+========
+
+.. automodule:: hydpy.auxs.iuhtools
+    :members:
+    :show-inheritance:
+    :exclude-members: Self, Reversible, Generic, Sized, Awaitable, IntVar, clear_overloads, TypeAlias, Sequence, Hashable, SUBMETHODS, SupportsAbs, AnyStr, assert_never, reveal_type, CLASSES, REQUIREDSEQUENCES, ItemsView, Union, SupportsFloat, get_overloads, get_origin, OUTLET_METHODS, NoReturn, no_type_check, Type, Final, PART_ODE_METHODS, RECEIVER_METHODS, Tuple, AbstractSet, ByteString, MappingView, subpars, MutableSequence, MutableSet, SupportsRound, CONTROLPARAMETERS, INLET_METHODS, get_protocol_members, SOLVERSEQUENCES, FrozenSet, no_type_check_decorator, fastaccess_old, Mapping, FIXEDPARAMETERS, seqs, KeysView, SUBMODELS, Protocol, SupportsComplex, SENDER_METHODS, ContextManager, deprecated, SupportsBytes, get_original_bases, Iterator, is_protocol, TypeGuard, DefaultDict, LiteralString, Required, TextIO, TYPE_CHECKING, AsyncContextManager, fastaccess_new, FULL_ODE_METHODS, SOLVERPARAMETERS, BinaryIO, fastaccess, runtime, IO, Text, TypeVarTuple, ValuesView, AsyncIterable, Generator, Optional, assert_type, Literal, dataclass_transform, subvars, pars, get_args, ParamSpec, Annotated, cast, final, subseqs, ClassVar, Any, Unpack, Coroutine, is_typeddict, Counter, UPDATEDSEQUENCES, Callable, Dict, NamedTuple, overload, OrderedDict, Set, ADD_METHODS, Collection, Pattern, List, get_type_hints, Concatenate, ParamSpecKwargs, DERIVEDPARAMETERS, AsyncGenerator, override, Container, RUN_METHODS, NotRequired, NewType, RESULTSEQUENCES, SupportsInt, Buffer, Iterable, TypeVar, SupportsIndex, MutableMapping, ChainMap, ForwardRef, TypeAliasType, AsyncIterator, Never, ParamSpecArgs, Match, Deque, TypedDict, runtime_checkable

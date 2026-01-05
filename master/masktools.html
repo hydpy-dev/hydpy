@@ -1,0 +1,572 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>masktools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="modeltools" href="modeltools.html" />
+    <link rel="prev" title="itemtools" href="itemtools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modeltools.html" title="modeltools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="itemtools.html" title="itemtools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">masktools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">masktools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.masktools.BaseMask"><code class="docutils literal notranslate"><span class="pre">BaseMask</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.BaseMask.name"><code class="docutils literal notranslate"><span class="pre">BaseMask.name</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.BaseMask.array2mask"><code class="docutils literal notranslate"><span class="pre">BaseMask.array2mask()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.masktools.CustomMask"><code class="docutils literal notranslate"><span class="pre">CustomMask</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.CustomMask.name"><code class="docutils literal notranslate"><span class="pre">CustomMask.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.masktools.DefaultMask"><code class="docutils literal notranslate"><span class="pre">DefaultMask</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.DefaultMask.variable"><code class="docutils literal notranslate"><span class="pre">DefaultMask.variable</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.DefaultMask.new"><code class="docutils literal notranslate"><span class="pre">DefaultMask.new()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.DefaultMask.name"><code class="docutils literal notranslate"><span class="pre">DefaultMask.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.masktools.IndexMask"><code class="docutils literal notranslate"><span class="pre">IndexMask</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.IndexMask.relevant"><code class="docutils literal notranslate"><span class="pre">IndexMask.relevant</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.IndexMask.variable"><code class="docutils literal notranslate"><span class="pre">IndexMask.variable</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.IndexMask.new"><code class="docutils literal notranslate"><span class="pre">IndexMask.new()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.IndexMask.get_refindices"><code class="docutils literal notranslate"><span class="pre">IndexMask.get_refindices()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.IndexMask.refindices"><code class="docutils literal notranslate"><span class="pre">IndexMask.refindices</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.IndexMask.get_refinement"><code class="docutils literal notranslate"><span class="pre">IndexMask.get_refinement()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.IndexMask.refinement"><code class="docutils literal notranslate"><span class="pre">IndexMask.refinement</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.IndexMask.narrow_relevant"><code class="docutils literal notranslate"><span class="pre">IndexMask.narrow_relevant()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.IndexMask.name"><code class="docutils literal notranslate"><span class="pre">IndexMask.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.masktools.SubmodelIndexMask"><code class="docutils literal notranslate"><span class="pre">SubmodelIndexMask</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.SubmodelIndexMask.get_refindices"><code class="docutils literal notranslate"><span class="pre">SubmodelIndexMask.get_refindices()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.SubmodelIndexMask.name"><code class="docutils literal notranslate"><span class="pre">SubmodelIndexMask.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.masktools.Masks"><code class="docutils literal notranslate"><span class="pre">Masks</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.masktools.Masks.name"><code class="docutils literal notranslate"><span class="pre">Masks.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.masktools.NodeMasks"><code class="docutils literal notranslate"><span class="pre">NodeMasks</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="threadingtools.html">threadingtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="itemtools.html"
+                          title="previous chapter">itemtools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="modeltools.html"
+                          title="next chapter">modeltools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/masktools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/masktools.html">6</a></li>
+<li><a href="../5.0/masktools.html">5.0</a></li>
+<li><a href="../4.0/masktools.html">4.0</a></li>
+<li><a href="../master/masktools.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="masktools">
+<span id="id1"></span><h1>masktools<a class="headerlink" href="#masktools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.core.masktools">This module implements masking features to define which entries of <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> or
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a> arrays are relevant and which are not.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.masktools" title="hydpy.core.masktools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">masktools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.masktools.BaseMask" title="hydpy.core.masktools.BaseMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMask</span></code></a> Base class for defining <a class="reference internal" href="#hydpy.core.masktools.CustomMask" title="hydpy.core.masktools.CustomMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">CustomMask</span></code></a> and <a class="reference internal" href="#hydpy.core.masktools.DefaultMask" title="hydpy.core.masktools.DefaultMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultMask</span></code></a> classes.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.masktools.CustomMask" title="hydpy.core.masktools.CustomMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">CustomMask</span></code></a> Mask that awaits one sets all <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> values manually.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.masktools.DefaultMask" title="hydpy.core.masktools.DefaultMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultMask</span></code></a> A mask with all entries being <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> of the same shape as its master <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> object.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.masktools.IndexMask" title="hydpy.core.masktools.IndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexMask</span></code></a> A mask that depends on a referenced index parameter.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.masktools.SubmodelIndexMask" title="hydpy.core.masktools.SubmodelIndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelIndexMask</span></code></a> A mask that depends on a referenced index parameter of another model.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.masktools.Masks" title="hydpy.core.masktools.Masks"><code class="xref py py-class docutils literal notranslate"><span class="pre">Masks</span></code></a> Base class for handling groups of masks.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.masktools.NodeMasks" title="hydpy.core.masktools.NodeMasks"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeMasks</span></code></a> <a class="reference internal" href="#hydpy.core.masktools.Masks" title="hydpy.core.masktools.Masks"><code class="xref py py-class docutils literal notranslate"><span class="pre">Masks</span></code></a> subclass for class <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a>.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.masktools.BaseMask">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.masktools.</span></span><span class="sig-name descname"><span class="pre">BaseMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/masktools.html#BaseMask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.BaseMask" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Any</span></code></a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dtype</span></code></a>[<a class="reference external" href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.bool" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]]</p>
+<p>Base class for defining <a class="reference internal" href="#hydpy.core.masktools.CustomMask" title="hydpy.core.masktools.CustomMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">CustomMask</span></code></a> and <a class="reference internal" href="#hydpy.core.masktools.DefaultMask" title="hydpy.core.masktools.DefaultMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultMask</span></code></a> classes.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.masktools.BaseMask.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#hydpy.core.masktools.BaseMask.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.masktools.BaseMask.array2mask">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">array2mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Self" title="(in Python v3.14)"><span class="pre">Self</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/masktools.html#BaseMask.array2mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.BaseMask.array2mask" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new mask object based on the given <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> and return it.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.masktools.CustomMask">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.masktools.</span></span><span class="sig-name descname"><span class="pre">CustomMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/masktools.html#CustomMask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.CustomMask" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.masktools.BaseMask" title="hydpy.core.masktools.BaseMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMask</span></code></a></p>
+<p>Mask that awaits one sets all <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> values manually.</p>
+<p>Class <a class="reference internal" href="#hydpy.core.masktools.CustomMask" title="hydpy.core.masktools.CustomMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">CustomMask</span></code></a> is the most basic applicable mask and provides no special
+features except for allowing its <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> values to be defined manually.  Use it
+when you require a masking behaviour not captured by an available mask.</p>
+<p>Like the more advanced masks, <a class="reference internal" href="#hydpy.core.masktools.CustomMask" title="hydpy.core.masktools.CustomMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">CustomMask</span></code></a> can work via Python’s descriptor
+protocol, but it is primarily thought to be applied directly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.masktools</span><span class="w"> </span><span class="kn">import</span> <span class="n">CustomMask</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask1</span> <span class="o">=</span> <span class="n">CustomMask</span><span class="p">([[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+<span class="gp">... </span>                    <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>Note that calling any mask object (not only those of type <a class="reference internal" href="#hydpy.core.masktools.CustomMask" title="hydpy.core.masktools.CustomMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">CustomMask</span></code></a>) returns a
+new mask without changing the existing one.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mask2</span> <span class="o">=</span> <span class="n">mask1</span><span class="p">([[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+<span class="gp">... </span>               <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask1</span>
+<span class="go">CustomMask([[ True, False, False],</span>
+<span class="go">            [ True, False, False]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask2</span>
+<span class="go">CustomMask([[False,  True, False],</span>
+<span class="go">            [False,  True, False]])</span>
+</pre></div>
+</div>
+<p>All masks stem from <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a>.  Here are some useful examples of working with
+them:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mask3</span> <span class="o">=</span> <span class="n">mask1</span> <span class="o">+</span> <span class="n">mask2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask3</span>
+<span class="go">CustomMask([[ True,  True, False],</span>
+<span class="go">            [ True,  True, False]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask3</span> <span class="o">^</span> <span class="n">mask1</span>
+<span class="go">CustomMask([[False,  True, False],</span>
+<span class="go">            [False,  True, False]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">~</span><span class="n">mask3</span>
+<span class="go">CustomMask([[False, False,  True],</span>
+<span class="go">            [False, False,  True]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask1</span> <span class="o">&amp;</span> <span class="n">mask2</span>
+<span class="go">CustomMask([[False, False, False],</span>
+<span class="go">            [False, False, False]])</span>
+</pre></div>
+</div>
+<p>Use the <cite>in</cite> operator to check if a mask defines a subset of another:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mask1</span> <span class="ow">in</span> <span class="n">mask3</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask3</span> <span class="ow">in</span> <span class="n">mask1</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.masktools.CustomMask.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'custommask'</span></span><a class="headerlink" href="#hydpy.core.masktools.CustomMask.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.masktools.DefaultMask">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.masktools.</span></span><span class="sig-name descname"><span class="pre">DefaultMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/masktools.html#DefaultMask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.DefaultMask" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.masktools.BaseMask" title="hydpy.core.masktools.BaseMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseMask</span></code></a></p>
+<p>A mask with all entries being <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> of the same shape as its master <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a>
+object.</p>
+<p>See the documentation on class <a class="reference internal" href="#hydpy.core.masktools.CustomMask" title="hydpy.core.masktools.CustomMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">CustomMask</span></code></a> for the basic usage of class
+<a class="reference internal" href="#hydpy.core.masktools.DefaultMask" title="hydpy.core.masktools.DefaultMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultMask</span></code></a>.</p>
+<p>The following example shows how to apply <a class="reference internal" href="#hydpy.core.masktools.DefaultMask" title="hydpy.core.masktools.DefaultMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultMask</span></code></a> via Python’s descriptor
+protocol, which should be the common situation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.parametertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Parameter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.masktools</span><span class="w"> </span><span class="kn">import</span> <span class="n">DefaultMask</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Par1</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">defaultmask</span> <span class="o">=</span> <span class="n">DefaultMask</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Par1</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">defaultmask</span>
+<span class="go">DefaultMask([[ True,  True,  True],</span>
+<span class="go">             [ True,  True,  True]])</span>
+</pre></div>
+</div>
+<p>Alternatively, you can directly connect a <a class="reference internal" href="#hydpy.core.masktools.DefaultMask" title="hydpy.core.masktools.DefaultMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultMask</span></code></a> with a <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Par2</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span> <span class="o">=</span> <span class="n">DefaultMask</span><span class="p">(</span><span class="n">Par2</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mask</span>
+<span class="go">DefaultMask([ True,  True])</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.masktools.DefaultMask.variable">
+<span class="sig-name descname"><span class="pre">variable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#hydpy.core.masktools.DefaultMask.variable" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.masktools.DefaultMask.new">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="reference internal" href="_modules/hydpy/core/masktools.html#DefaultMask.new"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.DefaultMask.new" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new <a class="reference internal" href="#hydpy.core.masktools.DefaultMask" title="hydpy.core.masktools.DefaultMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultMask</span></code></a> object associated with the given <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a>
+object.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.masktools.DefaultMask.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'defaultmask'</span></span><a class="headerlink" href="#hydpy.core.masktools.DefaultMask.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.masktools.IndexMask">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.masktools.</span></span><span class="sig-name descname"><span class="pre">IndexMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/masktools.html#IndexMask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.IndexMask" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.masktools.DefaultMask" title="hydpy.core.masktools.DefaultMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultMask</span></code></a></p>
+<p>A mask that depends on a referenced index parameter.</p>
+<p><a class="reference internal" href="#hydpy.core.masktools.IndexMask" title="hydpy.core.masktools.IndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexMask</span></code></a> must be subclassed.  See the masks <a class="reference internal" href="hland.html#hydpy.models.hland.hland_masks.Complete" title="hydpy.models.hland.hland_masks.Complete"><code class="xref py py-class docutils literal notranslate"><span class="pre">Complete</span></code></a> and
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_masks.Soil" title="hydpy.models.hland.hland_masks.Soil"><code class="xref py py-class docutils literal notranslate"><span class="pre">Soil</span></code></a> of base model <a class="reference internal" href="hland.html#module-hydpy.models.hland" title="hydpy.models.hland"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland</span></code></a> for two concrete example classes, which
+are members of the parameter classes <a class="reference internal" href="hland.html#hydpy.models.hland.hland_parameters.ParameterComplete" title="hydpy.models.hland.hland_parameters.ParameterComplete"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterComplete</span></code></a> and
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_parameters.ParameterSoil" title="hydpy.models.hland.hland_parameters.ParameterSoil"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterSoil</span></code></a>.  The documentation on these parameter classes
+provides some application examples.  Further, see the documentation on class
+<a class="reference internal" href="#hydpy.core.masktools.CustomMask" title="hydpy.core.masktools.CustomMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">CustomMask</span></code></a> for the basic usage of class <a class="reference internal" href="#hydpy.core.masktools.DefaultMask" title="hydpy.core.masktools.DefaultMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultMask</span></code></a>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.masktools.IndexMask.relevant">
+<span class="sig-name descname"><span class="pre">relevant</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.core.masktools.IndexMask.relevant" title="Link to this definition">¶</a></dt>
+<dd><p>The integer values that are relevant to the referenced index parameter.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.masktools.IndexMask.variable">
+<span class="sig-name descname"><span class="pre">variable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a></span><a class="headerlink" href="#hydpy.core.masktools.IndexMask.variable" title="Link to this definition">¶</a></dt>
+<dd><p>The variable for which <a class="reference internal" href="#hydpy.core.masktools.IndexMask" title="hydpy.core.masktools.IndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexMask</span></code></a> determines the relevant entries.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.masktools.IndexMask.new">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="reference internal" href="_modules/hydpy/core/masktools.html#IndexMask.new"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.IndexMask.new" title="Link to this definition">¶</a></dt>
+<dd><p>Return a new <a class="reference internal" href="#hydpy.core.masktools.IndexMask" title="hydpy.core.masktools.IndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexMask</span></code></a> object of the same shape as the parameter
+referenced by <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> <a class="reference internal" href="#hydpy.core.masktools.IndexMask.refindices" title="hydpy.core.masktools.IndexMask.refindices"><code class="xref py py-const docutils literal notranslate"><span class="pre">refindices</span></code></a>.</p>
+<p>Entries are only <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> if the integer values of the respective entries of the
+referenced index parameter are members of the class attribute tuple
+<a class="reference internal" href="#hydpy.core.masktools.IndexMask.relevant" title="hydpy.core.masktools.IndexMask.relevant"><code class="xref py py-attr docutils literal notranslate"><span class="pre">relevant</span></code></a>.</p>
+<p>Before calling new (explicitly or implicitly), one must prepare the variable
+returned by property <a class="reference internal" href="#hydpy.core.masktools.IndexMask.refindices" title="hydpy.core.masktools.IndexMask.refindices"><code class="xref py py-const docutils literal notranslate"><span class="pre">refindices</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.hland</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sm</span><span class="o">.</span><span class="n">mask</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The mask of parameter `sm` of element `?` cannot be determined as long as parameter `zonetype` is not prepared properly.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbzones</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zonetype</span><span class="p">(</span><span class="n">FIELD</span><span class="p">,</span> <span class="n">FOREST</span><span class="p">,</span> <span class="n">ILAKE</span><span class="p">,</span> <span class="n">GLACIER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sm</span><span class="o">.</span><span class="n">mask</span>
+<span class="go">Soil([ True,  True, False, False])</span>
+</pre></div>
+</div>
+<p>If the shape of the <a class="reference internal" href="#hydpy.core.masktools.IndexMask.refindices" title="hydpy.core.masktools.IndexMask.refindices"><code class="xref py py-const docutils literal notranslate"><span class="pre">refindices</span></code></a> parameter is zero (which is not
+allowed for <a class="reference internal" href="hland.html#module-hydpy.models.hland" title="hydpy.models.hland"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland</span></code></a>), the returned mask is empty:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zonetype</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">sm</span><span class="o">.</span><span class="n">mask</span>
+<span class="go">Soil([])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.masktools.IndexMask.get_refindices">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_refindices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.NameParameter" title="hydpy.core.parametertools.NameParameter"><span class="pre">parametertools.NameParameter</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/masktools.html#IndexMask.get_refindices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.IndexMask.get_refindices" title="Link to this definition">¶</a></dt>
+<dd><p>Return the <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> object to determine which entries of <a class="reference internal" href="#hydpy.core.masktools.IndexMask" title="hydpy.core.masktools.IndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexMask</span></code></a>
+must be <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> and which <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>The given <cite>variable</cite> must be the concrete <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> object the <a class="reference internal" href="#hydpy.core.masktools.IndexMask" title="hydpy.core.masktools.IndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexMask</span></code></a> is
+responsible for.</p>
+<p>Needs to be overwritten by subclasses:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.parametertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Parameter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.masktools</span><span class="w"> </span><span class="kn">import</span> <span class="n">IndexMask</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Par</span><span class="p">(</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">mask</span> <span class="o">=</span> <span class="n">IndexMask</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Par</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">mask</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NotImplementedError</span>: <span class="n">Method `get_refindices` of class `IndexMask` must be overridden, which is not the case for class `IndexMask`.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.core.masktools.IndexMask.refindices">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">refindices</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.NameParameter" title="hydpy.core.parametertools.NameParameter"><span class="pre">NameParameter</span></a></span><a class="headerlink" href="#hydpy.core.masktools.IndexMask.refindices" title="Link to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> object for determining which entries of <a class="reference internal" href="#hydpy.core.masktools.IndexMask" title="hydpy.core.masktools.IndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexMask</span></code></a> are <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code>
+and which <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.masktools.IndexMask.get_refinement">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_refinement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/masktools.html#IndexMask.get_refinement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.IndexMask.get_refinement" title="Link to this definition">¶</a></dt>
+<dd><p>If available, return a boolean variable for selecting only the relevant
+entries of the considered variable.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.core.masktools.IndexMask.refinement">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">refinement</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#hydpy.core.masktools.IndexMask.refinement" title="Link to this definition">¶</a></dt>
+<dd><p>If available, a boolean variable for selecting only the relevant entries of
+the considered variable.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.masktools.IndexMask.narrow_relevant">
+<span class="sig-name descname"><span class="pre">narrow_relevant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relevant</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.14)"><span class="pre">set</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/core/masktools.html#IndexMask.narrow_relevant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.IndexMask.narrow_relevant" title="Link to this definition">¶</a></dt>
+<dd><p>Return a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a> of all currently relevant constants.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.masktools.IndexMask.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'indexmask'</span></span><a class="headerlink" href="#hydpy.core.masktools.IndexMask.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.masktools.SubmodelIndexMask">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.masktools.</span></span><span class="sig-name descname"><span class="pre">SubmodelIndexMask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/masktools.html#SubmodelIndexMask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.SubmodelIndexMask" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.masktools.IndexMask" title="hydpy.core.masktools.IndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexMask</span></code></a></p>
+<p>A mask that depends on a referenced index parameter of another model.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.masktools.SubmodelIndexMask.get_refindices">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_refindices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable" title="hydpy.core.variabletools.Variable"><span class="pre">variabletools.Variable</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.NameParameter" title="hydpy.core.parametertools.NameParameter"><span class="pre">parametertools.NameParameter</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/masktools.html#SubmodelIndexMask.get_refindices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.SubmodelIndexMask.get_refindices" title="Link to this definition">¶</a></dt>
+<dd><p>Return the <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> object to determine which entries of
+<a class="reference internal" href="#hydpy.core.masktools.SubmodelIndexMask" title="hydpy.core.masktools.SubmodelIndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelIndexMask</span></code></a> must be <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> and which <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p><a class="reference internal" href="#hydpy.core.masktools.SubmodelIndexMask" title="hydpy.core.masktools.SubmodelIndexMask"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelIndexMask</span></code></a> works only for given <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.ZipParameter" title="hydpy.core.parametertools.ZipParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZipParameter</span></code></a> instances and tries to
+return the currently handled <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.ZipParameter.refindices" title="hydpy.core.parametertools.ZipParameter.refindices"><code class="xref py py-attr docutils literal notranslate"><span class="pre">refindices</span></code></a> parameter instance.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.masktools.SubmodelIndexMask.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'submodelindexmask'</span></span><a class="headerlink" href="#hydpy.core.masktools.SubmodelIndexMask.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.masktools.Masks">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.masktools.</span></span><span class="sig-name descname"><span class="pre">Masks</span></span><a class="reference internal" href="_modules/hydpy/core/masktools.html#Masks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.Masks" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for handling groups of masks.</p>
+<p><a class="reference internal" href="#hydpy.core.masktools.Masks" title="hydpy.core.masktools.Masks"><code class="xref py py-class docutils literal notranslate"><span class="pre">Masks</span></code></a> subclasses are basically just containers, which are defined similar as
+<a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a> and <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.SubSequences" title="hydpy.core.sequencetools.SubSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubSequences</span></code></a> subclasses:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.masktools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Masks</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.masktools</span><span class="w"> </span><span class="kn">import</span> <span class="n">IndexMask</span><span class="p">,</span> <span class="n">DefaultMask</span><span class="p">,</span> <span class="n">CustomMask</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Masks</span><span class="p">(</span><span class="n">Masks</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">CLASSES</span> <span class="o">=</span> <span class="p">(</span><span class="n">IndexMask</span><span class="p">,</span> <span class="n">DefaultMask</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks</span> <span class="o">=</span> <span class="n">Masks</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The contained mask classes are available via attribute access in lower case letters:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">masks</span>
+<span class="go">indexmask of module hydpy.core.masktools</span>
+<span class="go">defaultmask of module hydpy.core.masktools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks</span><span class="o">.</span><span class="n">indexmask</span> <span class="ow">is</span> <span class="n">IndexMask</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s2">&quot;indexmask&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">masks</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>The <cite>in</cite> operator is supported:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">IndexMask</span> <span class="ow">in</span> <span class="n">masks</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">CustomMask</span> <span class="ow">in</span> <span class="n">masks</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="s2">&quot;mask&quot;</span> <span class="ow">in</span> <span class="n">masks</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">The given value `mask` of type `str` is neither a Mask class nor a Mask instance.</span>
+</pre></div>
+</div>
+<p>Using item access, strings (in whatever case), mask classes, and mask objects are
+accepted:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">masks</span><span class="p">[</span><span class="s2">&quot;IndexMask&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="n">IndexMask</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks</span><span class="p">[</span><span class="s2">&quot;indexmask&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="n">IndexMask</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks</span><span class="p">[</span><span class="n">IndexMask</span><span class="p">]</span> <span class="ow">is</span> <span class="n">IndexMask</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks</span><span class="p">[</span><span class="n">CustomMask</span><span class="p">()]</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to retrieve a mask based on key `CustomMask([])`, the following error occurred: The key does not define an available mask.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks</span><span class="p">[</span><span class="s2">&quot;test&quot;</span><span class="p">]</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to retrieve a mask based on key `&#39;test&#39;`, the following error occurred: The key does not define an available mask.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">masks</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">While trying to retrieve a mask based on key `1`, the following error occurred: The given key is neither a `string` a `mask` type.</span>
+</pre></div>
+</div>
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.core.masktools.Masks.name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'masks'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.core.masktools.Masks.name" title="Link to this definition">¶</a></dt>
+<dd><p><cite>masks</cite></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.masktools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Masks</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Masks</span><span class="p">()</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;masks&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.masktools.NodeMasks">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.masktools.</span></span><span class="sig-name descname"><span class="pre">NodeMasks</span></span><a class="reference internal" href="_modules/hydpy/core/masktools.html#NodeMasks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.masktools.NodeMasks" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.masktools.Masks" title="hydpy.core.masktools.Masks"><code class="xref py py-class docutils literal notranslate"><span class="pre">Masks</span></code></a></p>
+<p><a class="reference internal" href="#hydpy.core.masktools.Masks" title="hydpy.core.masktools.Masks"><code class="xref py py-class docutils literal notranslate"><span class="pre">Masks</span></code></a> subclass for class <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a>.</p>
+<p>At the moment, the purpose of class <a class="reference internal" href="#hydpy.core.masktools.NodeMasks" title="hydpy.core.masktools.NodeMasks"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeMasks</span></code></a> is to make the implementation of
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelSequence</span></code></a> and <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence" title="hydpy.core.sequencetools.NodeSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeSequence</span></code></a> more similar.  It will become relevant for
+applications as soon as we support 1-dimensional node sequences.</p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="modeltools.html" title="modeltools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="itemtools.html" title="itemtools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">masktools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

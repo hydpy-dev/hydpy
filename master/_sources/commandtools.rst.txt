@@ -1,0 +1,27 @@
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |False| replace:: :const:`False`
+.. |LogFileInterface| replace:: :class:`~hydpy.exe.commandtools.LogFileInterface`
+.. |Nodes| replace:: :class:`~hydpy.core.devicetools.Nodes`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |True| replace:: :const:`True`
+.. |exec_commands| replace:: :func:`~hydpy.exe.commandtools.exec_commands`
+.. |exec_script| replace:: :func:`~hydpy.exe.commandtools.exec_script`
+.. |execute_scriptfunction| replace:: :func:`~hydpy.exe.commandtools.execute_scriptfunction`
+.. |hyd| replace:: :mod:`~hydpy.exe.hyd`
+.. |parse_argument| replace:: :func:`~hydpy.exe.commandtools.parse_argument`
+.. |prepare_logfile| replace:: :func:`~hydpy.exe.commandtools.prepare_logfile`
+.. |print_latest_logfile| replace:: :func:`~hydpy.exe.commandtools.print_latest_logfile`
+.. |run_doctests| replace:: :func:`~hydpy.exe.commandtools.run_doctests`
+.. |run_simulation| replace:: :func:`~hydpy.exe.xmltools.run_simulation`
+.. |run_subprocess| replace:: :func:`~hydpy.exe.commandtools.run_subprocess`
+.. |tuple| replace:: :class:`tuple`
+
+.. _commandtools:
+
+commandtools
+============
+
+.. automodule:: hydpy.exe.commandtools
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, MutableSequence, KeysView, SENDER_METHODS, Set, Mapping, TextIO, Container, Tuple, Optional, ValuesView, no_type_check, clear_overloads, TypeForm, LiteralString, subvars, get_original_bases, seqs, REQUIREDSEQUENCES, ADD_METHODS, SOLVERSEQUENCES, overload, type_repr, Sentinel, SUBMETHODS, SupportsBytes, NoReturn, UPDATEDSEQUENCES, SupportsIndex, Generic, Protocol, MutableSet, disjoint_base, Coroutine, fastaccess_new, DERIVEDPARAMETERS, SUBMODELINTERFACES, NoExtraItems, Format, CLASSES, Required, final, Unpack, Text, INLET_METHODS, fastaccess_old, ClassVar, ContextManager, Final, cast, Annotated, Callable, override, ParamSpecKwargs, Sized, List, Generator, SupportsAbs, Concatenate, fastaccess, TypeAlias, FULL_ODE_METHODS, FIXEDPARAMETERS, Reader, RECEIVER_METHODS, TypeVarTuple, CapsuleType, SupportsRound, Collection, SUBMODELS, DefaultDict, ParamSpec, Deque, NewType, SupportsFloat, Writer, PART_ODE_METHODS, TypeVar, Sequence, Awaitable, runtime_checkable, TypeGuard, assert_never, MappingView, RESULTSEQUENCES, runtime, get_annotations, pars, BinaryIO, OUTLET_METHODS, NoDefault, Literal, ItemsView, dataclass_transform, AnyStr, INTERFACE_METHODS, evaluate_forward_ref, OrderedDict, AsyncIterable, Doc, get_args, get_type_hints, NotRequired, Iterator, SupportsComplex, RUN_METHODS, Counter, ByteString, SupportsInt, Buffer, TypeAliasType, Union, Pattern, Never, Self, AbstractSet, CONTROLPARAMETERS, get_protocol_members, AsyncIterator, ForwardRef, Dict, TypeIs, FrozenSet, get_origin, IntVar, NamedTuple, get_overloads, subpars, AsyncContextManager, ReadOnly, Iterable, Hashable, SOLVERPARAMETERS, TypedDict, Type, Reversible, subseqs, Match, AsyncGenerator, IO, TYPE_CHECKING, is_protocol, MutableMapping, assert_type, ChainMap, Any, is_typeddict, no_type_check_decorator, reveal_type, ParamSpecArgs

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.whmod.whmod_sequences &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_sequences</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.whmod.whmod_sequences</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequencetools</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod</span><span class="w"> </span><span class="kn">import</span> <span class="n">whmod_masks</span>
+
+
+<div class="viewcode-block" id="Mixin1DSequence">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_sequences.Mixin1DSequence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Mixin1DSequence</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">Sequence_</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mixin class for all 1-dimensional sequences.&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reference to the associated instance of |ZoneRatio| for calculating areal</span>
+<span class="sd">        mean values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subseqs</span><span class="o">.</span><span class="n">seqs</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">zoneratio</span></div>
+
+
+
+<div class="viewcode-block" id="Factor1DSoilSequence">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_sequences.Factor1DSoilSequence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Factor1DSoilSequence</span><span class="p">(</span><span class="n">Mixin1DSequence</span><span class="p">,</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional factors sequences relevant to all soil zones.</span>
+
+<span class="sd">    We take class |RelativeSoilMoisture| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)</span>
+<span class="sd">    &gt;&gt;&gt; area(sum(zonearea))</span>
+<span class="sd">    &gt;&gt;&gt; derived.zoneratio.update()</span>
+<span class="sd">    &gt;&gt;&gt; factors.relativesoilmoisture = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, nan</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(factors.relativesoilmoisture.average_values())</span>
+<span class="sd">    1.928571</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeSoil</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Flux1DCompleteSequence">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_sequences.Flux1DCompleteSequence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Flux1DCompleteSequence</span><span class="p">(</span><span class="n">Mixin1DSequence</span><span class="p">,</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional flux sequences relevant to all zones.</span>
+
+<span class="sd">    We take class |TotalEvapotranspiration| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)</span>
+<span class="sd">    &gt;&gt;&gt; area(sum(zonearea))</span>
+<span class="sd">    &gt;&gt;&gt; derived.zoneratio.update()</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.totalevapotranspiration = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, 0.0, 5.0</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(fluxes.totalevapotranspiration.average_values())</span>
+<span class="sd">    2.2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeComplete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="FluxSequence1DWaterSequence">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_sequences.FluxSequence1DWaterSequence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FluxSequence1DWaterSequence</span><span class="p">(</span><span class="n">Mixin1DSequence</span><span class="p">,</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional flux sequences relevant to all water zones.</span>
+
+<span class="sd">    We take class |LakeEvaporation| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(10)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 27.0)</span>
+<span class="sd">    &gt;&gt;&gt; area(sum(zonearea))</span>
+<span class="sd">    &gt;&gt;&gt; derived.zoneratio.update()</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.lakeevaporation = nan, nan, nan, nan, nan, nan, nan, nan, 2.0, 4.0</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(fluxes.lakeevaporation.average_values())</span>
+<span class="sd">    3.5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeWater</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Flux1DNonWaterSequence">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_sequences.Flux1DNonWaterSequence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Flux1DNonWaterSequence</span><span class="p">(</span><span class="n">Mixin1DSequence</span><span class="p">,</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional flux sequences relevant to all land zones.</span>
+
+<span class="sd">    We take class |Throughfall| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)</span>
+<span class="sd">    &gt;&gt;&gt; area(sum(zonearea))</span>
+<span class="sd">    &gt;&gt;&gt; derived.zoneratio.update()</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.throughfall = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, 0.0, nan</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(fluxes.throughfall.average_values())</span>
+<span class="sd">    1.5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeNonWater</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Flux1DSoilSequence">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_sequences.Flux1DSoilSequence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Flux1DSoilSequence</span><span class="p">(</span><span class="n">Mixin1DSequence</span><span class="p">,</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional flux sequences relevant to all soil zones.</span>
+
+<span class="sd">    We take class |Percolation| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)</span>
+<span class="sd">    &gt;&gt;&gt; area(sum(zonearea))</span>
+<span class="sd">    &gt;&gt;&gt; derived.zoneratio.update()</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.percolation = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, nan</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(fluxes.percolation.average_values())</span>
+<span class="sd">    1.928571</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeSoil</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Flux1DGroundwaterSequence">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_sequences.Flux1DGroundwaterSequence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Flux1DGroundwaterSequence</span><span class="p">(</span><span class="n">Mixin1DSequence</span><span class="p">,</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional flux sequences relevant to all groundwater zones.</span>
+
+<span class="sd">    We take class |Baseflow| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)</span>
+<span class="sd">    &gt;&gt;&gt; area(sum(zonearea))</span>
+<span class="sd">    &gt;&gt;&gt; derived.zoneratio.update()</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.baseflow = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, 5.0</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(fluxes.baseflow.average_values())</span>
+<span class="sd">    2.675676</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeGroundwater</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="State1DNonWaterSequence">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_sequences.State1DNonWaterSequence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">State1DNonWaterSequence</span><span class="p">(</span><span class="n">Mixin1DSequence</span><span class="p">,</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">StateSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional state sequences relevant to all land zones.</span>
+
+<span class="sd">    We take class |InterceptedWater| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)</span>
+<span class="sd">    &gt;&gt;&gt; area(sum(zonearea))</span>
+<span class="sd">    &gt;&gt;&gt; derived.zoneratio.update()</span>
+<span class="sd">    &gt;&gt;&gt; states.interceptedwater = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, 0.0, nan</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(states.interceptedwater.average_values())</span>
+<span class="sd">    1.5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeNonWater</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="State1DSoilSequence">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_sequences.State1DSoilSequence">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">State1DSoilSequence</span><span class="p">(</span><span class="n">Mixin1DSequence</span><span class="p">,</span> <span class="n">sequencetools</span><span class="o">.</span><span class="n">StateSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional state sequences relevant to all soil zones.</span>
+
+<span class="sd">    We take class |SoilMoisture| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)</span>
+<span class="sd">    &gt;&gt;&gt; area(sum(zonearea))</span>
+<span class="sd">    &gt;&gt;&gt; derived.zoneratio.update()</span>
+<span class="sd">    &gt;&gt;&gt; states.soilmoisture = 1.0, 3.0, 1.5, 3.5, 2.0, 2.5, 0.5, nan, nan</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(states.soilmoisture.average_values())</span>
+<span class="sd">    1.928571</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeSoil</span><span class="p">()</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_sequences</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

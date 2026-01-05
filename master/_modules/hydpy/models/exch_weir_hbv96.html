@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.exch_weir_hbv96 &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch_weir_hbv96</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.exch_weir_hbv96</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. _`German Federal Institute of Hydrology (BfG)`: https://www.bafg.de/EN</span>
+
+<span class="sd">|exch_weir_hbv96| implements the general weir formula.  We implemented it on behalf of</span>
+<span class="sd">the `German Federal Institute of Hydrology (BfG)`_ to connect different |dam_llake|</span>
+<span class="sd">instances (lake models), enabling them to exchange water in both directions based on</span>
+<span class="sd">water level differences.  This specific combination models some huge, connected</span>
+<span class="sd">(sub)lakes of the Rhine basin similar to HBV96 :cite:p:`ref-Lindstrom1997HBV96`.</span>
+<span class="sd">Combinations with other models providing (something like) water level information and</span>
+<span class="sd">allowing for an additional inflow that can be positive and negative are possible.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We perform all integration tests over a month with a simulation step of one day:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Element, FusedVariable, Nodes, PPoly, prepare_model, pub</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-02-01&quot;, &quot;1d&quot;</span>
+
+<span class="sd">The following examples demonstrate how |exch_weir_hbv96| interacts with lake models</span>
+<span class="sd">like |dam_llake|.  Therefore, we must set up one |exch_weir_hbv96| instance and two</span>
+<span class="sd">|dam_llake| instances.</span>
+
+<span class="sd">First, we define the eight required |Node| objects:</span>
+
+<span class="sd"> * `inflow1` and `inflow2` pass the inflow into the first and the second lake.</span>
+<span class="sd"> * `outflow1` and `outflow2` receive the lakes&#39; outflows.</span>
+<span class="sd"> * `overflow1` and `overflow2` exchange water between the lakes.</span>
+<span class="sd"> * `waterlevel1` and `waterlevel2` inform the exchange model about the lakes&#39; current</span>
+<span class="sd">   water levels.</span>
+
+<span class="sd">We define the |Node.variable| type of all nodes explicitly.  For the inflow and outflow</span>
+<span class="sd">nodes, we stick to the default by using the string literal &quot;Q&quot;, telling |dam_llake| to</span>
+<span class="sd">connect these nodes to the inlet sequence |dam_inlets.Q| and outlet sequence</span>
+<span class="sd">|dam_outlets.Q|, respectively:</span>
+
+<span class="sd">&gt;&gt;&gt; inflow1, inflow2  = Nodes(&quot;inflow1&quot;, &quot;inflow2&quot;, defaultvariable=&quot;Q&quot;)</span>
+<span class="sd">&gt;&gt;&gt; outflow1, outflow2  = Nodes(&quot;outflow1&quot;, &quot;outflow2&quot;, defaultvariable=&quot;Q&quot;)</span>
+
+<span class="sd">The overflow nodes do not connect both lakes directly but the lakes with the exchange</span>
+<span class="sd">model. Therefore, we define a |FusedVariable| that combines the aliases of the outlet</span>
+<span class="sd">sequence |exch_outlets.Exchange| of |exch_weir_hbv96| and the inlet sequence</span>
+<span class="sd">|dam_inlets.E| of |dam_llake|:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.aliases import exch_outlets_Exchange, dam_inlets_E</span>
+<span class="sd">&gt;&gt;&gt; Exchange = FusedVariable(&quot;Exchange&quot;, exch_outlets_Exchange, dam_inlets_E)</span>
+<span class="sd">&gt;&gt;&gt; overflow1, overflow2 = Nodes(&quot;overflow1&quot;, &quot;overflow2&quot;, defaultvariable=Exchange)</span>
+
+<span class="sd">Next, we define a |FusedVariable| that combines the aliases of the receiver sequence</span>
+<span class="sd">|exch_receivers.WaterLevels| of |exch_weir_hbv96| and the output sequence</span>
+<span class="sd">|dam_factors.WaterLevel| of |dam_llake|:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.aliases import exch_receivers_WaterLevels, dam_factors_WaterLevel</span>
+<span class="sd">&gt;&gt;&gt; WaterLevel = FusedVariable(&quot;WaterLevel&quot;, exch_receivers_WaterLevels, dam_factors_WaterLevel)</span>
+<span class="sd">&gt;&gt;&gt; waterlevel1, waterlevel2 = Nodes(&quot;waterlevel1&quot;, &quot;waterlevel2&quot;, defaultvariable=WaterLevel)</span>
+
+<span class="sd">Now, we prepare the two |Element| objects holding the |dam_llake| instances.  The</span>
+<span class="sd">configuration is similar to the one in the documentation on |dam_llake|, except in</span>
+<span class="sd">connecting `waterlevel1` and `waterlevel2` as additional output nodes:</span>
+
+<span class="sd">&gt;&gt;&gt; lake1 = Element(&quot;lake1&quot;,</span>
+<span class="sd">...                 inlets=(inflow1, overflow1),</span>
+<span class="sd">...                 outlets=outflow1,</span>
+<span class="sd">...                 outputs=waterlevel1)</span>
+<span class="sd">&gt;&gt;&gt; lake2 = Element(&quot;lake2&quot;,</span>
+<span class="sd">...                 inlets=(inflow2, overflow2),</span>
+<span class="sd">...                 outlets=outflow2,</span>
+<span class="sd">...                 outputs=waterlevel2)</span>
+
+<span class="sd">From the perspective of the exchange element, `waterlevel1` and `waterlevel2` are</span>
+<span class="sd">receiver nodes, while `overflow1` and `overflow2` are outlet nodes.  At the beginning</span>
+<span class="sd">of each simulation step, |exch_weir_hbv96| receives water level information from both</span>
+<span class="sd">lakes.  Then, it calculates the correct exchange and sends it to both lakes via the</span>
+<span class="sd">overflow nodes, but with different signs.  If the first lake&#39;s water level is higher,</span>
+<span class="sd">it passes a negative value to `overflow1` (the first lake loses water) and a positive</span>
+<span class="sd">value to `overflow2` (the second lake gains water), and vice versa:</span>
+
+<span class="sd">&gt;&gt;&gt; exchange = Element(&quot;exchange&quot;,</span>
+<span class="sd">...                    receivers=(waterlevel1, waterlevel2),</span>
+<span class="sd">...                    outlets=(overflow1, overflow2))</span>
+
+<span class="sd">In our test configuration, the nodes&#39; names and the order in which we pass them to the</span>
+<span class="sd">constructor of class |Element| agree with the nodes&#39; target lakes.  This practice seems</span>
+<span class="sd">advisable for keeping clarity, but it is not a technical requirement.  The</span>
+<span class="sd">documentation on class |exch_weir_hbv96.Model| explains the internal sorting mechanisms</span>
+<span class="sd">and plausibility checks underlying the connection-related functionalities of</span>
+<span class="sd">|exch_weir_hbv96|.</span>
+
+<span class="sd">We parameterise both lake models identically. All of the following values stem from the</span>
+<span class="sd">documentation on |dam_llake|.  We will use them in all examples:</span>
+
+<span class="sd">&gt;&gt;&gt; lake1.model = prepare_model(&quot;dam_llake&quot;)</span>
+<span class="sd">&gt;&gt;&gt; lake2.model = prepare_model(&quot;dam_llake&quot;)</span>
+<span class="sd">&gt;&gt;&gt; from numpy import inf</span>
+<span class="sd">&gt;&gt;&gt; for model_ in (lake1.model, lake2.model):</span>
+<span class="sd">...     control = model_.parameters.control</span>
+<span class="sd">...     control.catchmentarea(86.4)</span>
+<span class="sd">...     control.surfacearea(1.44)</span>
+<span class="sd">...     control.correctionprecipitation(1.2)</span>
+<span class="sd">...     control.correctionevaporation(1.2)</span>
+<span class="sd">...     control.weightevaporation(0.8)</span>
+<span class="sd">...     control.thresholdevaporation(0.0)</span>
+<span class="sd">...     control.dischargetolerance(0.1)</span>
+<span class="sd">...     control.toleranceevaporation(0.001)</span>
+<span class="sd">...     control.allowedwaterleveldrop(inf)</span>
+<span class="sd">...     control.watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))</span>
+<span class="sd">...     control.commission(0)</span>
+<span class="sd">...     control.pars.update()</span>
+
+<span class="sd">Now, we prepare the exchange model.  We will use common values for the flow coefficient</span>
+<span class="sd">and exponent throughout the following examples:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.exch_weir_hbv96 import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">&gt;&gt;&gt; flowcoefficient(0.62)</span>
+<span class="sd">&gt;&gt;&gt; flowexponent(1.5)</span>
+<span class="sd">&gt;&gt;&gt; exchange.model = model</span>
+
+<span class="sd">An |IntegrationTest| object will help us to perform the individual examples:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(exchange)</span>
+<span class="sd">&gt;&gt;&gt; test.plotting_options.axis1 = (factors.waterlevels,)</span>
+<span class="sd">&gt;&gt;&gt; test.plotting_options.axis2 = (fluxes.potentialexchange, fluxes.actualexchange)</span>
+
+<span class="sd">We set both lakes&#39; inflow to zero for simplicity:</span>
+
+<span class="sd">&gt;&gt;&gt; inflow1.sequences.sim.series = 0.0</span>
+<span class="sd">&gt;&gt;&gt; inflow2.sequences.sim.series = 0.0</span>
+
+<span class="sd">The only difference between both lakes is their initial state.  The first lake starts</span>
+<span class="sd">empty, and the second starts with a water volume of 1 million m³.  Note that</span>
+<span class="sd">|exch_weir_hbv96| requires the same information.  We must give it to the log sequence</span>
+<span class="sd">|LoggedWaterLevels|:</span>
+
+<span class="sd">&gt;&gt;&gt; test.inits = [(lake1.model.sequences.states.watervolume, 0.0),</span>
+<span class="sd">...               (lake1.model.sequences.logs.loggedadjustedevaporation, 0.0),</span>
+<span class="sd">...               (lake2.model.sequences.states.watervolume, 1.0),</span>
+<span class="sd">...               (lake2.model.sequences.logs.loggedadjustedevaporation, 0.0),</span>
+<span class="sd">...               (logs.loggedwaterlevels, (0.0, 1.0))]</span>
+
+<span class="sd">.. _exch_weir_hbv96_base_scenario:</span>
+
+<span class="sd">base scenario</span>
+<span class="sd">_____________</span>
+
+<span class="sd">Our base scenario defines a small crest width of 0.2 meters, enabling only limited</span>
+<span class="sd">water exchange:</span>
+
+<span class="sd">&gt;&gt;&gt; crestwidth(0.2)</span>
+
+<span class="sd">The crest height of 0.0 m and the allowed exchange of 5.0 m³/s are so low and high,</span>
+<span class="sd">respectively, that they do not affect the following results:</span>
+
+<span class="sd">&gt;&gt;&gt; crestheight(0.0)</span>
+<span class="sd">&gt;&gt;&gt; allowedexchange(5.0)</span>
+
+<span class="sd">We define a linear relationship between the water level and the outflow for both lakes:</span>
+
+<span class="sd">&gt;&gt;&gt; for model_ in (lake1.model, lake2.model):</span>
+<span class="sd">...     model_.parameters.control.waterlevel2flooddischarge(</span>
+<span class="sd">...         PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 2.0]))</span>
+
+<span class="sd">The following results show that the first lake&#39;s water level drops fast due to the</span>
+<span class="sd">release of water to the second lake and its outlet.  The second lake receives this</span>
+<span class="sd">overflow throughout the simulation period but with a decreasing tendency.  Hence, the</span>
+<span class="sd">water level rises initially but finally falls again because of the lake&#39;s outflow:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;exch_weir_hbv96_base_scenario&quot;)</span>
+<span class="sd">    |                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 |      0.0          1.0 |            -1.0 |            -0.124 |         -0.124 |     0.0 |     0.0 | 0.010123 | 1.826616 |     0.124 |    -0.124 |    0.009839 |    0.831467 |</span>
+<span class="sd">    | 2000-01-02 00:00:00 | 0.009839     0.831467 |       -0.821628 |         -0.092349 |      -0.092349 |     0.0 |     0.0 | 0.025611 | 1.519648 |  0.092349 | -0.092349 |    0.015605 |     0.69219 |</span>
+<span class="sd">    | 2000-01-03 00:00:00 | 0.015605      0.69219 |       -0.676585 |         -0.069009 |      -0.069009 |     0.0 |     0.0 | 0.034296 | 1.265739 |  0.069009 | -0.069009 |    0.018604 |    0.576868 |</span>
+<span class="sd">    | 2000-01-04 00:00:00 | 0.018604     0.576868 |       -0.558264 |         -0.051723 |      -0.051723 |     0.0 |     0.0 | 0.038391 | 1.055333 |  0.051723 | -0.051723 |    0.019756 |    0.481218 |</span>
+<span class="sd">    | 2000-01-05 00:00:00 | 0.019756     0.481218 |       -0.461462 |         -0.038871 |      -0.038871 |     0.0 |     0.0 | 0.039457 | 0.880699 |  0.038871 | -0.038871 |    0.019706 |    0.401767 |</span>
+<span class="sd">    | 2000-01-06 00:00:00 | 0.019706     0.401767 |       -0.382062 |         -0.029283 |      -0.029283 |     0.0 |     0.0 | 0.038587 | 0.735551 |  0.029283 | -0.029283 |    0.018902 |    0.335686 |</span>
+<span class="sd">    | 2000-01-07 00:00:00 | 0.018902     0.335686 |       -0.316784 |         -0.022109 |      -0.022109 |     0.0 |     0.0 | 0.036526 | 0.614762 |  0.022109 | -0.022109 |    0.017656 |     0.28066 |</span>
+<span class="sd">    | 2000-01-08 00:00:00 | 0.017656      0.28066 |       -0.263004 |         -0.016725 |      -0.016725 |     0.0 |     0.0 | 0.033799 | 0.514134 |  0.016725 | -0.016725 |    0.016181 |    0.234794 |</span>
+<span class="sd">    | 2000-01-09 00:00:00 | 0.016181     0.234794 |       -0.218613 |         -0.012675 |      -0.012675 |     0.0 |     0.0 | 0.030759 |  0.43022 |  0.012675 | -0.012675 |    0.014619 |    0.196528 |</span>
+<span class="sd">    | 2000-01-10 00:00:00 | 0.014619     0.196528 |       -0.181909 |         -0.009621 |      -0.009621 |     0.0 |     0.0 |  0.02764 | 0.360182 |  0.009621 | -0.009621 |    0.013062 |    0.164577 |</span>
+<span class="sd">    | 2000-01-11 00:00:00 | 0.013062     0.164577 |       -0.151515 |         -0.007313 |      -0.007313 |     0.0 |     0.0 | 0.024592 | 0.301685 |  0.007313 | -0.007313 |    0.011569 |    0.137879 |</span>
+<span class="sd">    | 2000-01-12 00:00:00 | 0.011569     0.137879 |       -0.126311 |         -0.005566 |      -0.005566 |     0.0 |     0.0 | 0.021707 | 0.252792 |  0.005566 | -0.005566 |    0.010174 |    0.115557 |</span>
+<span class="sd">    | 2000-01-13 00:00:00 | 0.010174     0.115557 |       -0.105383 |         -0.004242 |      -0.004242 |     0.0 |     0.0 | 0.019037 |   0.2119 |  0.004242 | -0.004242 |    0.008896 |    0.096883 |</span>
+<span class="sd">    | 2000-01-14 00:00:00 | 0.008896     0.096883 |       -0.087987 |         -0.003236 |      -0.003236 |     0.0 |     0.0 | 0.016607 | 0.177682 |  0.003236 | -0.003236 |    0.007741 |    0.081251 |</span>
+<span class="sd">    | 2000-01-15 00:00:00 | 0.007741     0.081251 |        -0.07351 |         -0.002471 |      -0.002471 |     0.0 |     0.0 | 0.014422 | 0.149034 |  0.002471 | -0.002471 |    0.006708 |    0.068161 |</span>
+<span class="sd">    | 2000-01-16 00:00:00 | 0.006708     0.068161 |       -0.061453 |         -0.001889 |      -0.001889 |     0.0 |     0.0 | 0.012478 | 0.125039 |  0.001889 | -0.001889 |    0.005793 |    0.057195 |</span>
+<span class="sd">    | 2000-01-17 00:00:00 | 0.005793     0.057195 |       -0.051401 |         -0.001445 |      -0.001445 |     0.0 |     0.0 | 0.010761 | 0.104933 |  0.001445 | -0.001445 |    0.004988 |    0.048004 |</span>
+<span class="sd">    | 2000-01-18 00:00:00 | 0.004988     0.048004 |       -0.043015 |         -0.001106 |      -0.001106 |     0.0 |     0.0 | 0.009255 | 0.088079 |  0.001106 | -0.001106 |    0.004284 |    0.040298 |</span>
+<span class="sd">    | 2000-01-19 00:00:00 | 0.004284     0.040298 |       -0.036013 |         -0.000847 |      -0.000847 |     0.0 |     0.0 |  0.00794 | 0.073947 |  0.000847 | -0.000847 |    0.003672 |    0.033836 |</span>
+<span class="sd">    | 2000-01-20 00:00:00 | 0.003672     0.033836 |       -0.030164 |          -0.00065 |       -0.00065 |     0.0 |     0.0 | 0.006798 | 0.062094 |   0.00065 |  -0.00065 |     0.00314 |    0.028415 |</span>
+<span class="sd">    | 2000-01-21 00:00:00 |  0.00314     0.028415 |       -0.025274 |         -0.000498 |      -0.000498 |     0.0 |     0.0 |  0.00581 | 0.052149 |  0.000498 | -0.000498 |    0.002681 |    0.023866 |</span>
+<span class="sd">    | 2000-01-22 00:00:00 | 0.002681     0.023866 |       -0.021184 |         -0.000382 |      -0.000382 |     0.0 |     0.0 | 0.004957 | 0.043804 |  0.000382 | -0.000382 |    0.002286 |    0.020048 |</span>
+<span class="sd">    | 2000-01-23 00:00:00 | 0.002286     0.020048 |       -0.017762 |         -0.000294 |      -0.000294 |     0.0 |     0.0 | 0.004224 | 0.036799 |  0.000294 | -0.000294 |    0.001947 |    0.016843 |</span>
+<span class="sd">    | 2000-01-24 00:00:00 | 0.001947     0.016843 |       -0.014897 |         -0.000225 |      -0.000225 |     0.0 |     0.0 | 0.003595 | 0.030918 |  0.000225 | -0.000225 |    0.001655 |    0.014153 |</span>
+<span class="sd">    | 2000-01-25 00:00:00 | 0.001655     0.014153 |       -0.012497 |         -0.000173 |      -0.000173 |     0.0 |     0.0 | 0.003056 |  0.02598 |  0.000173 | -0.000173 |    0.001406 |    0.011893 |</span>
+<span class="sd">    | 2000-01-26 00:00:00 | 0.001406     0.011893 |       -0.010486 |         -0.000133 |      -0.000133 |     0.0 |     0.0 | 0.002595 | 0.021833 |  0.000133 | -0.000133 |    0.001194 |    0.009995 |</span>
+<span class="sd">    | 2000-01-27 00:00:00 | 0.001194     0.009995 |       -0.008801 |         -0.000102 |      -0.000102 |     0.0 |     0.0 | 0.002202 | 0.018354 |  0.000102 | -0.000102 |    0.001012 |      0.0084 |</span>
+<span class="sd">    | 2000-01-28 00:00:00 | 0.001012       0.0084 |       -0.007388 |         -0.000079 |      -0.000079 |     0.0 |     0.0 | 0.001866 | 0.015426 |  0.000079 | -0.000079 |    0.000858 |    0.007061 |</span>
+<span class="sd">    | 2000-01-29 00:00:00 | 0.000858     0.007061 |       -0.006203 |         -0.000061 |      -0.000061 |     0.0 |     0.0 | 0.001581 | 0.012967 |  0.000061 | -0.000061 |    0.000727 |    0.005935 |</span>
+<span class="sd">    | 2000-01-30 00:00:00 | 0.000727     0.005935 |       -0.005209 |         -0.000047 |      -0.000047 |     0.0 |     0.0 | 0.001339 |   0.0109 |  0.000047 | -0.000047 |    0.000615 |    0.004989 |</span>
+<span class="sd">    | 2000-01-31 00:00:00 | 0.000615     0.004989 |       -0.004374 |         -0.000036 |      -0.000036 |     0.0 |     0.0 | 0.001133 | 0.009163 |  0.000036 | -0.000036 |     0.00052 |    0.004195 |</span>
+
+<span class="sd">.. _exch_weir_hbv96_crest_height:</span>
+
+<span class="sd">crest height</span>
+<span class="sd">____________</span>
+
+<span class="sd">In this example, we increase the crest&#39;s width and, more importantly, set its height to</span>
+<span class="sd">0.5 m, matching a water volume of 0.5 million m³:</span>
+
+<span class="sd">&gt;&gt;&gt; crestwidth(20.0)</span>
+<span class="sd">&gt;&gt;&gt; crestheight(0.5)</span>
+
+<span class="sd">The crest height now influences the lakes&#39; interaction significantly.  For</span>
+<span class="sd">clarification, we disallow both lakes to release any water:</span>
+
+<span class="sd">&gt;&gt;&gt; for model_ in (lake1.model, lake2.model):</span>
+<span class="sd">...     model_.parameters.control.waterlevel2flooddischarge(</span>
+<span class="sd">...         PPoly.from_data(xs=[0.0], ys=[0.0]))</span>
+
+
+<span class="sd">Due to the identical parameter values of both models and the symmetrical initial</span>
+<span class="sd">conditions of 0.0 and 1.0 million m³, both water levels move towards the defined crest</span>
+<span class="sd">height asymptotically:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;exch_weir_hbv96_crest_height&quot;)</span>
+<span class="sd">    |                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 |      0.0          1.0 |            -0.5 |         -4.384062 |      -4.384062 |     0.0 |     0.0 |      0.0 |      0.0 |  4.384062 | -4.384062 |    0.378783 |    0.621217 |</span>
+<span class="sd">    | 2000-01-02 00:00:00 | 0.378783     0.621217 |       -0.121217 |          -0.52332 |       -0.52332 |     0.0 |     0.0 |      0.0 |      0.0 |   0.52332 |  -0.52332 |    0.423998 |    0.576002 |</span>
+<span class="sd">    | 2000-01-03 00:00:00 | 0.423998     0.576002 |       -0.076002 |         -0.259813 |      -0.259813 |     0.0 |     0.0 |      0.0 |      0.0 |  0.259813 | -0.259813 |    0.446446 |    0.553554 |</span>
+<span class="sd">    | 2000-01-04 00:00:00 | 0.446446     0.553554 |       -0.053554 |         -0.153679 |      -0.153679 |     0.0 |     0.0 |      0.0 |      0.0 |  0.153679 | -0.153679 |    0.459723 |    0.540277 |</span>
+<span class="sd">    | 2000-01-05 00:00:00 | 0.459723     0.540277 |       -0.040277 |          -0.10023 |       -0.10023 |     0.0 |     0.0 |      0.0 |      0.0 |   0.10023 |  -0.10023 |    0.468383 |    0.531617 |</span>
+<span class="sd">    | 2000-01-06 00:00:00 | 0.468383     0.531617 |       -0.031617 |          -0.06971 |       -0.06971 |     0.0 |     0.0 |      0.0 |      0.0 |   0.06971 |  -0.06971 |    0.474406 |    0.525594 |</span>
+<span class="sd">    | 2000-01-07 00:00:00 | 0.474406     0.525594 |       -0.025594 |         -0.050772 |      -0.050772 |     0.0 |     0.0 |      0.0 |      0.0 |  0.050772 | -0.050772 |    0.478793 |    0.521207 |</span>
+<span class="sd">    | 2000-01-08 00:00:00 | 0.478793     0.521207 |       -0.021207 |         -0.038295 |      -0.038295 |     0.0 |     0.0 |      0.0 |      0.0 |  0.038295 | -0.038295 |    0.482102 |    0.517898 |</span>
+<span class="sd">    | 2000-01-09 00:00:00 | 0.482102     0.517898 |       -0.017898 |         -0.029692 |      -0.029692 |     0.0 |     0.0 |      0.0 |      0.0 |  0.029692 | -0.029692 |    0.484667 |    0.515333 |</span>
+<span class="sd">    | 2000-01-10 00:00:00 | 0.484667     0.515333 |       -0.015333 |         -0.023543 |      -0.023543 |     0.0 |     0.0 |      0.0 |      0.0 |  0.023543 | -0.023543 |    0.486701 |    0.513299 |</span>
+<span class="sd">    | 2000-01-11 00:00:00 | 0.486701     0.513299 |       -0.013299 |         -0.019017 |      -0.019017 |     0.0 |     0.0 |      0.0 |      0.0 |  0.019017 | -0.019017 |    0.488344 |    0.511656 |</span>
+<span class="sd">    | 2000-01-12 00:00:00 | 0.488344     0.511656 |       -0.011656 |         -0.015604 |      -0.015604 |     0.0 |     0.0 |      0.0 |      0.0 |  0.015604 | -0.015604 |    0.489692 |    0.510308 |</span>
+<span class="sd">    | 2000-01-13 00:00:00 | 0.489692     0.510308 |       -0.010308 |         -0.012976 |      -0.012976 |     0.0 |     0.0 |      0.0 |      0.0 |  0.012976 | -0.012976 |    0.490814 |    0.509186 |</span>
+<span class="sd">    | 2000-01-14 00:00:00 | 0.490814     0.509186 |       -0.009186 |         -0.010918 |      -0.010918 |     0.0 |     0.0 |      0.0 |      0.0 |  0.010918 | -0.010918 |    0.491757 |    0.508243 |</span>
+<span class="sd">    | 2000-01-15 00:00:00 | 0.491757     0.508243 |       -0.008243 |          -0.00928 |       -0.00928 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00928 |  -0.00928 |    0.492559 |    0.507441 |</span>
+<span class="sd">    | 2000-01-16 00:00:00 | 0.492559     0.507441 |       -0.007441 |          -0.00796 |       -0.00796 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00796 |  -0.00796 |    0.493246 |    0.506754 |</span>
+<span class="sd">    | 2000-01-17 00:00:00 | 0.493246     0.506754 |       -0.006754 |         -0.006882 |      -0.006882 |     0.0 |     0.0 |      0.0 |      0.0 |  0.006882 | -0.006882 |    0.493841 |    0.506159 |</span>
+<span class="sd">    | 2000-01-18 00:00:00 | 0.493841     0.506159 |       -0.006159 |         -0.005994 |      -0.005994 |     0.0 |     0.0 |      0.0 |      0.0 |  0.005994 | -0.005994 |    0.494359 |    0.505641 |</span>
+<span class="sd">    | 2000-01-19 00:00:00 | 0.494359     0.505641 |       -0.005641 |         -0.005254 |      -0.005254 |     0.0 |     0.0 |      0.0 |      0.0 |  0.005254 | -0.005254 |    0.494813 |    0.505187 |</span>
+<span class="sd">    | 2000-01-20 00:00:00 | 0.494813     0.505187 |       -0.005187 |         -0.004633 |      -0.004633 |     0.0 |     0.0 |      0.0 |      0.0 |  0.004633 | -0.004633 |    0.495213 |    0.504787 |</span>
+<span class="sd">    | 2000-01-21 00:00:00 | 0.495213     0.504787 |       -0.004787 |         -0.004107 |      -0.004107 |     0.0 |     0.0 |      0.0 |      0.0 |  0.004107 | -0.004107 |    0.495568 |    0.504432 |</span>
+<span class="sd">    | 2000-01-22 00:00:00 | 0.495568     0.504432 |       -0.004432 |         -0.003659 |      -0.003659 |     0.0 |     0.0 |      0.0 |      0.0 |  0.003659 | -0.003659 |    0.495884 |    0.504116 |</span>
+<span class="sd">    | 2000-01-23 00:00:00 | 0.495884     0.504116 |       -0.004116 |         -0.003274 |      -0.003274 |     0.0 |     0.0 |      0.0 |      0.0 |  0.003274 | -0.003274 |    0.496167 |    0.503833 |</span>
+<span class="sd">    | 2000-01-24 00:00:00 | 0.496167     0.503833 |       -0.003833 |         -0.002943 |      -0.002943 |     0.0 |     0.0 |      0.0 |      0.0 |  0.002943 | -0.002943 |    0.496421 |    0.503579 |</span>
+<span class="sd">    | 2000-01-25 00:00:00 | 0.496421     0.503579 |       -0.003579 |         -0.002655 |      -0.002655 |     0.0 |     0.0 |      0.0 |      0.0 |  0.002655 | -0.002655 |    0.496651 |    0.503349 |</span>
+<span class="sd">    | 2000-01-26 00:00:00 | 0.496651     0.503349 |       -0.003349 |         -0.002404 |      -0.002404 |     0.0 |     0.0 |      0.0 |      0.0 |  0.002404 | -0.002404 |    0.496858 |    0.503142 |</span>
+<span class="sd">    | 2000-01-27 00:00:00 | 0.496858     0.503142 |       -0.003142 |         -0.002184 |      -0.002184 |     0.0 |     0.0 |      0.0 |      0.0 |  0.002184 | -0.002184 |    0.497047 |    0.502953 |</span>
+<span class="sd">    | 2000-01-28 00:00:00 | 0.497047     0.502953 |       -0.002953 |          -0.00199 |       -0.00199 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00199 |  -0.00199 |    0.497219 |    0.502781 |</span>
+<span class="sd">    | 2000-01-29 00:00:00 | 0.497219     0.502781 |       -0.002781 |         -0.001819 |      -0.001819 |     0.0 |     0.0 |      0.0 |      0.0 |  0.001819 | -0.001819 |    0.497376 |    0.502624 |</span>
+<span class="sd">    | 2000-01-30 00:00:00 | 0.497376     0.502624 |       -0.002624 |         -0.001667 |      -0.001667 |     0.0 |     0.0 |      0.0 |      0.0 |  0.001667 | -0.001667 |     0.49752 |     0.50248 |</span>
+<span class="sd">    | 2000-01-31 00:00:00 |  0.49752      0.50248 |        -0.00248 |         -0.001531 |      -0.001531 |     0.0 |     0.0 |      0.0 |      0.0 |  0.001531 | -0.001531 |    0.497652 |    0.502348 |</span>
+
+<span class="sd">.. _exch_weir_hbv96_numerical_accuracy:</span>
+
+<span class="sd">numerical accuracy</span>
+<span class="sd">__________________</span>
+
+<span class="sd">|exch_weir_hbv96| s a flexible tool that requires users to apply wisely.  One crucial</span>
+<span class="sd">aspect is numerical accuracy.  One can expect sufficiently accurate results only if the</span>
+<span class="sd">simulation step size is relatively short compared to water level dynamics.  In this</span>
+<span class="sd">example, we illustrate what happens if there is too much exchange due to a large crest</span>
+<span class="sd">width:</span>
+
+<span class="sd">&gt;&gt;&gt; crestwidth(200.0)</span>
+
+<span class="sd">We see substantial numerical oscillations in the results.  Due to the stiffness of the</span>
+<span class="sd">underlying differential equations, a further increase of the crest width would even</span>
+<span class="sd">result in a numerical overflow error that might be hard to trace back in a real-world</span>
+<span class="sd">application:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;exch_weir_hbv96_numerical_accuracy&quot;)</span>
+<span class="sd">    |                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 |      0.0          1.0 |            -0.5 |         -43.84062 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |       0.432 |       0.568 |</span>
+<span class="sd">    | 2000-01-02 00:00:00 |    0.432        0.568 |          -0.068 |         -2.198797 |      -2.198797 |     0.0 |     0.0 |      0.0 |      0.0 |  2.198797 | -2.198797 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-03 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-04 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-05 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-06 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-07 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-08 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-09 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-10 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-11 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-12 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-13 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-14 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-15 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-16 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-17 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-18 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-19 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-20 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-21 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-22 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-23 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-24 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-25 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-26 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-27 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-28 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-29 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="sd">    | 2000-01-30 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="sd">    | 2000-01-31 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+
+<span class="sd">.. _exch_weir_hbv96_allowed_exchange:</span>
+
+<span class="sd">allowed exchange</span>
+<span class="sd">________________</span>
+
+<span class="sd">Sometimes, there might be hydrological reasons to limit the water exchange.  Still,</span>
+<span class="sd">we use the related parameter |AllowedExchange| only as a stop-gap for stabilising</span>
+<span class="sd">simulation results affected by numerical instability by setting its value to 2.0 m³/s:</span>
+
+<span class="sd">&gt;&gt;&gt; allowedexchange(2.0)</span>
+
+<span class="sd">The results are far from perfect (the initial water levels change too slowly and still</span>
+<span class="sd">oscillate for a few days) but are at least stable and not overly wrong:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;exch_weir_hbv96_allowed_exchange&quot;)</span>
+<span class="sd">    |                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 |      0.0          1.0 |            -0.5 |         -43.84062 |           -2.0 |     0.0 |     0.0 |      0.0 |      0.0 |       2.0 |      -2.0 |      0.1728 |      0.8272 |</span>
+<span class="sd">    | 2000-01-02 00:00:00 |   0.1728       0.8272 |         -0.3272 |        -23.208209 |           -2.0 |     0.0 |     0.0 |      0.0 |      0.0 |       2.0 |      -2.0 |      0.3456 |      0.6544 |</span>
+<span class="sd">    | 2000-01-03 00:00:00 |   0.3456       0.6544 |         -0.1544 |         -7.523027 |           -2.0 |     0.0 |     0.0 |      0.0 |      0.0 |       2.0 |      -2.0 |      0.5184 |      0.4816 |</span>
+<span class="sd">    | 2000-01-04 00:00:00 |   0.5184       0.4816 |          0.0184 |          0.309491 |       0.309491 |     0.0 |     0.0 |      0.0 |      0.0 | -0.309491 |  0.309491 |     0.49166 |     0.50834 |</span>
+<span class="sd">    | 2000-01-05 00:00:00 |  0.49166      0.50834 |        -0.00834 |         -0.094444 |      -0.094444 |     0.0 |     0.0 |      0.0 |      0.0 |  0.094444 | -0.094444 |     0.49982 |     0.50018 |</span>
+<span class="sd">    | 2000-01-06 00:00:00 |  0.49982      0.50018 |        -0.00018 |           -0.0003 |        -0.0003 |     0.0 |     0.0 |      0.0 |      0.0 |    0.0003 |   -0.0003 |    0.499846 |    0.500154 |</span>
+<span class="sd">    | 2000-01-07 00:00:00 | 0.499846     0.500154 |       -0.000154 |         -0.000237 |      -0.000237 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000237 | -0.000237 |    0.499866 |    0.500134 |</span>
+<span class="sd">    | 2000-01-08 00:00:00 | 0.499866     0.500134 |       -0.000134 |         -0.000192 |      -0.000192 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000192 | -0.000192 |    0.499883 |    0.500117 |</span>
+<span class="sd">    | 2000-01-09 00:00:00 | 0.499883     0.500117 |       -0.000117 |         -0.000157 |      -0.000157 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000157 | -0.000157 |    0.499896 |    0.500104 |</span>
+<span class="sd">    | 2000-01-10 00:00:00 | 0.499896     0.500104 |       -0.000104 |         -0.000131 |      -0.000131 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000131 | -0.000131 |    0.499908 |    0.500092 |</span>
+<span class="sd">    | 2000-01-11 00:00:00 | 0.499908     0.500092 |       -0.000092 |          -0.00011 |       -0.00011 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00011 |  -0.00011 |    0.499917 |    0.500083 |</span>
+<span class="sd">    | 2000-01-12 00:00:00 | 0.499917     0.500083 |       -0.000083 |         -0.000093 |      -0.000093 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000093 | -0.000093 |    0.499925 |    0.500075 |</span>
+<span class="sd">    | 2000-01-13 00:00:00 | 0.499925     0.500075 |       -0.000075 |          -0.00008 |       -0.00008 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00008 |  -0.00008 |    0.499932 |    0.500068 |</span>
+<span class="sd">    | 2000-01-14 00:00:00 | 0.499932     0.500068 |       -0.000068 |         -0.000069 |      -0.000069 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000069 | -0.000069 |    0.499938 |    0.500062 |</span>
+<span class="sd">    | 2000-01-15 00:00:00 | 0.499938     0.500062 |       -0.000062 |          -0.00006 |       -0.00006 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00006 |  -0.00006 |    0.499943 |    0.500057 |</span>
+<span class="sd">    | 2000-01-16 00:00:00 | 0.499943     0.500057 |       -0.000057 |         -0.000053 |      -0.000053 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000053 | -0.000053 |    0.499948 |    0.500052 |</span>
+<span class="sd">    | 2000-01-17 00:00:00 | 0.499948     0.500052 |       -0.000052 |         -0.000047 |      -0.000047 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000047 | -0.000047 |    0.499952 |    0.500048 |</span>
+<span class="sd">    | 2000-01-18 00:00:00 | 0.499952     0.500048 |       -0.000048 |         -0.000041 |      -0.000041 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000041 | -0.000041 |    0.499956 |    0.500044 |</span>
+<span class="sd">    | 2000-01-19 00:00:00 | 0.499956     0.500044 |       -0.000044 |         -0.000037 |      -0.000037 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000037 | -0.000037 |    0.499959 |    0.500041 |</span>
+<span class="sd">    | 2000-01-20 00:00:00 | 0.499959     0.500041 |       -0.000041 |         -0.000033 |      -0.000033 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000033 | -0.000033 |    0.499962 |    0.500038 |</span>
+<span class="sd">    | 2000-01-21 00:00:00 | 0.499962     0.500038 |       -0.000038 |          -0.00003 |       -0.00003 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00003 |  -0.00003 |    0.499964 |    0.500036 |</span>
+<span class="sd">    | 2000-01-22 00:00:00 | 0.499964     0.500036 |       -0.000036 |         -0.000027 |      -0.000027 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000027 | -0.000027 |    0.499966 |    0.500034 |</span>
+<span class="sd">    | 2000-01-23 00:00:00 | 0.499966     0.500034 |       -0.000034 |         -0.000024 |      -0.000024 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000024 | -0.000024 |    0.499969 |    0.500031 |</span>
+<span class="sd">    | 2000-01-24 00:00:00 | 0.499969     0.500031 |       -0.000031 |         -0.000022 |      -0.000022 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000022 | -0.000022 |     0.49997 |     0.50003 |</span>
+<span class="sd">    | 2000-01-25 00:00:00 |  0.49997      0.50003 |        -0.00003 |          -0.00002 |       -0.00002 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00002 |  -0.00002 |    0.499972 |    0.500028 |</span>
+<span class="sd">    | 2000-01-26 00:00:00 | 0.499972     0.500028 |       -0.000028 |         -0.000018 |      -0.000018 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000018 | -0.000018 |    0.499974 |    0.500026 |</span>
+<span class="sd">    | 2000-01-27 00:00:00 | 0.499974     0.500026 |       -0.000026 |         -0.000017 |      -0.000017 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000017 | -0.000017 |    0.499975 |    0.500025 |</span>
+<span class="sd">    | 2000-01-28 00:00:00 | 0.499975     0.500025 |       -0.000025 |         -0.000015 |      -0.000015 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000015 | -0.000015 |    0.499976 |    0.500024 |</span>
+<span class="sd">    | 2000-01-29 00:00:00 | 0.499976     0.500024 |       -0.000024 |         -0.000014 |      -0.000014 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000014 | -0.000014 |    0.499978 |    0.500022 |</span>
+<span class="sd">    | 2000-01-30 00:00:00 | 0.499978     0.500022 |       -0.000022 |         -0.000013 |      -0.000013 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000013 | -0.000013 |    0.499979 |    0.500021 |</span>
+<span class="sd">    | 2000-01-31 00:00:00 | 0.499979     0.500021 |       -0.000021 |         -0.000012 |      -0.000012 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000012 | -0.000012 |     0.49998 |     0.50002 |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.exch</span><span class="w"> </span><span class="kn">import</span> <span class="n">exch_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../exch_weir_hbv96.html#hydpy.models.exch_weir_hbv96.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|exch_weir_hbv96.DOCNAME.complete|.</span>
+
+<span class="sd">    Before continuing, please read the general documentation on application model</span>
+<span class="sd">    |exch_weir_hbv96|.</span>
+
+<span class="sd">    To work correctly, each |exch_weir_hbv96| must know which water level node and</span>
+<span class="sd">    which overflow node belong to the same lake model.  The following examples might</span>
+<span class="sd">    provide insight into how we deal with this issue but are merely there for testing</span>
+<span class="sd">    that we handle all expected cases well.</span>
+
+<span class="sd">    We recreate the configuration of the |Node| and |Element| objects of the main</span>
+<span class="sd">    documentation, neglecting the lakes&#39; inflow and outflow nodes, which are not</span>
+<span class="sd">    relevant for connecting |exch_weir_hbv96|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.exch_weir_hbv96 import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import Element, FusedVariable, Node, Nodes</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.aliases import exch_outlets_Exchange, dam_factors_WaterLevel, exch_receivers_WaterLevels</span>
+<span class="sd">    &gt;&gt;&gt; WaterLevel = FusedVariable(&quot;WaterLevel&quot;, exch_receivers_WaterLevels, dam_factors_WaterLevel)</span>
+
+<span class="sd">    &gt;&gt;&gt; Element.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; Node.clear_all()</span>
+
+<span class="sd">    &gt;&gt;&gt; overflow1, overflow2 = Nodes(&quot;overflow1&quot;, &quot;overflow2&quot;, defaultvariable=exch_outlets_Exchange)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel1, waterlevel2 = Nodes(&quot;waterlevel1&quot;, &quot;waterlevel2&quot;, defaultvariable=WaterLevel)</span>
+<span class="sd">    &gt;&gt;&gt; lake1 = Element(&quot;lake1&quot;, inlets=overflow1, outputs=waterlevel1)</span>
+<span class="sd">    &gt;&gt;&gt; lake2 = Element(&quot;lake2&quot;, inlets=overflow2, outputs=waterlevel2)</span>
+<span class="sd">    &gt;&gt;&gt; exchange = Element(&quot;exchange&quot;,</span>
+<span class="sd">    ...                    receivers=(waterlevel1, waterlevel2),</span>
+<span class="sd">    ...                    outlets=(overflow1, overflow2))</span>
+<span class="sd">    &gt;&gt;&gt; exchange.model = model</span>
+
+<span class="sd">    The water levels of `lake1` and `lake2` are available via the first and the second</span>
+<span class="sd">    entry of the receiver sequence |exch_receivers.WaterLevels|, respectively:</span>
+
+<span class="sd">    &gt;&gt;&gt; waterlevel1.sequences.sim = 1.0</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel2.sequences.sim = 2.0</span>
+<span class="sd">    &gt;&gt;&gt; model.update_receivers(0)</span>
+<span class="sd">    &gt;&gt;&gt; receivers.waterlevels</span>
+<span class="sd">    waterlevels(1.0, 2.0)</span>
+
+<span class="sd">    Likewise, the first and the second entry of the outlet sequence</span>
+<span class="sd">    |exch_outlets.Exchange| are available to the overflow nodes `lake1` and `lake2`,</span>
+<span class="sd">    respectively:</span>
+
+<span class="sd">    &gt;&gt;&gt; fluxes.actualexchange = 3.0</span>
+<span class="sd">    &gt;&gt;&gt; model.update_outlets()</span>
+<span class="sd">    &gt;&gt;&gt; overflow1.sequences.sim</span>
+<span class="sd">    sim(-3.0)</span>
+<span class="sd">    &gt;&gt;&gt; overflow2.sequences.sim</span>
+<span class="sd">    sim(3.0)</span>
+
+<span class="sd">    We recreate this configuration multiple times, each time changing one aspect</span>
+<span class="sd">    (marked by exclamation marks).  First, we connect node `waterlevel2` with èlement</span>
+<span class="sd">    `lake1` and node `waterlevel1` with element `lake2`:</span>
+
+<span class="sd">    &gt;&gt;&gt; Element.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; Node.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; overflow1, overflow2 = Nodes(&quot;overflow1&quot;, &quot;overflow2&quot;, defaultvariable=&quot;E&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel1, waterlevel2 = Nodes(&quot;waterlevel1&quot;, &quot;waterlevel2&quot;, defaultvariable=WaterLevel)</span>
+<span class="sd">    &gt;&gt;&gt; lake1 = Element(&quot;lake1&quot;, inlets=overflow1, outputs=waterlevel2)  # !!!</span>
+<span class="sd">    &gt;&gt;&gt; lake2 = Element(&quot;lake2&quot;, inlets=overflow2, outputs=waterlevel1)  # !!!</span>
+<span class="sd">    &gt;&gt;&gt; exchange = Element(&quot;exchange&quot;,</span>
+<span class="sd">    ...                    receivers=(waterlevel1, waterlevel2),</span>
+<span class="sd">    ...                    outlets=(overflow1, overflow2))</span>
+<span class="sd">    &gt;&gt;&gt; exchange.model = model</span>
+
+<span class="sd">    Due to this swap, the first of the outlet sequence |exch_outlets.Exchange| connects</span>
+<span class="sd">    to node `overflow2` and the second one to node `overflow1`:</span>
+
+<span class="sd">    &gt;&gt;&gt; waterlevel1.sequences.sim = 1.0</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel2.sequences.sim = 2.0</span>
+<span class="sd">    &gt;&gt;&gt; model.update_receivers(0)</span>
+<span class="sd">    &gt;&gt;&gt; receivers.waterlevels</span>
+<span class="sd">    waterlevels(1.0, 2.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; fluxes.actualexchange = 3.0</span>
+<span class="sd">    &gt;&gt;&gt; model.update_outlets()</span>
+<span class="sd">    &gt;&gt;&gt; overflow1.sequences.sim</span>
+<span class="sd">    sim(3.0)</span>
+<span class="sd">    &gt;&gt;&gt; overflow2.sequences.sim</span>
+<span class="sd">    sim(-3.0)</span>
+
+<span class="sd">    Swapping the nodes `overflow1` and `overflow2` instead of `waterlevel1` and</span>
+<span class="sd">    `waterlevel2` leads to the same results (we arbitrarily decided to ground the</span>
+<span class="sd">    internal sorting on the alphabetical order of the receiver nodes&#39; names):</span>
+
+<span class="sd">    &gt;&gt;&gt; Element.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; Node.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; overflow1, overflow2 = Nodes(&quot;overflow1&quot;, &quot;overflow2&quot;, defaultvariable=&quot;E&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel1, waterlevel2 = Nodes(&quot;waterlevel1&quot;, &quot;waterlevel2&quot;, defaultvariable=WaterLevel)</span>
+<span class="sd">    &gt;&gt;&gt; lake1 = Element(&quot;lake1&quot;, inlets=overflow2, outputs=waterlevel1)  # !!!</span>
+<span class="sd">    &gt;&gt;&gt; lake2 = Element(&quot;lake2&quot;, inlets=overflow1, outputs=waterlevel2)  # !!!</span>
+<span class="sd">    &gt;&gt;&gt; exchange = Element(&quot;exchange&quot;,</span>
+<span class="sd">    ...                    receivers=(waterlevel1, waterlevel2),</span>
+<span class="sd">    ...                    outlets=(overflow1, overflow2))</span>
+<span class="sd">    &gt;&gt;&gt; exchange.model = model</span>
+
+<span class="sd">    &gt;&gt;&gt; waterlevel1.sequences.sim = 1.0</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel2.sequences.sim = 2.0</span>
+<span class="sd">    &gt;&gt;&gt; model.update_receivers(0)</span>
+<span class="sd">    &gt;&gt;&gt; receivers.waterlevels</span>
+<span class="sd">    waterlevels(1.0, 2.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; fluxes.actualexchange = 3.0</span>
+<span class="sd">    &gt;&gt;&gt; model.update_outlets()</span>
+<span class="sd">    &gt;&gt;&gt; overflow1.sequences.sim</span>
+<span class="sd">    sim(3.0)</span>
+<span class="sd">    &gt;&gt;&gt; overflow2.sequences.sim</span>
+<span class="sd">    sim(-3.0)</span>
+
+<span class="sd">    Now, we (accidentally) connect node `waterlevel2` to both lakes.  Therefore,</span>
+<span class="sd">    |exch_weir_hbv96| cannot find a water level node connected to the same lake model</span>
+<span class="sd">    as outlet node `overflow1`:</span>
+
+<span class="sd">    &gt;&gt;&gt; Element.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; Node.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; overflow1, overflow2 = Nodes(&quot;overflow1&quot;, &quot;overflow2&quot;, defaultvariable=&quot;E&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel1, waterlevel2 = Nodes(&quot;waterlevel1&quot;, &quot;waterlevel2&quot;, defaultvariable=WaterLevel)</span>
+<span class="sd">    &gt;&gt;&gt; lake1 = Element(&quot;lake1&quot;, inlets=overflow1, outputs=waterlevel2)  # !!!</span>
+<span class="sd">    &gt;&gt;&gt; lake2 = Element(&quot;lake2&quot;, inlets=overflow2, outputs=waterlevel2)</span>
+<span class="sd">    &gt;&gt;&gt; exchange = Element(&quot;exchange&quot;,</span>
+<span class="sd">    ...                    receivers=(waterlevel1, waterlevel2),</span>
+<span class="sd">    ...                    outlets=(overflow1, overflow2))</span>
+<span class="sd">    &gt;&gt;&gt; exchange.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `outlet` sequences \</span>
+<span class="sd">of the model handled by element `exchange`, the following error occurred: Outlet node \</span>
+<span class="sd">`overflow1` does not correspond to any available receiver node.</span>
+
+<span class="sd">    |exch_weir_hbv96| raises the following error if not precisely two water level nodes</span>
+<span class="sd">    are available:</span>
+
+<span class="sd">    &gt;&gt;&gt; Element.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; Node.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; overflow1, overflow2 = Nodes(&quot;overflow1&quot;, &quot;overflow2&quot;, defaultvariable=&quot;E&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel1, waterlevel2 = Nodes(&quot;waterlevel1&quot;, &quot;waterlevel2&quot;, defaultvariable=WaterLevel)</span>
+<span class="sd">    &gt;&gt;&gt; lake1 = Element(&quot;lake1&quot;, inlets=overflow1, outputs=waterlevel1)</span>
+<span class="sd">    &gt;&gt;&gt; lake2 = Element(&quot;lake2&quot;, inlets=overflow2, outputs=waterlevel2)</span>
+<span class="sd">    &gt;&gt;&gt; exchange = Element(&quot;exchange&quot;,</span>
+<span class="sd">    ...                    receivers=waterlevel1,  # !!!</span>
+<span class="sd">    ...                    outlets=(overflow1, overflow2))</span>
+<span class="sd">    &gt;&gt;&gt; exchange.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `receiver` \</span>
+<span class="sd">sequences of the model handled by element `exchange`, the following error occurred: \</span>
+<span class="sd">There must be exactly 2 outlet receiver but the following `1` receiver nodes are \</span>
+<span class="sd">defined: waterlevel1.</span>
+
+<span class="sd">    Correspondingly, |exch_weir_hbv96| raises the following error if there are not</span>
+<span class="sd">    precisely two overflow nodes available:</span>
+
+<span class="sd">    &gt;&gt;&gt; Element.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; Node.clear_all()</span>
+<span class="sd">    &gt;&gt;&gt; overflow1, overflow2 = Nodes(&quot;overflow1&quot;, &quot;overflow2&quot;, defaultvariable=&quot;E&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; waterlevel1, waterlevel2 = Nodes(&quot;waterlevel1&quot;, &quot;waterlevel2&quot;, defaultvariable=WaterLevel)</span>
+<span class="sd">    &gt;&gt;&gt; lake1 = Element(&quot;lake1&quot;, inlets=overflow1, outputs=waterlevel1)</span>
+<span class="sd">    &gt;&gt;&gt; lake2 = Element(&quot;lake2&quot;, inlets=overflow2, outputs=waterlevel2)</span>
+<span class="sd">    &gt;&gt;&gt; exchange = Element(&quot;exchange&quot;,</span>
+<span class="sd">    ...                    receivers=(waterlevel1, waterlevel2),</span>
+<span class="sd">    ...                    outlets=(overflow1, overflow2, waterlevel2))  # !!!</span>
+<span class="sd">    &gt;&gt;&gt; exchange.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `outlet` sequences \</span>
+<span class="sd">of the model handled by element `exchange`, the following error occurred: There must \</span>
+<span class="sd">be exactly 2 outlet nodes but the following `3` outlet nodes are defined: overflow1, \</span>
+<span class="sd">overflow2, and waterlevel2.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;Exch-Weir-HBV96&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;weir model adopted from IHMS-HBV96&quot;</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_model</span><span class="o">.</span><span class="n">Pick_LoggedWaterLevels_V1</span><span class="p">,)</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">exch_model</span><span class="o">.</span><span class="n">Update_WaterLevels_V1</span><span class="p">,</span>
+        <span class="n">exch_model</span><span class="o">.</span><span class="n">Calc_DeltaWaterLevel_V1</span><span class="p">,</span>
+        <span class="n">exch_model</span><span class="o">.</span><span class="n">Calc_PotentialExchange_V1</span><span class="p">,</span>
+        <span class="n">exch_model</span><span class="o">.</span><span class="n">Calc_ActualExchange_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_model</span><span class="o">.</span><span class="n">Pass_ActualExchange_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_connect_receivers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report_noconnect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span>
+        <span class="k">assert</span> <span class="n">element</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">receivers</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">receivers</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">receivers</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;There must be exactly 2 outlet receiver but the following &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">receivers</span><span class="p">)</span><span class="si">}</span><span class="s2">` receiver nodes are defined: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">node</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">receivers</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_connect_receivers</span><span class="p">(</span><span class="n">report_noconnect</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_connect_outlets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report_noconnect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span>
+        <span class="k">assert</span> <span class="n">element</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">outlets</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">outlets</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">outlets</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;There must be exactly 2 outlet nodes but the following &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">outlets</span><span class="p">)</span><span class="si">}</span><span class="s2">` outlet nodes are defined: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">node</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">outlets</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">idx2outlets</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">outlet</span> <span class="ow">in</span> <span class="n">outlets</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">receiver</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">receivers</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">outlet</span><span class="o">.</span><span class="n">exits</span> <span class="o">==</span> <span class="n">receiver</span><span class="o">.</span><span class="n">entries</span><span class="p">:</span>
+                    <span class="n">idx2outlets</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">outlet</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Outlet node `</span><span class="si">{</span><span class="n">outlet</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` does not correspond to any &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;available receiver node.&quot;</span>
+                <span class="p">)</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="p">[</span><span class="s2">&quot;exchange&quot;</span><span class="p">]</span>
+        <span class="n">sequence</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">outlet</span> <span class="ow">in</span> <span class="n">idx2outlets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">sequence</span><span class="o">.</span><span class="n">set_pointer</span><span class="p">(</span><span class="n">outlet</span><span class="o">.</span><span class="n">get_double</span><span class="p">(</span><span class="s2">&quot;outlets&quot;</span><span class="p">),</span> <span class="n">idx</span><span class="p">)</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch_weir_hbv96</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

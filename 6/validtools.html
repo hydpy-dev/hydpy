@@ -1,0 +1,236 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>validtools &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Model Families" href="model_families.html" />
+    <link rel="prev" title="statstools" href="statstools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="model_families.html" title="Model Families"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="statstools.html" title="statstools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" accesskey="U">Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">validtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="anntools.html">anntools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="armatools.html">armatools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="calibtools.html">calibtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="interptools.html">interptools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="iuhtools.html">iuhtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="networktools.html">networktools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ppolytools.html">ppolytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quadtools.html">quadtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="roottools.html">roottools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smoothtools.html">smoothtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="statstools.html">statstools</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">validtools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.validtools.test_equal_shape"><code class="docutils literal notranslate"><span class="pre">test_equal_shape()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.validtools.test_non_negative"><code class="docutils literal notranslate"><span class="pre">test_non_negative()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="statstools.html"
+                          title="previous chapter">statstools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="model_families.html"
+                          title="next chapter">Model Families</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/validtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/validtools.html">6</a></li>
+<li><a href="../5.0/validtools.html">5.0</a></li>
+<li><a href="../4.0/validtools.html">4.0</a></li>
+<li><a href="../master/validtools.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="validtools">
+<span id="id1"></span><h1>validtools<a class="headerlink" href="#validtools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.auxs.validtools">This module implements features for the validation of (numerical) input data.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.validtools" title="hydpy.auxs.validtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">validtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.auxs.validtools.test_equal_shape" title="hydpy.auxs.validtools.test_equal_shape"><code class="xref py py-func docutils literal notranslate"><span class="pre">test_equal_shape()</span></code></a> Raise a ValueError if the shapes of the objects given as keywords are not equal.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.validtools.test_non_negative" title="hydpy.auxs.validtools.test_non_negative"><code class="xref py py-func docutils literal notranslate"><span class="pre">test_non_negative()</span></code></a> Raise a ValueError if at least one value of the objects given as keywords is negative.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.auxs.validtools.test_equal_shape">
+<span class="sig-prename descclassname"><span class="pre">hydpy.auxs.validtools.</span></span><span class="sig-name descname"><span class="pre">test_equal_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/validtools.html#test_equal_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.validtools.test_equal_shape" title="Link to this definition">¶</a></dt>
+<dd><p>Raise a ValueError if the shapes of the objects given as keywords are not equal.</p>
+<p>If all shapes are equal, nothing happens:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.validtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">test_equal_shape</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_equal_shape</span><span class="p">(</span><span class="n">arr1</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]),</span>
+<span class="gp">... </span>                 <span class="n">arr2</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">]),</span>
+<span class="gp">... </span>                 <span class="n">arr3</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>If at least one shape differs, the following error is raised:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_equal_shape</span><span class="p">(</span><span class="n">arr1</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]),</span>
+<span class="gp">... </span>                 <span class="n">arr2</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.0</span><span class="p">]),</span>
+<span class="gp">... </span>                 <span class="n">arr3</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The shapes of the following objects are not equal: arr1 (2,), arr2 (1,), and arr3 (2,).</span>
+</pre></div>
+</div>
+<p>For flexibility in the functions application, it is allowed to pass only one array
+or no arrays at all:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_equal_shape</span><span class="p">(</span><span class="n">arr1</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_equal_shape</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.auxs.validtools.test_non_negative">
+<span class="sig-prename descclassname"><span class="pre">hydpy.auxs.validtools.</span></span><span class="sig-name descname"><span class="pre">test_non_negative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/validtools.html#test_non_negative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.validtools.test_non_negative" title="Link to this definition">¶</a></dt>
+<dd><p>Raise a ValueError if at least one value of the objects given as keywords is
+negative.</p>
+<p>If all values are non negative, nothing happens:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.validtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">test_non_negative</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_non_negative</span><span class="p">(</span><span class="n">arr1</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]),</span>
+<span class="gp">... </span>                  <span class="n">arr2</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">]),</span>
+<span class="gp">... </span>                  <span class="n">arr3</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>If at least one value is negative, the following error is raised:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_non_negative</span><span class="p">(</span><span class="n">arr1</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]),</span>
+<span class="gp">... </span>                  <span class="n">arr2</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">]),</span>
+<span class="gp">... </span>                  <span class="n">arr3</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">]))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">For the following objects, at least one value is negative: arr2.</span>
+</pre></div>
+</div>
+<p>For flexibility in the functions application, it is allowed to pass no array at all:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_non_negative</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="model_families.html" title="Model Families"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="statstools.html" title="statstools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" >Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">validtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,327 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>examples &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bibliography" href="zbibliography.html" />
+    <link rel="prev" title="Additional repositories" href="additional_repositories.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="zbibliography.html" title="Bibliography"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="additional_repositories.html" title="Additional repositories"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">examples</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Example Projects</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#hydpy.examples.prepare_io_example_1"><code class="docutils literal notranslate"><span class="pre">prepare_io_example_1()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hydpy.examples.prepare_full_example_1"><code class="docutils literal notranslate"><span class="pre">prepare_full_example_1()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hydpy.examples.prepare_full_example_2"><code class="docutils literal notranslate"><span class="pre">prepare_full_example_2()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="additional_repositories.html"
+                          title="previous chapter">Additional repositories</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="zbibliography.html"
+                          title="next chapter">Bibliography</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/examples.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../5.0/examples.html">5.0</a></li>
+<li><a href="../4.0/examples.html">4.0</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="examples">
+<span id="id1"></span><h1>examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.examples">This module provides functions for preparing tutorial projects and other test data.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.examples" title="hydpy.examples"><code class="xref py py-mod docutils literal notranslate"><span class="pre">examples</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.examples.prepare_io_example_1" title="hydpy.examples.prepare_io_example_1"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_io_example_1()</span></code></a> Prepare an IO example configuration for testing purposes.</p></li>
+<li><p><a class="reference internal" href="#hydpy.examples.prepare_full_example_1" title="hydpy.examples.prepare_full_example_1"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_full_example_1()</span></code></a> Prepare the <cite>LahnH</cite> example project on disk.</p></li>
+<li><p><a class="reference internal" href="#hydpy.examples.prepare_full_example_2" title="hydpy.examples.prepare_full_example_2"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_full_example_2()</span></code></a> Prepare the <cite>LahnH</cite> project on disk and in RAM.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.examples.prepare_io_example_1">
+<span class="sig-prename descclassname"><span class="pre">hydpy.examples.</span></span><span class="sig-name descname"><span class="pre">prepare_io_example_1</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.11)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Nodes" title="hydpy.core.devicetools.Nodes"><span class="pre">Nodes</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Elements" title="hydpy.core.devicetools.Elements"><span class="pre">Elements</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/examples.html#prepare_io_example_1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.examples.prepare_io_example_1" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare an IO example configuration for testing purposes.</p>
+<p>Function <a class="reference internal" href="#hydpy.examples.prepare_io_example_1" title="hydpy.examples.prepare_io_example_1"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_io_example_1()</span></code></a> is thought for testing the functioning of <em>HydPy</em>
+and thus should be of interest for framework developers only.  It uses the
+application models <a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>, <a class="reference internal" href="lland_v2.html#module-hydpy.models.lland_v2" title="hydpy.models.lland_v2"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v2</span></code></a>, and <a class="reference internal" href="hland_v1.html#module-hydpy.models.hland_v1" title="hydpy.models.hland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_v1</span></code></a>.  Here, we apply
+<a class="reference internal" href="#hydpy.examples.prepare_io_example_1" title="hydpy.examples.prepare_io_example_1"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_io_example_1()</span></code></a> and shortly discuss different aspects of its generated data.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_io_example_1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="p">,</span> <span class="n">elements</span> <span class="o">=</span> <span class="n">prepare_io_example_1</span><span class="p">()</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p>It defines a short initialisation period of five days:</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="go">Timegrids(&quot;2000-01-01 00:00:00&quot;,</span>
+<span class="go">          &quot;2000-01-05 00:00:00&quot;,</span>
+<span class="go">          &quot;1d&quot;)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>It prepares an empty directory for IO testing:</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">repr_</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>  
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">currentpath</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;project/series/default&quot;</span><span class="p">)</span>
+<span class="go">&#39;...iotesting/project/series/default&#39;</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+<p>(3) It returns four <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects handling either application model <a class="reference internal" href="lland_v1.html#module-hydpy.models.lland_v1" title="hydpy.models.lland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v1</span></code></a>
+<a class="reference internal" href="lland_v2.html#module-hydpy.models.lland_v2" title="hydpy.models.lland_v2"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v2</span></code></a>, or <a class="reference internal" href="hland_v1.html#module-hydpy.models.hland_v1" title="hydpy.models.hland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_v1</span></code></a>, and two <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> objects handling variables <cite>Q</cite> and <cite>T</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">elements</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+<span class="go">element1 lland_v1</span>
+<span class="go">element2 lland_v1</span>
+<span class="go">element3 lland_v2</span>
+<span class="go">element4 hland_v1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">variable</span><span class="p">)</span>
+<span class="go">node1 Q</span>
+<span class="go">node2 T</span>
+</pre></div>
+</div>
+<p>(4) It generates artificial time series data for the input sequence
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_inputs.Nied" title="hydpy.models.lland.lland_inputs.Nied"><code class="xref py py-class docutils literal notranslate"><span class="pre">Nied</span></code></a>, the flux sequence <a class="reference internal" href="lland.html#hydpy.models.lland.lland_fluxes.NKor" title="hydpy.models.lland.lland_fluxes.NKor"><code class="xref py py-class docutils literal notranslate"><span class="pre">NKor</span></code></a>, and the state sequence
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_states.BoWa" title="hydpy.models.lland.lland_states.BoWa"><code class="xref py py-class docutils literal notranslate"><span class="pre">BoWa</span></code></a> of each <a class="reference internal" href="lland.html#module-hydpy.models.lland" title="hydpy.models.lland"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland</span></code></a> model instance, the state sequence
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_states.SP" title="hydpy.models.hland.hland_states.SP"><code class="xref py py-class docutils literal notranslate"><span class="pre">SP</span></code></a> of the <a class="reference internal" href="hland_v1.html#module-hydpy.models.hland_v1" title="hydpy.models.hland_v1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_v1</span></code></a> model instance, and the <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sim" title="hydpy.core.sequencetools.Sim"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sim</span></code></a> sequence of each
+node instance.  For precise test results, all generated values are unique:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nied1</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">element1</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">nied</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nied1</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([0., 1., 2., 3.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkor1</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">element1</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">nkor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkor1</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([[12.],</span>
+<span class="go">           [13.],</span>
+<span class="go">           [14.],</span>
+<span class="go">           [15.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bowa3</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">element3</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">bowa</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bowa3</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([[48., 49., 50.],</span>
+<span class="go">           [51., 52., 53.],</span>
+<span class="go">           [54., 55., 56.],</span>
+<span class="go">           [57., 58., 59.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim2</span> <span class="o">=</span> <span class="n">nodes</span><span class="o">.</span><span class="n">node2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim2</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([64., 65., 66., 67.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sp4</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">element4</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">sp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sp4</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([[[68., 69., 70.],</span>
+<span class="go">            [71., 72., 73.]],</span>
+
+<span class="go">           [[74., 75., 76.],</span>
+<span class="go">            [77., 78., 79.]],</span>
+
+<span class="go">           [[80., 81., 82.],</span>
+<span class="go">            [83., 84., 85.]],</span>
+
+<span class="go">           [[86., 87., 88.],</span>
+<span class="go">            [89., 90., 91.]]])</span>
+</pre></div>
+</div>
+<p>(5) All sequences carry <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> objects with (deep) copies of the
+time-series data for testing:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">nied1</span><span class="o">.</span><span class="n">series</span> <span class="o">==</span> <span class="n">nied1</span><span class="o">.</span><span class="n">testarray</span><span class="p">)</span> <span class="ow">and</span>
+<span class="gp">... </span> <span class="n">numpy</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">nkor1</span><span class="o">.</span><span class="n">series</span> <span class="o">==</span> <span class="n">nkor1</span><span class="o">.</span><span class="n">testarray</span><span class="p">)</span> <span class="ow">and</span>
+<span class="gp">... </span> <span class="n">numpy</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">bowa3</span><span class="o">.</span><span class="n">series</span> <span class="o">==</span> <span class="n">bowa3</span><span class="o">.</span><span class="n">testarray</span><span class="p">)</span> <span class="ow">and</span>
+<span class="gp">... </span> <span class="n">numpy</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">sim2</span><span class="o">.</span><span class="n">series</span> <span class="o">==</span> <span class="n">sim2</span><span class="o">.</span><span class="n">testarray</span><span class="p">)</span> <span class="ow">and</span>
+<span class="gp">... </span> <span class="n">numpy</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">sp4</span><span class="o">.</span><span class="n">series</span> <span class="o">==</span> <span class="n">sp4</span><span class="o">.</span><span class="n">testarray</span><span class="p">))</span>
+<span class="go">InfoArray(True)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bowa3</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">999.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">numpy</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">bowa3</span><span class="o">.</span><span class="n">series</span> <span class="o">==</span> <span class="n">bowa3</span><span class="o">.</span><span class="n">testarray</span><span class="p">)</span>
+<span class="go">InfoArray(False)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.examples.prepare_full_example_1">
+<span class="sig-prename descclassname"><span class="pre">hydpy.examples.</span></span><span class="sig-name descname"><span class="pre">prepare_full_example_1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dirpath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.11)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/examples.html#prepare_full_example_1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.examples.prepare_full_example_1" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare the <cite>LahnH</cite> example project on disk.</p>
+<p><em>HydPy</em> comes with a complete project data set for the German river Lahn, provided
+by the <a class="reference external" href="https://www.bafg.de/EN">German Federal Institute of Hydrology (BfG)</a>.  The Lahn is a medium-sized
+tributary to the Rhine.  The given project configuration agrees with the BfG’s
+forecasting model, using HBV96 to simulate the inflow of the Rhine’s tributaries.
+The catchment consists of four sub-catchments, each one with a river gauge (Marburg,
+Asslar, Leun, Kalkofen) at its outlet.  The sub-catchments consists of a different
+number of zones.</p>
+<img alt="_images/LahnH.png" src="_images/LahnH.png" />
+<p>By default, function <a class="reference internal" href="#hydpy.examples.prepare_full_example_1" title="hydpy.examples.prepare_full_example_1"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_full_example_1()</span></code></a> copies the original project data into
+the <cite>iotesting</cite> directory, thought for performing automated tests on real-world
+data.  The following doctest shows the generated folder structure:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prepare_full_example_1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;root:&quot;</span><span class="p">,</span> <span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)))</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;control&quot;</span><span class="p">,</span> <span class="s2">&quot;conditions&quot;</span><span class="p">,</span> <span class="s2">&quot;series&quot;</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LahnH/</span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">,</span>
+<span class="gp">... </span>              <span class="o">*</span><span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LahnH/</span><span class="si">{</span><span class="n">folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)))</span>
+<span class="go">root: LahnH __init__.py</span>
+<span class="go">LahnH/control: default</span>
+<span class="go">LahnH/conditions: init_1996_01_01_00_00_00</span>
+<span class="go">LahnH/series: default</span>
+</pre></div>
+</div>
+<p>Pass an alternative path if you prefer to work in another directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">prepare_full_example_1</span><span class="p">(</span><span class="n">dirpath</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.examples.prepare_full_example_2">
+<span class="sig-prename descclassname"><span class="pre">hydpy.examples.</span></span><span class="sig-name descname"><span class="pre">prepare_full_example_2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lastdate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">timetools.DateConstrArg</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'1996-01-05'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><span class="pre">hydpytools.HydPy</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="pubtools.html#hydpy.core.pubtools.Pub" title="hydpy.core.pubtools.Pub"><span class="pre">pubtools.Pub</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="testtools.html#hydpy.core.testtools.TestIO" title="hydpy.core.testtools.TestIO"><span class="pre">testtools.TestIO</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/examples.html#prepare_full_example_2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.examples.prepare_full_example_2" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare the <cite>LahnH</cite> project on disk and in RAM.</p>
+<p>Function <a class="reference internal" href="#hydpy.examples.prepare_full_example_2" title="hydpy.examples.prepare_full_example_2"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_full_example_2()</span></code></a> is an extensions of function
+<a class="reference internal" href="#hydpy.examples.prepare_full_example_1" title="hydpy.examples.prepare_full_example_1"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_full_example_1()</span></code></a>.  Besides preparing the project data of the <cite>LahnH</cite>
+example project, it performs all necessary steps to start a simulation run.
+Therefore, it returns a readily prepared <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> instance, as well as, for
+convenience, module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> and class <a class="reference internal" href="testtools.html#hydpy.core.testtools.TestIO" title="hydpy.core.testtools.TestIO"><code class="xref py py-class docutils literal notranslate"><span class="pre">TestIO</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span>
+<span class="go">Nodes(&quot;dill&quot;, &quot;lahn_1&quot;, &quot;lahn_2&quot;, &quot;lahn_3&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">elements</span>
+<span class="go">Elements(&quot;land_dill&quot;, &quot;land_lahn_1&quot;, &quot;land_lahn_2&quot;, &quot;land_lahn_3&quot;,</span>
+<span class="go">         &quot;stream_dill_lahn_2&quot;, &quot;stream_lahn_1_lahn_2&quot;,</span>
+<span class="go">         &quot;stream_lahn_2_lahn_3&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="go">Timegrids(&quot;1996-01-01 00:00:00&quot;,</span>
+<span class="go">          &quot;1996-01-05 00:00:00&quot;,</span>
+<span class="go">          &quot;1d&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">classname</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">classname</span><span class="p">(</span><span class="n">TestIO</span><span class="p">)</span>
+<span class="go">&#39;TestIO&#39;</span>
+</pre></div>
+</div>
+<p>Function <a class="reference internal" href="#hydpy.examples.prepare_full_example_2" title="hydpy.examples.prepare_full_example_2"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_full_example_2()</span></code></a> is primarily thought for testing and thus does
+not allow for many configurations except changing the end date of the
+initialisation period:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">(</span><span class="s2">&quot;1996-02-01&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="go">Timegrids(&quot;1996-01-01 00:00:00&quot;,</span>
+<span class="go">          &quot;1996-02-01 00:00:00&quot;,</span>
+<span class="go">          &quot;1d&quot;)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="zbibliography.html" title="Bibliography"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="additional_repositories.html" title="Additional repositories"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">examples</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

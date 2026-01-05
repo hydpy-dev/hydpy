@@ -1,0 +1,44 @@
+.. |InterpAlgorithm.plot| replace:: :func:`~hydpy.auxs.interptools.InterpAlgorithm.plot`
+.. |InterpAlgorithm.print_table| replace:: :func:`~hydpy.auxs.interptools.InterpAlgorithm.print_table`
+.. |PPoly.calculate_derivatives| replace:: :func:`~hydpy.auxs.ppolytools.PPoly.calculate_derivatives`
+.. |PPoly.calculate_values| replace:: :func:`~hydpy.auxs.ppolytools.PPoly.calculate_values`
+.. |PPoly.cs| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.cs`
+.. |PPoly.from_data| replace:: :func:`~hydpy.auxs.ppolytools.PPoly.from_data`
+.. |PPoly.inputs| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.inputs`
+.. |PPoly.nmb_cs| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.nmb_cs`
+.. |PPoly.nmb_inputs| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.nmb_inputs`
+.. |PPoly.nmb_outputs| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.nmb_outputs`
+.. |PPoly.nmb_ps| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.nmb_ps`
+.. |PPoly.output_derivatives| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.output_derivatives`
+.. |PPoly.outputs| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.outputs`
+.. |PPoly.verify| replace:: :func:`~hydpy.auxs.ppolytools.PPoly.verify`
+.. |PPoly.x0s| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.x0s`
+.. |PPoly| replace:: :class:`~hydpy.auxs.ppolytools.PPoly`
+.. |Poly.x0| replace:: :attr:`~hydpy.auxs.ppolytools.Poly.x0`
+.. |Poly| replace:: :class:`~hydpy.auxs.ppolytools.Poly`
+.. |ProtectedProperty| replace:: :class:`~hydpy.core.propertytools.ProtectedProperty`
+.. |RuntimeError| replace:: :class:`RuntimeError`
+.. |SeasonalInterpolator| replace:: :class:`~hydpy.auxs.interptools.SeasonalInterpolator`
+.. |SimpleInterpolator| replace:: :class:`~hydpy.auxs.interptools.SimpleInterpolator`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |ppolyutils| replace:: :mod:`~hydpy.cythons.autogen.ppolyutils`
+.. |scipy| replace:: :mod:`~scipy`
+.. |dam_control.WaterLevel2FloodDischarge| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevel2FloodDischarge`
+.. |dam_control.WaterVolume2WaterLevel| replace:: :class:`~hydpy.models.dam.dam_control.WaterVolume2WaterLevel`
+.. |ppolytools.PPoly.cs| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.cs`
+.. |ppolytools.PPoly.nmb_cs| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.nmb_cs`
+.. |ppolytools.PPoly.sort| replace:: :func:`~hydpy.auxs.ppolytools.PPoly.sort`
+.. |ppolytools.PPoly.verify| replace:: :func:`~hydpy.auxs.ppolytools.PPoly.verify`
+.. |ppolytools.PPoly.x0s| replace:: :const:`~hydpy.auxs.ppolytools.PPoly.x0s`
+.. |ppolytools.PPoly| replace:: :class:`~hydpy.auxs.ppolytools.PPoly`
+.. |ppolytools.Poly| replace:: :class:`~hydpy.auxs.ppolytools.Poly`
+
+.. _ppolytools:
+
+ppolytools
+==========
+
+.. automodule:: hydpy.auxs.ppolytools
+    :members:
+    :show-inheritance:
+    :exclude-members: Hashable, Match, Text, RECEIVER_METHODS, Union, Iterable, cast, Callable, SupportsAbs, disjoint_base, overload, Sized, ParamSpecArgs, get_original_bases, get_protocol_members, SOLVERPARAMETERS, is_typeddict, Writer, get_overloads, FULL_ODE_METHODS, REQUIREDSEQUENCES, CapsuleType, SupportsRound, ReadOnly, fastaccess_old, evaluate_forward_ref, List, subpars, Required, ForwardRef, Protocol, Format, NoExtraItems, TypeGuard, clear_overloads, seqs, TypeAliasType, CONTROLPARAMETERS, Final, AbstractSet, DefaultDict, ADD_METHODS, SupportsFloat, dataclass_transform, AnyStr, MappingView, Doc, Reversible, assert_never, Concatenate, Dict, OUTLET_METHODS, AsyncIterator, SUBMETHODS, ParamSpec, Annotated, no_type_check_decorator, get_type_hints, CLASSES, NamedTuple, ByteString, Generator, FrozenSet, pars, IO, TypeIs, Set, Deque, INTERFACE_METHODS, type_repr, NoDefault, Literal, Any, DERIVEDPARAMETERS, SupportsBytes, subseqs, Buffer, Reader, deprecated, Sentinel, SOLVERSEQUENCES, Counter, Optional, MutableSequence, OrderedDict, NoReturn, runtime, MutableSet, final, fastaccess_new, reveal_type, Awaitable, Unpack, Container, IntVar, LiteralString, TextIO, KeysView, ChainMap, Mapping, UPDATEDSEQUENCES, ClassVar, fastaccess, override, FIXEDPARAMETERS, SUBMODELINTERFACES, AsyncGenerator, TypeVar, SupportsIndex, NotRequired, AsyncIterable, Iterator, TypeVarTuple, get_args, Never, PART_ODE_METHODS, ValuesView, TYPE_CHECKING, TypedDict, NewType, AsyncContextManager, no_type_check, Pattern, RESULTSEQUENCES, Tuple, runtime_checkable, BinaryIO, get_origin, ParamSpecKwargs, Collection, SUBMODELS, ItemsView, TypeAlias, SupportsInt, TypeForm, get_annotations, SENDER_METHODS, Coroutine, Self, Sequence, RUN_METHODS, subvars, INLET_METHODS, MutableMapping, ContextManager, SupportsComplex, Generic, Type, is_protocol, assert_type

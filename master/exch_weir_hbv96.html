@@ -1,0 +1,867 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>exch_weir_hbv96 &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="HydPy-Evap" href="HydPy-Evap.html" />
+    <link rel="prev" title="exch_waterlevel" href="exch_waterlevel.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Evap.html" title="HydPy-Evap"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="exch_waterlevel.html" title="exch_waterlevel"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Exch.html" accesskey="U">HydPy-Exch</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">exch_weir_hbv96</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="exch.html">exch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exch_branch_hbv96.html">exch_branch_hbv96</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exch_interp.html">exch_interp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exch_waterlevel.html">exch_waterlevel</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">exch_weir_hbv96</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-tests">Integration tests</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#base-scenario">base scenario</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#crest-height">crest height</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#numerical-accuracy">numerical accuracy</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#allowed-exchange">allowed exchange</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch_weir_hbv96.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch_weir_hbv96.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch_weir_hbv96.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.exch_weir_hbv96.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch_weir_hbv96.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch_weir_hbv96.FactorSequences"><code class="docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch_weir_hbv96.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch_weir_hbv96.LogSequences"><code class="docutils literal notranslate"><span class="pre">LogSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch_weir_hbv96.OutletSequences"><code class="docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.exch_weir_hbv96.ReceiverSequences"><code class="docutils literal notranslate"><span class="pre">ReceiverSequences</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="exch_waterlevel.html"
+                          title="previous chapter">exch_waterlevel</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="HydPy-Evap.html"
+                          title="next chapter">HydPy-Evap</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/exch_weir_hbv96.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/exch_weir_hbv96.html">6</a></li>
+<li><a href="../master/exch_weir_hbv96.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="exch-weir-hbv96">
+<span id="id1"></span><h1>HydPy-Exch-Weir-HBV96 (weir model adopted from IHMS-HBV96)<a class="headerlink" href="#exch-weir-hbv96" title="Link to this heading">¶</a></h1>
+<p><a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> implements the general weir formula.  We implemented it on behalf of
+the <a class="reference external" href="https://www.bafg.de/EN">German Federal Institute of Hydrology (BfG)</a> to connect different <a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a>
+instances (lake models), enabling them to exchange water in both directions based on
+water level differences.  This specific combination models some huge, connected
+(sub)lakes of the Rhine basin similar to HBV96 <span id="id2">(<a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em>, 1997</a>)</span>.
+Combinations with other models providing (something like) water level information and
+allowing for an additional inflow that can be positive and negative are possible.</p>
+<section id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to_read_the_reference_manual.html#integration-tests"><span class="std std-ref">Integration Tests</span></a> first.</p>
+</div>
+<p>We perform all integration tests over a month with a simulation step of one day:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">FusedVariable</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">,</span> <span class="n">PPoly</span><span class="p">,</span> <span class="n">prepare_model</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-02-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<p>The following examples demonstrate how <a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> interacts with lake models
+like <a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a>.  Therefore, we must set up one <a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> instance and two
+<a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a> instances.</p>
+<p>First, we define the eight required <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> objects:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>inflow1</cite> and <cite>inflow2</cite> pass the inflow into the first and the second lake.</p></li>
+<li><p><cite>outflow1</cite> and <cite>outflow2</cite> receive the lakes’ outflows.</p></li>
+<li><p><cite>overflow1</cite> and <cite>overflow2</cite> exchange water between the lakes.</p></li>
+<li><p><cite>waterlevel1</cite> and <cite>waterlevel2</cite> inform the exchange model about the lakes’ current
+water levels.</p></li>
+</ul>
+</div></blockquote>
+<p>We define the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node.variable" title="hydpy.core.devicetools.Node.variable"><code class="xref py py-const docutils literal notranslate"><span class="pre">variable</span></code></a> type of all nodes explicitly.  For the inflow and outflow
+nodes, we stick to the default by using the string literal “Q”, telling <a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a> to
+connect these nodes to the inlet sequence <a class="reference internal" href="dam.html#hydpy.models.dam.dam_inlets.Q" title="hydpy.models.dam.dam_inlets.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a> and outlet sequence
+<a class="reference internal" href="dam.html#hydpy.models.dam.dam_outlets.Q" title="hydpy.models.dam.dam_outlets.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a>, respectively:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inflow1</span><span class="p">,</span> <span class="n">inflow2</span>  <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;inflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;inflow2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="s2">&quot;Q&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">outflow1</span><span class="p">,</span> <span class="n">outflow2</span>  <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;outflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;outflow2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="s2">&quot;Q&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The overflow nodes do not connect both lakes directly but the lakes with the exchange
+model. Therefore, we define a <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.FusedVariable" title="hydpy.core.devicetools.FusedVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">FusedVariable</span></code></a> that combines the aliases of the outlet
+sequence <a class="reference internal" href="exch.html#hydpy.models.exch.exch_outlets.Exchange" title="hydpy.models.exch.exch_outlets.Exchange"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exchange</span></code></a> of <a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> and the inlet sequence
+<a class="reference internal" href="dam.html#hydpy.models.dam.dam_inlets.E" title="hydpy.models.dam.dam_inlets.E"><code class="xref py py-class docutils literal notranslate"><span class="pre">E</span></code></a> of <a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.aliases</span><span class="w"> </span><span class="kn">import</span> <span class="n">exch_outlets_Exchange</span><span class="p">,</span> <span class="n">dam_inlets_E</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Exchange</span> <span class="o">=</span> <span class="n">FusedVariable</span><span class="p">(</span><span class="s2">&quot;Exchange&quot;</span><span class="p">,</span> <span class="n">exch_outlets_Exchange</span><span class="p">,</span> <span class="n">dam_inlets_E</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;overflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;overflow2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="n">Exchange</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, we define a <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.FusedVariable" title="hydpy.core.devicetools.FusedVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">FusedVariable</span></code></a> that combines the aliases of the receiver sequence
+<a class="reference internal" href="exch.html#hydpy.models.exch.exch_receivers.WaterLevels" title="hydpy.models.exch.exch_receivers.WaterLevels"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevels</span></code></a> of <a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> and the output sequence
+<a class="reference internal" href="dam.html#hydpy.models.dam.dam_factors.WaterLevel" title="hydpy.models.dam.dam_factors.WaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevel</span></code></a> of <a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.aliases</span><span class="w"> </span><span class="kn">import</span> <span class="n">exch_receivers_WaterLevels</span><span class="p">,</span> <span class="n">dam_factors_WaterLevel</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">WaterLevel</span> <span class="o">=</span> <span class="n">FusedVariable</span><span class="p">(</span><span class="s2">&quot;WaterLevel&quot;</span><span class="p">,</span> <span class="n">exch_receivers_WaterLevels</span><span class="p">,</span> <span class="n">dam_factors_WaterLevel</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;waterlevel1&quot;</span><span class="p">,</span> <span class="s2">&quot;waterlevel2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="n">WaterLevel</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, we prepare the two <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects holding the <a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a> instances.  The
+configuration is similar to the one in the documentation on <a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a>, except in
+connecting <cite>waterlevel1</cite> and <cite>waterlevel2</cite> as additional output nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lake1</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake1&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">inlets</span><span class="o">=</span><span class="p">(</span><span class="n">inflow1</span><span class="p">,</span> <span class="n">overflow1</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">outlets</span><span class="o">=</span><span class="n">outflow1</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake2</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake2&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">inlets</span><span class="o">=</span><span class="p">(</span><span class="n">inflow2</span><span class="p">,</span> <span class="n">overflow2</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">outlets</span><span class="o">=</span><span class="n">outflow2</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>From the perspective of the exchange element, <cite>waterlevel1</cite> and <cite>waterlevel2</cite> are
+receiver nodes, while <cite>overflow1</cite> and <cite>overflow2</cite> are outlet nodes.  At the beginning
+of each simulation step, <a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> receives water level information from both
+lakes.  Then, it calculates the correct exchange and sends it to both lakes via the
+overflow nodes, but with different signs.  If the first lake’s water level is higher,
+it passes a negative value to <cite>overflow1</cite> (the first lake loses water) and a positive
+value to <cite>overflow2</cite> (the second lake gains water), and vice versa:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;exchange&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                   <span class="n">receivers</span><span class="o">=</span><span class="p">(</span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span><span class="p">),</span>
+<span class="gp">... </span>                   <span class="n">outlets</span><span class="o">=</span><span class="p">(</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>In our test configuration, the nodes’ names and the order in which we pass them to the
+constructor of class <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> agree with the nodes’ target lakes.  This practice seems
+advisable for keeping clarity, but it is not a technical requirement.  The
+documentation on class <a class="reference internal" href="#hydpy.models.exch_weir_hbv96.Model" title="hydpy.models.exch_weir_hbv96.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> explains the internal sorting mechanisms
+and plausibility checks underlying the connection-related functionalities of
+<a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a>.</p>
+<p>We parameterise both lake models identically. All of the following values stem from the
+documentation on <a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a>.  We will use them in all examples:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lake1</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">prepare_model</span><span class="p">(</span><span class="s2">&quot;dam_llake&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake2</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">prepare_model</span><span class="p">(</span><span class="s2">&quot;dam_llake&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">inf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">model_</span> <span class="ow">in</span> <span class="p">(</span><span class="n">lake1</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">lake2</span><span class="o">.</span><span class="n">model</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">control</span> <span class="o">=</span> <span class="n">model_</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">catchmentarea</span><span class="p">(</span><span class="mf">86.4</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">surfacearea</span><span class="p">(</span><span class="mf">1.44</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">correctionprecipitation</span><span class="p">(</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">correctionevaporation</span><span class="p">(</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">weightevaporation</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">thresholdevaporation</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">dischargetolerance</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">toleranceevaporation</span><span class="p">(</span><span class="mf">0.001</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">allowedwaterleveldrop</span><span class="p">(</span><span class="n">inf</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">watervolume2waterlevel</span><span class="p">(</span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]))</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">commission</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">control</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Now, we prepare the exchange model.  We will use common values for the flow coefficient
+and exponent throughout the following examples:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.exch_weir_hbv96</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flowcoefficient</span><span class="p">(</span><span class="mf">0.62</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flowexponent</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>An <a class="reference internal" href="testtools.html#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> object will help us to perform the individual examples:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">exchange</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">axis1</span> <span class="o">=</span> <span class="p">(</span><span class="n">factors</span><span class="o">.</span><span class="n">waterlevels</span><span class="p">,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">axis2</span> <span class="o">=</span> <span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">potentialexchange</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">actualexchange</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We set both lakes’ inflow to zero for simplicity:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inflow1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inflow2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<p>The only difference between both lakes is their initial state.  The first lake starts
+empty, and the second starts with a water volume of 1 million m³.  Note that
+<a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> requires the same information.  We must give it to the log sequence
+<a class="reference internal" href="exch.html#hydpy.models.exch.exch_logs.LoggedWaterLevels" title="hydpy.models.exch.exch_logs.LoggedWaterLevels"><code class="xref py py-class docutils literal notranslate"><span class="pre">LoggedWaterLevels</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span> <span class="o">=</span> <span class="p">[(</span><span class="n">lake1</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">watervolume</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+<span class="gp">... </span>              <span class="p">(</span><span class="n">lake1</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">loggedadjustedevaporation</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+<span class="gp">... </span>              <span class="p">(</span><span class="n">lake2</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">watervolume</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>              <span class="p">(</span><span class="n">lake2</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">loggedadjustedevaporation</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+<span class="gp">... </span>              <span class="p">(</span><span class="n">logs</span><span class="o">.</span><span class="n">loggedwaterlevels</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))]</span>
+</pre></div>
+</div>
+<section id="base-scenario">
+<span id="exch-weir-hbv96-base-scenario"></span><h3>base scenario<a class="headerlink" href="#base-scenario" title="Link to this heading">¶</a></h3>
+<p>Our base scenario defines a small crest width of 0.2 meters, enabling only limited
+water exchange:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">crestwidth</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The crest height of 0.0 m and the allowed exchange of 5.0 m³/s are so low and high,
+respectively, that they do not affect the following results:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">crestheight</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">allowedexchange</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We define a linear relationship between the water level and the outflow for both lakes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">model_</span> <span class="ow">in</span> <span class="p">(</span><span class="n">lake1</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">lake2</span><span class="o">.</span><span class="n">model</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">model_</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">waterlevel2flooddischarge</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>The following results show that the first lake’s water level drops fast due to the
+release of water to the second lake and its outlet.  The second lake receives this
+overflow throughout the simulation period but with a decreasing tendency.  Hence, the
+water level rises initially but finally falls again because of the lake’s outflow:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;exch_weir_hbv96_base_scenario&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_129__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_129__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 00:00:00 |      0.0          1.0 |            -1.0 |            -0.124 |         -0.124 |     0.0 |     0.0 | 0.010123 | 1.826616 |     0.124 |    -0.124 |    0.009839 |    0.831467 |</span>
+<span class="go">| 2000-01-02 00:00:00 | 0.009839     0.831467 |       -0.821628 |         -0.092349 |      -0.092349 |     0.0 |     0.0 | 0.025611 | 1.519648 |  0.092349 | -0.092349 |    0.015605 |     0.69219 |</span>
+<span class="go">| 2000-01-03 00:00:00 | 0.015605      0.69219 |       -0.676585 |         -0.069009 |      -0.069009 |     0.0 |     0.0 | 0.034296 | 1.265739 |  0.069009 | -0.069009 |    0.018604 |    0.576868 |</span>
+<span class="go">| 2000-01-04 00:00:00 | 0.018604     0.576868 |       -0.558264 |         -0.051723 |      -0.051723 |     0.0 |     0.0 | 0.038391 | 1.055333 |  0.051723 | -0.051723 |    0.019756 |    0.481218 |</span>
+<span class="go">| 2000-01-05 00:00:00 | 0.019756     0.481218 |       -0.461462 |         -0.038871 |      -0.038871 |     0.0 |     0.0 | 0.039457 | 0.880699 |  0.038871 | -0.038871 |    0.019706 |    0.401767 |</span>
+<span class="go">| 2000-01-06 00:00:00 | 0.019706     0.401767 |       -0.382062 |         -0.029283 |      -0.029283 |     0.0 |     0.0 | 0.038587 | 0.735551 |  0.029283 | -0.029283 |    0.018902 |    0.335686 |</span>
+<span class="go">| 2000-01-07 00:00:00 | 0.018902     0.335686 |       -0.316784 |         -0.022109 |      -0.022109 |     0.0 |     0.0 | 0.036526 | 0.614762 |  0.022109 | -0.022109 |    0.017656 |     0.28066 |</span>
+<span class="go">| 2000-01-08 00:00:00 | 0.017656      0.28066 |       -0.263004 |         -0.016725 |      -0.016725 |     0.0 |     0.0 | 0.033799 | 0.514134 |  0.016725 | -0.016725 |    0.016181 |    0.234794 |</span>
+<span class="go">| 2000-01-09 00:00:00 | 0.016181     0.234794 |       -0.218613 |         -0.012675 |      -0.012675 |     0.0 |     0.0 | 0.030759 |  0.43022 |  0.012675 | -0.012675 |    0.014619 |    0.196528 |</span>
+<span class="go">| 2000-01-10 00:00:00 | 0.014619     0.196528 |       -0.181909 |         -0.009621 |      -0.009621 |     0.0 |     0.0 |  0.02764 | 0.360182 |  0.009621 | -0.009621 |    0.013062 |    0.164577 |</span>
+<span class="go">| 2000-01-11 00:00:00 | 0.013062     0.164577 |       -0.151515 |         -0.007313 |      -0.007313 |     0.0 |     0.0 | 0.024592 | 0.301685 |  0.007313 | -0.007313 |    0.011569 |    0.137879 |</span>
+<span class="go">| 2000-01-12 00:00:00 | 0.011569     0.137879 |       -0.126311 |         -0.005566 |      -0.005566 |     0.0 |     0.0 | 0.021707 | 0.252792 |  0.005566 | -0.005566 |    0.010174 |    0.115557 |</span>
+<span class="go">| 2000-01-13 00:00:00 | 0.010174     0.115557 |       -0.105383 |         -0.004242 |      -0.004242 |     0.0 |     0.0 | 0.019037 |   0.2119 |  0.004242 | -0.004242 |    0.008896 |    0.096883 |</span>
+<span class="go">| 2000-01-14 00:00:00 | 0.008896     0.096883 |       -0.087987 |         -0.003236 |      -0.003236 |     0.0 |     0.0 | 0.016607 | 0.177682 |  0.003236 | -0.003236 |    0.007741 |    0.081251 |</span>
+<span class="go">| 2000-01-15 00:00:00 | 0.007741     0.081251 |        -0.07351 |         -0.002471 |      -0.002471 |     0.0 |     0.0 | 0.014422 | 0.149034 |  0.002471 | -0.002471 |    0.006708 |    0.068161 |</span>
+<span class="go">| 2000-01-16 00:00:00 | 0.006708     0.068161 |       -0.061453 |         -0.001889 |      -0.001889 |     0.0 |     0.0 | 0.012478 | 0.125039 |  0.001889 | -0.001889 |    0.005793 |    0.057195 |</span>
+<span class="go">| 2000-01-17 00:00:00 | 0.005793     0.057195 |       -0.051401 |         -0.001445 |      -0.001445 |     0.0 |     0.0 | 0.010761 | 0.104933 |  0.001445 | -0.001445 |    0.004988 |    0.048004 |</span>
+<span class="go">| 2000-01-18 00:00:00 | 0.004988     0.048004 |       -0.043015 |         -0.001106 |      -0.001106 |     0.0 |     0.0 | 0.009255 | 0.088079 |  0.001106 | -0.001106 |    0.004284 |    0.040298 |</span>
+<span class="go">| 2000-01-19 00:00:00 | 0.004284     0.040298 |       -0.036013 |         -0.000847 |      -0.000847 |     0.0 |     0.0 |  0.00794 | 0.073947 |  0.000847 | -0.000847 |    0.003672 |    0.033836 |</span>
+<span class="go">| 2000-01-20 00:00:00 | 0.003672     0.033836 |       -0.030164 |          -0.00065 |       -0.00065 |     0.0 |     0.0 | 0.006798 | 0.062094 |   0.00065 |  -0.00065 |     0.00314 |    0.028415 |</span>
+<span class="go">| 2000-01-21 00:00:00 |  0.00314     0.028415 |       -0.025274 |         -0.000498 |      -0.000498 |     0.0 |     0.0 |  0.00581 | 0.052149 |  0.000498 | -0.000498 |    0.002681 |    0.023866 |</span>
+<span class="go">| 2000-01-22 00:00:00 | 0.002681     0.023866 |       -0.021184 |         -0.000382 |      -0.000382 |     0.0 |     0.0 | 0.004957 | 0.043804 |  0.000382 | -0.000382 |    0.002286 |    0.020048 |</span>
+<span class="go">| 2000-01-23 00:00:00 | 0.002286     0.020048 |       -0.017762 |         -0.000294 |      -0.000294 |     0.0 |     0.0 | 0.004224 | 0.036799 |  0.000294 | -0.000294 |    0.001947 |    0.016843 |</span>
+<span class="go">| 2000-01-24 00:00:00 | 0.001947     0.016843 |       -0.014897 |         -0.000225 |      -0.000225 |     0.0 |     0.0 | 0.003595 | 0.030918 |  0.000225 | -0.000225 |    0.001655 |    0.014153 |</span>
+<span class="go">| 2000-01-25 00:00:00 | 0.001655     0.014153 |       -0.012497 |         -0.000173 |      -0.000173 |     0.0 |     0.0 | 0.003056 |  0.02598 |  0.000173 | -0.000173 |    0.001406 |    0.011893 |</span>
+<span class="go">| 2000-01-26 00:00:00 | 0.001406     0.011893 |       -0.010486 |         -0.000133 |      -0.000133 |     0.0 |     0.0 | 0.002595 | 0.021833 |  0.000133 | -0.000133 |    0.001194 |    0.009995 |</span>
+<span class="go">| 2000-01-27 00:00:00 | 0.001194     0.009995 |       -0.008801 |         -0.000102 |      -0.000102 |     0.0 |     0.0 | 0.002202 | 0.018354 |  0.000102 | -0.000102 |    0.001012 |      0.0084 |</span>
+<span class="go">| 2000-01-28 00:00:00 | 0.001012       0.0084 |       -0.007388 |         -0.000079 |      -0.000079 |     0.0 |     0.0 | 0.001866 | 0.015426 |  0.000079 | -0.000079 |    0.000858 |    0.007061 |</span>
+<span class="go">| 2000-01-29 00:00:00 | 0.000858     0.007061 |       -0.006203 |         -0.000061 |      -0.000061 |     0.0 |     0.0 | 0.001581 | 0.012967 |  0.000061 | -0.000061 |    0.000727 |    0.005935 |</span>
+<span class="go">| 2000-01-30 00:00:00 | 0.000727     0.005935 |       -0.005209 |         -0.000047 |      -0.000047 |     0.0 |     0.0 | 0.001339 |   0.0109 |  0.000047 | -0.000047 |    0.000615 |    0.004989 |</span>
+<span class="go">| 2000-01-31 00:00:00 | 0.000615     0.004989 |       -0.004374 |         -0.000036 |      -0.000036 |     0.0 |     0.0 | 0.001133 | 0.009163 |  0.000036 | -0.000036 |     0.00052 |    0.004195 |</span>
+</pre></div></div></div><a href="exch_weir_hbv96_base_scenario.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+<section id="crest-height">
+<span id="exch-weir-hbv96-crest-height"></span><h3>crest height<a class="headerlink" href="#crest-height" title="Link to this heading">¶</a></h3>
+<p>In this example, we increase the crest’s width and, more importantly, set its height to
+0.5 m, matching a water volume of 0.5 million m³:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">crestwidth</span><span class="p">(</span><span class="mf">20.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">crestheight</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The crest height now influences the lakes’ interaction significantly.  For
+clarification, we disallow both lakes to release any water:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">model_</span> <span class="ow">in</span> <span class="p">(</span><span class="n">lake1</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">lake2</span><span class="o">.</span><span class="n">model</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">model_</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">waterlevel2flooddischarge</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Due to the identical parameter values of both models and the symmetrical initial
+conditions of 0.0 and 1.0 million m³, both water levels move towards the defined crest
+height asymptotically:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;exch_weir_hbv96_crest_height&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_130__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_130__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 00:00:00 |      0.0          1.0 |            -0.5 |         -4.384062 |      -4.384062 |     0.0 |     0.0 |      0.0 |      0.0 |  4.384062 | -4.384062 |    0.378783 |    0.621217 |</span>
+<span class="go">| 2000-01-02 00:00:00 | 0.378783     0.621217 |       -0.121217 |          -0.52332 |       -0.52332 |     0.0 |     0.0 |      0.0 |      0.0 |   0.52332 |  -0.52332 |    0.423998 |    0.576002 |</span>
+<span class="go">| 2000-01-03 00:00:00 | 0.423998     0.576002 |       -0.076002 |         -0.259813 |      -0.259813 |     0.0 |     0.0 |      0.0 |      0.0 |  0.259813 | -0.259813 |    0.446446 |    0.553554 |</span>
+<span class="go">| 2000-01-04 00:00:00 | 0.446446     0.553554 |       -0.053554 |         -0.153679 |      -0.153679 |     0.0 |     0.0 |      0.0 |      0.0 |  0.153679 | -0.153679 |    0.459723 |    0.540277 |</span>
+<span class="go">| 2000-01-05 00:00:00 | 0.459723     0.540277 |       -0.040277 |          -0.10023 |       -0.10023 |     0.0 |     0.0 |      0.0 |      0.0 |   0.10023 |  -0.10023 |    0.468383 |    0.531617 |</span>
+<span class="go">| 2000-01-06 00:00:00 | 0.468383     0.531617 |       -0.031617 |          -0.06971 |       -0.06971 |     0.0 |     0.0 |      0.0 |      0.0 |   0.06971 |  -0.06971 |    0.474406 |    0.525594 |</span>
+<span class="go">| 2000-01-07 00:00:00 | 0.474406     0.525594 |       -0.025594 |         -0.050772 |      -0.050772 |     0.0 |     0.0 |      0.0 |      0.0 |  0.050772 | -0.050772 |    0.478793 |    0.521207 |</span>
+<span class="go">| 2000-01-08 00:00:00 | 0.478793     0.521207 |       -0.021207 |         -0.038295 |      -0.038295 |     0.0 |     0.0 |      0.0 |      0.0 |  0.038295 | -0.038295 |    0.482102 |    0.517898 |</span>
+<span class="go">| 2000-01-09 00:00:00 | 0.482102     0.517898 |       -0.017898 |         -0.029692 |      -0.029692 |     0.0 |     0.0 |      0.0 |      0.0 |  0.029692 | -0.029692 |    0.484667 |    0.515333 |</span>
+<span class="go">| 2000-01-10 00:00:00 | 0.484667     0.515333 |       -0.015333 |         -0.023543 |      -0.023543 |     0.0 |     0.0 |      0.0 |      0.0 |  0.023543 | -0.023543 |    0.486701 |    0.513299 |</span>
+<span class="go">| 2000-01-11 00:00:00 | 0.486701     0.513299 |       -0.013299 |         -0.019017 |      -0.019017 |     0.0 |     0.0 |      0.0 |      0.0 |  0.019017 | -0.019017 |    0.488344 |    0.511656 |</span>
+<span class="go">| 2000-01-12 00:00:00 | 0.488344     0.511656 |       -0.011656 |         -0.015604 |      -0.015604 |     0.0 |     0.0 |      0.0 |      0.0 |  0.015604 | -0.015604 |    0.489692 |    0.510308 |</span>
+<span class="go">| 2000-01-13 00:00:00 | 0.489692     0.510308 |       -0.010308 |         -0.012976 |      -0.012976 |     0.0 |     0.0 |      0.0 |      0.0 |  0.012976 | -0.012976 |    0.490814 |    0.509186 |</span>
+<span class="go">| 2000-01-14 00:00:00 | 0.490814     0.509186 |       -0.009186 |         -0.010918 |      -0.010918 |     0.0 |     0.0 |      0.0 |      0.0 |  0.010918 | -0.010918 |    0.491757 |    0.508243 |</span>
+<span class="go">| 2000-01-15 00:00:00 | 0.491757     0.508243 |       -0.008243 |          -0.00928 |       -0.00928 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00928 |  -0.00928 |    0.492559 |    0.507441 |</span>
+<span class="go">| 2000-01-16 00:00:00 | 0.492559     0.507441 |       -0.007441 |          -0.00796 |       -0.00796 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00796 |  -0.00796 |    0.493246 |    0.506754 |</span>
+<span class="go">| 2000-01-17 00:00:00 | 0.493246     0.506754 |       -0.006754 |         -0.006882 |      -0.006882 |     0.0 |     0.0 |      0.0 |      0.0 |  0.006882 | -0.006882 |    0.493841 |    0.506159 |</span>
+<span class="go">| 2000-01-18 00:00:00 | 0.493841     0.506159 |       -0.006159 |         -0.005994 |      -0.005994 |     0.0 |     0.0 |      0.0 |      0.0 |  0.005994 | -0.005994 |    0.494359 |    0.505641 |</span>
+<span class="go">| 2000-01-19 00:00:00 | 0.494359     0.505641 |       -0.005641 |         -0.005254 |      -0.005254 |     0.0 |     0.0 |      0.0 |      0.0 |  0.005254 | -0.005254 |    0.494813 |    0.505187 |</span>
+<span class="go">| 2000-01-20 00:00:00 | 0.494813     0.505187 |       -0.005187 |         -0.004633 |      -0.004633 |     0.0 |     0.0 |      0.0 |      0.0 |  0.004633 | -0.004633 |    0.495213 |    0.504787 |</span>
+<span class="go">| 2000-01-21 00:00:00 | 0.495213     0.504787 |       -0.004787 |         -0.004107 |      -0.004107 |     0.0 |     0.0 |      0.0 |      0.0 |  0.004107 | -0.004107 |    0.495568 |    0.504432 |</span>
+<span class="go">| 2000-01-22 00:00:00 | 0.495568     0.504432 |       -0.004432 |         -0.003659 |      -0.003659 |     0.0 |     0.0 |      0.0 |      0.0 |  0.003659 | -0.003659 |    0.495884 |    0.504116 |</span>
+<span class="go">| 2000-01-23 00:00:00 | 0.495884     0.504116 |       -0.004116 |         -0.003274 |      -0.003274 |     0.0 |     0.0 |      0.0 |      0.0 |  0.003274 | -0.003274 |    0.496167 |    0.503833 |</span>
+<span class="go">| 2000-01-24 00:00:00 | 0.496167     0.503833 |       -0.003833 |         -0.002943 |      -0.002943 |     0.0 |     0.0 |      0.0 |      0.0 |  0.002943 | -0.002943 |    0.496421 |    0.503579 |</span>
+<span class="go">| 2000-01-25 00:00:00 | 0.496421     0.503579 |       -0.003579 |         -0.002655 |      -0.002655 |     0.0 |     0.0 |      0.0 |      0.0 |  0.002655 | -0.002655 |    0.496651 |    0.503349 |</span>
+<span class="go">| 2000-01-26 00:00:00 | 0.496651     0.503349 |       -0.003349 |         -0.002404 |      -0.002404 |     0.0 |     0.0 |      0.0 |      0.0 |  0.002404 | -0.002404 |    0.496858 |    0.503142 |</span>
+<span class="go">| 2000-01-27 00:00:00 | 0.496858     0.503142 |       -0.003142 |         -0.002184 |      -0.002184 |     0.0 |     0.0 |      0.0 |      0.0 |  0.002184 | -0.002184 |    0.497047 |    0.502953 |</span>
+<span class="go">| 2000-01-28 00:00:00 | 0.497047     0.502953 |       -0.002953 |          -0.00199 |       -0.00199 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00199 |  -0.00199 |    0.497219 |    0.502781 |</span>
+<span class="go">| 2000-01-29 00:00:00 | 0.497219     0.502781 |       -0.002781 |         -0.001819 |      -0.001819 |     0.0 |     0.0 |      0.0 |      0.0 |  0.001819 | -0.001819 |    0.497376 |    0.502624 |</span>
+<span class="go">| 2000-01-30 00:00:00 | 0.497376     0.502624 |       -0.002624 |         -0.001667 |      -0.001667 |     0.0 |     0.0 |      0.0 |      0.0 |  0.001667 | -0.001667 |     0.49752 |     0.50248 |</span>
+<span class="go">| 2000-01-31 00:00:00 |  0.49752      0.50248 |        -0.00248 |         -0.001531 |      -0.001531 |     0.0 |     0.0 |      0.0 |      0.0 |  0.001531 | -0.001531 |    0.497652 |    0.502348 |</span>
+</pre></div></div></div><a href="exch_weir_hbv96_crest_height.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+<section id="numerical-accuracy">
+<span id="exch-weir-hbv96-numerical-accuracy"></span><h3>numerical accuracy<a class="headerlink" href="#numerical-accuracy" title="Link to this heading">¶</a></h3>
+<p><a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> s a flexible tool that requires users to apply wisely.  One crucial
+aspect is numerical accuracy.  One can expect sufficiently accurate results only if the
+simulation step size is relatively short compared to water level dynamics.  In this
+example, we illustrate what happens if there is too much exchange due to a large crest
+width:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">crestwidth</span><span class="p">(</span><span class="mf">200.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We see substantial numerical oscillations in the results.  Due to the stiffness of the
+underlying differential equations, a further increase of the crest width would even
+result in a numerical overflow error that might be hard to trace back in a real-world
+application:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;exch_weir_hbv96_numerical_accuracy&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_131__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_131__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 00:00:00 |      0.0          1.0 |            -0.5 |         -43.84062 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |       0.432 |       0.568 |</span>
+<span class="go">| 2000-01-02 00:00:00 |    0.432        0.568 |          -0.068 |         -2.198797 |      -2.198797 |     0.0 |     0.0 |      0.0 |      0.0 |  2.198797 | -2.198797 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-03 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-04 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-05 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-06 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-07 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-08 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-09 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-10 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-11 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-12 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-13 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-14 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-15 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-16 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-17 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-18 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-19 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-20 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-21 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-22 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-23 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-24 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-25 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-26 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-27 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-28 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-29 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+<span class="go">| 2000-01-30 00:00:00 | 0.189976     0.810024 |       -0.310024 |        -21.404969 |           -5.0 |     0.0 |     0.0 |      0.0 |      0.0 |       5.0 |      -5.0 |    0.621976 |    0.378024 |</span>
+<span class="go">| 2000-01-31 00:00:00 | 0.621976     0.378024 |        0.121976 |          5.282426 |            5.0 |     0.0 |     0.0 |      0.0 |      0.0 |      -5.0 |       5.0 |    0.189976 |    0.810024 |</span>
+</pre></div></div></div><a href="exch_weir_hbv96_numerical_accuracy.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+<section id="allowed-exchange">
+<span id="exch-weir-hbv96-allowed-exchange"></span><h3>allowed exchange<a class="headerlink" href="#allowed-exchange" title="Link to this heading">¶</a></h3>
+<p>Sometimes, there might be hydrological reasons to limit the water exchange.  Still,
+we use the related parameter <a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.AllowedExchange" title="hydpy.models.exch.exch_control.AllowedExchange"><code class="xref py py-class docutils literal notranslate"><span class="pre">AllowedExchange</span></code></a> only as a stop-gap for stabilising
+simulation results affected by numerical instability by setting its value to 2.0 m³/s:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">allowedexchange</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The results are far from perfect (the initial water levels change too slowly and still
+oscillate for a few days) but are at least stable and not overly wrong:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;exch_weir_hbv96_allowed_exchange&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_132__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_132__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|                date |           waterlevels | deltawaterlevel | potentialexchange | actualexchange | inflow1 | inflow2 | outflow1 | outflow2 | overflow1 | overflow2 | waterlevel1 | waterlevel2 |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 2000-01-01 00:00:00 |      0.0          1.0 |            -0.5 |         -43.84062 |           -2.0 |     0.0 |     0.0 |      0.0 |      0.0 |       2.0 |      -2.0 |      0.1728 |      0.8272 |</span>
+<span class="go">| 2000-01-02 00:00:00 |   0.1728       0.8272 |         -0.3272 |        -23.208209 |           -2.0 |     0.0 |     0.0 |      0.0 |      0.0 |       2.0 |      -2.0 |      0.3456 |      0.6544 |</span>
+<span class="go">| 2000-01-03 00:00:00 |   0.3456       0.6544 |         -0.1544 |         -7.523027 |           -2.0 |     0.0 |     0.0 |      0.0 |      0.0 |       2.0 |      -2.0 |      0.5184 |      0.4816 |</span>
+<span class="go">| 2000-01-04 00:00:00 |   0.5184       0.4816 |          0.0184 |          0.309491 |       0.309491 |     0.0 |     0.0 |      0.0 |      0.0 | -0.309491 |  0.309491 |     0.49166 |     0.50834 |</span>
+<span class="go">| 2000-01-05 00:00:00 |  0.49166      0.50834 |        -0.00834 |         -0.094444 |      -0.094444 |     0.0 |     0.0 |      0.0 |      0.0 |  0.094444 | -0.094444 |     0.49982 |     0.50018 |</span>
+<span class="go">| 2000-01-06 00:00:00 |  0.49982      0.50018 |        -0.00018 |           -0.0003 |        -0.0003 |     0.0 |     0.0 |      0.0 |      0.0 |    0.0003 |   -0.0003 |    0.499846 |    0.500154 |</span>
+<span class="go">| 2000-01-07 00:00:00 | 0.499846     0.500154 |       -0.000154 |         -0.000237 |      -0.000237 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000237 | -0.000237 |    0.499866 |    0.500134 |</span>
+<span class="go">| 2000-01-08 00:00:00 | 0.499866     0.500134 |       -0.000134 |         -0.000192 |      -0.000192 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000192 | -0.000192 |    0.499883 |    0.500117 |</span>
+<span class="go">| 2000-01-09 00:00:00 | 0.499883     0.500117 |       -0.000117 |         -0.000157 |      -0.000157 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000157 | -0.000157 |    0.499896 |    0.500104 |</span>
+<span class="go">| 2000-01-10 00:00:00 | 0.499896     0.500104 |       -0.000104 |         -0.000131 |      -0.000131 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000131 | -0.000131 |    0.499908 |    0.500092 |</span>
+<span class="go">| 2000-01-11 00:00:00 | 0.499908     0.500092 |       -0.000092 |          -0.00011 |       -0.00011 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00011 |  -0.00011 |    0.499917 |    0.500083 |</span>
+<span class="go">| 2000-01-12 00:00:00 | 0.499917     0.500083 |       -0.000083 |         -0.000093 |      -0.000093 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000093 | -0.000093 |    0.499925 |    0.500075 |</span>
+<span class="go">| 2000-01-13 00:00:00 | 0.499925     0.500075 |       -0.000075 |          -0.00008 |       -0.00008 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00008 |  -0.00008 |    0.499932 |    0.500068 |</span>
+<span class="go">| 2000-01-14 00:00:00 | 0.499932     0.500068 |       -0.000068 |         -0.000069 |      -0.000069 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000069 | -0.000069 |    0.499938 |    0.500062 |</span>
+<span class="go">| 2000-01-15 00:00:00 | 0.499938     0.500062 |       -0.000062 |          -0.00006 |       -0.00006 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00006 |  -0.00006 |    0.499943 |    0.500057 |</span>
+<span class="go">| 2000-01-16 00:00:00 | 0.499943     0.500057 |       -0.000057 |         -0.000053 |      -0.000053 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000053 | -0.000053 |    0.499948 |    0.500052 |</span>
+<span class="go">| 2000-01-17 00:00:00 | 0.499948     0.500052 |       -0.000052 |         -0.000047 |      -0.000047 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000047 | -0.000047 |    0.499952 |    0.500048 |</span>
+<span class="go">| 2000-01-18 00:00:00 | 0.499952     0.500048 |       -0.000048 |         -0.000041 |      -0.000041 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000041 | -0.000041 |    0.499956 |    0.500044 |</span>
+<span class="go">| 2000-01-19 00:00:00 | 0.499956     0.500044 |       -0.000044 |         -0.000037 |      -0.000037 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000037 | -0.000037 |    0.499959 |    0.500041 |</span>
+<span class="go">| 2000-01-20 00:00:00 | 0.499959     0.500041 |       -0.000041 |         -0.000033 |      -0.000033 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000033 | -0.000033 |    0.499962 |    0.500038 |</span>
+<span class="go">| 2000-01-21 00:00:00 | 0.499962     0.500038 |       -0.000038 |          -0.00003 |       -0.00003 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00003 |  -0.00003 |    0.499964 |    0.500036 |</span>
+<span class="go">| 2000-01-22 00:00:00 | 0.499964     0.500036 |       -0.000036 |         -0.000027 |      -0.000027 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000027 | -0.000027 |    0.499966 |    0.500034 |</span>
+<span class="go">| 2000-01-23 00:00:00 | 0.499966     0.500034 |       -0.000034 |         -0.000024 |      -0.000024 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000024 | -0.000024 |    0.499969 |    0.500031 |</span>
+<span class="go">| 2000-01-24 00:00:00 | 0.499969     0.500031 |       -0.000031 |         -0.000022 |      -0.000022 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000022 | -0.000022 |     0.49997 |     0.50003 |</span>
+<span class="go">| 2000-01-25 00:00:00 |  0.49997      0.50003 |        -0.00003 |          -0.00002 |       -0.00002 |     0.0 |     0.0 |      0.0 |      0.0 |   0.00002 |  -0.00002 |    0.499972 |    0.500028 |</span>
+<span class="go">| 2000-01-26 00:00:00 | 0.499972     0.500028 |       -0.000028 |         -0.000018 |      -0.000018 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000018 | -0.000018 |    0.499974 |    0.500026 |</span>
+<span class="go">| 2000-01-27 00:00:00 | 0.499974     0.500026 |       -0.000026 |         -0.000017 |      -0.000017 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000017 | -0.000017 |    0.499975 |    0.500025 |</span>
+<span class="go">| 2000-01-28 00:00:00 | 0.499975     0.500025 |       -0.000025 |         -0.000015 |      -0.000015 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000015 | -0.000015 |    0.499976 |    0.500024 |</span>
+<span class="go">| 2000-01-29 00:00:00 | 0.499976     0.500024 |       -0.000024 |         -0.000014 |      -0.000014 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000014 | -0.000014 |    0.499978 |    0.500022 |</span>
+<span class="go">| 2000-01-30 00:00:00 | 0.499978     0.500022 |       -0.000022 |         -0.000013 |      -0.000013 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000013 | -0.000013 |    0.499979 |    0.500021 |</span>
+<span class="go">| 2000-01-31 00:00:00 | 0.499979     0.500021 |       -0.000021 |         -0.000012 |      -0.000012 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000012 | -0.000012 |     0.49998 |     0.50002 |</span>
+</pre></div></div></div><a href="exch_weir_hbv96_allowed_exchange.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_weir_hbv96.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_weir_hbv96.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/exch_weir_hbv96.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.exch_weir_hbv96.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdHocModel</span></code></a></p>
+<p>HydPy-Exch-Weir-HBV96 (weir model adopted from IHMS-HBV96).</p>
+<p>Before continuing, please read the general documentation on application model
+<a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a>.</p>
+<p>To work correctly, each <a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> must know which water level node and
+which overflow node belong to the same lake model.  The following examples might
+provide insight into how we deal with this issue but are merely there for testing
+that we handle all expected cases well.</p>
+<p>We recreate the configuration of the <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> and <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects of the main
+documentation, neglecting the lakes’ inflow and outflow nodes, which are not
+relevant for connecting <a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.exch_weir_hbv96</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">FusedVariable</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Nodes</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.aliases</span><span class="w"> </span><span class="kn">import</span> <span class="n">exch_outlets_Exchange</span><span class="p">,</span> <span class="n">dam_factors_WaterLevel</span><span class="p">,</span> <span class="n">exch_receivers_WaterLevels</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">WaterLevel</span> <span class="o">=</span> <span class="n">FusedVariable</span><span class="p">(</span><span class="s2">&quot;WaterLevel&quot;</span><span class="p">,</span> <span class="n">exch_receivers_WaterLevels</span><span class="p">,</span> <span class="n">dam_factors_WaterLevel</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Element</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Node</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;overflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;overflow2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="n">exch_outlets_Exchange</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;waterlevel1&quot;</span><span class="p">,</span> <span class="s2">&quot;waterlevel2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="n">WaterLevel</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake1</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake1&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake2</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake2&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow2</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;exchange&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                   <span class="n">receivers</span><span class="o">=</span><span class="p">(</span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span><span class="p">),</span>
+<span class="gp">... </span>                   <span class="n">outlets</span><span class="o">=</span><span class="p">(</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>The water levels of <cite>lake1</cite> and <cite>lake2</cite> are available via the first and the second
+entry of the receiver sequence <a class="reference internal" href="exch.html#hydpy.models.exch.exch_receivers.WaterLevels" title="hydpy.models.exch.exch_receivers.WaterLevels"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevels</span></code></a>, respectively:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">update_receivers</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">receivers</span><span class="o">.</span><span class="n">waterlevels</span>
+<span class="go">waterlevels(1.0, 2.0)</span>
+</pre></div>
+</div>
+<p>Likewise, the first and the second entry of the outlet sequence
+<a class="reference internal" href="exch.html#hydpy.models.exch.exch_outlets.Exchange" title="hydpy.models.exch.exch_outlets.Exchange"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exchange</span></code></a> are available to the overflow nodes <cite>lake1</cite> and <cite>lake2</cite>,
+respectively:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">actualexchange</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">update_outlets</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">sim(-3.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">sim(3.0)</span>
+</pre></div>
+</div>
+<p>We recreate this configuration multiple times, each time changing one aspect
+(marked by exclamation marks).  First, we connect node <cite>waterlevel2</cite> with èlement
+<cite>lake1</cite> and node <cite>waterlevel1</cite> with element <cite>lake2</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Element</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Node</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;overflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;overflow2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;waterlevel1&quot;</span><span class="p">,</span> <span class="s2">&quot;waterlevel2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="n">WaterLevel</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake1</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake1&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel2</span><span class="p">)</span>  <span class="c1"># !!!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake2</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake2&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow2</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel1</span><span class="p">)</span>  <span class="c1"># !!!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;exchange&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                   <span class="n">receivers</span><span class="o">=</span><span class="p">(</span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span><span class="p">),</span>
+<span class="gp">... </span>                   <span class="n">outlets</span><span class="o">=</span><span class="p">(</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>Due to this swap, the first of the outlet sequence <a class="reference internal" href="exch.html#hydpy.models.exch.exch_outlets.Exchange" title="hydpy.models.exch.exch_outlets.Exchange"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exchange</span></code></a> connects
+to node <cite>overflow2</cite> and the second one to node <cite>overflow1</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">update_receivers</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">receivers</span><span class="o">.</span><span class="n">waterlevels</span>
+<span class="go">waterlevels(1.0, 2.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">actualexchange</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">update_outlets</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">sim(3.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">sim(-3.0)</span>
+</pre></div>
+</div>
+<p>Swapping the nodes <cite>overflow1</cite> and <cite>overflow2</cite> instead of <cite>waterlevel1</cite> and
+<cite>waterlevel2</cite> leads to the same results (we arbitrarily decided to ground the
+internal sorting on the alphabetical order of the receiver nodes’ names):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Element</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Node</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;overflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;overflow2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;waterlevel1&quot;</span><span class="p">,</span> <span class="s2">&quot;waterlevel2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="n">WaterLevel</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake1</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake1&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow2</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel1</span><span class="p">)</span>  <span class="c1"># !!!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake2</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake2&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel2</span><span class="p">)</span>  <span class="c1"># !!!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;exchange&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                   <span class="n">receivers</span><span class="o">=</span><span class="p">(</span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span><span class="p">),</span>
+<span class="gp">... </span>                   <span class="n">outlets</span><span class="o">=</span><span class="p">(</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">update_receivers</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">receivers</span><span class="o">.</span><span class="n">waterlevels</span>
+<span class="go">waterlevels(1.0, 2.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">actualexchange</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">update_outlets</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">sim(3.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="go">sim(-3.0)</span>
+</pre></div>
+</div>
+<p>Now, we (accidentally) connect node <cite>waterlevel2</cite> to both lakes.  Therefore,
+<a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> cannot find a water level node connected to the same lake model
+as outlet node <cite>overflow1</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Element</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Node</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;overflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;overflow2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;waterlevel1&quot;</span><span class="p">,</span> <span class="s2">&quot;waterlevel2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="n">WaterLevel</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake1</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake1&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel2</span><span class="p">)</span>  <span class="c1"># !!!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake2</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake2&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow2</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;exchange&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                   <span class="n">receivers</span><span class="o">=</span><span class="p">(</span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span><span class="p">),</span>
+<span class="gp">... </span>                   <span class="n">outlets</span><span class="o">=</span><span class="p">(</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to build the node connection of the `outlet` sequences of the model handled by element `exchange`, the following error occurred: Outlet node `overflow1` does not correspond to any available receiver node.</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> raises the following error if not precisely two water level nodes
+are available:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Element</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Node</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;overflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;overflow2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;waterlevel1&quot;</span><span class="p">,</span> <span class="s2">&quot;waterlevel2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="n">WaterLevel</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake1</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake1&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake2</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake2&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow2</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;exchange&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                   <span class="n">receivers</span><span class="o">=</span><span class="n">waterlevel1</span><span class="p">,</span>  <span class="c1"># !!!</span>
+<span class="gp">... </span>                   <span class="n">outlets</span><span class="o">=</span><span class="p">(</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to build the node connection of the `receiver` sequences of the model handled by element `exchange`, the following error occurred: There must be exactly 2 outlet receiver but the following `1` receiver nodes are defined: waterlevel1.</span>
+</pre></div>
+</div>
+<p>Correspondingly, <a class="reference internal" href="#module-hydpy.models.exch_weir_hbv96" title="hydpy.models.exch_weir_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_weir_hbv96</span></code></a> raises the following error if there are not
+precisely two overflow nodes available:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Element</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Node</span><span class="o">.</span><span class="n">clear_all</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;overflow1&quot;</span><span class="p">,</span> <span class="s2">&quot;overflow2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;waterlevel1&quot;</span><span class="p">,</span> <span class="s2">&quot;waterlevel2&quot;</span><span class="p">,</span> <span class="n">defaultvariable</span><span class="o">=</span><span class="n">WaterLevel</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake1</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake1&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lake2</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;lake2&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">overflow2</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">waterlevel2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;exchange&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                   <span class="n">receivers</span><span class="o">=</span><span class="p">(</span><span class="n">waterlevel1</span><span class="p">,</span> <span class="n">waterlevel2</span><span class="p">),</span>
+<span class="gp">... </span>                   <span class="n">outlets</span><span class="o">=</span><span class="p">(</span><span class="n">overflow1</span><span class="p">,</span> <span class="n">overflow2</span><span class="p">,</span> <span class="n">waterlevel2</span><span class="p">))</span>  <span class="c1"># !!!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">exchange</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to build the node connection of the `outlet` sequences of the model handled by element `exchange`, the following error occurred: There must be exactly 2 outlet nodes but the following `3` outlet nodes are defined: overflow1, overflow2, and waterlevel2.</span>
+</pre></div>
+</div>
+<blockquote>
+<div><dl class="simple">
+<dt>The following “receiver update methods” are called in the given sequence before performing a simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_model.Pick_LoggedWaterLevels_V1" title="hydpy.models.exch.exch_model.Pick_LoggedWaterLevels_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_LoggedWaterLevels_V1</span></code></a> Pic the logged water levels from two receiver nodes.</p></li>
+</ul>
+</dd>
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_model.Update_WaterLevels_V1" title="hydpy.models.exch.exch_model.Update_WaterLevels_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_WaterLevels_V1</span></code></a> Update the factor sequence <a class="reference internal" href="exch.html#hydpy.models.exch.exch_factors.WaterLevels" title="hydpy.models.exch.exch_factors.WaterLevels"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevels</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1" title="hydpy.models.exch.exch_model.Calc_DeltaWaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_DeltaWaterLevel_V1</span></code></a> Calculate the effective difference of both water levels.</p></li>
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_model.Calc_PotentialExchange_V1" title="hydpy.models.exch.exch_model.Calc_PotentialExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialExchange_V1</span></code></a> Calculate the potential exchange that strictly follows the weir formula without taking any other limitations into account.</p></li>
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_model.Calc_ActualExchange_V1" title="hydpy.models.exch.exch_model.Calc_ActualExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ActualExchange_V1</span></code></a> Calculate the actual exchange.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_model.Pass_ActualExchange_V1" title="hydpy.models.exch.exch_model.Pass_ActualExchange_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_ActualExchange_V1</span></code></a> Pass the actual exchange to an outlet node.</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch_weir_hbv96.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Exch-Weir-HBV96',</span> <span class="pre">'weir</span> <span class="pre">model</span> <span class="pre">adopted</span> <span class="pre">from</span> <span class="pre">IHMS-HBV96')</span></span><a class="headerlink" href="#hydpy.models.exch_weir_hbv96.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch_weir_hbv96.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.exch_weir_hbv96.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.exch_weir_hbv96.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.exch_weir_hbv96.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_weir_hbv96.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_weir_hbv96.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_weir_hbv96.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model exch_weir_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.CrestHeight" title="hydpy.models.exch.exch_control.CrestHeight"><code class="xref py py-func docutils literal notranslate"><span class="pre">CrestHeight()</span></code></a> Crest height [m].</p></li>
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.CrestWidth" title="hydpy.models.exch.exch_control.CrestWidth"><code class="xref py py-func docutils literal notranslate"><span class="pre">CrestWidth()</span></code></a> Crest width [m].</p></li>
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.FlowCoefficient" title="hydpy.models.exch.exch_control.FlowCoefficient"><code class="xref py py-func docutils literal notranslate"><span class="pre">FlowCoefficient()</span></code></a> Flow coefficient [-].</p></li>
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.FlowExponent" title="hydpy.models.exch.exch_control.FlowExponent"><code class="xref py py-func docutils literal notranslate"><span class="pre">FlowExponent()</span></code></a> Flow exponent [-].</p></li>
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_control.AllowedExchange" title="hydpy.models.exch.exch_control.AllowedExchange"><code class="xref py py-func docutils literal notranslate"><span class="pre">AllowedExchange()</span></code></a> The highest water exchange allowed [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_weir_hbv96.FactorSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_weir_hbv96.</span></span><span class="sig-name descname"><span class="pre">FactorSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_weir_hbv96.FactorSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequences" title="hydpy.core.sequencetools.FactorSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></p>
+<p>Factor sequences of model exch_weir_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_factors.WaterLevels" title="hydpy.models.exch.exch_factors.WaterLevels"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevels()</span></code></a> The water level at two locations [m].</p></li>
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_factors.DeltaWaterLevel" title="hydpy.models.exch.exch_factors.DeltaWaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">DeltaWaterLevel()</span></code></a> Effective difference of the two water levels [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_weir_hbv96.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_weir_hbv96.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_weir_hbv96.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model exch_weir_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_fluxes.PotentialExchange" title="hydpy.models.exch.exch_fluxes.PotentialExchange"><code class="xref py py-func docutils literal notranslate"><span class="pre">PotentialExchange()</span></code></a> The potential bidirectional water exchange [m³/s].</p></li>
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_fluxes.ActualExchange" title="hydpy.models.exch.exch_fluxes.ActualExchange"><code class="xref py py-func docutils literal notranslate"><span class="pre">ActualExchange()</span></code></a> The actual bidirectional water exchange [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_weir_hbv96.LogSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_weir_hbv96.</span></span><span class="sig-name descname"><span class="pre">LogSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_weir_hbv96.LogSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequences" title="hydpy.core.sequencetools.LogSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequences</span></code></a></p>
+<p>Log sequences of model exch_weir_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_logs.LoggedWaterLevels" title="hydpy.models.exch.exch_logs.LoggedWaterLevels"><code class="xref py py-func docutils literal notranslate"><span class="pre">LoggedWaterLevels()</span></code></a> Logged water levels [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_weir_hbv96.OutletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_weir_hbv96.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_weir_hbv96.OutletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model exch_weir_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_outlets.Exchange" title="hydpy.models.exch.exch_outlets.Exchange"><code class="xref py py-func docutils literal notranslate"><span class="pre">Exchange()</span></code></a> Bidirectional water exchange [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.exch_weir_hbv96.ReceiverSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.exch_weir_hbv96.</span></span><span class="sig-name descname"><span class="pre">ReceiverSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.exch_weir_hbv96.ReceiverSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ReceiverSequences" title="hydpy.core.sequencetools.ReceiverSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReceiverSequences</span></code></a></p>
+<p>Receiver sequences of model exch_weir_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="exch.html#hydpy.models.exch.exch_receivers.WaterLevels" title="hydpy.models.exch.exch_receivers.WaterLevels"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevels()</span></code></a> The water level at multiple remote locations [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Evap.html" title="HydPy-Evap"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="exch_waterlevel.html" title="exch_waterlevel"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Exch.html" >HydPy-Exch</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">exch_weir_hbv96</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

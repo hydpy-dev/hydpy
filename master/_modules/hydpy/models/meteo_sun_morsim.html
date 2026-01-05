@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.meteo_sun_morsim &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.meteo_sun_morsim</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.meteo_sun_morsim</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. _`LARSIM`: http://www.larsim.de/en/the-model/</span>
+
+<span class="sd">|meteo_sun_morsim| is similar to |meteo_glob_morsim| but uses</span>
+<span class="sd">|meteo_inputs.GlobalRadiation| to estimate |meteo_factors.SunshineDuration|, while</span>
+<span class="sd">|meteo_glob_morsim| uses |meteo_inputs.SunshineDuration| to estimate</span>
+<span class="sd">|meteo_fluxes.GlobalRadiation|.  So, the relationship of |meteo_sun_morsim| and</span>
+<span class="sd">|meteo_glob_morsim| corresponds to the one of |meteo_sun_fao56| and |meteo_glob_fao56|.</span>
+<span class="sd">However, opposed to |meteo_sun_fao56| and |meteo_glob_fao56|, |meteo_sun_morsim|</span>
+<span class="sd">&quot;inverts&quot; |meteo_glob_morsim| only approximately for sub-daily simulation time steps.</span>
+<span class="sd">This deficit is primarily due to the &quot;daily radiation adjustment&quot; described in the</span>
+<span class="sd">documentation of |meteo_glob_morsim|.</span>
+
+<span class="sd">.. note::</span>
+
+<span class="sd">   |meteo_sun_morsim| is still under discussion.  Please be aware that we might modify</span>
+<span class="sd">   it later if we find a way to achieve higher agreements with |meteo_glob_morsim|.</span>
+
+<span class="sd">.. _`LARSIM`: http://www.larsim.de/en/the-model/</span>
+
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We design all integration tests as similar to those of |meteo_glob_morsim|.  This time,</span>
+<span class="sd">we select |meteo_factors.SunshineDuration| and |meteo_factors.PossibleSunshineDuration|</span>
+<span class="sd">as output sequences:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Element, Node</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.aliases import meteo_factors_SunshineDuration, meteo_factors_PossibleSunshineDuration</span>
+<span class="sd">&gt;&gt;&gt; node1 = Node(&quot;node1&quot;, variable=meteo_factors_SunshineDuration)</span>
+<span class="sd">&gt;&gt;&gt; node2 = Node(&quot;node2&quot;, variable=meteo_factors_PossibleSunshineDuration)</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.meteo_sun_morsim import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep()</span>
+<span class="sd">&gt;&gt;&gt; element = Element(&quot;element&quot;, outputs=(node1, node2))</span>
+<span class="sd">&gt;&gt;&gt; element.model = model</span>
+
+<span class="sd">We take all parameter values without modifications.  But note that |meteo_sun_morsim|</span>
+<span class="sd">does not use the parameter |AngstromAlternative| (ideas to include it sensibly are</span>
+<span class="sd">welcome):</span>
+
+<span class="sd">&gt;&gt;&gt; latitude(54.1)</span>
+<span class="sd">&gt;&gt;&gt; longitude(9.7)</span>
+<span class="sd">&gt;&gt;&gt; angstromconstant(0.25)</span>
+<span class="sd">&gt;&gt;&gt; angstromfactor(0.5)</span>
+
+<span class="sd">.. _meteo_sun_morsim_daily_simulation_summer:</span>
+
+<span class="sd">daily simulation summer</span>
+<span class="sd">_______________________</span>
+
+<span class="sd">We repeat the :ref:`meteo_glob_morsim_daily_simulation_summer` example of</span>
+<span class="sd">|meteo_glob_morsim| but use its global radiation result as input:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import IntegrationTest, pub, round_</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;1997-08-01&quot;, &quot;1997-09-01&quot;, &quot;1d&quot;</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.axis1 = (inputs.globalradiation,)</span>
+<span class="sd">&gt;&gt;&gt; test.axis2 = (factors.sunshineduration, factors.possiblesunshineduration,)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%Y-%d-%m&quot;</span>
+
+<span class="sd">&gt;&gt;&gt; inputs.globalradiation.series = (</span>
+<span class="sd">...     190.25149, 127.660782, 164.401298, 269.020502, 287.848667, 274.674263,</span>
+<span class="sd">...     284.047892, 262.971263, 272.256414, 267.019218, 269.626547, 270.878291,</span>
+<span class="sd">...     261.697164, 227.962115, 216.356321, 226.637904, 235.528503, 232.849428,</span>
+<span class="sd">...     199.71349, 233.771902, 246.121286, 90.58551, 171.944993, 216.549813, 166.91683,</span>
+<span class="sd">...     145.985611, 165.54389, 87.693346, 84.356885, 142.309203, 126.722078)</span>
+
+<span class="sd">|meteo_sun_morsim| calculates a sunshine duration series equal to the one we use in the</span>
+<span class="sd">:ref:`meteo_glob_morsim_daily_simulation_summer` example of |meteo_glob_morsim| as</span>
+<span class="sd">input:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;meteo_sun_morsim_daily_summer&quot;)</span>
+<span class="sd">    |       date | globalradiation | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | unadjustedsunshineduration | sunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | dailyglobalradiation | node1 |     node2 |</span>
+<span class="sd">    ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 1997-01-08 |       190.25149 |         0.971564 |         0.307429 |      4.507941 |    20.198726 |                15.690785 |                     15.690785 |                        6.3 |              6.3 |                   6.3 |                 100.0 |                422.073153 |             316.554865 |            190.25149 |   6.3 | 15.690785 |</span>
+<span class="sd">    | 1997-02-08 |      127.660782 |         0.971855 |         0.302714 |      4.538923 |    20.167744 |                15.628821 |                     15.628821 |                        1.7 |              1.7 |                   1.7 |                 100.0 |                419.403284 |             314.552463 |           127.660782 |   1.7 | 15.628821 |</span>
+<span class="sd">    | 1997-03-08 |      164.401298 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                15.566134 |                     15.566134 |                        4.5 |              4.5 |                   4.5 |                 100.0 |                416.686259 |             312.514694 |           164.401298 |   4.5 | 15.566134 |</span>
+<span class="sd">    | 1997-04-08 |      269.020502 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                15.502754 |                     15.502754 |                       12.4 |             12.4 |                  12.4 |                 100.0 |                413.922951 |             310.442213 |           269.020502 |  12.4 | 15.502754 |</span>
+<span class="sd">    | 1997-05-08 |      287.848667 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                15.438712 |                     15.438712 |                       13.9 |             13.9 |                  13.9 |                 100.0 |                411.114245 |             308.335683 |           287.848667 |  13.9 | 15.438712 |</span>
+<span class="sd">    | 1997-06-08 |      274.674263 |         0.973104 |         0.282971 |      4.666316 |     20.04035 |                15.374034 |                     15.374034 |                       13.0 |             13.0 |                  13.0 |                 100.0 |                408.261035 |             306.195777 |           274.674263 |  13.0 | 15.374034 |</span>
+<span class="sd">    | 1997-07-08 |      284.047892 |         0.973436 |         0.277822 |      4.698958 |    20.007708 |                 15.30875 |                      15.30875 |                       13.8 |             13.8 |                  13.8 |                 100.0 |                405.364232 |             304.023174 |           284.047892 |  13.8 |  15.30875 |</span>
+<span class="sd">    | 1997-08-08 |      262.971263 |         0.973776 |         0.272591 |      4.731891 |    19.974776 |                15.242885 |                     15.242885 |                       12.3 |             12.3 |                  12.3 |                 100.0 |                402.424754 |             301.818566 |           262.971263 |  12.3 | 15.242885 |</span>
+<span class="sd">    | 1997-09-08 |      272.256414 |         0.974124 |         0.267279 |        4.7651 |    19.941567 |                15.176467 |                     15.176467 |                       13.1 |             13.1 |                  13.1 |                 100.0 |                399.443534 |              299.58265 |           272.256414 |  13.1 | 15.176467 |</span>
+<span class="sd">    | 1997-10-08 |      267.019218 |         0.974479 |         0.261887 |      4.798573 |    19.908094 |                15.109521 |                     15.109521 |                       12.8 |             12.8 |                  12.8 |                 100.0 |                396.421514 |             297.316136 |           267.019218 |  12.8 | 15.109521 |</span>
+<span class="sd">    | 1997-11-08 |      269.626547 |         0.974842 |         0.256418 |      4.832298 |    19.874369 |                15.042071 |                     15.042071 |                       13.1 |             13.1 |                  13.1 |                 100.0 |                393.359651 |             295.019738 |           269.626547 |  13.1 | 15.042071 |</span>
+<span class="sd">    | 1997-12-08 |      270.878291 |         0.975213 |         0.250873 |      4.866263 |    19.840404 |                14.974141 |                     14.974141 |                       13.3 |             13.3 |                  13.3 |                 100.0 |                390.258912 |             292.694184 |           270.878291 |  13.3 | 14.974141 |</span>
+<span class="sd">    | 1997-13-08 |      261.697164 |          0.97559 |         0.245254 |      4.900456 |    19.806211 |                14.905755 |                     14.905755 |                       12.7 |             12.7 |                  12.7 |                 100.0 |                387.120277 |             290.340208 |           261.697164 |  12.7 | 14.905755 |</span>
+<span class="sd">    | 1997-14-08 |      227.962115 |         0.975975 |         0.239562 |      4.934866 |      19.7718 |                14.836934 |                     14.836934 |                       10.2 |             10.2 |                  10.2 |                 100.0 |                383.944737 |             287.958553 |           227.962115 |  10.2 | 14.836934 |</span>
+<span class="sd">    | 1997-15-08 |      216.356321 |         0.976367 |         0.233799 |      4.969483 |    19.737183 |                  14.7677 |                       14.7677 |                        9.4 |              9.4 |                   9.4 |                 100.0 |                380.733298 |             285.549974 |           216.356321 |   9.4 |   14.7677 |</span>
+<span class="sd">    | 1997-16-08 |      226.637904 |         0.976766 |         0.227967 |      5.004296 |    19.702371 |                14.698075 |                     14.698075 |                       10.3 |             10.3 |                  10.3 |                 100.0 |                377.486975 |             283.115231 |           226.637904 |  10.3 | 14.698075 |</span>
+<span class="sd">    | 1997-17-08 |      235.528503 |         0.977172 |         0.222067 |      5.039294 |    19.667372 |                14.628078 |                     14.628078 |                       11.1 |             11.1 |                  11.1 |                 100.0 |                374.206797 |             280.655098 |           235.528503 |  11.1 | 14.628078 |</span>
+<span class="sd">    | 1997-18-08 |      232.849428 |         0.977584 |         0.216102 |      5.074469 |    19.632198 |                14.557728 |                     14.557728 |                       11.0 |             11.0 |                  11.0 |                 100.0 |                370.893805 |             278.170354 |           232.849428 |  11.0 | 14.557728 |</span>
+<span class="sd">    | 1997-19-08 |       199.71349 |         0.978003 |         0.210072 |       5.10981 |    19.596856 |                14.487046 |                     14.487046 |                        8.5 |              8.5 |                   8.5 |                 100.0 |                367.549053 |              275.66179 |            199.71349 |   8.5 | 14.487046 |</span>
+<span class="sd">    | 1997-20-08 |      233.771902 |         0.978429 |          0.20398 |      5.145309 |    19.561357 |                14.416048 |                     14.416048 |                       11.3 |             11.3 |                  11.3 |                 100.0 |                364.173607 |             273.130205 |           233.771902 |  11.3 | 14.416048 |</span>
+<span class="sd">    | 1997-21-08 |      246.121286 |          0.97886 |         0.197828 |      5.180957 |    19.525709 |                14.344752 |                     14.344752 |                       12.4 |             12.4 |                  12.4 |                 100.0 |                360.768544 |             270.576408 |           246.121286 |  12.4 | 14.344752 |</span>
+<span class="sd">    | 1997-22-08 |        90.58551 |         0.979299 |         0.191617 |      5.216746 |    19.489921 |                14.273175 |                     14.273175 |                        0.1 |              0.1 |                   0.1 |                 100.0 |                357.334956 |             268.001217 |             90.58551 |   0.1 | 14.273175 |</span>
+<span class="sd">    | 1997-23-08 |      171.944993 |         0.979743 |          0.18535 |      5.252667 |       19.454 |                14.201333 |                     14.201333 |                        6.7 |              6.7 |                   6.7 |                 100.0 |                353.873944 |             265.405458 |           171.944993 |   6.7 | 14.201333 |</span>
+<span class="sd">    | 1997-24-08 |      216.549813 |         0.980193 |         0.179027 |      5.288712 |    19.417955 |                14.129243 |                     14.129243 |                       10.4 |             10.4 |                  10.4 |                 100.0 |                350.386625 |             262.789968 |           216.549813 |  10.4 | 14.129243 |</span>
+<span class="sd">    | 1997-25-08 |       166.91683 |         0.980649 |         0.172651 |      5.324874 |    19.381792 |                14.056918 |                     14.056918 |                        6.5 |              6.5 |                   6.5 |                 100.0 |                346.874124 |             260.155593 |            166.91683 |   6.5 | 14.056918 |</span>
+<span class="sd">    | 1997-26-08 |      145.985611 |         0.981111 |         0.166225 |      5.361147 |     19.34552 |                13.984374 |                     13.984374 |                        4.9 |              4.9 |                   4.9 |                 100.0 |                 343.33758 |             257.503185 |           145.985611 |   4.9 | 13.984374 |</span>
+<span class="sd">    | 1997-27-08 |       165.54389 |         0.981578 |         0.159748 |      5.397522 |    19.309145 |                13.911624 |                     13.911624 |                        6.6 |              6.6 |                   6.6 |                 100.0 |                339.778145 |             254.833609 |            165.54389 |   6.6 | 13.911624 |</span>
+<span class="sd">    | 1997-28-08 |       87.693346 |         0.982051 |         0.153225 |      5.433993 |    19.272674 |                13.838682 |                     13.838682 |                        0.3 |              0.3 |                   0.3 |                 100.0 |                 336.19698 |             252.147735 |            87.693346 |   0.3 | 13.838682 |</span>
+<span class="sd">    | 1997-29-08 |       84.356885 |         0.982529 |         0.146656 |      5.470553 |    19.236114 |                13.765561 |                     13.765561 |                        0.1 |              0.1 |                   0.1 |                 100.0 |                332.595259 |             249.446444 |            84.356885 |   0.1 | 13.765561 |</span>
+<span class="sd">    | 1997-30-08 |      142.309203 |         0.983012 |         0.140044 |      5.507197 |     19.19947 |                13.692273 |                     13.692273 |                        5.0 |              5.0 |                   5.0 |                 100.0 |                328.974167 |             246.730625 |           142.309203 |   5.0 | 13.692273 |</span>
+<span class="sd">    | 1997-31-08 |      126.722078 |           0.9835 |          0.13339 |      5.543918 |    19.162749 |                13.618831 |                     13.618831 |                        3.8 |              3.8 |                   3.8 |                 100.0 |                325.334897 |             244.001173 |           126.722078 |   3.8 | 13.618831 |</span>
+
+<span class="sd">All getters specified by the |RadiationModel_V1| interface return the correct data:</span>
+
+<span class="sd">&gt;&gt;&gt; round_(model.get_possiblesunshineduration())</span>
+<span class="sd">13.618831</span>
+<span class="sd">&gt;&gt;&gt; round_(model.get_sunshineduration())</span>
+<span class="sd">3.8</span>
+<span class="sd">&gt;&gt;&gt; round_(model.get_clearskysolarradiation())</span>
+<span class="sd">244.001173</span>
+<span class="sd">&gt;&gt;&gt; round_(model.get_globalradiation())</span>
+<span class="sd">126.722078</span>
+
+<span class="sd">.. _meteo_sun_morsim_daily_simulation_winter:</span>
+
+<span class="sd">daily simulation winter</span>
+<span class="sd">_______________________</span>
+
+<span class="sd">We repeat the :ref:`meteo_glob_morsim_daily_simulation_winter` example of</span>
+<span class="sd">|meteo_glob_morsim| but use its global radiation results as input:</span>
+
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;2010-12-01&quot;, &quot;2011-01-01&quot;, &quot;1d&quot;</span>
+
+<span class="sd">&gt;&gt;&gt; inputs.globalradiation.series = (</span>
+<span class="sd">...     31.942798, 9.873898, 16.6835, 31.807427, 9.532511, 16.141484, 9.341429,</span>
+<span class="sd">...     9.256764, 33.405815, 15.591158, 15.891544, 17.823519, 8.941324, 19.668068,</span>
+<span class="sd">...     26.831581, 8.837738, 8.817416, 8.804185, 8.798044, 15.464746, 17.879541,</span>
+<span class="sd">...     8.822161, 8.844396, 8.873743, 27.759642, 32.328755, 9.004582, 28.982321,</span>
+<span class="sd">...     9.127645, 9.19999, 32.062234)</span>
+
+<span class="sd">Again, there is a perfect agreement regarding the sunshine duration:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;meteo_sun_morsim_daily_winter&quot;)</span>
+<span class="sd">    |       date | globalradiation | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | unadjustedsunshineduration | sunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | dailyglobalradiation | node1 |    node2 |</span>
+<span class="sd">    ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2010-01-12 |       31.942798 |         1.028719 |        -0.389384 |      8.532819 |    16.173848 |                 7.641029 |                      7.641029 |                        3.5 |              3.5 |                   3.5 |                 100.0 |                 66.682705 |              50.012029 |            31.942798 |   3.5 | 7.641029 |</span>
+<span class="sd">    | 2010-02-12 |        9.873898 |         1.028994 |        -0.391536 |      8.548511 |    16.158156 |                 7.609644 |                      7.609644 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 65.825989 |              49.369492 |             9.873898 |   0.0 | 7.609644 |</span>
+<span class="sd">    | 2010-03-12 |         16.6835 |          1.02926 |        -0.393572 |      8.563421 |    16.143245 |                 7.579824 |                      7.579824 |                        0.1 |              0.1 |                   0.1 |                 100.0 |                 65.018433 |              48.763825 |              16.6835 |   0.1 | 7.579824 |</span>
+<span class="sd">    | 2010-04-12 |       31.807427 |         1.029518 |        -0.395492 |      8.577535 |    16.129131 |                 7.551596 |                      7.551596 |                        3.7 |              3.7 |                   3.7 |                 100.0 |                 64.259854 |               48.19489 |            31.807427 |   3.7 | 7.551596 |</span>
+<span class="sd">    | 2010-05-12 |        9.532511 |         1.029767 |        -0.397294 |      8.590839 |    16.115828 |                 7.524989 |                      7.524989 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                  63.55007 |              47.662553 |             9.532511 |   0.0 | 7.524989 |</span>
+<span class="sd">    | 2010-06-12 |       16.141484 |         1.030007 |        -0.398979 |      8.603319 |    16.103347 |                 7.500028 |                      7.500028 |                        0.1 |              0.1 |                   0.1 |                 100.0 |                 62.888906 |               47.16668 |            16.141484 |   0.1 | 7.500028 |</span>
+<span class="sd">    | 2010-07-12 |        9.341429 |         1.030238 |        -0.400545 |      8.614964 |    16.091703 |                 7.476739 |                      7.476739 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 62.276192 |              46.707144 |             9.341429 |   0.0 | 7.476739 |</span>
+<span class="sd">    | 2010-08-12 |        9.256764 |         1.030461 |        -0.401992 |      8.625761 |    16.080906 |                 7.455145 |                      7.455145 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 61.711763 |              46.283822 |             9.256764 |   0.0 | 7.455145 |</span>
+<span class="sd">    | 2010-09-12 |       33.405815 |         1.030674 |        -0.403321 |      8.635699 |    16.070967 |                 7.435268 |                      7.435268 |                        4.4 |              4.4 |                   4.4 |                 100.0 |                 61.195464 |              45.896598 |            33.405815 |   4.4 | 7.435268 |</span>
+<span class="sd">    | 2010-10-12 |       15.591158 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                  7.41713 |                       7.41713 |                        0.1 |              0.1 |                   0.1 |                 100.0 |                  60.72715 |              45.545363 |            15.591158 |   0.1 |  7.41713 |</span>
+<span class="sd">    | 2010-11-12 |       15.891544 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                 7.400749 |                      7.400749 |                        0.2 |              0.2 |                   0.2 |                 100.0 |                 60.306686 |              45.230014 |            15.891544 |   0.2 | 7.400749 |</span>
+<span class="sd">    | 2010-12-12 |       17.823519 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                 7.386143 |                      7.386143 |                        0.7 |              0.7 |                   0.7 |                 100.0 |                 59.933948 |              44.950461 |            17.823519 |   0.7 | 7.386143 |</span>
+<span class="sd">    | 2010-13-12 |        8.941324 |         1.031437 |        -0.407436 |      8.666669 |    16.039997 |                 7.373328 |                      7.373328 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 59.608826 |               44.70662 |             8.941324 |   0.0 | 7.373328 |</span>
+<span class="sd">    | 2010-14-12 |       19.668068 |         1.031605 |        -0.408164 |      8.672175 |    16.034492 |                 7.362317 |                      7.362317 |                        1.2 |              1.2 |                   1.2 |                 100.0 |                 59.331223 |              44.498417 |            19.668068 |   1.2 | 7.362317 |</span>
+<span class="sd">    | 2010-15-12 |       26.831581 |         1.031763 |         -0.40877 |      8.676772 |    16.029895 |                 7.353123 |                      7.353123 |                        3.0 |              3.0 |                   3.0 |                 100.0 |                 59.101055 |              44.325792 |            26.831581 |   3.0 | 7.353123 |</span>
+<span class="sd">    | 2010-16-12 |        8.837738 |         1.031912 |        -0.409256 |      8.680456 |    16.026211 |                 7.345755 |                      7.345755 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 58.918256 |              44.188692 |             8.837738 |   0.0 | 7.345755 |</span>
+<span class="sd">    | 2010-17-12 |        8.817416 |         1.032051 |         -0.40962 |      8.683222 |    16.023444 |                 7.340222 |                      7.340222 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 58.782773 |               44.08708 |             8.817416 |   0.0 | 7.340222 |</span>
+<span class="sd">    | 2010-18-12 |        8.804185 |         1.032182 |        -0.409863 |      8.685068 |    16.021598 |                  7.33653 |                       7.33653 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 58.694569 |              44.020927 |             8.804185 |   0.0 |  7.33653 |</span>
+<span class="sd">    | 2010-19-12 |        8.798044 |         1.032302 |        -0.409985 |      8.685992 |    16.020675 |                 7.334683 |                      7.334683 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 58.653626 |              43.990219 |             8.798044 |   0.0 | 7.334683 |</span>
+<span class="sd">    | 2010-20-12 |       15.464746 |         1.032413 |        -0.409985 |      8.685992 |    16.020675 |                 7.334683 |                      7.334683 |                        0.2 |              0.2 |                   0.2 |                 100.0 |                 58.659939 |              43.994954 |            15.464746 |   0.2 | 7.334683 |</span>
+<span class="sd">    | 2010-21-12 |       17.879541 |         1.032515 |        -0.409863 |      8.685068 |    16.021598 |                  7.33653 |                       7.33653 |                        0.8 |              0.8 |                   0.8 |                 100.0 |                 58.713523 |              44.035142 |            17.879541 |   0.8 |  7.33653 |</span>
+<span class="sd">    | 2010-22-12 |        8.822161 |         1.032607 |         -0.40962 |      8.683222 |    16.023444 |                 7.340222 |                      7.340222 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 58.814408 |              44.110806 |             8.822161 |   0.0 | 7.340222 |</span>
+<span class="sd">    | 2010-23-12 |        8.844396 |         1.032689 |        -0.409256 |      8.680456 |    16.026211 |                 7.345755 |                      7.345755 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                  58.96264 |               44.22198 |             8.844396 |   0.0 | 7.345755 |</span>
+<span class="sd">    | 2010-24-12 |        8.873743 |         1.032762 |         -0.40877 |      8.676772 |    16.029895 |                 7.353123 |                      7.353123 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 59.158284 |              44.368713 |             8.873743 |   0.0 | 7.353123 |</span>
+<span class="sd">    | 2010-25-12 |       27.759642 |         1.032825 |        -0.408164 |      8.672175 |    16.034492 |                 7.362317 |                      7.362317 |                        3.2 |              3.2 |                   3.2 |                 100.0 |                 59.401417 |              44.551063 |            27.759642 |   3.2 | 7.362317 |</span>
+<span class="sd">    | 2010-26-12 |       32.328755 |         1.032879 |        -0.407436 |      8.666669 |    16.039997 |                 7.373328 |                      7.373328 |                        4.3 |              4.3 |                   4.3 |                 100.0 |                 59.692135 |              44.769102 |            32.328755 |   4.3 | 7.373328 |</span>
+<span class="sd">    | 2010-27-12 |        9.004582 |         1.032922 |        -0.406588 |      8.660262 |    16.046405 |                 7.386143 |                      7.386143 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 60.030549 |              45.022912 |             9.004582 |   0.0 | 7.386143 |</span>
+<span class="sd">    | 2010-28-12 |       28.982321 |         1.032956 |        -0.405619 |      8.652959 |    16.053708 |                 7.400749 |                      7.400749 |                        3.4 |              3.4 |                   3.4 |                 100.0 |                 60.416781 |              45.312585 |            28.982321 |   3.4 | 7.400749 |</span>
+<span class="sd">    | 2010-29-12 |        9.127645 |         1.032981 |         -0.40453 |      8.644768 |    16.061898 |                  7.41713 |                       7.41713 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 60.850969 |              45.638227 |             9.127645 |   0.0 |  7.41713 |</span>
+<span class="sd">    | 2010-30-12 |         9.19999 |         1.032995 |        -0.403321 |      8.635699 |    16.070967 |                 7.435268 |                      7.435268 |                        0.0 |              0.0 |                   0.0 |                 100.0 |                 61.333263 |              45.999948 |              9.19999 |   0.0 | 7.435268 |</span>
+<span class="sd">    | 2010-31-12 |       32.062234 |            1.033 |        -0.401992 |      8.625761 |    16.080906 |                 7.455145 |                      7.455145 |                        4.0 |              4.0 |                   4.0 |                 100.0 |                 61.863826 |              46.397869 |            32.062234 |   4.0 | 7.455145 |</span>
+
+<span class="sd">.. _meteo_sun_morsim_hourly_simulation_summer:</span>
+
+<span class="sd">hourly simulation summer</span>
+<span class="sd">________________________</span>
+
+<span class="sd">We repeat the :ref:`meteo_glob_morsim_hourly_simulation_summer` example of</span>
+<span class="sd">|meteo_glob_morsim| but use its global radiation results as input and prepare the log</span>
+<span class="sd">sequences |LoggedGlobalRadiation| and |LoggedUnadjustedSunshineDuration| instead of</span>
+<span class="sd">|LoggedSunshineDuration| and |LoggedUnadjustedSunshineDuration|:</span>
+
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;1997-08-03&quot;, &quot;1997-08-06&quot;, &quot;1h&quot;</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.axis1 = (inputs.globalradiation,)</span>
+<span class="sd">&gt;&gt;&gt; test.axis2 = (factors.sunshineduration, factors.possiblesunshineduration,)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%Y-%d-%m %H:00&quot;</span>
+
+<span class="sd">&gt;&gt;&gt; inputs.globalradiation.series = (</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 1.943686, 21.932441, 57.256187, 109.332844, 170.949152,</span>
+<span class="sd">...     311.762624, 501.583299, 615.018727, 626.544326, 496.133417, 419.520994,</span>
+<span class="sd">...     387.887354, 278.496873, 137.138608, 51.080715, 13.632816, 0.185943, 0.0, 0.0,</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 0.0, 1.590516, 19.950903, 62.985774, 285.776389, 475.225247,</span>
+<span class="sd">...     614.006719, 643.806508, 600.26298, 620.51414, 599.441386, 613.551223,</span>
+<span class="sd">...     517.107047, 377.836616, 252.204639, 128.576715, 42.072585, 0.812898, 0.0, 0.0,</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 0.0, 1.482348, 21.135568, 125.883451, 305.954943,</span>
+<span class="sd">...     511.104575, 629.51924, 765.81659, 767.145843, 736.263854, 768.006183, 735.92937,</span>
+<span class="sd">...     620.374953, 450.095263, 273.614141, 133.368104, 40.326502, 0.867122, 0.0, 0.0,</span>
+<span class="sd">...     0.0)</span>
+
+<span class="sd">&gt;&gt;&gt; test.inits = (</span>
+<span class="sd">...     (logs.loggedglobalradiation,</span>
+<span class="sd">...      [0.0, 0.0, 0.0, 0.0, 0.0, 27.777778, 55.555556, 138.888889, 222.222222,</span>
+<span class="sd">...      305.555556, 333.333333, 388.888889, 527.777778, 444.444444, 250.0, 222.222222,</span>
+<span class="sd">...      166.666667, 111.111111, 55.555556, 27.777778, 0.0, 0.0, 0.0, 0.0]),</span>
+<span class="sd">...     (logs.loggedunadjustedsunshineduration,</span>
+<span class="sd">...      [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.1, 0.2, 0.1, 0.2, 0.2, 0.3, 0.0,</span>
+<span class="sd">...       0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]))</span>
+
+<span class="sd">For this hourly simulation, there are relevant differences between the &quot;real&quot; sunshine</span>
+<span class="sd">durations defined in the :ref:`meteo_glob_morsim_hourly_simulation_summer` example and</span>
+<span class="sd">the estimates of |meteo_sun_morsim|.  The &quot;daily sunshine adjustment&quot; approach</span>
+<span class="sd">implemented by method |Calc_SunshineDuration_V2| improves the agreement but cannot</span>
+<span class="sd">achieve equality:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;meteo_sun_morsim_hourly_summer&quot;)</span>
+<span class="sd">    |             date | globalradiation | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | unadjustedsunshineduration | sunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | dailyglobalradiation |    node1 |    node2 |</span>
+<span class="sd">    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 1997-03-08 00:00 |             0.0 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      0.0 |                     15.566134 |                        0.0 |              0.0 |              2.420919 |                   0.0 |                416.686259 |                    0.0 |           136.574074 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-03-08 01:00 |             0.0 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      0.0 |                     15.566134 |                        0.0 |              0.0 |              2.420919 |                   0.0 |                416.686259 |                    0.0 |           136.574074 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-03-08 02:00 |             0.0 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      0.0 |                     15.566134 |                        0.0 |              0.0 |              2.420919 |                   0.0 |                416.686259 |                    0.0 |           136.574074 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-03-08 03:00 |             0.0 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      0.0 |                     15.566134 |                        0.0 |              0.0 |              2.420919 |                   0.0 |                416.686259 |                    0.0 |           136.574074 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-03-08 04:00 |        1.943686 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                 0.429734 |                     15.566134 |                        0.0 |              0.0 |              2.340495 |              0.086656 |                416.686259 |               6.499471 |           135.497654 |      0.0 | 0.429734 |</span>
+<span class="sd">    | 1997-03-08 05:00 |       21.932441 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                        0.0 |              0.0 |              2.235824 |              0.968392 |                416.686259 |              72.632793 |            134.09669 |      0.0 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 06:00 |       57.256187 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                        0.0 |              0.0 |              2.068169 |                2.4897 |                416.686259 |             186.736268 |           131.852735 |      0.0 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 07:00 |      109.332844 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                        0.0 |              0.0 |              1.889684 |              4.679733 |                416.686259 |             350.996451 |           129.463826 |      0.0 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 08:00 |      170.949152 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                        0.0 |              0.0 |              1.730067 |              7.219274 |                416.686259 |             541.470994 |           127.327448 |      0.0 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 09:00 |      311.762624 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                   0.160342 |         0.211068 |              1.922339 |              9.442017 |                416.686259 |             708.184581 |           129.900891 | 0.211068 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 10:00 |      501.583299 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                   0.436693 |         0.574283 |              2.100217 |             10.709164 |                416.686259 |               803.2251 |           132.281676 | 0.574283 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 11:00 |      615.018727 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                   0.641632 |         0.746481 |              2.371805 |             10.773868 |                416.686259 |             808.078107 |           135.916716 | 0.746481 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 12:00 |      626.544326 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                   0.708938 |         0.865897 |              3.111645 |             10.364714 |                416.686259 |             777.390094 |           145.819026 | 0.865897 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 13:00 |      496.133417 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                   0.412597 |         0.521979 |              3.618455 |             10.872489 |                416.686259 |             815.475032 |           152.602363 | 0.521979 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 14:00 |      419.520994 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                   0.302018 |         0.405098 |              3.973239 |             10.461143 |                416.686259 |             784.622637 |           157.350923 | 0.405098 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 15:00 |      387.887354 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                   0.375019 |         0.520027 |              4.488968 |              8.865382 |                416.686259 |             664.934948 |           164.253636 | 0.520027 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 16:00 |      278.496873 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                   0.360287 |         0.522116 |              4.923579 |              6.474205 |                416.686259 |             485.588212 |           170.070636 | 0.522116 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 17:00 |      137.138608 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                   0.189512 |         0.273543 |              5.177553 |              3.977658 |                416.686259 |             298.338414 |            173.46993 | 0.273543 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 18:00 |       51.080715 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                   0.017797 |         0.025919 |              5.250097 |              1.972911 |                416.686259 |             147.975255 |           174.440885 | 0.025919 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 19:00 |       13.632816 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      1.0 |                     15.566134 |                        0.0 |              0.0 |              5.292537 |              0.634046 |                416.686259 |               47.55565 |           175.008919 |      0.0 |      1.0 |</span>
+<span class="sd">    | 1997-03-08 20:00 |        0.185943 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                   0.1364 |                     15.566134 |                        0.0 |              0.0 |              5.293116 |              0.008648 |                416.686259 |               0.648661 |           175.016667 |      0.0 |   0.1364 |</span>
+<span class="sd">    | 1997-03-08 21:00 |             0.0 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      0.0 |                     15.566134 |                        0.0 |              0.0 |              5.293116 |                   0.0 |                416.686259 |                    0.0 |           175.016667 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-03-08 22:00 |             0.0 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      0.0 |                     15.566134 |                        0.0 |              0.0 |              5.293116 |                   0.0 |                416.686259 |                    0.0 |           175.016667 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-03-08 23:00 |             0.0 |         0.972155 |         0.297909 |      4.570266 |      20.1364 |                      0.0 |                     15.566134 |                        0.0 |              0.0 |              5.293116 |                   0.0 |                416.686259 |                    0.0 |           175.016667 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-04-08 00:00 |             0.0 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      0.0 |                     15.502754 |                        0.0 |              0.0 |              5.358504 |                   0.0 |                413.922951 |                    0.0 |           175.016667 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-04-08 01:00 |             0.0 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      0.0 |                     15.502754 |                        0.0 |              0.0 |              5.358504 |                   0.0 |                413.922951 |                    0.0 |           175.016667 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-04-08 02:00 |             0.0 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      0.0 |                     15.502754 |                        0.0 |              0.0 |              5.358504 |                   0.0 |                413.922951 |                    0.0 |           175.016667 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-04-08 03:00 |             0.0 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      0.0 |                     15.502754 |                        0.0 |              0.0 |              5.358504 |                   0.0 |                413.922951 |                    0.0 |           175.016667 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-04-08 04:00 |        1.590516 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                 0.398044 |                     15.502754 |                        0.0 |              0.0 |              5.357402 |               0.07485 |                413.922951 |               5.576807 |           175.001951 |      0.0 | 0.398044 |</span>
+<span class="sd">    | 1997-04-08 05:00 |       19.950903 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                        0.0 |              0.0 |              5.351217 |              0.938714 |                413.922951 |              69.939921 |           174.919387 |      0.0 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 06:00 |       62.985774 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.016424 |         0.024351 |                5.3691 |              2.455474 |                413.922951 |             182.947859 |            175.15812 | 0.024351 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 07:00 |      285.776389 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                    0.73726 |              1.0 |              5.919798 |              4.650125 |                413.922951 |             346.462853 |           182.509935 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 08:00 |      475.225247 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.827155 |              1.0 |              6.869476 |              7.209034 |                413.922951 |             537.117229 |           195.188105 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 09:00 |      614.006719 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.806882 |              1.0 |               7.81281 |              9.458797 |                413.922951 |             704.738349 |           207.781609 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 10:00 |      643.806508 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.706007 |         0.955381 |              8.256704 |             10.747438 |                413.922951 |             800.750043 |           213.707576 | 0.955381 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 11:00 |       600.26298 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.616973 |         0.833612 |               8.21065 |             10.819272 |                413.922951 |             806.102134 |           213.092753 | 0.833612 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 12:00 |       620.51414 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.700274 |         0.945342 |              8.191829 |             10.408076 |                413.922951 |             775.465449 |           212.841496 | 0.945342 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 13:00 |      599.441386 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.605418 |         0.823298 |              8.514264 |             10.917404 |                413.922951 |             813.413559 |           217.145994 | 0.823298 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 14:00 |      613.551223 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.677045 |         0.930455 |              9.119852 |             10.494383 |                413.922951 |             781.895886 |           225.230587 | 0.930455 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 15:00 |      517.107047 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                    0.67314 |         0.924467 |               9.52316 |              8.874215 |                413.922951 |             661.183412 |           230.614741 | 0.924467 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 16:00 |      377.836616 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.678079 |         0.919433 |              9.833209 |               6.45697 |                413.922951 |             481.083834 |           234.753897 | 0.919433 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 17:00 |      252.204639 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.787027 |              1.0 |             10.192342 |              3.945159 |                413.922951 |              293.93856 |           239.548315 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 18:00 |      128.576715 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.834566 |              1.0 |             10.434215 |              1.939642 |                413.922951 |             144.515231 |           242.777315 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 19:00 |       42.072585 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      1.0 |                     15.502754 |                   0.899331 |         0.989343 |             10.522979 |               0.60531 |                413.922951 |              45.099317 |           243.962305 | 0.989343 |      1.0 |</span>
+<span class="sd">    | 1997-04-08 20:00 |        0.812898 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                 0.104711 |                     15.502754 |                   0.104711 |         0.104711 |             10.524936 |              0.005136 |                413.922951 |               0.382679 |           243.988429 | 0.104711 | 0.104711 |</span>
+<span class="sd">    | 1997-04-08 21:00 |             0.0 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      0.0 |                     15.502754 |                        0.0 |              0.0 |             10.524936 |                   0.0 |                413.922951 |                    0.0 |           243.988429 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-04-08 22:00 |             0.0 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      0.0 |                     15.502754 |                        0.0 |              0.0 |             10.524936 |                   0.0 |                413.922951 |                    0.0 |           243.988429 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-04-08 23:00 |             0.0 |         0.972464 |         0.293016 |      4.601956 |    20.104711 |                      0.0 |                     15.502754 |                        0.0 |              0.0 |             10.524936 |                   0.0 |                413.922951 |                    0.0 |           243.988429 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-05-08 00:00 |             0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                        0.0 |              0.0 |             10.605803 |                   0.0 |                411.114245 |                    0.0 |           243.988429 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-05-08 01:00 |             0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                        0.0 |              0.0 |             10.605803 |                   0.0 |                411.114245 |                    0.0 |           243.988429 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-05-08 02:00 |             0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                        0.0 |              0.0 |             10.605803 |                   0.0 |                411.114245 |                    0.0 |           243.988429 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-05-08 03:00 |             0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                        0.0 |              0.0 |             10.605803 |                   0.0 |                411.114245 |                    0.0 |           243.988429 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-05-08 04:00 |        1.482348 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                 0.366022 |                     15.438712 |                        0.0 |              0.0 |             10.605465 |              0.063733 |                411.114245 |               4.716292 |           243.983922 |      0.0 | 0.366022 |</span>
+<span class="sd">    | 1997-05-08 05:00 |       21.135568 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                        0.0 |              0.0 |             10.609172 |              0.908598 |                411.114245 |              67.236784 |           244.033283 |      0.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 06:00 |      125.883451 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.554123 |         0.586585 |             10.806007 |              2.420659 |                411.114245 |             179.130154 |           246.654019 | 0.586585 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 07:00 |      305.954943 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.842449 |         0.887865 |             10.869155 |              4.619722 |                411.114245 |             341.862027 |           247.494792 | 0.887865 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 08:00 |      511.104575 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                    0.93927 |         0.989376 |             10.981437 |              7.198198 |                411.114245 |             532.670693 |           248.989764 | 0.989376 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 09:00 |       629.51924 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.846666 |         0.892368 |             11.029983 |              9.475573 |                411.114245 |             701.197754 |           249.636119 | 0.892368 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 10:00 |       765.81659 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.939157 |              1.0 |             11.411806 |             10.786309 |                411.114245 |             798.192977 |           254.719873 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 11:00 |      767.145843 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.931144 |              1.0 |             11.934057 |             10.865527 |                411.114245 |             804.055141 |           261.673325 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 12:00 |      736.263854 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                    0.92784 |              1.0 |             12.296289 |              10.45226 |                411.114245 |             773.473117 |            266.49623 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 13:00 |      768.006183 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.919992 |              1.0 |             12.823804 |              10.96314 |                411.114245 |             811.278551 |           273.519763 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 14:00 |       735.92937 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.916914 |              1.0 |             13.206779 |             10.528069 |                411.114245 |             779.083066 |           278.618853 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 15:00 |      620.374953 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.915658 |              1.0 |             13.529951 |              8.882849 |                411.114245 |             657.335808 |           282.921682 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 16:00 |      450.095263 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.916904 |              1.0 |              13.75608 |              6.439028 |                411.114245 |             476.491717 |           285.932459 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 17:00 |      273.614141 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.917776 |              1.0 |              13.82308 |              3.911896 |                411.114245 |             289.482482 |           286.824522 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 18:00 |      133.368104 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.918457 |              1.0 |             13.838074 |              1.905864 |                411.114245 |             141.035017 |           287.024163 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 19:00 |       40.326502 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      1.0 |                     15.438712 |                   0.918941 |              1.0 |              13.83261 |              0.576079 |                411.114245 |              42.630198 |           286.951409 |      1.0 |      1.0 |</span>
+<span class="sd">    | 1997-05-08 20:00 |        0.867122 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                 0.072689 |                     15.438712 |                   0.072689 |         0.072689 |              13.83278 |              0.002495 |                411.114245 |               0.184625 |           286.953669 | 0.072689 | 0.072689 |</span>
+<span class="sd">    | 1997-05-08 21:00 |             0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                        0.0 |              0.0 |              13.83278 |                   0.0 |                411.114245 |                    0.0 |           286.953669 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-05-08 22:00 |             0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                        0.0 |              0.0 |              13.83278 |                   0.0 |                411.114245 |                    0.0 |           286.953669 |      0.0 |      0.0 |</span>
+<span class="sd">    | 1997-05-08 23:00 |             0.0 |          0.97278 |         0.288036 |      4.633978 |    20.072689 |                      0.0 |                     15.438712 |                        0.0 |              0.0 |              13.83278 |                   0.0 |                411.114245 |                    0.0 |           286.953669 |      0.0 |      0.0 |</span>
+
+<span class="sd">.. _meteo_sun_morsim_hourly_simulation_winter:</span>
+
+<span class="sd">hourly simulation winter</span>
+<span class="sd">________________________</span>
+
+<span class="sd">We repeat the :ref:`meteo_glob_morsim_hourly_simulation_winter` example of</span>
+<span class="sd">|meteo_glob_morsim|  but use its global radiation results as input and prepare the log</span>
+<span class="sd">sequences |LoggedGlobalRadiation| and |LoggedUnadjustedSunshineDuration| instead of</span>
+<span class="sd">|LoggedSunshineDuration| and |LoggedUnadjustedSunshineDuration|:</span>
+
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;2010-12-10&quot;, &quot;2010-12-13&quot;, &quot;1h&quot;</span>
+
+<span class="sd">&gt;&gt;&gt; inputs.globalradiation.series = (</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.10761, 18.663203, 56.267907,</span>
+<span class="sd">...     107.168237, 91.473333, 80.475535, 43.120591, 10.320091, 0.028102, 0.0, 0.0,</span>
+<span class="sd">...     0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.900734,</span>
+<span class="sd">...     17.26751, 52.61761, 80.135633, 80.276118, 75.835403, 42.227911, 12.613921,</span>
+<span class="sd">...     0.021912, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,</span>
+<span class="sd">...     0.0, 0.894145, 17.71254, 54.302585, 81.504146, 81.665294, 77.078959, 60.254042,</span>
+<span class="sd">...     14.837301, 0.168856, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)</span>
+
+<span class="sd">&gt;&gt;&gt; test.inits = (</span>
+<span class="sd">...     (logs.loggedglobalradiation,</span>
+<span class="sd">...      [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 27.777778, 55.555556,</span>
+<span class="sd">...       111.111111, 166.666667, 138.888889, 55.555556, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,</span>
+<span class="sd">...       0.0, 0.0, 0.0]),</span>
+<span class="sd">...     (logs.loggedunadjustedsunshineduration,</span>
+<span class="sd">...      [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.04, 0.25, 0.59, 0.91,</span>
+<span class="sd">...       0.97, 1.0, 0.65, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]))</span>
+
+<span class="sd">In this short period with little sunshine, relative differences between the original</span>
+<span class="sd">and the estimated sunshine duration are more severe than in the summer example.  The</span>
+<span class="sd">&quot;daily sunshine adjustment&quot; approach does not improve the agreement but worsens it</span>
+<span class="sd">slightly (which needs further investigation):</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;meteo_sun_morsim_hourly_winter&quot;)</span>
+<span class="sd">    |             date | globalradiation | earthsundistance | solardeclination | timeofsunrise | timeofsunset | possiblesunshineduration | dailypossiblesunshineduration | unadjustedsunshineduration | sunshineduration | dailysunshineduration | portiondailyradiation | extraterrestrialradiation | clearskysolarradiation | dailyglobalradiation |    node1 |    node2 |</span>
+<span class="sd">    ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2010-10-12 00:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |                 1.946 |                   0.0 |                  60.72715 |                    0.0 |            23.148148 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 01:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |                 1.946 |                   0.0 |                  60.72715 |                    0.0 |            23.148148 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 02:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |                 1.946 |                   0.0 |                  60.72715 |                    0.0 |            23.148148 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 03:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |                 1.946 |                   0.0 |                  60.72715 |                    0.0 |            23.148148 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 04:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |                 1.946 |                   0.0 |                  60.72715 |                    0.0 |            23.148148 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 05:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |                 1.946 |                   0.0 |                  60.72715 |                    0.0 |            23.148148 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 06:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |                 1.946 |                   0.0 |                  60.72715 |                    0.0 |            23.148148 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 07:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |                 1.946 |                   0.0 |                  60.72715 |                    0.0 |            23.148148 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 08:00 |         1.10761 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                 0.355232 |                       7.41713 |                   0.025214 |         0.017719 |              1.957274 |              0.266196 |                  60.72715 |                2.90976 |            23.194299 | 0.017719 | 0.355232 |</span>
+<span class="sd">    | 2010-10-12 09:00 |       18.663203 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      1.0 |                       7.41713 |                   0.020556 |         0.017712 |              1.581776 |              4.919884 |                  60.72715 |              53.778697 |            21.657117 | 0.017712 |      1.0 |</span>
+<span class="sd">    | 2010-10-12 10:00 |       56.267907 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      1.0 |                       7.41713 |                    0.01914 |         0.015007 |              0.740841 |             14.873457 |                  60.72715 |             162.580073 |            18.214576 | 0.015007 |      1.0 |</span>
+<span class="sd">    | 2010-10-12 11:00 |      107.168237 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      1.0 |                       7.41713 |                   0.162746 |         0.042522 |              0.135253 |             22.189872 |                  60.72715 |             242.554983 |            15.735475 | 0.042522 |      1.0 |</span>
+<span class="sd">    | 2010-10-12 12:00 |       91.473333 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      1.0 |                       7.41713 |                   0.065497 |              0.0 |                   0.0 |             22.197307 |                  60.72715 |             242.636259 |            14.917234 |      0.0 |      1.0 |</span>
+<span class="sd">    | 2010-10-12 13:00 |       80.475535 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      1.0 |                       7.41713 |                   0.026804 |         0.015835 |              0.189017 |             20.962863 |                  60.72715 |             229.142692 |            15.955567 | 0.015835 |      1.0 |</span>
+<span class="sd">    | 2010-10-12 14:00 |       43.120591 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      1.0 |                       7.41713 |                   0.005645 |         0.005984 |              0.345179 |             11.702396 |                  60.72715 |              127.91757 |            16.594851 | 0.005984 |      1.0 |</span>
+<span class="sd">    | 2010-10-12 15:00 |       10.320091 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      1.0 |                       7.41713 |                        0.0 |              0.0 |              0.450219 |              2.880181 |                  60.72715 |               31.48293 |            17.024854 |      0.0 |      1.0 |</span>
+<span class="sd">    | 2010-10-12 16:00 |        0.028102 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                 0.061898 |                       7.41713 |                        0.0 |              0.0 |              0.450505 |              0.007844 |                  60.72715 |               0.085736 |            17.026025 |      0.0 | 0.061898 |</span>
+<span class="sd">    | 2010-10-12 17:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |              0.450505 |                   0.0 |                  60.72715 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 18:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |              0.450505 |                   0.0 |                  60.72715 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 19:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |              0.450505 |                   0.0 |                  60.72715 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 20:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |              0.450505 |                   0.0 |                  60.72715 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 21:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |              0.450505 |                   0.0 |                  60.72715 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 22:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |              0.450505 |                   0.0 |                  60.72715 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-10-12 23:00 |             0.0 |         1.030879 |         -0.40453 |      8.644768 |    16.061898 |                      0.0 |                       7.41713 |                        0.0 |              0.0 |              0.450505 |                   0.0 |                  60.72715 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 00:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.478444 |                   0.0 |                 60.306686 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 01:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.478444 |                   0.0 |                 60.306686 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 02:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.478444 |                   0.0 |                 60.306686 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 03:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.478444 |                   0.0 |                 60.306686 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 04:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.478444 |                   0.0 |                 60.306686 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 05:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.478444 |                   0.0 |                 60.306686 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 06:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.478444 |                   0.0 |                 60.306686 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 07:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.478444 |                   0.0 |                 60.306686 |                    0.0 |            17.026025 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 08:00 |        0.900734 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                 0.347041 |                      7.400749 |                        0.0 |              0.0 |              0.476328 |              0.254871 |                 60.306686 |               2.766676 |            17.017406 |      0.0 | 0.347041 |</span>
+<span class="sd">    | 2010-11-12 09:00 |        17.26751 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      1.0 |                      7.400749 |                        0.0 |              0.0 |              0.462055 |              4.882681 |                 60.306686 |              53.002491 |            16.959252 |      0.0 |      1.0 |</span>
+<span class="sd">    | 2010-11-12 10:00 |        52.61761 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      1.0 |                      7.400749 |                        0.0 |              0.0 |              0.424725 |             14.862249 |                 60.306686 |              161.33274 |            16.807156 |      0.0 |      1.0 |</span>
+<span class="sd">    | 2010-11-12 11:00 |       80.135633 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      1.0 |                      7.400749 |                        0.0 |              0.0 |              0.148275 |              22.23196 |                 60.306686 |             241.332453 |            15.680797 |      0.0 |      1.0 |</span>
+<span class="sd">    | 2010-11-12 12:00 |       80.276118 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      1.0 |                      7.400749 |                        0.0 |              0.0 |              0.033766 |             22.247803 |                 60.306686 |              241.50443 |            15.214247 |      0.0 |      1.0 |</span>
+<span class="sd">    | 2010-11-12 13:00 |       75.835403 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      1.0 |                      7.400749 |                        0.0 |              0.0 |                   0.0 |             20.992726 |                 60.306686 |             227.880311 |            15.020908 |      0.0 |      1.0 |</span>
+<span class="sd">    | 2010-11-12 14:00 |       42.227911 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      1.0 |                      7.400749 |                        0.0 |              0.0 |                   0.0 |             11.677032 |                 60.306686 |             126.756554 |            14.983713 |      0.0 |      1.0 |</span>
+<span class="sd">    | 2010-11-12 15:00 |       12.613921 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      1.0 |                      7.400749 |                   0.112716 |         0.000643 |              0.000643 |              2.844748 |                 60.306686 |              30.880321 |            15.079289 | 0.000643 |      1.0 |</span>
+<span class="sd">    | 2010-11-12 16:00 |        0.021912 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                 0.053708 |                      7.400749 |                    0.00057 |         0.000003 |              0.000579 |               0.00593 |                 60.306686 |                0.06437 |            15.079031 | 0.000003 | 0.053708 |</span>
+<span class="sd">    | 2010-11-12 17:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.000579 |                   0.0 |                 60.306686 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 18:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.000579 |                   0.0 |                 60.306686 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 19:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.000579 |                   0.0 |                 60.306686 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 20:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.000579 |                   0.0 |                 60.306686 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 21:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.000579 |                   0.0 |                 60.306686 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 22:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.000579 |                   0.0 |                 60.306686 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-11-12 23:00 |             0.0 |         1.031074 |        -0.405619 |      8.652959 |    16.053708 |                      0.0 |                      7.400749 |                        0.0 |              0.0 |              0.000579 |                   0.0 |                 60.306686 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 00:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.023549 |                   0.0 |                 59.933948 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 01:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.023549 |                   0.0 |                 59.933948 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 02:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.023549 |                   0.0 |                 59.933948 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 03:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.023549 |                   0.0 |                 59.933948 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 04:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.023549 |                   0.0 |                 59.933948 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 05:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.023549 |                   0.0 |                 59.933948 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 06:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.023549 |                   0.0 |                 59.933948 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 07:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.023549 |                   0.0 |                 59.933948 |                    0.0 |            15.079031 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 08:00 |        0.894145 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                 0.339738 |                      7.386143 |                    0.00256 |         0.000519 |              0.023482 |              0.244956 |                 59.933948 |               2.642609 |            15.078757 | 0.000519 | 0.339738 |</span>
+<span class="sd">    | 2010-12-12 09:00 |        17.71254 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      1.0 |                      7.386143 |                   0.007855 |         0.001781 |              0.028052 |              4.849391 |                 59.933948 |              52.315768 |              15.0973 | 0.001781 |      1.0 |</span>
+<span class="sd">    | 2010-12-12 10:00 |       54.302585 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      1.0 |                      7.386143 |                   0.008371 |         0.002875 |              0.045357 |             14.852029 |                 59.933948 |              160.22533 |            15.167507 | 0.002875 |      1.0 |</span>
+<span class="sd">    | 2010-12-12 11:00 |       81.504146 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      1.0 |                      7.386143 |                   0.008878 |         0.003742 |              0.059411 |             22.269583 |                 59.933948 |             240.246723 |            15.224528 | 0.003742 |      1.0 |</span>
+<span class="sd">    | 2010-12-12 12:00 |       81.665294 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      1.0 |                      7.386143 |                   0.009348 |         0.004582 |              0.073678 |             22.293018 |                 59.933948 |              240.49954 |            15.282411 | 0.004582 |      1.0 |</span>
+<span class="sd">    | 2010-12-12 13:00 |       77.078959 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      1.0 |                      7.386143 |                   0.009874 |         0.005329 |              0.086449 |             21.019348 |                 59.933948 |             226.759052 |            15.334226 | 0.005329 |      1.0 |</span>
+<span class="sd">    | 2010-12-12 14:00 |       60.254042 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      1.0 |                      7.386143 |                   0.218871 |         0.156815 |              0.271574 |             11.654171 |                 59.933948 |             125.726485 |            16.085314 | 0.156815 |      1.0 |</span>
+<span class="sd">    | 2010-12-12 15:00 |       14.837301 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      1.0 |                      7.386143 |                   0.233367 |         0.137495 |              0.294408 |              2.813062 |                 59.933948 |              30.347619 |            16.177955 | 0.137495 |      1.0 |</span>
+<span class="sd">    | 2010-12-12 16:00 |        0.168856 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                 0.046405 |                      7.386143 |                   0.046405 |         0.025172 |              0.295917 |              0.004444 |                 59.933948 |               0.047938 |            16.184078 | 0.025172 | 0.046405 |</span>
+<span class="sd">    | 2010-12-12 17:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.295917 |                   0.0 |                 59.933948 |                    0.0 |            16.184078 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 18:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.295917 |                   0.0 |                 59.933948 |                    0.0 |            16.184078 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 19:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.295917 |                   0.0 |                 59.933948 |                    0.0 |            16.184078 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 20:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.295917 |                   0.0 |                 59.933948 |                    0.0 |            16.184078 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 21:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.295917 |                   0.0 |                 59.933948 |                    0.0 |            16.184078 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 22:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.295917 |                   0.0 |                 59.933948 |                    0.0 |            16.184078 |      0.0 |      0.0 |</span>
+<span class="sd">    | 2010-12-12 23:00 |             0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                        0.0 |              0.0 |              0.295917 |                   0.0 |                 59.933948 |                    0.0 |            16.184078 |      0.0 |      0.0 |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">radiationinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.meteo</span><span class="w"> </span><span class="kn">import</span> <span class="n">meteo_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../meteo_sun_morsim.html#hydpy.models.meteo_sun_morsim.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">,</span> <span class="n">radiationinterfaces</span><span class="o">.</span><span class="n">RadiationModel_V1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|meteo_sun_morsim.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;Meteo-Sun-MORSIM&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;sunshine duration estimation adopted from MORECS/LARSIM&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_EarthSunDistance_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_SolarDeclination_V2</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_TimeOfSunrise_TimeOfSunset_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_DailyPossibleSunshineDuration_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_PossibleSunshineDuration_V2</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Update_LoggedGlobalRadiation_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_DailyGlobalRadiation_V2</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_ExtraterrestrialRadiation_V2</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_ClearSkySolarRadiation_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_DailySunshineDuration_V2</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_PortionDailyRadiation_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Adjust_ClearSkySolarRadiation_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_UnadjustedSunshineDuration_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Update_LoggedUnadjustedSunshineDuration_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Calc_SunshineDuration_V2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">INTERFACE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Process_Radiation_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Get_PossibleSunshineDuration_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Get_SunshineDuration_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Get_ClearSkySolarRadiation_V1</span><span class="p">,</span>
+        <span class="n">meteo_model</span><span class="o">.</span><span class="n">Get_GlobalRadiation_V2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">meteo_model</span><span class="o">.</span><span class="n">Return_SunshineDuration_V1</span><span class="p">,)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.meteo_sun_morsim</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

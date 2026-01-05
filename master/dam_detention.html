@@ -1,0 +1,847 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>dam_detention &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dam_llake" href="dam_llake.html" />
+    <link rel="prev" title="dam" href="dam.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dam_llake.html" title="dam_llake"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dam.html" title="dam"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Dam.html" accesskey="U">HydPy-Dam</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dam_detention</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="dam.html">dam</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">dam_detention</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-tests">Integration tests</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#local-protection">local protection</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#restricted-emptying">restricted emptying</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#remote-protection">remote protection</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#target-volume">target volume</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#commissioning">commissioning</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dam_detention.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dam_detention.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dam_detention.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dam_detention.Model.precipmodel"><code class="docutils literal notranslate"><span class="pre">Model.precipmodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dam_detention.Model.pemodel"><code class="docutils literal notranslate"><span class="pre">Model.pemodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dam_detention.Model.safereleasemodels"><code class="docutils literal notranslate"><span class="pre">Model.safereleasemodels</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dam_detention.Model.add_safereleasemodel"><code class="docutils literal notranslate"><span class="pre">Model.add_safereleasemodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.dam_detention.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dam_detention.AideSequences"><code class="docutils literal notranslate"><span class="pre">AideSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dam_detention.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dam_detention.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dam_detention.FactorSequences"><code class="docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dam_detention.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dam_detention.InletSequences"><code class="docutils literal notranslate"><span class="pre">InletSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dam_detention.LogSequences"><code class="docutils literal notranslate"><span class="pre">LogSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dam_detention.OutletSequences"><code class="docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.dam_detention.StateSequences"><code class="docutils literal notranslate"><span class="pre">StateSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="dam_llake.html">dam_llake</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dam_lreservoir.html">dam_lreservoir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dam_lretention.html">dam_lretention</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dam_pump.html">dam_pump</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dam_pump_sluice.html">dam_pump_sluice</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dam_sluice.html">dam_sluice</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dam_v001.html">dam_v001</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dam_v002.html">dam_v002</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dam_v003.html">dam_v003</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dam_v004.html">dam_v004</a></li>
+<li class="toctree-l4"><a class="reference internal" href="dam_v005.html">dam_v005</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="dam.html"
+                          title="previous chapter">dam</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="dam_llake.html"
+                          title="next chapter">dam_llake</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/dam_detention.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/dam_detention.html">6</a></li>
+<li><a href="../master/dam_detention.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="dam-detention">
+<span id="id1"></span><h1>HydPy-Dam-DB (detention basin model)<a class="headerlink" href="#dam-detention" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.dam_detention"><a class="reference internal" href="#module-hydpy.models.dam_detention" title="hydpy.models.dam_detention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_detention</span></code></a> simulates the flood protection effects of dry detention basins that
+actively control their release.</p>
+<p><a class="reference internal" href="#module-hydpy.models.dam_detention" title="hydpy.models.dam_detention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_detention</span></code></a> serves similar purposes as <a class="reference internal" href="dam_lretention.html#module-hydpy.models.dam_lretention" title="hydpy.models.dam_lretention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_lretention</span></code></a> but controls its outflow
+actively according to “safe discharge” estimates, which are usually derived from
+discharge values simulated (or measured) at other river segments.  Opposed to
+<a class="reference internal" href="dam_lretention.html#module-hydpy.models.dam_lretention" title="hydpy.models.dam_lretention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_lretention</span></code></a>, <a class="reference internal" href="#module-hydpy.models.dam_detention" title="hydpy.models.dam_detention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_detention</span></code></a> requires no relationship between water level and
+(possible) release, as it tries to release the ideal amount of water and neglects any
+“natural” lake retention effects.  Due to this conceptual design, <a class="reference internal" href="#module-hydpy.models.dam_detention" title="hydpy.models.dam_detention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_detention</span></code></a>
+requires no numerical solution algorithms (like most other models in the HydPy-Dam
+family) and is therefore solved analytically.</p>
+<p>It is also possible to simulate wet basins by setting the <a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.TargetVolume" title="hydpy.models.dam.dam_control.TargetVolume"><code class="xref py py-class docutils literal notranslate"><span class="pre">TargetVolume</span></code></a> parameter to a
+value larger than one.  Note that even then, natural lake retention effects are
+neglected, so <a class="reference internal" href="dam_lretention.html#module-hydpy.models.dam_lretention" title="hydpy.models.dam_lretention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_lretention</span></code></a> or a similar model of the HydPy-Dam family might be
+preferable.</p>
+<p>The information for estimating the safe discharge is transmitted via an arbitrary
+number of observer nodes.  Therefore, <a class="reference internal" href="#module-hydpy.models.dam_detention" title="hydpy.models.dam_detention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_detention</span></code></a> can react as soon as critical
+situations somewhere else in the river network occur.   Please note that an observer
+node cannot be positioned downstream of the element that handles the observing
+<a class="reference internal" href="#module-hydpy.models.dam_detention" title="hydpy.models.dam_detention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_detention</span></code></a> instance.</p>
+<section id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<p>We perform all example calculations over a period of 20 days:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span><span class="p">,</span> <span class="n">IntegrationTest</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-01-21&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<p>We prepare a <a class="reference internal" href="#module-hydpy.models.dam_detention" title="hydpy.models.dam_detention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_detention</span></code></a> model instance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.dam_detention</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We begin with the simplest case of a single inlet and a single outlet node and leave
+the possibility of adding observer nodes for later consideration:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inflow</span><span class="p">,</span> <span class="n">outflow</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="s2">&quot;inflow&quot;</span><span class="p">),</span> <span class="n">Node</span><span class="p">(</span><span class="s2">&quot;outflow&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;element&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="n">inflow</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="n">outflow</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>The following test function instance facilitates the convenient execution of all
+integration tests:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">.%m.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">axis1</span> <span class="o">=</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">inflow</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">axis2</span> <span class="o">=</span> <span class="n">states</span><span class="o">.</span><span class="n">watervolume</span>
+</pre></div>
+</div>
+<p>All integration tests shall start from dry initial conditions:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span> <span class="o">=</span> <span class="p">[(</span><span class="n">states</span><span class="o">.</span><span class="n">watervolume</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="n">logs</span><span class="o">.</span><span class="n">loggedadjustedevaporation</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">reset_inits</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">conditions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">conditions</span>
+</pre></div>
+</div>
+<p>The following input time series stems from the integration tests on application model
+<a class="reference internal" href="dam_lretention.html#module-hydpy.models.dam_lretention" title="hydpy.models.dam_lretention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_lretention</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inflow</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>
+<span class="gp">... </span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The first tests deal with a dry detention basin:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">targetvolume</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">maximumvolume</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As the surface area (which becomes relevant only after adding submodels that include
+precipitation and evaporation into the water balance) is a fixed property, we set its
+size to zero, which is the “regular” surface area of dry detention basins:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surfacearea</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following three parameters require values even if no corresponding submodels are
+added (we plan to make this more convenient in the future):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">correctionprecipitation</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">correctionevaporation</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">weightevaporation</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The allowed release, which does not cause any harm directly downstream of the detention
+basin, is 2 m³/s:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">allowedrelease</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As dry detention basins cannot help much in ensuring a minimum flow (e.g. for
+ecological reasons), we set the minimum release to zero:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">minimumrelease</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We begin without any restrictions on the emptying speed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">allowedwaterleveldrop</span><span class="p">(</span><span class="n">inf</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following simple relationship between water volume and level does not affect the
+basin’s behaviour as long as <a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.AllowedWaterLevelDrop" title="hydpy.models.dam.dam_control.AllowedWaterLevelDrop"><code class="xref py py-class docutils literal notranslate"><span class="pre">AllowedWaterLevelDrop</span></code></a> is set to infinity but enables
+calculating the water level at the end of the respective simulation steps for
+informational purposes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">watervolume2waterlevel</span><span class="p">(</span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Parameter <a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.Commission" title="hydpy.models.dam.dam_control.Commission"><code class="xref py py-class docutils literal notranslate"><span class="pre">Commission</span></code></a> allows for the modelling of the commissioning of a detention
+basin during the simulation period.  We first set it to the start of the simulation
+period, ensuring the detention basin is permanently active:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">commission</span><span class="p">(</span><span class="s2">&quot;2000-01-01&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="local-protection">
+<span id="dam-detention-local-protection"></span><h3>local protection<a class="headerlink" href="#local-protection" title="Link to this heading">¶</a></h3>
+<p>The current simple configuration shows the basic flood protection functionality of
+<a class="reference internal" href="#module-hydpy.models.dam_detention" title="hydpy.models.dam_detention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_detention</span></code></a>.  In this case, the protection is not perfect, but at least it reduces
+the peak flow from 12 m³/s to less than 7 m³/s:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;dam_detention_local_protection&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_7__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_7__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | saferelease | aimedrelease | unavoidablerelease |  outflow | watervolume | inflow |  outflow |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          0.0 |                0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="go">| 02.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          1.0 |                0.0 |      1.0 |         0.0 |    1.0 |      1.0 |</span>
+<span class="go">| 03.01. |     0.3456 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |         2.0 |          2.0 |                0.0 |      2.0 |      0.3456 |    6.0 |      2.0 |</span>
+<span class="go">| 04.01. |     1.1048 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   12.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.2096 |   12.0 |      2.0 |</span>
+<span class="go">| 05.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   10.0 |         2.0 |          2.0 |           4.638889 | 6.638889 |         1.5 |   10.0 | 6.638889 |</span>
+<span class="go">| 06.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |         2.0 |          2.0 |                4.0 |      6.0 |         1.5 |    6.0 |      6.0 |</span>
+<span class="go">| 07.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |         2.0 |          2.0 |                1.0 |      3.0 |         1.5 |    3.0 |      3.0 |</span>
+<span class="go">| 08.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |         2.0 |          2.0 |                0.0 |      2.0 |         1.5 |    2.0 |      2.0 |</span>
+<span class="go">| 09.01. |     1.2068 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.4136 |    1.0 |      2.0 |</span>
+<span class="go">| 10.01. |     1.1204 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.2408 |    0.0 |      2.0 |</span>
+<span class="go">| 11.01. |      1.034 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |       1.068 |    0.0 |      2.0 |</span>
+<span class="go">| 12.01. |     0.8952 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |      0.8952 |    0.0 |      2.0 |</span>
+<span class="go">| 13.01. |     0.7224 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |      0.7224 |    0.0 |      2.0 |</span>
+<span class="go">| 14.01. |     0.5496 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |      0.5496 |    0.0 |      2.0 |</span>
+<span class="go">| 15.01. |     0.3768 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |      0.3768 |    0.0 |      2.0 |</span>
+<span class="go">| 16.01. |      0.204 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |       0.204 |    0.0 |      2.0 |</span>
+<span class="go">| 17.01. |     0.0312 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |      0.0312 |    0.0 |      2.0 |</span>
+<span class="go">| 18.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |     0.361111 |                0.0 | 0.361111 |         0.0 |    0.0 | 0.361111 |</span>
+<span class="go">| 19.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          0.0 |                0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="go">| 20.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          0.0 |                0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+</pre></div></div></div><a href="dam_detention_local_protection.html" target="_blank" >Click to see the graph</a></pre></div></div><p>There is no indication of an error in the water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">check_waterbalance</span><span class="p">(</span><span class="n">conditions</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+<section id="restricted-emptying">
+<span id="dam-detention-restricted-emptying"></span><h3>restricted emptying<a class="headerlink" href="#restricted-emptying" title="Link to this heading">¶</a></h3>
+<p>Setting the allowed water level drop to 0.15 m/day reduces the water release at the
+later declining phase of the flood event (due to the higher water level decrease for
+the same water volume decrease at this time):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">allowedwaterleveldrop</span><span class="p">(</span><span class="mf">0.15</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;dam_detention_restricted_emptying&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_8__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_8__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | saferelease | aimedrelease | unavoidablerelease |  outflow | watervolume | inflow |  outflow |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          0.0 |                0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="go">| 02.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          1.0 |                0.0 |      1.0 |         0.0 |    1.0 |      1.0 |</span>
+<span class="go">| 03.01. |     0.3456 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |         2.0 |          2.0 |                0.0 |      2.0 |      0.3456 |    6.0 |      2.0 |</span>
+<span class="go">| 04.01. |     1.1048 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   12.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.2096 |   12.0 |      2.0 |</span>
+<span class="go">| 05.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   10.0 |         2.0 |          2.0 |           4.638889 | 6.638889 |         1.5 |   10.0 | 6.638889 |</span>
+<span class="go">| 06.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |         2.0 |          2.0 |                4.0 |      6.0 |         1.5 |    6.0 |      6.0 |</span>
+<span class="go">| 07.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |         2.0 |          2.0 |                1.0 |      3.0 |         1.5 |    3.0 |      3.0 |</span>
+<span class="go">| 08.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |         2.0 |          2.0 |                0.0 |      2.0 |         1.5 |    2.0 |      2.0 |</span>
+<span class="go">| 09.01. |     1.2068 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.4136 |    1.0 |      2.0 |</span>
+<span class="go">| 10.01. |     1.1204 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.2408 |    0.0 |      2.0 |</span>
+<span class="go">| 11.01. |      1.034 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |       1.068 |    0.0 |      2.0 |</span>
+<span class="go">| 12.01. |     0.8952 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |      0.8952 |    0.0 |      2.0 |</span>
+<span class="go">| 13.01. |     0.7452 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |     1.736111 |                0.0 | 1.736111 |      0.7452 |    0.0 | 1.736111 |</span>
+<span class="go">| 14.01. |     0.5952 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |     1.736111 |                0.0 | 1.736111 |      0.5952 |    0.0 | 1.736111 |</span>
+<span class="go">| 15.01. |     0.4452 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |     1.736111 |                0.0 | 1.736111 |      0.4452 |    0.0 | 1.736111 |</span>
+<span class="go">| 16.01. |     0.2952 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |     1.736111 |                0.0 | 1.736111 |      0.2952 |    0.0 | 1.736111 |</span>
+<span class="go">| 17.01. |     0.1452 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |     1.736111 |                0.0 | 1.736111 |      0.1452 |    0.0 | 1.736111 |</span>
+<span class="go">| 18.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |     1.680556 |                0.0 | 1.680556 |         0.0 |    0.0 | 1.680556 |</span>
+<span class="go">| 19.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          0.0 |                0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+<span class="go">| 20.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          0.0 |                0.0 |      0.0 |         0.0 |    0.0 |      0.0 |</span>
+</pre></div></div></div><a href="dam_detention_restricted_emptying.html" target="_blank" >Click to see the graph</a></pre></div></div><p>There is no indication of an error in the water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">check_waterbalance</span><span class="p">(</span><span class="n">conditions</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+<section id="remote-protection">
+<span id="dam-detention-remote-protection"></span><h3>remote protection<a class="headerlink" href="#remote-protection" title="Link to this heading">¶</a></h3>
+<p>We now add the observer node <cite>gauge</cite>, which provides discharge information from
+somewhere else in the river network:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gauge</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="s2">&quot;gauge&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">observers</span> <span class="o">=</span> <span class="n">gauge</span>
+</pre></div>
+</div>
+<p>Next, we add an <a class="reference internal" href="exch_interp.html#module-hydpy.models.exch_interp" title="hydpy.models.exch_interp"><code class="xref py py-mod docutils literal notranslate"><span class="pre">exch_interp</span></code></a> submodel that takes the observer node’s discharge
+information in converts it into a safe discharge estimate.  From 0 to 3 m³/s, this
+estimate decreases linearly from 3 to 0 m³/s (and remains at 0 m³/s for larger values):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsafereleasemodels</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_safereleasemodel</span><span class="p">(</span><span class="s2">&quot;exch_interp&quot;</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">observernodes</span><span class="p">(</span><span class="s2">&quot;gauge&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">x2y</span><span class="p">(</span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p>Due to the change in the network configuration, we need to recreate the test function
+object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">.%m.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">axis1</span> <span class="o">=</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">inflow</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">outflow</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">axis2</span> <span class="o">=</span> <span class="n">states</span><span class="o">.</span><span class="n">watervolume</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span> <span class="o">=</span> <span class="p">[(</span><span class="n">states</span><span class="o">.</span><span class="n">watervolume</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="p">(</span><span class="n">logs</span><span class="o">.</span><span class="n">loggedadjustedevaporation</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">reset_inits</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">conditions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">conditions</span>
+</pre></div>
+</div>
+<p>The inflow time series is initially identical to the one previously used but remains at
+1 m³/s instead of decreasing to zero after the event:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inflow</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">12.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span>
+<span class="gp">... </span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The observed discharge time also includes a runoff event, but this one occurs slightly
+later in time:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">gauge</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">3.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span>
+<span class="gp">... </span><span class="p">]</span>
+</pre></div>
+</div>
+<p>During the first days of the simulation period, the detention basin adjusts its
+release, as in the previous examples, for local flood protection.   After that, it
+reduces its release as much as possible to help decrease the flood at the remote
+location (which does not work too well because there is still much water left from the
+first event):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;dam_detention_remote_protection&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_9__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_9__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | saferelease | aimedrelease | unavoidablerelease |  outflow | watervolume | gauge | inflow |  outflow |</span>
+<span class="go">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |         2.0 |          0.0 |                0.0 |      0.0 |         0.0 |   1.0 |    0.0 |      0.0 |</span>
+<span class="go">| 02.01. |        0.0 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          1.0 |                0.0 |      1.0 |         0.0 |   1.0 |    1.0 |      1.0 |</span>
+<span class="go">| 03.01. |     0.3456 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |         2.0 |          2.0 |                0.0 |      2.0 |      0.3456 |   1.0 |    6.0 |      2.0 |</span>
+<span class="go">| 04.01. |     1.1048 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   12.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.2096 |   1.0 |   12.0 |      2.0 |</span>
+<span class="go">| 05.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |   10.0 |         2.0 |          2.0 |           4.638889 | 6.638889 |         1.5 |   1.0 |   10.0 | 6.638889 |</span>
+<span class="go">| 06.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    6.0 |         2.0 |          2.0 |                4.0 |      6.0 |         1.5 |   1.0 |    6.0 |      6.0 |</span>
+<span class="go">| 07.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    3.0 |         2.0 |          2.0 |                1.0 |      3.0 |         1.5 |   1.0 |    3.0 |      3.0 |</span>
+<span class="go">| 08.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    2.0 |         2.0 |          2.0 |                0.0 |      2.0 |         1.5 |   1.0 |    2.0 |      2.0 |</span>
+<span class="go">| 09.01. |     1.2068 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.4136 |   1.0 |    1.0 |      2.0 |</span>
+<span class="go">| 10.01. |     1.1636 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.3272 |   1.0 |    1.0 |      2.0 |</span>
+<span class="go">| 11.01. |     1.2068 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         0.0 |          0.0 |                0.0 |      0.0 |      1.4136 |   3.0 |    1.0 |      0.0 |</span>
+<span class="go">| 12.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         0.0 |          0.0 |                0.0 |      0.0 |         1.5 |   6.0 |    1.0 |      0.0 |</span>
+<span class="go">| 13.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         0.0 |          0.0 |                1.0 |      1.0 |         1.5 |   4.0 |    1.0 |      1.0 |</span>
+<span class="go">| 14.01. |       1.25 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         1.0 |          1.0 |                0.0 |      1.0 |         1.5 |   2.0 |    1.0 |      1.0 |</span>
+<span class="go">| 15.01. |     1.2068 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.4136 |   1.0 |    1.0 |      2.0 |</span>
+<span class="go">| 16.01. |     1.1636 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.3272 |   1.0 |    1.0 |      2.0 |</span>
+<span class="go">| 17.01. |     1.1204 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.2408 |   1.0 |    1.0 |      2.0 |</span>
+<span class="go">| 18.01. |     1.0772 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |      1.1544 |   1.0 |    1.0 |      2.0 |</span>
+<span class="go">| 19.01. |      1.034 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |       1.068 |   1.0 |    1.0 |      2.0 |</span>
+<span class="go">| 20.01. |     0.9816 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |      0.9816 |   1.0 |    1.0 |      2.0 |</span>
+</pre></div></div></div><a href="dam_detention_remote_protection.html" target="_blank" >Click to see the graph</a></pre></div></div><p>There is no indication of an error in the water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">check_waterbalance</span><span class="p">(</span><span class="n">conditions</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+<section id="target-volume">
+<span id="dam-detention-target-volume"></span><h3>target volume<a class="headerlink" href="#target-volume" title="Link to this heading">¶</a></h3>
+<p>This example demonstrates how <a class="reference internal" href="#module-hydpy.models.dam_detention" title="hydpy.models.dam_detention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_detention</span></code></a> works for targeted water volumes larger
+than zero:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">targetvolume</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Specifying a minimum release larger than zero now makes sense, as keeping the desired
+water volume during wet periods may provide the opportunity to release additional water
+in subsequent dry periods:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">minimumrelease</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The higher the targeted volume, the more reasonable it is to set the (time-averaged)
+surface area size to a value larger than one:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">surfacearea</span><span class="p">(</span><span class="mf">1.44</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With a non-zero surface area, adding submodels that introduce precipitation and
+evaporation can make a relevant difference in the basin’s water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_precipmodel_v2</span><span class="p">(</span><span class="s2">&quot;meteo_precip_io&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">precipmodel</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">precipitationfactor</span><span class="p">(</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">inputs</span><span class="o">.</span><span class="n">precipitation</span><span class="o">.</span><span class="n">prepare_series</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">inputs</span><span class="o">.</span><span class="n">precipitation</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">... </span>    <span class="n">inputs</span><span class="o">.</span><span class="n">precipitation</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">50.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_pemodel_v1</span><span class="p">(</span><span class="s2">&quot;evap_ret_io&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pemodel</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">evapotranspirationfactor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">inputs</span><span class="o">.</span><span class="n">referenceevapotranspiration</span><span class="o">.</span><span class="n">prepare_series</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">inputs</span><span class="o">.</span><span class="n">referenceevapotranspiration</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">6.0</span>
+</pre></div>
+</div>
+<p>We suppress the inflow directly after the event but reactivate it with 1.5 m³/s for the
+last few simulation steps:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inflow</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">9</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inflow</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">[</span><span class="mi">16</span><span class="p">:]</span> <span class="o">=</span> <span class="mf">1.5</span>
+</pre></div>
+</div>
+<p>As expected, <a class="reference internal" href="#module-hydpy.models.dam_detention" title="hydpy.models.dam_detention"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_detention</span></code></a> now keeps the targeted volume in flood-free periods as
+long as the sum of inflow and precipitation exceeds the sum of evaporation and minimum
+release:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;dam_detention_target_volume&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_10__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_10__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | saferelease | aimedrelease | unavoidablerelease |  outflow | watervolume | gauge | inflow |  outflow |</span>
+<span class="go">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |        0.0 |           0.0 |                   0.0 |                  6.0 |                0.08 |               0.0 |    0.0 |         2.0 |          0.0 |                0.0 |      0.0 |         0.0 |   1.0 |    0.0 |      0.0 |</span>
+<span class="go">| 02.01. |   0.078106 |          60.0 |                   1.0 |                  6.0 |               0.096 |             0.096 |    1.0 |         2.0 |          1.0 |                0.0 |      1.0 |    0.078106 |   1.0 |    1.0 |      1.0 |</span>
+<span class="go">| 03.01. |   0.501535 |           0.0 |                   0.0 |                  6.0 |              0.0992 |            0.0992 |    6.0 |         2.0 |          1.0 |                0.0 |      1.0 |    0.501535 |   1.0 |    6.0 |      1.0 |</span>
+<span class="go">| 04.01. |   1.178454 |           0.0 |                   0.0 |                  6.0 |             0.09984 |           0.09984 |   12.0 |         2.0 |          2.0 |                0.0 |      2.0 |    1.356909 |   1.0 |   12.0 |      2.0 |</span>
+<span class="go">| 05.01. |       1.25 |           0.0 |                   0.0 |                  6.0 |            0.099968 |          0.099968 |   10.0 |         2.0 |          2.0 |           6.243881 | 8.243881 |         1.5 |   1.0 |   10.0 | 8.243881 |</span>
+<span class="go">| 06.01. |       1.25 |           0.0 |                   0.0 |                  6.0 |            0.099994 |          0.099994 |    6.0 |         2.0 |          2.0 |           3.900006 | 5.900006 |         1.5 |   1.0 |    6.0 | 5.900006 |</span>
+<span class="go">| 07.01. |       1.25 |           0.0 |                   0.0 |                  6.0 |            0.099999 |          0.099999 |    3.0 |         2.0 |          2.0 |           0.900001 | 2.900001 |         1.5 |   1.0 |    3.0 | 2.900001 |</span>
+<span class="go">| 08.01. |    1.24568 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    2.0 |         2.0 |          2.0 |                0.0 |      2.0 |     1.49136 |   1.0 |    2.0 |      2.0 |</span>
+<span class="go">| 09.01. |    1.19816 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |     1.39632 |   1.0 |    1.0 |      2.0 |</span>
+<span class="go">| 10.01. |    1.10744 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |     1.21488 |   1.0 |    0.0 |      2.0 |</span>
+<span class="go">| 11.01. |    1.10312 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         0.0 |          0.0 |                0.0 |      0.0 |     1.20624 |   3.0 |    0.0 |      0.0 |</span>
+<span class="go">| 12.01. |     1.0988 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         0.0 |          0.0 |                0.0 |      0.0 |      1.1976 |   6.0 |    0.0 |      0.0 |</span>
+<span class="go">| 13.01. |    1.09448 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         0.0 |          0.0 |                0.0 |      0.0 |     1.18896 |   4.0 |    0.0 |      0.0 |</span>
+<span class="go">| 14.01. |    1.04696 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         1.0 |          1.0 |                0.0 |      1.0 |     1.09392 |   2.0 |    0.0 |      1.0 |</span>
+<span class="go">| 15.01. |    0.99888 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         2.0 |          1.0 |                0.0 |      1.0 |     0.99888 |   1.0 |    0.0 |      1.0 |</span>
+<span class="go">| 16.01. |    0.90384 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         2.0 |          1.0 |                0.0 |      1.0 |     0.90384 |   1.0 |    0.0 |      1.0 |</span>
+<span class="go">| 17.01. |     0.9384 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    1.5 |         2.0 |          1.0 |                0.0 |      1.0 |      0.9384 |   1.0 |    1.5 |      1.0 |</span>
+<span class="go">| 18.01. |    0.97296 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    1.5 |         2.0 |          1.0 |                0.0 |      1.0 |     0.97296 |   1.0 |    1.5 |      1.0 |</span>
+<span class="go">| 19.01. |        1.0 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    1.5 |         2.0 |     1.087037 |                0.0 | 1.087037 |         1.0 |   1.0 |    1.5 | 1.087037 |</span>
+<span class="go">| 20.01. |        1.0 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    1.5 |         2.0 |          1.4 |                0.0 |      1.4 |         1.0 |   1.0 |    1.5 |      1.4 |</span>
+</pre></div></div></div><a href="dam_detention_target_volume.html" target="_blank" >Click to see the graph</a></pre></div></div><p>There is no indication of an error in the water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">check_waterbalance</span><span class="p">(</span><span class="n">conditions</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+<section id="commissioning">
+<span id="dam-detention-commissioning"></span><h3>commissioning<a class="headerlink" href="#commissioning" title="Link to this heading">¶</a></h3>
+<p>In this example, we set the commission date to the beginning of the fourth day of the
+simulation period:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">commission</span><span class="p">(</span><span class="s2">&quot;2000-01-04&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>On the first three days, the model now passes its net input (consisting of inflow plus
+precipitation minus evaporation) directly.  From the fourth day on, it switches to the
+“normal” behaviour described above:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;dam_detention_commissioning&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_11__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_11__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date | waterlevel | precipitation | adjustedprecipitation | potentialevaporation | adjustedevaporation | actualevaporation | inflow | saferelease | aimedrelease | unavoidablerelease |  outflow | watervolume | gauge | inflow |  outflow |</span>
+<span class="go">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |        0.0 |           0.0 |                   0.0 |                  6.0 |                0.08 |               0.0 |    0.0 |         2.0 |          0.0 |                0.0 |      0.0 |         0.0 |   1.0 |    0.0 |      0.0 |</span>
+<span class="go">| 02.01. |        0.0 |          60.0 |                   1.0 |                  6.0 |               0.096 |             0.096 |    1.0 |         2.0 |          0.0 |              1.904 |    1.904 |         0.0 |   1.0 |    1.0 |    1.904 |</span>
+<span class="go">| 03.01. |        0.0 |           0.0 |                   0.0 |                  6.0 |              0.0992 |            0.0992 |    6.0 |         2.0 |          0.0 |             5.9008 |   5.9008 |         0.0 |   1.0 |    6.0 |   5.9008 |</span>
+<span class="go">| 04.01. |   0.941774 |           0.0 |                   0.0 |                  6.0 |             0.09984 |           0.09984 |   12.0 |         2.0 |          1.0 |                0.0 |      1.0 |    0.941774 |   1.0 |   12.0 |      1.0 |</span>
+<span class="go">| 05.01. |       1.25 |           0.0 |                   0.0 |                  6.0 |            0.099968 |          0.099968 |   10.0 |         2.0 |          2.0 |           1.439081 | 3.439081 |         1.5 |   1.0 |   10.0 | 3.439081 |</span>
+<span class="go">| 06.01. |       1.25 |           0.0 |                   0.0 |                  6.0 |            0.099994 |          0.099994 |    6.0 |         2.0 |          2.0 |           3.900006 | 5.900006 |         1.5 |   1.0 |    6.0 | 5.900006 |</span>
+<span class="go">| 07.01. |       1.25 |           0.0 |                   0.0 |                  6.0 |            0.099999 |          0.099999 |    3.0 |         2.0 |          2.0 |           0.900001 | 2.900001 |         1.5 |   1.0 |    3.0 | 2.900001 |</span>
+<span class="go">| 08.01. |    1.24568 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    2.0 |         2.0 |          2.0 |                0.0 |      2.0 |     1.49136 |   1.0 |    2.0 |      2.0 |</span>
+<span class="go">| 09.01. |    1.19816 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    1.0 |         2.0 |          2.0 |                0.0 |      2.0 |     1.39632 |   1.0 |    1.0 |      2.0 |</span>
+<span class="go">| 10.01. |    1.10744 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         2.0 |          2.0 |                0.0 |      2.0 |     1.21488 |   1.0 |    0.0 |      2.0 |</span>
+<span class="go">| 11.01. |    1.10312 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         0.0 |          0.0 |                0.0 |      0.0 |     1.20624 |   3.0 |    0.0 |      0.0 |</span>
+<span class="go">| 12.01. |     1.0988 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         0.0 |          0.0 |                0.0 |      0.0 |      1.1976 |   6.0 |    0.0 |      0.0 |</span>
+<span class="go">| 13.01. |    1.09448 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         0.0 |          0.0 |                0.0 |      0.0 |     1.18896 |   4.0 |    0.0 |      0.0 |</span>
+<span class="go">| 14.01. |    1.04696 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         1.0 |          1.0 |                0.0 |      1.0 |     1.09392 |   2.0 |    0.0 |      1.0 |</span>
+<span class="go">| 15.01. |    0.99888 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         2.0 |          1.0 |                0.0 |      1.0 |     0.99888 |   1.0 |    0.0 |      1.0 |</span>
+<span class="go">| 16.01. |    0.90384 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    0.0 |         2.0 |          1.0 |                0.0 |      1.0 |     0.90384 |   1.0 |    0.0 |      1.0 |</span>
+<span class="go">| 17.01. |     0.9384 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    1.5 |         2.0 |          1.0 |                0.0 |      1.0 |      0.9384 |   1.0 |    1.5 |      1.0 |</span>
+<span class="go">| 18.01. |    0.97296 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    1.5 |         2.0 |          1.0 |                0.0 |      1.0 |     0.97296 |   1.0 |    1.5 |      1.0 |</span>
+<span class="go">| 19.01. |        1.0 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    1.5 |         2.0 |     1.087037 |                0.0 | 1.087037 |         1.0 |   1.0 |    1.5 | 1.087037 |</span>
+<span class="go">| 20.01. |        1.0 |           0.0 |                   0.0 |                  6.0 |                 0.1 |               0.1 |    1.5 |         2.0 |          1.4 |                0.0 |      1.4 |         1.0 |   1.0 |    1.5 |      1.4 |</span>
+</pre></div></div></div><a href="dam_detention_commissioning.html" target="_blank" >Click to see the graph</a></pre></div></div><p>There is no indication of an error in the water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">check_waterbalance</span><span class="p">(</span><span class="n">conditions</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dam_detention.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/dam_detention.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.dam_detention.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdHocModel</span></code></a>, <a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.MixinSimpleWaterBalance" title="hydpy.models.dam.dam_model.MixinSimpleWaterBalance"><code class="xref py py-class docutils literal notranslate"><span class="pre">MixinSimpleWaterBalance</span></code></a>, <a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Main_PrecipModel_V2" title="hydpy.models.dam.dam_model.Main_PrecipModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_PrecipModel_V2</span></code></a>, <a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Main_PEModel_V1" title="hydpy.models.dam.dam_model.Main_PEModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_PEModel_V1</span></code></a>, <a class="reference internal" href="exchangeinterfaces.html#hydpy.interfaces.exchangeinterfaces.ExchangeModel_V1" title="hydpy.interfaces.exchangeinterfaces.ExchangeModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeModel_V1</span></code></a></p>
+<p>HydPy-Dam-DB (detention basin model).</p>
+<dl class="simple">
+<dt>The following “inlet update methods” are called in the given sequence at the beginning of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Pick_Inflow_V1" title="hydpy.models.dam.dam_model.Pick_Inflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Inflow_V1</span></code></a> Update the inlet sequence <a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.Inflow" title="hydpy.models.dam.dam_fluxes.Inflow"><code class="xref py py-class docutils literal notranslate"><span class="pre">Inflow</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_Precipitation_V1" title="hydpy.models.dam.dam_model.Calc_Precipitation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Precipitation_V1</span></code></a> If available, let a submodel that complies with the <a class="reference internal" href="precipinterfaces.html#hydpy.interfaces.precipinterfaces.PrecipModel_V2" title="hydpy.interfaces.precipinterfaces.PrecipModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrecipModel_V2</span></code></a> interface determine precipitation.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_AdjustedPrecipitation_V1" title="hydpy.models.dam.dam_model.Calc_AdjustedPrecipitation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AdjustedPrecipitation_V1</span></code></a> Adjust the given precipitation.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_PotentialEvaporation_V1" title="hydpy.models.dam.dam_model.Calc_PotentialEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialEvaporation_V1</span></code></a> If available, let a submodel that complies with the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> interface determine potential evaporation.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_AdjustedEvaporation_V1" title="hydpy.models.dam.dam_model.Calc_AdjustedEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AdjustedEvaporation_V1</span></code></a> Adjust the given potential evaporation.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_AllowedWaterLevel_V1" title="hydpy.models.dam.dam_model.Calc_AllowedWaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AllowedWaterLevel_V1</span></code></a> Calculate the water level at the end of a simulation step that would follow from applying the allowed water level drop [m].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_AllowedDischarge_V3" title="hydpy.models.dam.dam_model.Calc_AllowedDischarge_V3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AllowedDischarge_V3</span></code></a> Calculate the maximum discharge not leading to exceedance of the allowed water level drop.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Update_WaterVolume_V5" title="hydpy.models.dam.dam_model.Update_WaterVolume_V5"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_WaterVolume_V5</span></code></a> Update the actual water volume based on inflow and precipitation.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_ActualEvaporation_WaterVolume_V1" title="hydpy.models.dam.dam_model.Calc_ActualEvaporation_WaterVolume_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ActualEvaporation_WaterVolume_V1</span></code></a> Calculate the actual evaporation and update the stored water volume.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_SafeRelease_V1" title="hydpy.models.dam.dam_model.Calc_SafeRelease_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SafeRelease_V1</span></code></a> Calculate the safe release as the minimum of the dam-specific allowed release and the values suggested by the safe release submodels.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_AimedRelease_WaterVolume_V1" title="hydpy.models.dam.dam_model.Calc_AimedRelease_WaterVolume_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AimedRelease_WaterVolume_V1</span></code></a> Calculate the ideal controlled release and update the stored water volume.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_UnavoidableRelease_WaterVolume_V1" title="hydpy.models.dam.dam_model.Calc_UnavoidableRelease_WaterVolume_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_UnavoidableRelease_WaterVolume_V1</span></code></a> Calculate the water release that cannot be avoided due to limited storage capacity and update the stored water volume.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_WaterLevel_V1" title="hydpy.models.dam.dam_model.Calc_WaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WaterLevel_V1</span></code></a> Determine the water level based on an interpolation approach approximating the relationship between water volume and water level.</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Calc_Outflow_V6" title="hydpy.models.dam.dam_model.Calc_Outflow_V6"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outflow_V6</span></code></a> Calculate the outflow as the sum of the aimed and the unavoidable release.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Pass_Outflow_V1" title="hydpy.models.dam.dam_model.Pass_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Outflow_V1</span></code></a> Update the outlet link sequence <a class="reference internal" href="dam.html#hydpy.models.dam.dam_outlets.Q" title="hydpy.models.dam.dam_outlets.Q"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt>The following “additional methods” might be called by one or more of the other methods or are meant to be directly called by the user:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.Return_WaterLevelError_V1" title="hydpy.models.dam.dam_model.Return_WaterLevelError_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_WaterLevelError_V1</span></code></a> Calculate and return the difference between the allowed water level and the water level that corresponds to the given water volume.</p></li>
+</ul>
+</dd>
+<dt>Users can hook submodels into the defined main model if they satisfy one of the following interfaces:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="precipinterfaces.html#hydpy.interfaces.precipinterfaces.PrecipModel_V2" title="hydpy.interfaces.precipinterfaces.PrecipModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrecipModel_V2</span></code></a> Simple interface for determining precipitation in one step.</p></li>
+<li><p><a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> Simple interface for calculating all potential evapotranspiration values in one step.</p></li>
+<li><p><a class="reference internal" href="exchangeinterfaces.html#hydpy.interfaces.exchangeinterfaces.ExchangeModel_V1" title="hydpy.interfaces.exchangeinterfaces.ExchangeModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeModel_V1</span></code></a> Interface for exchanging modified, scalar data of arbitrary type.</p></li>
+</ul>
+</dd>
+<dt>The following “submodels” might be called by one or more of the implemented methods or are meant to be directly called by the user:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_model.PegasusWaterVolume" title="hydpy.models.dam.dam_model.PegasusWaterVolume"><code class="xref py py-class docutils literal notranslate"><span class="pre">PegasusWaterVolume</span></code></a> Pegasus iterator for finding the water volume corresponding to the allowed water level.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Dam-DB',</span> <span class="pre">'detention</span> <span class="pre">basin</span> <span class="pre">model')</span></span><a class="headerlink" href="#hydpy.models.dam_detention.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.dam_detention.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.Model.precipmodel">
+<span class="sig-name descname"><span class="pre">precipmodel</span></span><a class="headerlink" href="#hydpy.models.dam_detention.Model.precipmodel" title="Link to this definition">¶</a></dt>
+<dd><p>Optional submodel that complies with the following interface: PrecipModel_V2.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.Model.pemodel">
+<span class="sig-name descname"><span class="pre">pemodel</span></span><a class="headerlink" href="#hydpy.models.dam_detention.Model.pemodel" title="Link to this definition">¶</a></dt>
+<dd><p>Optional submodel that complies with the following interface: PETModel_V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.Model.safereleasemodels">
+<span class="sig-name descname"><span class="pre">safereleasemodels</span></span><a class="headerlink" href="#hydpy.models.dam_detention.Model.safereleasemodels" title="Link to this definition">¶</a></dt>
+<dd><p>Vector of submodels that comply with the following interface: ExchangeModel_V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.Model.add_safereleasemodel">
+<span class="sig-name descname"><span class="pre">add_safereleasemodel</span></span><a class="headerlink" href="#hydpy.models.dam_detention.Model.add_safereleasemodel" title="Link to this definition">¶</a></dt>
+<dd><p>Initialise the given <cite>safereleasemodel</cite> that follows the <a class="reference internal" href="exchangeinterfaces.html#hydpy.interfaces.exchangeinterfaces.ExchangeModel_V1" title="hydpy.interfaces.exchangeinterfaces.ExchangeModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExchangeModel_V1</span></code></a>
+interface.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.dam_detention.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.AideSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dam_detention.</span></span><span class="sig-name descname"><span class="pre">AideSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_detention.AideSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.AideSequences" title="hydpy.core.sequencetools.AideSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">AideSequences</span></code></a></p>
+<p>Aide sequences of model dam_detention.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_aides.AllowedDischarge" title="hydpy.models.dam.dam_aides.AllowedDischarge"><code class="xref py py-func docutils literal notranslate"><span class="pre">AllowedDischarge()</span></code></a> Discharge threshold that should not be overcut by the actual discharge [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_aides.AllowedWaterLevel" title="hydpy.models.dam.dam_aides.AllowedWaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">AllowedWaterLevel()</span></code></a> The water level at the end of a simulation step that would follow from applying the allowed water level drop [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dam_detention.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_detention.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model dam_detention.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.SurfaceArea" title="hydpy.models.dam.dam_control.SurfaceArea"><code class="xref py py-func docutils literal notranslate"><span class="pre">SurfaceArea()</span></code></a> Average size of the water surface [km²].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.CorrectionPrecipitation" title="hydpy.models.dam.dam_control.CorrectionPrecipitation"><code class="xref py py-func docutils literal notranslate"><span class="pre">CorrectionPrecipitation()</span></code></a> Precipitation correction factor [-].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.CorrectionEvaporation" title="hydpy.models.dam.dam_control.CorrectionEvaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">CorrectionEvaporation()</span></code></a> Evaporation correction factor [-].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WeightEvaporation" title="hydpy.models.dam.dam_control.WeightEvaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">WeightEvaporation()</span></code></a> Time weighting factor for evaporation [-].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.MinimumRelease" title="hydpy.models.dam.dam_control.MinimumRelease"><code class="xref py py-func docutils literal notranslate"><span class="pre">MinimumRelease()</span></code></a> Minimum water release [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterVolume2WaterLevel" title="hydpy.models.dam.dam_control.WaterVolume2WaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterVolume2WaterLevel()</span></code></a> An interpolation function that describes the relationship between water level and water volume [-].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.AllowedWaterLevelDrop" title="hydpy.models.dam.dam_control.AllowedWaterLevelDrop"><code class="xref py py-func docutils literal notranslate"><span class="pre">AllowedWaterLevelDrop()</span></code></a> The highest allowed water level decrease [m/T].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.AllowedRelease" title="hydpy.models.dam.dam_control.AllowedRelease"><code class="xref py py-func docutils literal notranslate"><span class="pre">AllowedRelease()</span></code></a> The maximum water release not causing any harm downstream [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.TargetVolume" title="hydpy.models.dam.dam_control.TargetVolume"><code class="xref py py-func docutils literal notranslate"><span class="pre">TargetVolume()</span></code></a> The desired volume of water required within the dam at specific times of the year [Mio. m³].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.MaximumVolume" title="hydpy.models.dam.dam_control.MaximumVolume"><code class="xref py py-func docutils literal notranslate"><span class="pre">MaximumVolume()</span></code></a> Maximum storable volume of water where uncontrolled discharge can be prevented [Mio. m³].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.NmbSafeReleaseModels" title="hydpy.models.dam.dam_control.NmbSafeReleaseModels"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbSafeReleaseModels()</span></code></a> The number of submodels that suggest release values that serve for flood protection at remote locations [-].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.Commission" title="hydpy.models.dam.dam_control.Commission"><code class="xref py py-func docutils literal notranslate"><span class="pre">Commission()</span></code></a> Commission date [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dam_detention.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_detention.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model dam_detention.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_derived.TOY" title="hydpy.models.dam.dam_derived.TOY"><code class="xref py py-func docutils literal notranslate"><span class="pre">TOY()</span></code></a> References the <a class="reference internal" href="indextools.html#hydpy.core.indextools.Indexer.timeofyear" title="hydpy.core.indextools.Indexer.timeofyear"><code class="xref py py-const docutils literal notranslate"><span class="pre">timeofyear</span></code></a> index array provided by the instance of class <a class="reference internal" href="indextools.html#hydpy.core.indextools.Indexer" title="hydpy.core.indextools.Indexer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Indexer</span></code></a> available in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> [-].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_derived.Seconds" title="hydpy.models.dam.dam_derived.Seconds"><code class="xref py py-func docutils literal notranslate"><span class="pre">Seconds()</span></code></a> Length of the actual simulation step size [s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_derived.InputFactor" title="hydpy.models.dam.dam_derived.InputFactor"><code class="xref py py-func docutils literal notranslate"><span class="pre">InputFactor()</span></code></a> Factor for converting meteorological input from mm/T to million m³/s.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.FactorSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dam_detention.</span></span><span class="sig-name descname"><span class="pre">FactorSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_detention.FactorSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequences" title="hydpy.core.sequencetools.FactorSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></p>
+<p>Factor sequences of model dam_detention.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_factors.WaterLevel" title="hydpy.models.dam.dam_factors.WaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevel()</span></code></a> Water level [m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dam_detention.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_detention.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model dam_detention.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.Precipitation" title="hydpy.models.dam.dam_fluxes.Precipitation"><code class="xref py py-func docutils literal notranslate"><span class="pre">Precipitation()</span></code></a> Precipitation [mm].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.AdjustedPrecipitation" title="hydpy.models.dam.dam_fluxes.AdjustedPrecipitation"><code class="xref py py-func docutils literal notranslate"><span class="pre">AdjustedPrecipitation()</span></code></a> Adjusted precipitation [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.PotentialEvaporation" title="hydpy.models.dam.dam_fluxes.PotentialEvaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">PotentialEvaporation()</span></code></a> Potential evaporation [mm/T].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.AdjustedEvaporation" title="hydpy.models.dam.dam_fluxes.AdjustedEvaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">AdjustedEvaporation()</span></code></a> Adjusted evaporation [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.ActualEvaporation" title="hydpy.models.dam.dam_fluxes.ActualEvaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">ActualEvaporation()</span></code></a> Actual evaporation [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.Inflow" title="hydpy.models.dam.dam_fluxes.Inflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Inflow()</span></code></a> Total inflow [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.SafeRelease" title="hydpy.models.dam.dam_fluxes.SafeRelease"><code class="xref py py-func docutils literal notranslate"><span class="pre">SafeRelease()</span></code></a> Water release that is considered safe in terms of flood protection [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.AimedRelease" title="hydpy.models.dam.dam_fluxes.AimedRelease"><code class="xref py py-func docutils literal notranslate"><span class="pre">AimedRelease()</span></code></a> Ideal controlled water release [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.UnavoidableRelease" title="hydpy.models.dam.dam_fluxes.UnavoidableRelease"><code class="xref py py-func docutils literal notranslate"><span class="pre">UnavoidableRelease()</span></code></a> Water release that cannot be avoided due to limited storage capacity [m³/s].</p></li>
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_fluxes.Outflow" title="hydpy.models.dam.dam_fluxes.Outflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Outflow()</span></code></a> Total outflow [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.InletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dam_detention.</span></span><span class="sig-name descname"><span class="pre">InletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_detention.InletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequences" title="hydpy.core.sequencetools.InletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequences</span></code></a></p>
+<p>Inlet sequences of model dam_detention.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_inlets.Q" title="hydpy.models.dam.dam_inlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Inflow [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.LogSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dam_detention.</span></span><span class="sig-name descname"><span class="pre">LogSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_detention.LogSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequences" title="hydpy.core.sequencetools.LogSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequences</span></code></a></p>
+<p>Log sequences of model dam_detention.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_logs.LoggedAdjustedEvaporation" title="hydpy.models.dam.dam_logs.LoggedAdjustedEvaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">LoggedAdjustedEvaporation()</span></code></a> Logged adjusted evaporation [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.OutletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dam_detention.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_detention.OutletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model dam_detention.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_outlets.Q" title="hydpy.models.dam.dam_outlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Outflow [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.dam_detention.StateSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.dam_detention.</span></span><span class="sig-name descname"><span class="pre">StateSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.dam_detention.StateSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequences</span></code></a></p>
+<p>State sequences of model dam_detention.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="dam.html#hydpy.models.dam.dam_states.WaterVolume" title="hydpy.models.dam.dam_states.WaterVolume"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterVolume()</span></code></a> Water volume [million m³].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="dam_llake.html" title="dam_llake"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dam.html" title="dam"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Dam.html" >HydPy-Dam</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">dam_detention</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

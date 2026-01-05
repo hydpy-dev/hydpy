@@ -1,0 +1,208 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tests &amp; documentation &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Programming style" href="programming_style.html" />
+    <link rel="prev" title="Continuous Integration" href="continuous_integration.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="programming_style.html" title="Programming style"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="continuous_integration.html" title="Continuous Integration"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="developer_guide.html" accesskey="U">Developer Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Tests &amp; documentation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="developer_guide.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="required_tools.html">Required tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_control.html">Version control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hydpydependencies.html">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Tests &amp; documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="programming_style.html">Programming style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="additional_repositories.html">Additional repositories</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="continuous_integration.html"
+                          title="previous chapter">Continuous Integration</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="programming_style.html"
+                          title="next chapter">Programming style</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tests_and_documentation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/tests_and_documentation.html">6</a></li>
+<li><a href="../5.0/tests_and_documentation.html">5.0</a></li>
+<li><a href="../4.0/tests_and_documentation.html">4.0</a></li>
+<li><a href="../master/tests_and_documentation.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tests-documentation">
+<span id="tests-and-documentation"></span><h1>Tests &amp; documentation<a class="headerlink" href="#tests-documentation" title="Link to this heading">¶</a></h1>
+<p>The scientific community broadly discusses the capabilities and shortcomings of
+hydrological models from a theoretical point of view.  For example, many
+sensitivity studies address the negative impacts of low data quality.  By
+contrast, we unaware of any studies estimating the adverse effects of bugs and
+misleading documentation of hydrological computer models.  With little
+attention paid to these issues during evaluation processes (e.g. during
+peer-review), there is a risk of publishing impaired model results, possibly
+compromising the drawn conclusions.  See, for example, the commentary of
+<a class="reference external" href="https://agupubs.onlinelibrary.wiley.com/doi/10.1002/2016WR019285">Hutton et al.</a>, addressing this topic from the scientific perspective.</p>
+<p>This section describes strategies to limit the risk of serious errors and
+outdated documentation.  We try to keep the code and the documentation in sync
+by connecting them as strong as possible, using Python’s “docstring” and
+“doctest” features.</p>
+<p>The first “connection” is writing each piece of the documentation close to the
+related source code.  Therefore, we prefer to write all explanations addressing
+specific HydPy features as <a class="reference external" href="https://www.python.org/dev/peps/pep-0257">docstrings</a>.  Docstrings are documentation strings
+attached to the Python objects they explain.  When extending <em>HydPy</em>, it is a
+strict requirement that each newly implemented public member (including the
+sub-members, e.g. the user-available methods of a class) comes with its own
+docstring.  Our <a class="reference external" href="https://travis-ci.com/">Travis CI</a> based continuous integration workflow recognises
+any missing docstrings using <a class="reference external" href="https://www.pylint.org/">Pylint</a> and reports them as errors.</p>
+<p>The second “connection” is to use and extend the functionalities of <a class="reference external" href="http://www.sphinx-doc.org/en/master/">Sphinx</a>,
+which collects the source code, the docstrings, and the usual documentation
+files to generate the online documentation. <a class="reference external" href="http://www.sphinx-doc.org/en/master/">Sphinx</a> relies on the
+<a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> format, hence follow this format when writing docstrings
+and regular documentation files.  However, instead of using its regular
+referencing style, make use of “substitutions” as defined by class <a class="reference internal" href="autodoctools.html#hydpy.core.autodoctools.Substituter" title="hydpy.core.autodoctools.Substituter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Substituter</span></code></a>
+of module <a class="reference internal" href="autodoctools.html#module-hydpy.core.autodoctools" title="hydpy.core.autodoctools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">autodoctools</span></code></a>.  Write, for example, the class name “Substituter”
+within vertical bars to reference the corresponding class properly.  This short
+syntax allows making frequent use of substitutions. A helpful side effect is
+that, during the generation of the HTML pages, wrong substitutions result in
+warnings, interpreted as errors by our <a class="reference external" href="https://travis-ci.com/">Travis CI</a> based continuous
+integration workflow (see section <a class="reference internal" href="continuous_integration.html#continuous-integration"><span class="std std-ref">Continuous Integration</span></a>).  This
+mechanism  increases the chances that, when documentation adjustments do not
+accompany future code changes, the <a class="reference external" href="https://travis-ci.com/">Travis CI</a> based workflow breaks, forcing
+the responsible programmer to adapt the documentation.</p>
+<p>The third “connection” is to define a sufficient number of <a class="reference external" href="https://docs.python.org/library/doctest.html">doctests</a>.
+Doctests are documentation sections containing valid Python code followed by
+the expected results.  For developers, <a class="reference external" href="https://docs.python.org/3/library/doctest.html#module-doctest" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">doctest</span></code></a> is not always as convenient as
+other unit testing frameworks (e.g. <a class="reference external" href="https://docs.python.org/3/library/unittest.html#module-unittest" title="(in Python v3.14)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">unittest</span></code></a>), but it offers the great
+advantage to defining tests that are understandable for non-programmers.  At
+best, each (sub)member should specify its own doctests, in conjunction with
+some “normal” explanations about its purpose and usage. Non-programmers should
+be enabled to learn using <em>HydPy</em> by repeating the doctests.  Besides their
+intuitiveness, doctests (like substitutions) offer the significant advantage of
+keeping source code and documentation in sync.  For example, as long as the
+following three-line doctest remains in the documentation, one can be sure that
+the current core package contains a module named “objecttools”:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">objecttools</span><span class="o">.</span><span class="n">classname</span><span class="p">(</span><span class="n">objecttools</span><span class="p">)</span>
+<span class="go">&#39;module&#39;</span>
+</pre></div>
+</div>
+<p>The Python script <a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/master/hydpy/tests/run_doctests.py">run_doctests.py</a> collects the doctests of all modules and
+executes them.</p>
+<p>We measure the “code coverage” (the number of executed code lines divided by
+the total number of code lines), determined by the <a class="reference external" href="https://coverage.readthedocs.io">coverage library</a>.  The
+current code coverage of <em>HydPy</em> is 100 %.  <a class="reference external" href="https://travis-ci.com/">Travis CI</a> reports all future
+changes introducing uncovered lines as failures to make sure future changes do
+not undo this favourable situation.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="programming_style.html" title="Programming style"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="continuous_integration.html" title="Continuous Integration"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="developer_guide.html" >Developer Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Tests &amp; documentation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

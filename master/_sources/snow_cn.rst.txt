@@ -1,0 +1,21 @@
+.. |BaseModel.prepare_layers| replace:: :func:`~hydpy.models.snow.snow_model.BaseModel.prepare_layers`
+.. |CN1| replace:: :class:`~hydpy.models.snow.snow_control.CN1`
+.. |CN2| replace:: :class:`~hydpy.models.snow.snow_control.CN2`
+.. |CN4| replace:: :class:`~hydpy.models.snow.snow_control.CN4`
+.. |GLocalMax| replace:: :class:`~hydpy.models.snow.snow_logs.GLocalMax`
+.. |GradP| replace:: :class:`~hydpy.models.snow.snow_control.GradP`
+.. |GradTMean| replace:: :class:`~hydpy.models.snow.snow_control.GradTMean`
+.. |Return_T_V1| replace:: :class:`~hydpy.models.snow.snow_model.Return_T_V1`
+.. |ZMean| replace:: :class:`~hydpy.models.snow.snow_derived.ZMean`
+.. |snow_cn.DOCNAME.complete| replace:: HydPy-Snow-CemaNeige-T-Mean (CemaNeige model with mean air temperature as input)
+.. |snow_cn| replace:: :mod:`~hydpy.models.snow_cn`
+
+.. _snow_cn:
+
+snow_cn
+=======
+
+.. automodule:: hydpy.models.snow_cn
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, MutableSequence, KeysView, SENDER_METHODS, Set, Mapping, TextIO, OutletSequences, Container, Tuple, Optional, ValuesView, no_type_check, clear_overloads, TypeForm, LiteralString, subvars, get_original_bases, seqs, REQUIREDSEQUENCES, ADD_METHODS, SOLVERSEQUENCES, overload, type_repr, Sentinel, SUBMETHODS, SupportsBytes, NoReturn, UPDATEDSEQUENCES, SupportsIndex, Generic, Protocol, MutableSet, disjoint_base, Coroutine, fastaccess_new, ReceiverSequences, DERIVEDPARAMETERS, SUBMODELINTERFACES, NoExtraItems, Format, CLASSES, Required, final, Unpack, Text, INLET_METHODS, fastaccess_old, ClassVar, ContextManager, Final, cast, Annotated, Callable, override, ParamSpecKwargs, Sized, List, Generator, SupportsAbs, Concatenate, fastaccess, TypeAlias, FULL_ODE_METHODS, FIXEDPARAMETERS, Reader, RECEIVER_METHODS, TypeVarTuple, CapsuleType, SupportsRound, Collection, SUBMODELS, DefaultDict, ParamSpec, ObserverSequences, Deque, NewType, SupportsFloat, Writer, PART_ODE_METHODS, TypeVar, Sequence, Awaitable, runtime_checkable, SenderSequences, TypeGuard, assert_never, MappingView, RESULTSEQUENCES, runtime, get_annotations, pars, BinaryIO, OUTLET_METHODS, NoDefault, Literal, ItemsView, dataclass_transform, InletSequences, AnyStr, INTERFACE_METHODS, evaluate_forward_ref, OrderedDict, AsyncIterable, Doc, get_args, get_type_hints, NotRequired, Iterator, SupportsComplex, RUN_METHODS, Counter, ByteString, SupportsInt, Buffer, AideSequences, TypeAliasType, Union, Pattern, Never, Self, AbstractSet, CONTROLPARAMETERS, get_protocol_members, AsyncIterator, ForwardRef, Dict, TypeIs, FrozenSet, get_origin, IntVar, NamedTuple, get_overloads, subpars, AsyncContextManager, ReadOnly, Iterable, Hashable, SOLVERPARAMETERS, TypedDict, Type, Reversible, subseqs, Match, AsyncGenerator, IO, TYPE_CHECKING, is_protocol, MutableMapping, assert_type, ChainMap, Any, is_typeddict, no_type_check_decorator, reveal_type, ParamSpecArgs

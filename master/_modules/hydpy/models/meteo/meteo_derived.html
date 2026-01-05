@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.meteo.meteo_derived &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.meteo.meteo_derived</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.meteo.meteo_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hydpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.meteo</span><span class="w"> </span><span class="kn">import</span> <span class="n">meteo_fixed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.meteo</span><span class="w"> </span><span class="kn">import</span> <span class="n">meteo_control</span>
+
+
+<div class="viewcode-block" id="DOY">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.DOY">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DOY</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">DOYParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;References the &quot;global&quot; day of the year index array [-].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="MOY">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.MOY">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MOY</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MOYParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;References the &quot;global&quot; month of the year index array [-].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Seconds">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.Seconds">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Seconds</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SecondsParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The length of the actual simulation step size in seconds [s].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Hours">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.Hours">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Hours</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">HoursParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The length of the actual simulation step size in hours [h].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Days">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.Days">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Days</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">DaysParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The length of the actual simulation step size in days [d].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="SCT">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.SCT">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SCT</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SCTParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;References the &quot;global&quot; standard clock time array [h].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="HRUAreaFraction">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.HRUAreaFraction">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HRUAreaFraction</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The area fraction of each hydrological response unit [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">meteo_control</span><span class="o">.</span><span class="n">HRUArea</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="HRUAreaFraction.update">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.HRUAreaFraction.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the fractions based on</span>
+<span class="sd">        :math:`HRUAreaFraction_i = HRUArea_i / \Sigma HRUArea`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.meteo import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbhru(5)</span>
+<span class="sd">        &gt;&gt;&gt; hruarea(10.0, 40.0, 20.0, 25.0, 5.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.hruareafraction.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.hruareafraction</span>
+<span class="sd">        hruareafraction(0.1, 0.4, 0.2, 0.25, 0.05)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hruarea</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">hruarea</span><span class="o">.</span><span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">hruarea</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">hruarea</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NmbLogEntries">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.NmbLogEntries">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbLogEntries</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The number of log entries required for memorising one day&#39;s data [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NmbLogEntries.update">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.NmbLogEntries.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the number of entries and adjust the shape of all relevant log</span>
+<span class="sd">        sequences.</span>
+
+<span class="sd">        The aimed memory duration is always one day.  Hence, the number of the required</span>
+<span class="sd">        log entries depends on the simulation step size:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.meteo import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-01-02&quot;, &quot;1h&quot;</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmblogentries.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmblogentries</span>
+<span class="sd">        nmblogentries(24)</span>
+<span class="sd">        &gt;&gt;&gt; logs  # doctest: +ELLIPSIS</span>
+<span class="sd">        loggedsunshineduration(nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,</span>
+<span class="sd">                               nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,</span>
+<span class="sd">                               nan, nan, nan, nan)</span>
+<span class="sd">        ...</span>
+
+<span class="sd">        To prevent losing information, updating parameter |NmbLogEntries| resets the</span>
+<span class="sd">        shape of the relevant log sequences only when necessary:</span>
+
+<span class="sd">        &gt;&gt;&gt; logs.loggedsunshineduration = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmblogentries(24)</span>
+<span class="sd">        &gt;&gt;&gt; logs  # doctest: +ELLIPSIS</span>
+<span class="sd">        loggedsunshineduration(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,</span>
+<span class="sd">                               1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,</span>
+<span class="sd">                               1.0, 1.0, 1.0, 1.0)</span>
+<span class="sd">        ...</span>
+
+<span class="sd">        There is an explicit check for inappropriate simulation step sizes:</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01 00:00&quot;, &quot;2000-01-01 10:00&quot;, &quot;5h&quot;</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmblogentries.update()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        ValueError: The value of parameter `nmblogentries` of element `?` cannot be \</span>
+<span class="sd">determined for a the current simulation step size.  The fraction of the memory period \</span>
+<span class="sd">(1d) and the simulation step size (5h) leaves a remainder.</span>
+
+<span class="sd">        .. testsetup::</span>
+
+<span class="sd">            &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nmb</span> <span class="o">=</span> <span class="s2">&quot;1d&quot;</span> <span class="o">/</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span>
+        <span class="k">if</span> <span class="n">nmb</span> <span class="o">%</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The value of parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> cannot be &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;determined for a the current simulation step size.  The fraction of &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;the memory period (1d) and the simulation step size &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">stepsize</span><span class="si">}</span><span class="s2">) leaves a remainder.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">nmb</span><span class="p">)</span>
+        <span class="n">nmb</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nmb</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="p">:</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,))</span>
+            <span class="k">if</span> <span class="n">nmb</span> <span class="o">!=</span> <span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">seq</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">nmb</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="UTCLongitude">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.UTCLongitude">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UTCLongitude</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">UTCLongitudeParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Longitude of the centre of the local time zone [°].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="LatitudeRad">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.LatitudeRad">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LatitudeRad</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The latitude [rad].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.5708</span><span class="p">,</span> <span class="mf">1.5708</span><span class="p">)</span>
+
+    <span class="n">FIXEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">meteo_fixed</span><span class="o">.</span><span class="n">Pi</span><span class="p">,)</span>
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">meteo_control</span><span class="o">.</span><span class="n">Latitude</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="LatitudeRad.update">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_derived.LatitudeRad.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update |LatitudeRad| based on parameter |Latitude|.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.meteo import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; for value in (-90.0, -45.0, 0.0, 45.0, 90.0):</span>
+<span class="sd">        ...     latitude(value)</span>
+<span class="sd">        ...     derived.latituderad.update()</span>
+<span class="sd">        ...     round_(latitude.value, end=&quot;: &quot;)</span>
+<span class="sd">        ...     round_(derived.latituderad.value)</span>
+<span class="sd">        -90.0: -1.570796</span>
+<span class="sd">        -45.0: -0.785398</span>
+<span class="sd">        0.0: 0.0</span>
+<span class="sd">        45.0: 0.785398</span>
+<span class="sd">        90.0: 1.570796</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">pars</span><span class="o">.</span><span class="n">fixed</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">180.0</span> <span class="o">*</span> <span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">latitude</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.meteo.meteo_derived</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

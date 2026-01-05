@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.lland.lland_masks &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.lland.lland_masks</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.lland.lland_masks</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">masktools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">variabletools</span>
+
+<span class="c1"># ...from lland</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.lland</span><span class="w"> </span><span class="kn">import</span> <span class="n">lland_control</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.lland</span><span class="w"> </span><span class="kn">import</span> <span class="n">lland_constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.lland.lland_constants</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SIED_D</span><span class="p">,</span>
+    <span class="n">SIED_L</span><span class="p">,</span>
+    <span class="n">VERS</span><span class="p">,</span>
+    <span class="n">ACKER</span><span class="p">,</span>
+    <span class="n">WEINB</span><span class="p">,</span>
+    <span class="n">OBSTB</span><span class="p">,</span>
+    <span class="n">BODEN</span><span class="p">,</span>
+    <span class="n">GLETS</span><span class="p">,</span>
+    <span class="n">GRUE_I</span><span class="p">,</span>
+    <span class="n">FEUCHT</span><span class="p">,</span>
+    <span class="n">GRUE_E</span><span class="p">,</span>
+    <span class="n">BAUMB</span><span class="p">,</span>
+    <span class="n">NADELW</span><span class="p">,</span>
+    <span class="n">LAUBW</span><span class="p">,</span>
+    <span class="n">MISCHW</span><span class="p">,</span>
+    <span class="n">WASSER</span><span class="p">,</span>
+    <span class="n">FLUSS</span><span class="p">,</span>
+    <span class="n">SEE</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_exclude</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="n">value</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">lland_constants</span><span class="o">.</span><span class="n">CONSTANTS</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">args</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="Complete">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Complete">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Complete</span><span class="p">(</span><span class="n">masktools</span><span class="o">.</span><span class="n">IndexMask</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask including all land uses.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="n">_exclude</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Complete.get_refindices">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Complete.get_refindices">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_refindices</span><span class="p">(</span><span class="n">variable</span><span class="p">:</span> <span class="n">variabletools</span><span class="o">.</span><span class="n">Variable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">lland_control</span><span class="o">.</span><span class="n">Lnk</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reference to the associated instance of |Lnk|.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">variable</span><span class="o">.</span><span class="n">subvars</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">lnk</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Land">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Land">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Land</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask excluding the land uses |WASSER|, |SEE| and |FLUSS|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="n">_exclude</span><span class="p">(</span><span class="n">WASSER</span><span class="p">,</span> <span class="n">SEE</span><span class="p">,</span> <span class="n">FLUSS</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Soil">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Soil">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Soil</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask excluding the land uses |WASSER|, |SEE|, |FLUSS|, and |VERS|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="n">_exclude</span><span class="p">(</span><span class="n">WASSER</span><span class="p">,</span> <span class="n">SEE</span><span class="p">,</span> <span class="n">FLUSS</span><span class="p">,</span> <span class="n">VERS</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Forest">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Forest">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Forest</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask including the land uses |LAUBW|, |MISCHW|, and |NADELW|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">LAUBW</span><span class="p">,</span> <span class="n">MISCHW</span><span class="p">,</span> <span class="n">NADELW</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Water">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Water">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Water</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask including the land uses |WASSER|, |SEE|, and |FLUSS|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">WASSER</span><span class="p">,</span> <span class="n">SEE</span><span class="p">,</span> <span class="n">FLUSS</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Sied_D">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Sied_D">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Sied_D</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |SIED_D|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">SIED_D</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Sied_L">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Sied_L">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Sied_L</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |SIED_L|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">SIED_L</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Vers">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Vers">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Vers</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |VERS|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">VERS</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Acker">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Acker">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Acker</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |ACKER|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">ACKER</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Weinb">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Weinb">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Weinb</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |WEINB|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">WEINB</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Obstb">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Obstb">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Obstb</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |OBSTB|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">OBSTB</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Boden">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Boden">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Boden</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |BODEN|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">BODEN</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Glets">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Glets">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Glets</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |GLETS|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">GLETS</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Grue_I">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Grue_I">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Grue_I</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |GRUE_I|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">GRUE_I</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Feucht">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Feucht">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Feucht</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |FEUCHT|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">FEUCHT</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Grue_E">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Grue_E">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Grue_E</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |GRUE_E|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">GRUE_E</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Baumb">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Baumb">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Baumb</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |BAUMB|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">BAUMB</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Nadelw">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Nadelw">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Nadelw</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |NADELW|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">NADELW</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Laubw">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Laubw">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Laubw</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |LAUBW|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">LAUBW</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Mischw">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Mischw">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Mischw</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |MISCHW|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">MISCHW</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Wasser">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Wasser">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Wasser</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |WASSER|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">WASSER</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Fluss">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Fluss">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Fluss</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |FLUSS|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">FLUSS</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="See">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.See">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">See</span><span class="p">(</span><span class="n">Complete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask for land use |SEE|.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">SEE</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Masks">
+<a class="viewcode-back" href="../../../../lland.html#hydpy.models.lland.lland_parameters.Masks">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Masks</span><span class="p">(</span><span class="n">masktools</span><span class="o">.</span><span class="n">Masks</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Masks of base model |lland|.&quot;&quot;&quot;</span>
+
+    <span class="n">CLASSES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Complete</span><span class="p">,</span>
+        <span class="n">Land</span><span class="p">,</span>
+        <span class="n">Soil</span><span class="p">,</span>
+        <span class="n">Forest</span><span class="p">,</span>
+        <span class="n">Water</span><span class="p">,</span>
+        <span class="n">Sied_D</span><span class="p">,</span>
+        <span class="n">Sied_L</span><span class="p">,</span>
+        <span class="n">Vers</span><span class="p">,</span>
+        <span class="n">Acker</span><span class="p">,</span>
+        <span class="n">Weinb</span><span class="p">,</span>
+        <span class="n">Obstb</span><span class="p">,</span>
+        <span class="n">Boden</span><span class="p">,</span>
+        <span class="n">Glets</span><span class="p">,</span>
+        <span class="n">Grue_I</span><span class="p">,</span>
+        <span class="n">Feucht</span><span class="p">,</span>
+        <span class="n">Grue_E</span><span class="p">,</span>
+        <span class="n">Baumb</span><span class="p">,</span>
+        <span class="n">Nadelw</span><span class="p">,</span>
+        <span class="n">Laubw</span><span class="p">,</span>
+        <span class="n">Mischw</span><span class="p">,</span>
+        <span class="n">Wasser</span><span class="p">,</span>
+        <span class="n">Fluss</span><span class="p">,</span>
+        <span class="n">See</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.lland.lland_masks</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

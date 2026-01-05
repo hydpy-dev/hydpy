@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.musk.musk_factors &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.musk.musk_factors</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.musk.musk_factors</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk</span><span class="w"> </span><span class="kn">import</span> <span class="n">musk_sequences</span>
+
+
+<div class="viewcode-block" id="ReferenceWaterDepth">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_factors.ReferenceWaterDepth">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReferenceWaterDepth</span><span class="p">(</span><span class="n">musk_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reference water depth [m].&quot;&quot;&quot;</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WettedArea">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_factors.WettedArea">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WettedArea</span><span class="p">(</span><span class="n">musk_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wetted area [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SurfaceWidth">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_factors.SurfaceWidth">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceWidth</span><span class="p">(</span><span class="n">musk_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface width [m].&quot;&quot;&quot;</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Celerity">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_factors.Celerity">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Celerity</span><span class="p">(</span><span class="n">musk_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Kinematic celerity (wave speed) [m/T].&quot;&quot;&quot;</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CorrectingFactor">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_factors.CorrectingFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CorrectingFactor</span><span class="p">(</span><span class="n">musk_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Correcting factor [-].&quot;&quot;&quot;</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Coefficient1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_factors.Coefficient1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Coefficient1</span><span class="p">(</span><span class="n">musk_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;First coefficient of the Muskingum working formula [-].&quot;&quot;&quot;</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Coefficient2">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_factors.Coefficient2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Coefficient2</span><span class="p">(</span><span class="n">musk_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Second coefficient of the Muskingum working formula [-].&quot;&quot;&quot;</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Coefficient3">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_factors.Coefficient3">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Coefficient3</span><span class="p">(</span><span class="n">musk_sequences</span><span class="o">.</span><span class="n">FactorSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Third coefficient of the Muskingum working formula [-].&quot;&quot;&quot;</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.musk.musk_factors</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

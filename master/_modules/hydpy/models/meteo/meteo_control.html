@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.meteo.meteo_control &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.meteo.meteo_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.meteo.meteo_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.meteo</span><span class="w"> </span><span class="kn">import</span> <span class="n">meteo_parameters</span>
+
+
+<div class="viewcode-block" id="NmbHRU">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.NmbHRU">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbHRU</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The number of hydrological response units [-].</span>
+
+<span class="sd">    |NmbHRU| determines the length of the 1-dimensional parameters and sequences:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.meteo import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbhru(5)</span>
+<span class="sd">    &gt;&gt;&gt; precipitationfactor.shape</span>
+<span class="sd">    (5,)</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.precipitation.shape</span>
+<span class="sd">    (5,)</span>
+
+<span class="sd">    Changing the value of |NmbHRU| later reshapes the affected parameters and sequences</span>
+<span class="sd">    and makes resetting their values necessary:</span>
+
+<span class="sd">    &gt;&gt;&gt; precipitationfactor(2.0)</span>
+<span class="sd">    &gt;&gt;&gt; precipitationfactor</span>
+<span class="sd">    precipitationfactor(2.0)</span>
+<span class="sd">    &gt;&gt;&gt; nmbhru(3)</span>
+<span class="sd">    &gt;&gt;&gt; precipitationfactor</span>
+<span class="sd">    precipitationfactor(?)</span>
+
+<span class="sd">    Re-defining the same value does not delete the already available data:</span>
+
+<span class="sd">    &gt;&gt;&gt; precipitationfactor(2.0)</span>
+<span class="sd">    &gt;&gt;&gt; nmbhru(3)</span>
+<span class="sd">    &gt;&gt;&gt; precipitationfactor</span>
+<span class="sd">    precipitationfactor(2.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">old_shape</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">new_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="n">new_shape</span> <span class="o">!=</span> <span class="n">old_shape</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subpars</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">subpars</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">par</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">new_shape</span>
+            <span class="k">for</span> <span class="n">subseqs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">subseqs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">seq</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">seq</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">new_shape</span></div>
+
+
+
+<div class="viewcode-block" id="HRUArea">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.HRUArea">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HRUArea</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The area of each hydrological response unit [km²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Latitude">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.Latitude">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Latitude</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The latitude [decimal degrees].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">90.0</span><span class="p">,</span> <span class="mf">90.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Longitude">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.Longitude">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Longitude</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The longitude [decimal degrees].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mf">180.0</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AngstromConstant">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.AngstromConstant">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AngstromConstant</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The Ångström &quot;a&quot; coefficient for calculating global radiation [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.25</span>
+
+<div class="viewcode-block" id="AngstromConstant.trim">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.AngstromConstant.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim values following :math:`AngstromConstant \leq  1 - AngstromFactor` or</span>
+<span class="sd">        at least following :math:`AngstromConstant \leq  1`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.meteo import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; angstromconstant(1.5)</span>
+<span class="sd">        &gt;&gt;&gt; angstromconstant</span>
+<span class="sd">        angstromconstant(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; angstromfactor.value = 0.6</span>
+<span class="sd">        &gt;&gt;&gt; angstromconstant(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; angstromconstant</span>
+<span class="sd">        angstromconstant(0.4)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">angstromfactor</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">idxs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span>
+            <span class="n">upper</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">upper</span><span class="p">[</span><span class="o">~</span><span class="n">idxs</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">upper</span><span class="p">[</span><span class="o">~</span><span class="n">idxs</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AngstromFactor">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.AngstromFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AngstromFactor</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The Ångström &quot;b&quot; coefficient for calculating global radiation [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<div class="viewcode-block" id="AngstromFactor.trim">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.AngstromFactor.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim values in accordance with :math:`AngstromFactor \leq  1 -</span>
+<span class="sd">        AngstromConstant` or at least in accordance with :math:`AngstromFactor \leq 1`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.meteo import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; angstromfactor(1.5)</span>
+<span class="sd">        &gt;&gt;&gt; angstromfactor</span>
+<span class="sd">        angstromfactor(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; angstromconstant.value = 0.6</span>
+<span class="sd">        &gt;&gt;&gt; angstromfactor(0.5)</span>
+<span class="sd">        &gt;&gt;&gt; angstromfactor</span>
+<span class="sd">        angstromfactor(0.4)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">angstromconstant</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">idxs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">upper</span><span class="p">)</span>
+            <span class="n">upper</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="n">upper</span><span class="p">[</span><span class="o">~</span><span class="n">idxs</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">upper</span><span class="p">[</span><span class="o">~</span><span class="n">idxs</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="AngstromAlternative">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.AngstromAlternative">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AngstromAlternative</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An alternative Ångström coefficient for replacing coefficient &quot;c&quot;</span>
+<span class="sd">    (|AngstromConstant|) on days without any direct sunshine [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.15</span></div>
+
+
+
+<div class="viewcode-block" id="TemperatureAddend">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.TemperatureAddend">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TemperatureAddend</span><span class="p">(</span><span class="n">meteo_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Temperature shift constant [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="PrecipitationFactor">
+<a class="viewcode-back" href="../../../../meteo.html#hydpy.models.meteo.meteo_control.PrecipitationFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PrecipitationFactor</span><span class="p">(</span><span class="n">meteo_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Precipitation adjustment factor [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.meteo.meteo_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

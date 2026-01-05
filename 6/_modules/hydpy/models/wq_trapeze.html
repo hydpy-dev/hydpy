@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.wq_trapeze &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.wq_trapeze</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.wq_trapeze</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">|wq_trapeze| is a stateless &quot;two-way&quot; submodel.  It supports calculating properties</span>
+<span class="sd">like the wetted area for a given water depth and properties like the water depth for a</span>
+<span class="sd">given wetted area.  See the documentation on the application model |sw1d_channel|,</span>
+<span class="sd">which shows the usage of &quot;both ways&quot; in practice.  Here, we only aim to visualise how</span>
+<span class="sd">|wq_trapeze| combines multiple symmetric trapezes to a single cross-section profile via</span>
+<span class="sd">method |TrapezeModel.plot|.</span>
+
+<span class="sd">The following test function helps us to use method |TrapezeModel.plot| repeatedly and</span>
+<span class="sd">insert the generated figures into the online documentation:</span>
+
+<span class="sd">&gt;&gt;&gt; from matplotlib import pyplot</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import save_autofig</span>
+<span class="sd">&gt;&gt;&gt; def plot(example=None, save=True, add_x_y=None, **kwargs):</span>
+<span class="sd">...     derived.trapezeheights.update()</span>
+<span class="sd">...     derived.slopewidths.update()</span>
+<span class="sd">...     figure = model.plot(**kwargs)</span>
+<span class="sd">...     if add_x_y is not None:</span>
+<span class="sd">...         x, y = add_x_y</span>
+<span class="sd">...         pyplot.plot([x, x], [y, 5.0], color=kwargs.get(&quot;color&quot;), linestyle=&quot;:&quot;)</span>
+<span class="sd">...         pyplot.plot([-x, -x], [y, 5.0], color=kwargs.get(&quot;color&quot;), linestyle=&quot;:&quot;)</span>
+<span class="sd">...     if example is not None:</span>
+<span class="sd">...         save_autofig(f&quot;wq_trapeze_{example}.png&quot;, figure=figure)</span>
+
+<span class="sd">We start with a single trapeze:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.wq_trapeze import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep()</span>
+<span class="sd">&gt;&gt;&gt; nmbtrapezes(1)</span>
+
+<span class="sd">Parameter |BottomLevels| does not affect the profile&#39;s shape for a single trapeze.  We</span>
+<span class="sd">set its value to one meter arbitrarily:</span>
+
+<span class="sd">&gt;&gt;&gt; bottomlevels(1.0)</span>
+
+<span class="sd">With parameter |BottomWidths| larger than zero and parameter |SideSlopes| being zero,</span>
+<span class="sd">the single trapeze becomes a simple, infinitely high rectangle:</span>
+
+<span class="sd">&gt;&gt;&gt; bottomwidths(2.0)</span>
+<span class="sd">&gt;&gt;&gt; sideslopes(0.0)</span>
+<span class="sd">&gt;&gt;&gt; plot(&quot;rectangle&quot;)</span>
+
+<span class="sd">.. image:: wq_trapeze_rectangle.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">Conversely, the single trapeze becomes a simple, infinitely high triangle:</span>
+
+<span class="sd">&gt;&gt;&gt; bottomwidths(0.0)</span>
+<span class="sd">&gt;&gt;&gt; sideslopes(2.0)</span>
+<span class="sd">&gt;&gt;&gt; plot(&quot;triangle&quot;)</span>
+
+<span class="sd">.. image:: wq_trapeze_triangle.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">Set both values larger than zero to gain a &quot;complete&quot; trapeze:</span>
+
+<span class="sd">&gt;&gt;&gt; bottomwidths(2.0)</span>
+<span class="sd">&gt;&gt;&gt; sideslopes(2.0)</span>
+<span class="sd">&gt;&gt;&gt; plot(&quot;one_trapeze&quot;)</span>
+
+<span class="sd">.. image:: wq_trapeze_one_trapeze.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">Next, we want to construct a more complex profile consisting of three trapezes:</span>
+
+<span class="sd">&gt;&gt;&gt; nmbtrapezes(3)</span>
+
+<span class="sd">We must assign them increasing bottom levels (the bottom level of an upper trapeze</span>
+<span class="sd">defines the height of its lower neighbour):</span>
+
+<span class="sd">&gt;&gt;&gt; bottomlevels(1.0, 3.0, 4.0)</span>
+
+<span class="sd">The following profile combines the three previously defined geometries:</span>
+
+<span class="sd">&gt;&gt;&gt; bottomwidths(2.0, 0.0, 2.0)</span>
+<span class="sd">&gt;&gt;&gt; sideslopes(0.0, 2.0, 2.0)</span>
+<span class="sd">&gt;&gt;&gt; plot(&quot;three_trapezes&quot;)</span>
+
+<span class="sd">.. image:: wq_trapeze_three_trapezes.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">Note that each upper trapeze is stretched according to the width of its lower</span>
+<span class="sd">neighbour.  The following example illustrates this more clearly by plotting each</span>
+<span class="sd">trapeze in a different colour:</span>
+
+<span class="sd">&gt;&gt;&gt; nmbtrapezes(1)</span>
+<span class="sd">&gt;&gt;&gt; bottomlevels(1.0)</span>
+<span class="sd">&gt;&gt;&gt; bottomwidths(2.0)</span>
+<span class="sd">&gt;&gt;&gt; sideslopes(0.0)</span>
+<span class="sd">&gt;&gt;&gt; plot(add_x_y=(1.0, 3.0), ymax=3.0, color=&quot;green&quot;, label=&quot;trapeze 1&quot;)</span>
+<span class="sd">&gt;&gt;&gt; bottomlevels(3.0)</span>
+<span class="sd">&gt;&gt;&gt; bottomwidths(2.0)</span>
+<span class="sd">&gt;&gt;&gt; sideslopes(2.0)</span>
+<span class="sd">&gt;&gt;&gt; plot(add_x_y=(3.0, 4.0), ymax=4.0, color=&quot;yellow&quot;, label=&quot;trapeze 2&quot;)</span>
+<span class="sd">&gt;&gt;&gt; bottomlevels(4.0)</span>
+<span class="sd">&gt;&gt;&gt; bottomwidths(8.0)</span>
+<span class="sd">&gt;&gt;&gt; sideslopes(2.0)</span>
+<span class="sd">&gt;&gt;&gt; plot(&quot;config_1&quot;, ymax=5.0, color=&quot;red&quot;, label=&quot;trapeze 3&quot;)</span>
+
+<span class="sd">.. image:: wq_trapeze_config_1.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">In addition to the configuration options shown in the last example, one can pass |True|</span>
+<span class="sd">to the keyword argument `label`. Then, |TrapezeModel.plot| tries to include the</span>
+<span class="sd">responsible element&#39;s name into the legend, which is impossible in this example, so</span>
+<span class="sd">that &quot;?&quot; serves as a spare:</span>
+
+<span class="sd">&gt;&gt;&gt; plot(&quot;config_2&quot;, ymax=3.0, label=True)</span>
+
+<span class="sd">.. image:: wq_trapeze_config_2.png</span>
+<span class="sd">   :width: 400</span>
+
+<span class="sd">(Upon closer inspection, the last example also shows that |TrapezeModel.plot| ignores</span>
+<span class="sd">too low `ymax`  values silently.)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">routinginterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from wq</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.wq</span><span class="w"> </span><span class="kn">import</span> <span class="n">wq_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../wq_trapeze.html#hydpy.models.wq_trapeze.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">wq_model</span><span class="o">.</span><span class="n">TrapezeModel</span><span class="p">,</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">CrossSectionModel_V2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|wq_trapeze.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;WQ-Trapeze&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;multi-trapeze river profile submodel&quot;</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">INTERFACE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Use_WaterDepth_V2</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Use_WaterLevel_V2</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Use_WettedArea_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Get_WaterDepth_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Get_WaterLevel_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Get_WettedArea_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Get_WettedPerimeter_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Set_WaterDepth_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Set_WaterLevel_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Set_WettedArea_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Calc_WaterDepth_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Calc_WaterDepth_V2</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Calc_WaterLevel_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Calc_WettedAreas_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Calc_WettedArea_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Calc_WettedPerimeters_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Calc_WettedPerimeter_V1</span><span class="p">,</span>
+        <span class="n">wq_model</span><span class="o">.</span><span class="n">Calc_WettedPerimeterDerivatives_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.wq_trapeze</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

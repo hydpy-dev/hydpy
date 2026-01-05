@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.whmod.whmod_parameters &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_parameters</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.whmod.whmod_parameters</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod</span><span class="w"> </span><span class="kn">import</span> <span class="n">whmod_constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod</span><span class="w"> </span><span class="kn">import</span> <span class="n">whmod_masks</span>
+
+
+<div class="viewcode-block" id="LandTypeBaseParameter">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeBaseParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeBaseParameter</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">ZipParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional land type-specific parameters.&quot;&quot;&quot;</span>
+
+    <span class="n">constants</span> <span class="o">=</span> <span class="n">whmod_constants</span><span class="o">.</span><span class="n">LANDTYPE_CONSTANTS</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reference to the associated instance of |ZoneRatio| for calculating areal</span>
+<span class="sd">        mean values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">zonearea</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeCompleteParameter">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeCompleteParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeCompleteParameter</span><span class="p">(</span><span class="n">LandTypeBaseParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional land type-specific parameters without restrictions.</span>
+
+<span class="sd">    We take parameter |ZoneArea| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(grass=1.0, deciduous=2.0, corn=3.0, conifer=4.0, springwheat=5.0,</span>
+<span class="sd">    ...          winterwheat=6.0, sugarbeets=7.0, sealed=8.0, water=9.0)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea</span>
+<span class="sd">    zonearea(conifer=4.0, corn=3.0, deciduous=2.0, grass=1.0, sealed=8.0,</span>
+<span class="sd">             springwheat=5.0, sugarbeets=7.0, water=9.0, winterwheat=6.0)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(zonearea.average_values())</span>
+<span class="sd">    6.333333</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeComplete</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeNonWaterParameter">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeNonWaterParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeNonWaterParameter</span><span class="p">(</span><span class="n">LandTypeBaseParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional land type-specific parameters that do not affect</span>
+<span class="sd">    water areas.</span>
+
+<span class="sd">    We take parameter |DegreeDayFactor| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; degreedayfactor(grass=1.0, deciduous=2.0, corn=3.0, conifer=4.0,</span>
+<span class="sd">    ...                 springwheat=5.0, winterwheat=6.0, sugarbeets=7.0, sealed=8.0)</span>
+<span class="sd">    &gt;&gt;&gt; degreedayfactor</span>
+<span class="sd">    degreedayfactor(conifer=4.0, corn=3.0, deciduous=2.0, grass=1.0,</span>
+<span class="sd">                    sealed=8.0, springwheat=5.0, sugarbeets=7.0,</span>
+<span class="sd">                    winterwheat=6.0)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.9)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(degreedayfactor.average_values())</span>
+<span class="sd">    3.333333</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeNonWater</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeGroundwaterParameter">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeGroundwaterParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeGroundwaterParameter</span><span class="p">(</span><span class="n">LandTypeBaseParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional land type-specific parameters that affect</span>
+<span class="sd">    groundwater recharge.</span>
+
+<span class="sd">    We take parameter |BaseflowIndex| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          WATER, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; baseflowindex(grass=0.1, deciduous=0.2, corn=0.3, conifer=0.4, springwheat=0.5,</span>
+<span class="sd">    ...               winterwheat=0.6, sugarbeets=0.7, water=0.8)</span>
+<span class="sd">    &gt;&gt;&gt; baseflowindex</span>
+<span class="sd">    baseflowindex(conifer=0.4, corn=0.3, deciduous=0.2, grass=0.1,</span>
+<span class="sd">                  springwheat=0.5, sugarbeets=0.7, water=0.8,</span>
+<span class="sd">                  winterwheat=0.6)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(8.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 9.0)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(baseflowindex.average_values())</span>
+<span class="sd">    0.333333</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeGroundwater</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeSoilParameter">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeSoilParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeSoilParameter</span><span class="p">(</span><span class="n">LandTypeBaseParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional land type-specific parameters that affect soil</span>
+<span class="sd">    processes.</span>
+
+<span class="sd">    We take parameter |RootingDepth| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          WATER, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; rootingdepth(grass=0.1, deciduous=0.2, corn=0.3, conifer=0.4, springwheat=0.5,</span>
+<span class="sd">    ...              winterwheat=0.6, sugarbeets=0.7)</span>
+<span class="sd">    &gt;&gt;&gt; rootingdepth</span>
+<span class="sd">    rootingdepth(conifer=0.4, corn=0.3, deciduous=0.2, grass=0.1,</span>
+<span class="sd">                 springwheat=0.5, sugarbeets=0.7, winterwheat=0.6)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 8.0, 9.0)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(rootingdepth.average_values())</span>
+<span class="sd">    0.3</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeSoil</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SoilTypeParameter">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.SoilTypeParameter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilTypeParameter</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">ZipParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional soil type-specific parameters.</span>
+
+<span class="sd">    We take parameter |AvailableFieldCapacity| as an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(7)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)</span>
+<span class="sd">    &gt;&gt;&gt; availablefieldcapacity(</span>
+<span class="sd">    ...     sand=0.1, sand_cohesive=0.2, loam=0.3, clay=0.4, silt=0.5, peat=0.6</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; availablefieldcapacity</span>
+<span class="sd">    availablefieldcapacity(clay=0.4, loam=0.3, peat=0.6, sand=0.1,</span>
+<span class="sd">                           sand_cohesive=0.2, silt=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; area(30.0)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea(6.0, 5.0, 4.0, 3.0, 2.0, 1.0, 9.0)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(availablefieldcapacity.average_values())</span>
+<span class="sd">    0.266667</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span> <span class="o">=</span> <span class="nb">float</span>
+
+    <span class="n">constants</span> <span class="o">=</span> <span class="n">whmod_constants</span><span class="o">.</span><span class="n">SOILTYPE_CONSTANTS</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">SoilTypeComplete</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reference to the associated instance of |ZoneRatio| for calculating areal</span>
+<span class="sd">        mean values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">zonearea</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_parameters</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

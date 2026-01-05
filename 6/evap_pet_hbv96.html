@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>evap_pet_hbv96 &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="evap_aet_hbv96" href="evap_aet_hbv96.html" />
+    <link rel="prev" title="evap_pet_ambav1" href="evap_pet_ambav1.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="evap_aet_hbv96.html" title="evap_aet_hbv96"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="evap_pet_ambav1.html" title="evap_pet_ambav1"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Evap.html" accesskey="U">HydPy-Evap</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">evap_pet_hbv96</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="evap.html">evap</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_ret_io.html">evap_ret_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_ret_fao56.html">evap_ret_fao56</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_ret_tw2002.html">evap_ret_tw2002</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_pet_m.html">evap_pet_m</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_pet_mlc.html">evap_pet_mlc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_pet_ambav1.html">evap_pet_ambav1</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">evap_pet_hbv96</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-test">Integration test</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.Model.tempmodel"><code class="docutils literal notranslate"><span class="pre">Model.tempmodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.Model.precipmodel"><code class="docutils literal notranslate"><span class="pre">Model.precipmodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.FactorSequences"><code class="docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.evap_pet_hbv96.InputSequences"><code class="docutils literal notranslate"><span class="pre">InputSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="evap_aet_hbv96.html">evap_aet_hbv96</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_aet_minhas.html">evap_aet_minhas</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_aet_morsim.html">evap_aet_morsim</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="evap_pet_ambav1.html"
+                          title="previous chapter">evap_pet_ambav1</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="evap_aet_hbv96.html"
+                          title="next chapter">evap_aet_hbv96</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/evap_pet_hbv96.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="evap-pet-hbv96">
+<span id="id1"></span><h1>HydPy-Evap-PET-HBV96 (potential evapotranspiration after HBV96)<a class="headerlink" href="#evap-pet-hbv96" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.evap_pet_hbv96">The primary purpose of <a class="reference internal" href="#module-hydpy.models.evap_pet_hbv96" title="hydpy.models.evap_pet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_hbv96</span></code></a> is to serve as a submodel that provides
+estimates of potential evapotranspiration corresponding to HBV96
+<span id="id2">(<a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em>, 1997</a>)</span>.  Of course, you can connect it to <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a> if you
+want a close HBV96 emulation, but it also works with other main models like <a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a>
+or <a class="reference internal" href="wland_wag.html#module-hydpy.models.wland_wag" title="hydpy.models.wland_wag"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wland_wag</span></code></a>.</p>
+<p><a class="reference internal" href="#module-hydpy.models.evap_pet_hbv96" title="hydpy.models.evap_pet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_hbv96</span></code></a> itself requires other models for determining temperature and
+precipitation.  By default, it queries the already available data from its main model.
+Alternatively, it can handle its own submodels.  The following tests rely on the latter
+option.</p>
+<section id="integration-test">
+<h2>Integration test<a class="headerlink" href="#integration-test" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to_read_the_reference_manual.html#integration-tests"><span class="std std-ref">Integration Tests</span></a> first.</p>
+</div>
+<p>According to the intended usage as a submodel, <a class="reference internal" href="#module-hydpy.models.evap_pet_hbv96" title="hydpy.models.evap_pet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_hbv96</span></code></a> requires no connections
+to any nodes.  Hence, assigning a model instance to a blank <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> instance is
+sufficient:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.evap_pet_hbv96</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;element&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>We perform the integration test for a single simulation step, the first hour of the
+second day of the simulation period selected for the integration tests of <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-02 00:00&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-01-02 01:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1h&quot;</span>
+</pre></div>
+</div>
+<p>We set all parameter values identical to the ones defined in the <a class="reference internal" href="hland_96.html#hland-96-field"><span class="std std-ref">field</span></a>
+example of <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbhru</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hruarea</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hrualtitude</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evapotranspirationfactor</span><span class="p">(</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">airtemperaturefactor</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">altitudefactor</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">precipitationfactor</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A <a class="reference internal" href="meteo_temp_io.html#module-hydpy.models.meteo_temp_io" title="hydpy.models.meteo_temp_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_temp_io</span></code></a> submodel provides the required temperature, and a <a class="reference internal" href="meteo_precip_io.html#module-hydpy.models.meteo_precip_io" title="hydpy.models.meteo_precip_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_precip_io</span></code></a>
+submodel the required precipitation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_tempmodel_v2</span><span class="p">(</span><span class="s2">&quot;meteo_temp_io&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">temperatureaddend</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_precipmodel_v2</span><span class="p">(</span><span class="s2">&quot;meteo_precip_io&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">precipitationfactor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we can initialise an <a class="reference internal" href="testtools.html#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m %H:00&quot;</span>
+</pre></div>
+</div>
+<p>The following meteorological input also stems from the input data of the
+<a class="reference internal" href="hland_96.html#hland-96-field"><span class="std std-ref">field</span></a> example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="o">.</span><span class="n">normalairtemperature</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">18.2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="o">.</span><span class="n">normalevapotranspiration</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.097474</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">tempmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">19.2</span>
+</pre></div>
+</div>
+<p>The following precipitation value is from the results table of the
+<a class="reference internal" href="hland_96.html#hland-96-field"><span class="std std-ref">field</span></a> example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">precipmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">precipitation</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.847</span>
+</pre></div>
+</div>
+<p>The following simulation results contain the calculated reference and potential
+evapotranspiration.  Reference evapotranspiration is not available in the results of
+the <a class="reference internal" href="hland_96.html#hland-96-field"><span class="std std-ref">field</span></a> example of <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a>.  The potential evapotranspiration
+estimate is the same in both tables:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_118__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_118__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|        date | normalairtemperature | normalevapotranspiration | meanairtemperature | precipitation | referenceevapotranspiration | potentialevapotranspiration | meanpotentialevapotranspiration |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 02/01 00:00 |                 18.2 |                 0.097474 |               19.2 |         0.847 |                    0.075055 |                     0.06896 |                         0.06896 |</span>
+</pre></div></div></div></pre></div></div></section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.evap_pet_hbv96.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/evap_pet_hbv96.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_TempModel_V1" title="hydpy.models.evap.evap_model.Main_TempModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_TempModel_V1</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_TempModel_V2A" title="hydpy.models.evap.evap_model.Main_TempModel_V2A"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_TempModel_V2A</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_PrecipModel_V1" title="hydpy.models.evap.evap_model.Main_PrecipModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_PrecipModel_V1</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_PrecipModel_V2A" title="hydpy.models.evap.evap_model.Main_PrecipModel_V2A"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_PrecipModel_V2A</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Sub_ETModel" title="hydpy.models.evap.evap_model.Sub_ETModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sub_ETModel</span></code></a>, <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a></p>
+<p>HydPy-Evap-PET-HBV96 (potential evapotranspiration after HBV96).</p>
+<dl class="simple">
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_MeanAirTemperature_V1" title="hydpy.models.evap.evap_model.Calc_MeanAirTemperature_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_MeanAirTemperature_V1</span></code></a> Let a submodel that complies with the <a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V1" title="hydpy.interfaces.tempinterfaces.TempModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V1</span></code></a> or <a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V2" title="hydpy.interfaces.tempinterfaces.TempModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V2</span></code></a> interface determine the air temperature.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_Precipitation_V1" title="hydpy.models.evap.evap_model.Calc_Precipitation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Precipitation_V1</span></code></a> Let a submodel that complies with the <a class="reference internal" href="precipinterfaces.html#hydpy.interfaces.precipinterfaces.PrecipModel_V1" title="hydpy.interfaces.precipinterfaces.PrecipModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrecipModel_V1</span></code></a> or <a class="reference internal" href="precipinterfaces.html#hydpy.interfaces.precipinterfaces.PrecipModel_V2" title="hydpy.interfaces.precipinterfaces.PrecipModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrecipModel_V2</span></code></a> interface determine precipitation.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V5" title="hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V5"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ReferenceEvapotranspiration_V5</span></code></a> Adjust the normal evapotranspiration to the difference between actual air temperature and normal air temperature <span id="id3">(<a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em>, 1997</a>)</span>.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Adjust_ReferenceEvapotranspiration_V1" title="hydpy.models.evap.evap_model.Adjust_ReferenceEvapotranspiration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Adjust_ReferenceEvapotranspiration_V1</span></code></a> Adjust the previously calculated reference evapotranspiration.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_PotentialEvapotranspiration_V3" title="hydpy.models.evap.evap_model.Calc_PotentialEvapotranspiration_V3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialEvapotranspiration_V3</span></code></a> Apply the altitude- and precipitation-related adjustment factors on reference evapotranspiration to determine potential evapotranspiration <span id="id4">(<a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em>, 1997</a>)</span>.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_MeanPotentialEvapotranspiration_V1" title="hydpy.models.evap.evap_model.Calc_MeanPotentialEvapotranspiration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_MeanPotentialEvapotranspiration_V1</span></code></a> Calculate the average potential evapotranspiration.</p></li>
+</ul>
+</dd>
+<dt>The following interface methods are available to main models using the defined model as a submodel:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Determine_PotentialEvapotranspiration_V1" title="hydpy.models.evap.evap_model.Determine_PotentialEvapotranspiration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_PotentialEvapotranspiration_V1</span></code></a> Interface method that applies the complete application model by executing all “run methods”.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Get_PotentialEvapotranspiration_V2" title="hydpy.models.evap.evap_model.Get_PotentialEvapotranspiration_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_PotentialEvapotranspiration_V2</span></code></a> Get the current potential evapotranspiration from the selected hydrological response unit.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Get_MeanPotentialEvapotranspiration_V2" title="hydpy.models.evap.evap_model.Get_MeanPotentialEvapotranspiration_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_MeanPotentialEvapotranspiration_V2</span></code></a> Get the averaged potential evapotranspiration.</p></li>
+</ul>
+</dd>
+<dt>The following “additional methods” might be called by one or more of the other methods or are meant to be directly called by the user:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_MeanAirTemperature_TempModel_V1" title="hydpy.models.evap.evap_model.Calc_MeanAirTemperature_TempModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_MeanAirTemperature_TempModel_V1</span></code></a> Query mean air temperature from a main model referenced as a sub-submodel and follows the <a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V1" title="hydpy.interfaces.tempinterfaces.TempModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V1</span></code></a> interface.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_MeanAirTemperature_TempModel_V2" title="hydpy.models.evap.evap_model.Calc_MeanAirTemperature_TempModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_MeanAirTemperature_TempModel_V2</span></code></a> Let a submodel that complies with the <a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V2" title="hydpy.interfaces.tempinterfaces.TempModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V2</span></code></a> interface determine the mean air temperature.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_Precipitation_PrecipModel_V1" title="hydpy.models.evap.evap_model.Calc_Precipitation_PrecipModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Precipitation_PrecipModel_V1</span></code></a> Query precipitation from a main model that is referenced as a sub-submodel and follows the <a class="reference internal" href="precipinterfaces.html#hydpy.interfaces.precipinterfaces.PrecipModel_V1" title="hydpy.interfaces.precipinterfaces.PrecipModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrecipModel_V1</span></code></a> interface.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_Precipitation_PrecipModel_V2" title="hydpy.models.evap.evap_model.Calc_Precipitation_PrecipModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Precipitation_PrecipModel_V2</span></code></a> Let a submodel that complies with the <a class="reference internal" href="precipinterfaces.html#hydpy.interfaces.precipinterfaces.PrecipModel_V2" title="hydpy.interfaces.precipinterfaces.PrecipModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrecipModel_V2</span></code></a> interface determine the precipitation.</p></li>
+</ul>
+</dd>
+<dt>Users can hook submodels into the defined main model if they satisfy one of the following interfaces:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V1" title="hydpy.interfaces.tempinterfaces.TempModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V1</span></code></a> Pure getter interface for using main models as sub-submodels.</p></li>
+<li><p><a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V2" title="hydpy.interfaces.tempinterfaces.TempModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V2</span></code></a> Simple interface for determining the temperature in one step.</p></li>
+<li><p><a class="reference internal" href="precipinterfaces.html#hydpy.interfaces.precipinterfaces.PrecipModel_V1" title="hydpy.interfaces.precipinterfaces.PrecipModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrecipModel_V1</span></code></a> Pure getter interface for using main models as sub-submodels.</p></li>
+<li><p><a class="reference internal" href="precipinterfaces.html#hydpy.interfaces.precipinterfaces.PrecipModel_V2" title="hydpy.interfaces.precipinterfaces.PrecipModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrecipModel_V2</span></code></a> Simple interface for determining precipitation in one step.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Evap-PET-HBV96',</span> <span class="pre">'potential</span> <span class="pre">evapotranspiration</span> <span class="pre">after</span> <span class="pre">HBV96')</span></span><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.Model.tempmodel">
+<span class="sig-name descname"><span class="pre">tempmodel</span></span><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.Model.tempmodel" title="Link to this definition">¶</a></dt>
+<dd><p>Required submodel that complies with one of the following interfaces: TempModel_V1 or TempModel_V2.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.Model.precipmodel">
+<span class="sig-name descname"><span class="pre">precipmodel</span></span><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.Model.precipmodel" title="Link to this definition">¶</a></dt>
+<dd><p>Required submodel that complies with one of the following interfaces: PrecipModel_V1 or PrecipModel_V2.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.evap_pet_hbv96.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model evap_pet_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.NmbHRU" title="hydpy.models.evap.evap_control.NmbHRU"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbHRU()</span></code></a> The number of separately modelled hydrological response units [-].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.HRUArea" title="hydpy.models.evap.evap_control.HRUArea"><code class="xref py py-func docutils literal notranslate"><span class="pre">HRUArea()</span></code></a> The area of each hydrological response unit [km²].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.HRUAltitude" title="hydpy.models.evap.evap_control.HRUAltitude"><code class="xref py py-func docutils literal notranslate"><span class="pre">HRUAltitude()</span></code></a> The altitude of each hydrological response unit [m].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.EvapotranspirationFactor" title="hydpy.models.evap.evap_control.EvapotranspirationFactor"><code class="xref py py-func docutils literal notranslate"><span class="pre">EvapotranspirationFactor()</span></code></a> The adjustment factor for potential evapotranspiration [-].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.AltitudeFactor" title="hydpy.models.evap.evap_control.AltitudeFactor"><code class="xref py py-func docutils literal notranslate"><span class="pre">AltitudeFactor()</span></code></a> Decrease of potential evapotranspiration with altitude [-1/100m].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.PrecipitationFactor" title="hydpy.models.evap.evap_control.PrecipitationFactor"><code class="xref py py-func docutils literal notranslate"><span class="pre">PrecipitationFactor()</span></code></a> Decrease in potential evapotranspiration due to precipitation [T/mm].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.AirTemperatureFactor" title="hydpy.models.evap.evap_control.AirTemperatureFactor"><code class="xref py py-func docutils literal notranslate"><span class="pre">AirTemperatureFactor()</span></code></a> Temperature factor related to the difference of current reference evapotranspiration and normal reference evapotranspiration [1/°C].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.evap_pet_hbv96.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model evap_pet_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_derived.HRUAreaFraction" title="hydpy.models.evap.evap_derived.HRUAreaFraction"><code class="xref py py-func docutils literal notranslate"><span class="pre">HRUAreaFraction()</span></code></a> The area fraction of each hydrological response unit [-].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_derived.Altitude" title="hydpy.models.evap.evap_derived.Altitude"><code class="xref py py-func docutils literal notranslate"><span class="pre">Altitude()</span></code></a> Average (reference) subbasin altitude [100m].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.FactorSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.evap_pet_hbv96.</span></span><span class="sig-name descname"><span class="pre">FactorSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.FactorSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequences" title="hydpy.core.sequencetools.FactorSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></p>
+<p>Factor sequences of model evap_pet_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_factors.MeanAirTemperature" title="hydpy.models.evap.evap_factors.MeanAirTemperature"><code class="xref py py-func docutils literal notranslate"><span class="pre">MeanAirTemperature()</span></code></a> The basin’s mean air temperature [°C].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.evap_pet_hbv96.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model evap_pet_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.Precipitation" title="hydpy.models.evap.evap_fluxes.Precipitation"><code class="xref py py-func docutils literal notranslate"><span class="pre">Precipitation()</span></code></a> Precipitation [mm/T].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.ReferenceEvapotranspiration" title="hydpy.models.evap.evap_fluxes.ReferenceEvapotranspiration"><code class="xref py py-func docutils literal notranslate"><span class="pre">ReferenceEvapotranspiration()</span></code></a> Reference (grass) evapotranspiration [mm/T].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.PotentialEvapotranspiration" title="hydpy.models.evap.evap_fluxes.PotentialEvapotranspiration"><code class="xref py py-func docutils literal notranslate"><span class="pre">PotentialEvapotranspiration()</span></code></a> Potential (land type-specific) evapotranspiration [mm/T].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.MeanPotentialEvapotranspiration" title="hydpy.models.evap.evap_fluxes.MeanPotentialEvapotranspiration"><code class="xref py py-func docutils literal notranslate"><span class="pre">MeanPotentialEvapotranspiration()</span></code></a> Mean potential evapotranspiration [mm/T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.evap_pet_hbv96.InputSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.evap_pet_hbv96.</span></span><span class="sig-name descname"><span class="pre">InputSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.evap_pet_hbv96.InputSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequences" title="hydpy.core.sequencetools.InputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequences</span></code></a></p>
+<p>Input sequences of model evap_pet_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_inputs.NormalAirTemperature" title="hydpy.models.evap.evap_inputs.NormalAirTemperature"><code class="xref py py-func docutils literal notranslate"><span class="pre">NormalAirTemperature()</span></code></a> Normal air temperature [°C].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_inputs.NormalEvapotranspiration" title="hydpy.models.evap.evap_inputs.NormalEvapotranspiration"><code class="xref py py-func docutils literal notranslate"><span class="pre">NormalEvapotranspiration()</span></code></a> Normal evapotranspiration [mm/T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="evap_aet_hbv96.html" title="evap_aet_hbv96"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="evap_pet_ambav1.html" title="evap_pet_ambav1"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Evap.html" >HydPy-Evap</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">evap_pet_hbv96</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

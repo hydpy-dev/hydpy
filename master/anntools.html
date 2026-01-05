@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>anntools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"chtml": {"displayAlign": "left"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="armatools" href="armatools.html" />
+    <link rel="prev" title="Auxiliary Tools" href="auxiliaries.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="armatools.html" title="armatools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="auxiliaries.html" title="Auxiliary Tools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" accesskey="U">Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">anntools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">anntools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.anntools.ANN"><code class="docutils literal notranslate"><span class="pre">ANN</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_inputs"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_outputs"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_neurons"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_neurons</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_weights_input"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_weights_input</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_weights_input"><code class="docutils literal notranslate"><span class="pre">ANN.shape_weights_input</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.weights_input"><code class="docutils literal notranslate"><span class="pre">ANN.weights_input</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_weights_output"><code class="docutils literal notranslate"><span class="pre">ANN.shape_weights_output</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_weights_output"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_weights_output</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.weights_output"><code class="docutils literal notranslate"><span class="pre">ANN.weights_output</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_weights_hidden"><code class="docutils literal notranslate"><span class="pre">ANN.shape_weights_hidden</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_weights_hidden"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_weights_hidden</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.weights_hidden"><code class="docutils literal notranslate"><span class="pre">ANN.weights_hidden</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_intercepts_hidden"><code class="docutils literal notranslate"><span class="pre">ANN.shape_intercepts_hidden</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_intercepts_hidden"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_intercepts_hidden</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.intercepts_hidden"><code class="docutils literal notranslate"><span class="pre">ANN.intercepts_hidden</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_intercepts_output"><code class="docutils literal notranslate"><span class="pre">ANN.shape_intercepts_output</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_intercepts_output"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_intercepts_output</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.intercepts_output"><code class="docutils literal notranslate"><span class="pre">ANN.intercepts_output</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_activation"><code class="docutils literal notranslate"><span class="pre">ANN.shape_activation</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.activation"><code class="docutils literal notranslate"><span class="pre">ANN.activation</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_inputs"><code class="docutils literal notranslate"><span class="pre">ANN.shape_inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.inputs"><code class="docutils literal notranslate"><span class="pre">ANN.inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_outputs"><code class="docutils literal notranslate"><span class="pre">ANN.shape_outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.outputs"><code class="docutils literal notranslate"><span class="pre">ANN.outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_output_derivatives"><code class="docutils literal notranslate"><span class="pre">ANN.shape_output_derivatives</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.output_derivatives"><code class="docutils literal notranslate"><span class="pre">ANN.output_derivatives</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_layers"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_layers</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_neurons"><code class="docutils literal notranslate"><span class="pre">ANN.shape_neurons</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.neurons"><code class="docutils literal notranslate"><span class="pre">ANN.neurons</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_neuron_derivatives"><code class="docutils literal notranslate"><span class="pre">ANN.shape_neuron_derivatives</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.neuron_derivatives"><code class="docutils literal notranslate"><span class="pre">ANN.neuron_derivatives</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.calculate_values"><code class="docutils literal notranslate"><span class="pre">ANN.calculate_values()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.calculate_derivatives"><code class="docutils literal notranslate"><span class="pre">ANN.calculate_derivatives()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_weights"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_weights</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_intercepts"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_intercepts</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_parameters"><code class="docutils literal notranslate"><span class="pre">ANN.nmb_parameters</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.verify"><code class="docutils literal notranslate"><span class="pre">ANN.verify()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.anntools.ANN.assignrepr"><code class="docutils literal notranslate"><span class="pre">ANN.assignrepr()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="armatools.html">armatools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="calibtools.html">calibtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="interptools.html">interptools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="iuhtools.html">iuhtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="networktools.html">networktools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ppolytools.html">ppolytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quadtools.html">quadtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="roottools.html">roottools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smoothtools.html">smoothtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="statstools.html">statstools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="validtools.html">validtools</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="auxiliaries.html"
+                          title="previous chapter">Auxiliary Tools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="armatools.html"
+                          title="next chapter">armatools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/anntools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="anntools">
+<span id="id1"></span><h1>anntools<a class="headerlink" href="#anntools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.auxs.anntools">This module implements rudimentary artificial neural network tools required for some
+models implemented in the <em>HydPy</em> framework.</p>
+<p>The relevant models apply some of the neural network features during simulation runs,
+which is why we implement these features in the Cython extension module <code class="xref py py-mod docutils literal notranslate"><span class="pre">annutils</span></code>.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.anntools" title="hydpy.auxs.anntools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">anntools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> Multi-layer feed-forward artificial neural network.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.anntools.</span></span><span class="sig-name descname"><span class="pre">ANN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmb_inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmb_neurons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(1,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmb_outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_hidden</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intercepts_hidden</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intercepts_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">activation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/anntools.html#ANN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.anntools.ANN" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="interptools.html#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a></p>
+<p>Multi-layer feed-forward artificial neural network.</p>
+<blockquote>
+<div><p>By default, class <a class="reference internal" href="#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> uses the logistic function
+<span class="math notranslate nohighlight">\(f(x) = \frac{1}{1+exp(-x)}\)</span> to calculate the activation of the hidden
+layer’s neurons.  Alternatively, one can select the identity function
+<span class="math notranslate nohighlight">\(f(x) = x\)</span> or a variant of the logistic function for filtering specific
+inputs.  See property <a class="reference internal" href="#hydpy.auxs.anntools.ANN.activation" title="hydpy.auxs.anntools.ANN.activation"><code class="xref py py-const docutils literal notranslate"><span class="pre">activation</span></code></a> for more information on how to do this.</p>
+<p>You can select <a class="reference internal" href="#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> as the interpolation algorithm used by <a class="reference internal" href="interptools.html#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a> or
+one of the interpolation algorithms used by <a class="reference internal" href="interptools.html#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a>.  Its original
+purpose was to define arbitrary continuous relationships between the water stored
+in a dam and the associated water stage (see model <a class="reference internal" href="dam_v001.html#module-hydpy.models.dam_v001" title="hydpy.models.dam_v001"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v001</span></code></a>).  However, class
+<a class="reference internal" href="#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> can also be applied directly for testing purposes, as shown in the following
+examples.</p>
+<p>First, define the most simple artificial neural network consisting of only one
+input node, one hidden neuron, and one output node, and pass arbitrary values for
+the weights and intercepts:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span><span class="p">,</span> <span class="n">nan</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">weights_input</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">weights_output</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">intercepts_hidden</span><span class="o">=-</span><span class="mf">16.0</span><span class="p">,</span> <span class="n">intercepts_output</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following loop subsequently sets the values 0 to 8 as input values, performs
+the calculation, and prints out the final output.  As to be expected, the results
+show the shape of the logistic function:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">input_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">([</span><span class="n">input_</span><span class="p">,</span> <span class="n">ann</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+<span class="go">0, -1.0</span>
+<span class="go">1, -0.999982</span>
+<span class="go">2, -0.998994</span>
+<span class="go">3, -0.946041</span>
+<span class="go">4, 0.5</span>
+<span class="go">5, 1.946041</span>
+<span class="go">6, 1.998994</span>
+<span class="go">7, 1.999982</span>
+<span class="go">8, 2.0</span>
+</pre></div>
+</div>
+<p>One can also directly plot the resulting graph:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">ann</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can use the <cite>pyplot</cite> API of <cite>matplotlib</cite> to modify the figure or to save it to
+disk (or print it to the screen, in case the interactive mode of <cite>matplotlib</cite> is
+disabled):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_autofig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_autofig</span><span class="p">(</span><span class="s2">&quot;ANN_plot.png&quot;</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/ANN_plot.png" src="_images/ANN_plot.png" />
+</div></blockquote>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_inputs">
+<span class="sig-name descname"><span class="pre">nmb_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The number of input values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_outputs">
+<span class="sig-name descname"><span class="pre">nmb_outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The lastly calculated output values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_neurons">
+<span class="sig-name descname"><span class="pre">nmb_neurons</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_neurons" title="Link to this definition">¶</a></dt>
+<dd><p>The number of neurons of the hidden layers.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_neurons</span>
+<span class="go">(2, 1)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_neurons</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_neurons</span>
+<span class="go">(3,)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">ann</span><span class="o">.</span><span class="n">nmb_neurons</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_neurons</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `nmb_neurons` of object `ann` has not been prepared so far.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_weights_input">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_weights_input</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_weights_input" title="Link to this definition">¶</a></dt>
+<dd><p>The number of input weights.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_weights_input</span>
+<span class="go">6</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_weights_input">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape_weights_input</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_weights_input" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array containing the input weights.</p>
+<p>The first integer value is the number of input nodes; the second integer value
+is the number of neurons of the first hidden layer:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_weights_input</span>
+<span class="go">(3, 2)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.weights_input">
+<span class="sig-name descname"><span class="pre">weights_input</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.weights_input" title="Link to this definition">¶</a></dt>
+<dd><p>The weights between all input nodes and neurons of the first hidden 
+layer.</p>
+<p>All “weight properties” of class <a class="reference internal" href="#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> are usable as explained in-depth for the 
+input weights below.</p>
+<dl class="simple">
+<dt>The input nodes and the neurons vary on the first and second axes of the</dt><dd><p>2-dimensional array, respectively (see property <a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_weights_input" title="hydpy.auxs.anntools.ANN.shape_weights_input"><code class="xref py py-const docutils literal notranslate"><span class="pre">shape_weights_input</span></code></a>):</p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span><span class="p">,</span> <span class="n">print_matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_matrix</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span><span class="p">)</span>
+<span class="go">| 0.0, 0.0, 0.0 |</span>
+<span class="go">| 0.0, 0.0, 0.0 |</span>
+</pre></div>
+</div>
+<p>The following error occurs when either the number of input nodes or of hidden 
+neurons is unknown:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">ann</span><span class="o">.</span><span class="n">nmb_inputs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `weights_input` of object `ann` is not usable so far.  At least, you have to prepare attribute `nmb_inputs` first.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_inputs</span> <span class="o">=</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<p>It is allowed to set values via slicing:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_matrix</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span><span class="p">)</span>
+<span class="go">| 1.0, 0.0, 0.0 |</span>
+<span class="go">| 1.0, 0.0, 0.0 |</span>
+</pre></div>
+</div>
+<p>If possible, property <a class="reference internal" href="#hydpy.auxs.anntools.ANN.weights_input" title="hydpy.auxs.anntools.ANN.weights_input"><code class="xref py py-const docutils literal notranslate"><span class="pre">weights_input</span></code></a> performs type conversions:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span> <span class="o">=</span> <span class="s2">&quot;2&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_matrix</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span><span class="p">)</span>
+<span class="go">| 2.0, 2.0, 2.0 |</span>
+<span class="go">| 2.0, 2.0, 2.0 |</span>
+</pre></div>
+</div>
+<p>One can assign whole matrices directly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_matrix</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span><span class="p">)</span>
+<span class="go">| 1.0, 0.0, 0.0 |</span>
+<span class="go">| 0.0, 1.0, 0.0 |</span>
+</pre></div>
+</div>
+<p>One can also delete the values contained in the array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_matrix</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span><span class="p">)</span>
+<span class="go">| 0.0, 0.0, 0.0 |</span>
+<span class="go">| 0.0, 0.0, 0.0 |</span>
+</pre></div>
+</div>
+<p>Errors like wrong shapes (or unconvertible inputs) result in error messages:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">weights_input</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to set the input weights of the artificial neural network `ann` of element `?`, the following error occurred: could not broadcast input array from shape (3,3) into shape (2,3)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_weights_output">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape_weights_output</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_weights_output" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array containing the output weights.</p>
+<p>The first integer value is the number of neurons of the first hidden layer; the
+second integer value is the number of output nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_weights_output</span>
+<span class="go">(1, 3)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_weights_output">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_weights_output</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_weights_output" title="Link to this definition">¶</a></dt>
+<dd><p>The number of output weights.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_weights_output</span>
+<span class="go">12</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.weights_output">
+<span class="sig-name descname"><span class="pre">weights_output</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.weights_output" title="Link to this definition">¶</a></dt>
+<dd><p>The weights between all neurons of the last hidden layer and the output 
+nodes.</p>
+<p>See the documentation on properties <a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_weights_output" title="hydpy.auxs.anntools.ANN.shape_weights_output"><code class="xref py py-const docutils literal notranslate"><span class="pre">shape_weights_output</span></code></a> and 
+<a class="reference internal" href="#hydpy.auxs.anntools.ANN.weights_input" title="hydpy.auxs.anntools.ANN.weights_input"><code class="xref py py-const docutils literal notranslate"><span class="pre">weights_input</span></code></a> for further information.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_weights_hidden">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape_weights_hidden</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_weights_hidden" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array containing the activation of the hidden neurons.</p>
+<p>The first integer value is the number of connections between the hidden layers.
+The second integer value is the maximum number of neurons of all hidden layers
+feeding information into another hidden layer (all except the last one).
+Finally, the third integer value is the maximum number of neurons of all hidden
+layers receiving information from another hidden layer (all except the first
+one):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_weights_hidden</span>
+<span class="go">(2, 4, 3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_weights_hidden</span>
+<span class="go">(0, 0, 0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_weights_hidden">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_weights_hidden</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_weights_hidden" title="Link to this definition">¶</a></dt>
+<dd><p>The number of hidden weights.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_weights_hidden</span>
+<span class="go">18</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.weights_hidden">
+<span class="sig-name descname"><span class="pre">weights_hidden</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.weights_hidden" title="Link to this definition">¶</a></dt>
+<dd><p>The weights between the neurons of the different hidden layers.</p>
+<p>See the documentation on properties <a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_weights_hidden" title="hydpy.auxs.anntools.ANN.shape_weights_hidden"><code class="xref py py-const docutils literal notranslate"><span class="pre">shape_weights_hidden</span></code></a> and 
+<a class="reference internal" href="#hydpy.auxs.anntools.ANN.weights_input" title="hydpy.auxs.anntools.ANN.weights_input"><code class="xref py py-const docutils literal notranslate"><span class="pre">weights_input</span></code></a> for further information.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_intercepts_hidden">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape_intercepts_hidden</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_intercepts_hidden" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array containing the intercepts of neurons of the hidden
+layers.</p>
+<p>The first integer value is the number of hidden layers; the second integer
+value is the maximum number of neurons of all hidden layers:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_intercepts_hidden</span>
+<span class="go">(3, 4)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_intercepts_hidden">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_intercepts_hidden</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_intercepts_hidden" title="Link to this definition">¶</a></dt>
+<dd><p>The number of input intercepts.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.intercepts_hidden">
+<span class="sig-name descname"><span class="pre">intercepts_hidden</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.intercepts_hidden" title="Link to this definition">¶</a></dt>
+<dd><p>The intercepts of all neurons of the hidden layers.</p>
+<p>See the documentation on properties <a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_intercepts_hidden" title="hydpy.auxs.anntools.ANN.shape_intercepts_hidden"><code class="xref py py-const docutils literal notranslate"><span class="pre">shape_intercepts_hidden</span></code></a> and 
+<a class="reference internal" href="#hydpy.auxs.anntools.ANN.weights_input" title="hydpy.auxs.anntools.ANN.weights_input"><code class="xref py py-const docutils literal notranslate"><span class="pre">weights_input</span></code></a> for further information.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_intercepts_output">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape_intercepts_output</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_intercepts_output" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array containing the intercepts of neurons of the hidden
+layers.</p>
+<p>The only integer value is the number of output nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_intercepts_output</span>
+<span class="go">(3,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_intercepts_output">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_intercepts_output</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_intercepts_output" title="Link to this definition">¶</a></dt>
+<dd><p>The number of output intercepts.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_intercepts_output</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.intercepts_output">
+<span class="sig-name descname"><span class="pre">intercepts_output</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.intercepts_output" title="Link to this definition">¶</a></dt>
+<dd><p>The intercepts of all output nodes.</p>
+<p>See the documentation on properties <a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_intercepts_output" title="hydpy.auxs.anntools.ANN.shape_intercepts_output"><code class="xref py py-const docutils literal notranslate"><span class="pre">shape_intercepts_output</span></code></a> and 
+<a class="reference internal" href="#hydpy.auxs.anntools.ANN.weights_input" title="hydpy.auxs.anntools.ANN.weights_input"><code class="xref py py-const docutils literal notranslate"><span class="pre">weights_input</span></code></a> for further information.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_activation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape_activation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_activation" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array defining the activation function for each neuron of
+the hidden layers.</p>
+<p>The first integer value is the number of hidden layers; the second integer
+value is the maximum number of neurons of all hidden layers:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_activation</span>
+<span class="go">(3, 4)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.activation">
+<span class="sig-name descname"><span class="pre">activation</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.activation" title="Link to this definition">¶</a></dt>
+<dd><p>Indices for selecting suitable activation functions for the neurons of 
+the hidden layers.</p>
+<p>By default, <a class="reference internal" href="#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> uses the logistic function for calculating the activation of 
+the neurons of the hidden layers and uses the identity function for the output 
+nodes.  However, property <a class="reference internal" href="#hydpy.auxs.anntools.ANN.activation" title="hydpy.auxs.anntools.ANN.activation"><code class="xref py py-const docutils literal notranslate"><span class="pre">activation</span></code></a> allows defining other activation 
+functions for the hidden neurons individually.  So far, one can select the 
+identity function and a “filter version” of the logistic function as 
+alternatives – others might follow.</p>
+<p>Assume a neuron receives input <span class="math notranslate nohighlight">\(i_1\)</span> and <span class="math notranslate nohighlight">\(i_2\)</span> from two nodes of 
+the input layer or its upstream hidden layer.  We wheight these input values as 
+usual:</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(x_1 = c + w_1 \cdot i_1 + w_2 \cdot i_2\)</span></p>
+</div></blockquote>
+<p>When selecting the identity function through setting the index value “0”, the 
+activation of the considered neuron is:</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(a_1 = x_1\)</span></p>
+</div></blockquote>
+<p>Using the identity function is helpful for educational examples and for 
+bypassing input through one layer without introducing nonlinearity.</p>
+<p>When selecting the logistic function through setting the index value “1”, the 
+activation of the considered neuron is:</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(a_1 = 1-\frac{1}{1+exp(x_1)}\)</span></p>
+</div></blockquote>
+<p>The logistic function is a standard function for constructing neural networks.  
+It allows to approximate any relationship within a specific range and accuracy, 
+provided the neural network is large enough.</p>
+<p>When selecting the “filter version” of the logistic function through setting 
+the index value “2”, the activation of the considered neuron is:</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(a_1 = 1-\frac{1}{1+exp(x_1)} \cdot i_1\)</span></p>
+</div></blockquote>
+<p>“Filter version” means that our neuron now filters the input of the single 
+input node placed at the corresponding position of its layer.  This activation 
+function helps force the output of a neural network to be zero but never 
+negative beyond a certain threshold.</p>
+<p>Like the main documentation on class <a class="reference internal" href="#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a>, we now define a relatively complex 
+network to show that the “normal” and the derivative calculations work.  This 
+time, we set the activation function explicitly.  “1” stands for the logistic 
+function, which we first use for all hidden neurons:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.anntools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+<span class="gp">... </span>          <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">weights_input</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.2</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">],</span>
+<span class="gp">... </span>                         <span class="p">[</span><span class="o">-</span><span class="mf">1.7</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">]],</span>
+<span class="gp">... </span>          <span class="n">weights_hidden</span><span class="o">=</span><span class="p">[[[</span><span class="o">-</span><span class="mf">.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+<span class="gp">... </span>                           <span class="p">[</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">2.4</span><span class="p">]]],</span>
+<span class="gp">... </span>          <span class="n">weights_output</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.8</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.9</span><span class="p">],</span>
+<span class="gp">... </span>                          <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.4</span><span class="p">]],</span>
+<span class="gp">... </span>          <span class="n">intercepts_hidden</span><span class="o">=</span><span class="p">[[</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+<span class="gp">... </span>                             <span class="p">[</span><span class="o">-</span><span class="mf">0.4</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.2</span><span class="p">]],</span>
+<span class="gp">... </span>          <span class="n">intercepts_output</span><span class="o">=</span><span class="p">[</span><span class="mf">1.3</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">],</span>
+<span class="gp">... </span>          <span class="n">activation</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+<span class="gp">... </span>                      <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>    
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">inputs</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.1</span><span class="p">,</span>  <span class="mf">1.3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span>
+<span class="go">2.074427, -2.734692</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">idx_input</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">calculate_derivatives</span><span class="p">(</span><span class="n">idx_input</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">output_derivatives</span><span class="p">)</span>
+<span class="go">-0.006199, 0.006571</span>
+<span class="go">0.039804, -0.044169</span>
+</pre></div>
+</div>
+<p>In the next example, we want to apply the identity function for the second 
+neuron of the first hidden layer and the first neuron of the second hidden 
+layer.  Therefore, we pass its index value “0” to the corresponding 
+<a class="reference internal" href="#hydpy.auxs.anntools.ANN.activation" title="hydpy.auxs.anntools.ANN.activation"><code class="xref py py-const docutils literal notranslate"><span class="pre">activation</span></code></a> entries:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">activation</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span>
+<span class="go">ANN(</span>
+<span class="go">    nmb_inputs=2,</span>
+<span class="go">    nmb_neurons=(2, 2),</span>
+<span class="go">    nmb_outputs=2,</span>
+<span class="go">    weights_input=[[0.2, -0.1],</span>
+<span class="go">                   [-1.7, 0.6]],</span>
+<span class="go">    weights_hidden=[[[-0.5, 1.0],</span>
+<span class="go">                     [0.4, 2.4]]],</span>
+<span class="go">    weights_output=[[0.8, -0.9],</span>
+<span class="go">                    [0.5, -0.4]],</span>
+<span class="go">    intercepts_hidden=[[0.9, 0.0],</span>
+<span class="go">                       [-0.4, -0.2]],</span>
+<span class="go">    intercepts_output=[1.3, -2.0],</span>
+<span class="go">    activation=[[1, 0],</span>
+<span class="go">                [0, 1]],</span>
+<span class="go">)</span>
+</pre></div>
+</div>
+<p>The agreement between the analytical and the numerical derivatives gives us 
+confidence everything works fine:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span>
+<span class="go">1.584373, -2.178468</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">idx_input</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">calculate_derivatives</span><span class="p">(</span><span class="n">idx_input</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">output_derivatives</span><span class="p">)</span>
+<span class="go">-0.056898, 0.060219</span>
+<span class="go">0.369807, -0.394801</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d_input</span> <span class="o">=</span> <span class="mf">1e-8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">idx_input</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">input_</span> <span class="o">=</span> <span class="n">ann</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_input</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_input</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_</span><span class="o">-</span><span class="n">d_input</span><span class="o">/</span><span class="mf">2.0</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">values0</span> <span class="o">=</span> <span class="n">ann</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_input</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_</span><span class="o">+</span><span class="n">d_input</span><span class="o">/</span><span class="mf">2.0</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">values1</span> <span class="o">=</span> <span class="n">ann</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_input</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">((</span><span class="n">values1</span><span class="o">-</span><span class="n">values0</span><span class="p">)</span><span class="o">/</span><span class="n">d_input</span><span class="p">)</span>
+<span class="go">-0.056898, 0.060219</span>
+<span class="go">0.369807, -0.394801</span>
+</pre></div>
+</div>
+<p>Finally, we perform the same check for the “filter version” of the logistic 
+function:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">activation</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">outputs</span><span class="p">)</span>
+<span class="go">1.825606, -2.445682</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">idx_input</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">calculate_derivatives</span><span class="p">(</span><span class="n">idx_input</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="n">ann</span><span class="o">.</span><span class="n">output_derivatives</span><span class="p">)</span>
+<span class="go">0.009532, -0.011236</span>
+<span class="go">-0.001715, 0.02872</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d_input</span> <span class="o">=</span> <span class="mf">1e-8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">idx_input</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">input_</span> <span class="o">=</span> <span class="n">ann</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_input</span><span class="p">]</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_input</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_</span><span class="o">-</span><span class="n">d_input</span><span class="o">/</span><span class="mf">2.0</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">values0</span> <span class="o">=</span> <span class="n">ann</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_input</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_</span><span class="o">+</span><span class="n">d_input</span><span class="o">/</span><span class="mf">2.0</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">values1</span> <span class="o">=</span> <span class="n">ann</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">ann</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">idx_input</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">((</span><span class="n">values1</span><span class="o">-</span><span class="n">values0</span><span class="p">)</span><span class="o">/</span><span class="n">d_input</span><span class="p">)</span>
+<span class="go">0.009532, -0.011236</span>
+<span class="go">-0.001715, 0.02872</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_inputs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array containing the input values.</p>
+<p>The only integer value is the number of input nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_inputs</span>
+<span class="go">(5,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The current input values.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_outputs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape_outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array containing the output values.</p>
+<p>The only integer value is the number of output nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_outputs</span>
+<span class="go">(6,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.outputs">
+<span class="sig-name descname"><span class="pre">outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The lastly calculated output values.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_output_derivatives">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape_output_derivatives</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_output_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array containing the output derivatives.</p>
+<p>The only integer value is the number of output nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_output_derivatives</span>
+<span class="go">(6,)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.output_derivatives">
+<span class="sig-name descname"><span class="pre">output_derivatives</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.output_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>The lastly calculated first-order derivatives.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_layers">
+<span class="sig-name descname"><span class="pre">nmb_layers</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_layers" title="Link to this definition">¶</a></dt>
+<dd><p>The number of hidden layers.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_layers</span>
+<span class="go">2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_neurons">
+<span class="sig-name descname"><span class="pre">shape_neurons</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_neurons" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array containing the activations of the neurons of the
+hidden layers.</p>
+<p>The first integer value is the number of hidden layers; the second integer
+value is the maximum number of neurons of all hidden layers:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_neurons</span>
+<span class="go">(3, 4)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.neurons">
+<span class="sig-name descname"><span class="pre">neurons</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.neurons" title="Link to this definition">¶</a></dt>
+<dd><p>The activation of the neurons of the hidden layers.</p>
+<p>See the documentation on properties <a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_neurons" title="hydpy.auxs.anntools.ANN.shape_neurons"><code class="xref py py-const docutils literal notranslate"><span class="pre">shape_neurons</span></code></a> and <a class="reference internal" href="#hydpy.auxs.anntools.ANN.weights_input" title="hydpy.auxs.anntools.ANN.weights_input"><code class="xref py py-const docutils literal notranslate"><span class="pre">weights_input</span></code></a> 
+for further information.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.shape_neuron_derivatives">
+<span class="sig-name descname"><span class="pre">shape_neuron_derivatives</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.shape_neuron_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>The shape of the array containing the derivatives of the activities of the
+neurons of the hidden layers.</p>
+<p>The first integer value is the number of hidden layers; the second integer
+value is the maximum number of neurons of all hidden layers:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">shape_neuron_derivatives</span>
+<span class="go">(3, 4)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.neuron_derivatives">
+<span class="sig-name descname"><span class="pre">neuron_derivatives</span></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.neuron_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>The derivatives of the activation of the neurons of the hidden layers.</p>
+<p>See the documentation on properties <a class="reference internal" href="#hydpy.auxs.anntools.ANN.shape_neuron_derivatives" title="hydpy.auxs.anntools.ANN.shape_neuron_derivatives"><code class="xref py py-const docutils literal notranslate"><span class="pre">shape_neuron_derivatives</span></code></a> and 
+<a class="reference internal" href="#hydpy.auxs.anntools.ANN.weights_input" title="hydpy.auxs.anntools.ANN.weights_input"><code class="xref py py-const docutils literal notranslate"><span class="pre">weights_input</span></code></a> for further information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.calculate_values">
+<span class="sig-name descname"><span class="pre">calculate_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/anntools.html#ANN.calculate_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.anntools.ANN.calculate_values" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the network output values based on the input values defined
+previously.</p>
+<p>For more information, see the documentation on class <a class="reference internal" href="#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.calculate_derivatives">
+<span class="sig-name descname"><span class="pre">calculate_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/anntools.html#ANN.calculate_derivatives"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.anntools.ANN.calculate_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the derivatives of the network output values with respect to the
+input value of the given index.</p>
+<p>For more information, see the documentation on class <a class="reference internal" href="#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_weights">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_weights</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_weights" title="Link to this definition">¶</a></dt>
+<dd><p>The number of all input, inner, and output weights.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_weights</span>
+<span class="go">20</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_intercepts">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_intercepts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_intercepts" title="Link to this definition">¶</a></dt>
+<dd><p>The number of all inner and output intercepts.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_intercepts</span>
+<span class="go">9</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.nmb_parameters">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nmb_parameters</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.anntools.ANN.nmb_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>The sum of <a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_weights" title="hydpy.auxs.anntools.ANN.nmb_weights"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_weights</span></code></a> and <a class="reference internal" href="#hydpy.auxs.anntools.ANN.nmb_intercepts" title="hydpy.auxs.anntools.ANN.nmb_intercepts"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_intercepts</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">(</span><span class="n">nmb_inputs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nmb_neurons</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">nmb_outputs</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">nmb_parameters</span>
+<span class="go">29</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.verify">
+<span class="sig-name descname"><span class="pre">verify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/anntools.html#ANN.verify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.anntools.ANN.verify" title="Link to this definition">¶</a></dt>
+<dd><p>Raise a <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> if the network’s shape is not defined completely.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span> <span class="o">=</span> <span class="n">ANN</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">ann</span><span class="o">.</span><span class="n">nmb_inputs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ann</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The shape of the the artificial neural network parameter `ann` of element `?` is not properly defined.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.anntools.ANN.assignrepr">
+<span class="sig-name descname"><span class="pre">assignrepr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/anntools.html#ANN.assignrepr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.anntools.ANN.assignrepr" title="Link to this definition">¶</a></dt>
+<dd><p>Return a string representation of the actual <a class="reference internal" href="#hydpy.auxs.anntools.ANN" title="hydpy.auxs.anntools.ANN"><code class="xref py py-class docutils literal notranslate"><span class="pre">ANN</span></code></a> object prefixed with the
+given string.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="armatools.html" title="armatools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="auxiliaries.html" title="Auxiliary Tools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" >Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">anntools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

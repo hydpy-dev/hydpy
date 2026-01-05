@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.evap.evap_control &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap.evap_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.evap.evap_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.evap</span><span class="w"> </span><span class="kn">import</span> <span class="n">evap_parameters</span>
+
+
+<div class="viewcode-block" id="NmbHRU">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.NmbHRU">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbHRU</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The number of separately modelled hydrological response units [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nmbhru_old</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">nmbhru_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="n">nmbhru_new</span> <span class="o">!=</span> <span class="n">nmbhru_old</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subpars</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">subpars</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+                        <span class="n">par</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordParameter1D</span>
+                    <span class="p">):</span>
+                        <span class="n">par</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">nmbhru_new</span>
+            <span class="n">seqs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span>
+            <span class="k">for</span> <span class="n">subseqs</span> <span class="ow">in</span> <span class="n">seqs</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">subseqs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">seq</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">seq</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">nmbhru_new</span>
+            <span class="n">seq_</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">seqs</span><span class="o">.</span><span class="n">logs</span><span class="p">,</span> <span class="s2">&quot;loggedpotentialevapotranspiration&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">seq_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">seq_</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span></div>
+
+
+
+<div class="viewcode-block" id="HRUType">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.HRUType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HRUType</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">NameParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hydrological response unit type [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">constants</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Constants</span><span class="p">(</span><span class="n">ANY</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Water">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.Water">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Water</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A flag that indicates whether the individual zones are water areas or not.&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Interception">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.Interception">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Interception</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A flag that indicates whether interception evaporation is relevant for the</span>
+<span class="sd">    individual zones.&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Soil">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.Soil">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Soil</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A flag that indicates whether soil evapotranspiration is relevant for the</span>
+<span class="sd">    individual zones.&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Plant">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.Plant">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Plant</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A flag that indicates whether the individual zones contain any vegetation.&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Tree">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.Tree">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Tree</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A flag that indicates whether the individual zones contain tree-like</span>
+<span class="sd">    vegetation.&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Conifer">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.Conifer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Conifer</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A flag that indicates whether the individual zones contain conifer-like</span>
+<span class="sd">    vegetation.&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="HRUArea">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.HRUArea">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HRUArea</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The area of each hydrological response unit [km²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="HRUAltitude">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.HRUAltitude">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HRUAltitude</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The altitude of each hydrological response unit [m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="MeasuringHeightWindSpeed">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.MeasuringHeightWindSpeed">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MeasuringHeightWindSpeed</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The height above ground of the wind speed measurements [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">10.0</span></div>
+
+
+
+<div class="viewcode-block" id="AirTemperatureAddend">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.AirTemperatureAddend">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AirTemperatureAddend</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adjustment addend for air temperature [K].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="CoastFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.CoastFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CoastFactor</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The &quot;coast factor&quot; of Turc-Wendling&#39;s reference evapotranspiration equation</span>
+<span class="sd">    [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="Albedo">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.Albedo">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Albedo</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">LandMonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Earth surface albedo [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.5</span></div>
+
+
+
+<div class="viewcode-block" id="GroundAlbedo">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.GroundAlbedo">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GroundAlbedo</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The albedo of the snow-free ground (including soils, sealed surfaces, and water</span>
+<span class="sd">    areas) [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.2</span></div>
+
+
+
+<div class="viewcode-block" id="GroundAlbedoSnow">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.GroundAlbedoSnow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GroundAlbedoSnow</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The albedo of the snow-covered ground (including soils and sealed surfaces)</span>
+<span class="sd">    [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.8</span></div>
+
+
+
+<div class="viewcode-block" id="LeafAlbedo">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.LeafAlbedo">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LeafAlbedo</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">PlantParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The albedo of the snow-free leaves [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.2</span></div>
+
+
+
+<div class="viewcode-block" id="LeafAlbedoSnow">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.LeafAlbedoSnow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LeafAlbedoSnow</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">PlantParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The albedo of the snow-covered leaves [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.8</span></div>
+
+
+
+<div class="viewcode-block" id="LeafAreaIndex">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.LeafAreaIndex">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LeafAreaIndex</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">LandMonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Leaf area index [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">5.0</span></div>
+
+
+
+<div class="viewcode-block" id="CropHeight">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.CropHeight">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CropHeight</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">LandMonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Crop height [m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="CloudTypeFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.CloudTypeFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CloudTypeFactor</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Cloud type-specific factor for calculating atmospheric longwave counter radiation</span>
+<span class="sd">    [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.2</span></div>
+
+
+
+<div class="viewcode-block" id="NightCloudFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.NightCloudFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NightCloudFactor</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factor for adjusting daytime estimates of the cloud coverage degree to nighttime</span>
+<span class="sd">    [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="Emissivity">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.Emissivity">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Emissivity</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The emissivity of the land surface [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.95</span></div>
+
+
+
+<div class="viewcode-block" id="AverageSoilHeatFlux">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.AverageSoilHeatFlux">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AverageSoilHeatFlux</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Monthly averages of the soil heat flux [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="SurfaceResistance">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.SurfaceResistance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceResistance</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">LandMonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface resistance of water areas, sealed areas, and vegetation with sufficient</span>
+<span class="sd">    water supply [s/m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">100.0</span></div>
+
+
+
+<div class="viewcode-block" id="WetSoilResistance">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.WetSoilResistance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WetSoilResistance</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">SoilParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface resistance of wet soils [s/m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">100.0</span></div>
+
+
+
+<div class="viewcode-block" id="SoilResistanceIncrease">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.SoilResistanceIncrease">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilResistanceIncrease</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">SoilParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Increase in soil surface resistance if evaporation dominates precipitation</span>
+<span class="sd">    [s/m/T].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="WetnessThreshold">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.WetnessThreshold">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WetnessThreshold</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">SoilParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The ratio between precipitation and potential evapotranspiration above which the</span>
+<span class="sd">    topmost soil layer becomes wet [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="LeafResistance">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.LeafResistance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LeafResistance</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">PlantParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface resistance of plant leaves [s/m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">100.0</span></div>
+
+
+
+<div class="viewcode-block" id="EvapotranspirationFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.EvapotranspirationFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EvapotranspirationFactor</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The adjustment factor for potential evapotranspiration [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="MonthFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.MonthFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MonthFactor</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factor for converting general potential evaporation or evapotranspiration</span>
+<span class="sd">    (usually grass reference evapotranspiration) to month-specific potential</span>
+<span class="sd">    evaporation or evapotranspiration [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LandMonthFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.LandMonthFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandMonthFactor</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">LandMonthParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factor for converting general potential evaporation or evapotranspiration</span>
+<span class="sd">    (usually grass reference evapotranspiration) to land-use- and month-specific</span>
+<span class="sd">    potential evaporation or evapotranspiration [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AltitudeFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.AltitudeFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AltitudeFactor</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decrease of potential evapotranspiration with altitude [-1/100m].</span>
+
+<span class="sd">    In the terminology of HBV96: ECAlt.&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.1</span></div>
+
+
+
+<div class="viewcode-block" id="PrecipitationFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.PrecipitationFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PrecipitationFactor</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Decrease in potential evapotranspiration due to precipitation [T/mm].</span>
+
+<span class="sd">    In the terminology of HBV96: EPF.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="AirTemperatureFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.AirTemperatureFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AirTemperatureFactor</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Temperature factor related to the difference of current reference</span>
+<span class="sd">    evapotranspiration and normal reference evapotranspiration [1/°C].</span>
+
+<span class="sd">    In the terminology of HBV96: ETF.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.1</span></div>
+
+
+
+<div class="viewcode-block" id="DampingFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.DampingFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DampingFactor</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">ZipParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Damping factor (temporal weighting factor) for potential evapotranspiration</span>
+<span class="sd">    [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="TemperatureThresholdIce">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.TemperatureThresholdIce">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TemperatureThresholdIce</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">WaterParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Temperature threshold for evaporation from water areas [°C].</span>
+
+<span class="sd">    In the terminology of HBV96: TTIce.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MaxSoilWater">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.MaxSoilWater">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaxSoilWater</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">SoilParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum soil water content [mm].</span>
+
+<span class="sd">    In the terminology of HBV96: FC.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">200.0</span></div>
+
+
+
+<div class="viewcode-block" id="SoilMoistureLimit">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.SoilMoistureLimit">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilMoistureLimit</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">SoilParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative soil moisture limit for potential evapotranspiration [-].</span>
+
+<span class="sd">    In the terminology of HBV96: `LP`. Typical value: 0.9.</span>
+
+<span class="sd">    In the terminology of MORECS: `PY`. Typical value: 0.6.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.9</span></div>
+
+
+
+<div class="viewcode-block" id="ExcessReduction">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.ExcessReduction">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExcessReduction</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">SoilParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A factor for restricting actual to potential evapotranspiration [-].</span>
+
+<span class="sd">    In the terminology of HBV96: ERED.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="DisseFactor">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_control.DisseFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DisseFactor</span><span class="p">(</span><span class="n">evap_parameters</span><span class="o">.</span><span class="n">SoilParameter1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Factor for calculating actual soil evapotranspiration based on potential</span>
+<span class="sd">    evapotranspiration estimates that follow the :cite:t:`ref-Disse1995` formulation of</span>
+<span class="sd">    the :cite:t:`ref-Minhas1974` equation.</span>
+
+<span class="sd">    In the terminology of :cite:t:`ref-Minhas1974` and :cite:t:`ref-Disse1995`: r.</span>
+
+<span class="sd">    In the terminology of LARSIM: GRASREF_R.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">5.0</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap.evap_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

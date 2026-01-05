@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>wq_trapeze_strickler &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="wq_walrus" href="wq_walrus.html" />
+    <link rel="prev" title="wq_trapeze" href="wq_trapeze.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="wq_walrus.html" title="wq_walrus"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="wq_trapeze.html" title="wq_trapeze"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-WQ.html" accesskey="U">HydPy-WQ</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">wq_trapeze_strickler</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="wq.html">wq</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wq_trapeze.html">wq_trapeze</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">wq_trapeze_strickler</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.wq_trapeze_strickler.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.wq_trapeze_strickler.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.wq_trapeze_strickler.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.wq_trapeze_strickler.Model.prepare_bottomslope"><code class="docutils literal notranslate"><span class="pre">Model.prepare_bottomslope</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.wq_trapeze_strickler.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.wq_trapeze_strickler.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.wq_trapeze_strickler.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.wq_trapeze_strickler.FactorSequences"><code class="docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.wq_trapeze_strickler.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="wq_walrus.html">wq_walrus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="wq_widths_strickler.html">wq_widths_strickler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="wq_trapeze.html"
+                          title="previous chapter">wq_trapeze</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="wq_walrus.html"
+                          title="next chapter">wq_walrus</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/wq_trapeze_strickler.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="wq-trapeze-strickler">
+<span id="id1"></span><h1>HydPy-WQ-Trapeze-Strickler (multi-trapeze river profile submodel including Strickler-based calculations)<a class="headerlink" href="#wq-trapeze-strickler" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.wq_trapeze_strickler"><a class="reference internal" href="#module-hydpy.models.wq_trapeze_strickler" title="hydpy.models.wq_trapeze_strickler"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wq_trapeze_strickler</span></code></a> is a stateless submodel that requires information on the current
+water level or depth from its main model (usually a routing model).  It returns the
+corresponding discharge and related properties, such as the kinematic wave celerity.
+See the documentation on the application model <a class="reference internal" href="musk_mct.html#module-hydpy.models.musk_mct" title="hydpy.models.musk_mct"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_mct</span></code></a>, which shows how to use
+<a class="reference internal" href="#module-hydpy.models.wq_trapeze_strickler" title="hydpy.models.wq_trapeze_strickler"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wq_trapeze_strickler</span></code></a> in practice.  Also, please see the documentation on the related
+application model <a class="reference internal" href="wq_trapeze.html#module-hydpy.models.wq_trapeze" title="hydpy.models.wq_trapeze"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wq_trapeze</span></code></a>, which also relies on stacket and symmetric trapezes but
+does not include discharge calculations.</p>
+<p><a class="reference internal" href="wq_trapeze.html#module-hydpy.models.wq_trapeze" title="hydpy.models.wq_trapeze"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wq_trapeze</span></code></a> and <a class="reference internal" href="#module-hydpy.models.wq_trapeze_strickler" title="hydpy.models.wq_trapeze_strickler"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wq_trapeze_strickler</span></code></a> offer the same plotting functionalities.  To
+avoid redundancies, we give a single example for <a class="reference internal" href="#module-hydpy.models.wq_trapeze_strickler" title="hydpy.models.wq_trapeze_strickler"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wq_trapeze_strickler</span></code></a> and refer you
+to the documentation on <a class="reference internal" href="wq_trapeze.html#module-hydpy.models.wq_trapeze" title="hydpy.models.wq_trapeze"><code class="xref py py-mod docutils literal notranslate"><span class="pre">wq_trapeze</span></code></a> for further details:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_autofig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.wq_trapeze_strickler</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nmbtrapezes</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bottomlevels</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bottomwidths</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sideslopes</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">trapezeheights</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">slopewidths</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_autofig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wq_trapeze_strickler_three_trapezes.png&quot;</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/wq_trapeze_strickler_three_trapezes.png"><img alt="_images/wq_trapeze_strickler_three_trapezes.png" src="_images/wq_trapeze_strickler_three_trapezes.png" width="400" />
+</a>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.wq_trapeze_strickler.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.wq_trapeze_strickler.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/wq_trapeze_strickler.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.wq_trapeze_strickler.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.TrapezeModel" title="hydpy.models.wq.wq_model.TrapezeModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">TrapezeModel</span></code></a>, <a class="reference internal" href="routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1" title="hydpy.interfaces.routinginterfaces.CrossSectionModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossSectionModel_V1</span></code></a></p>
+<p>HydPy-WQ-Trapeze-Strickler (multi-trapeze river profile submodel including Strickler-based calculations).</p>
+<dl class="simple">
+<dt>The following interface methods are available to main models using the defined model as a submodel:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Use_WaterDepth_V1" title="hydpy.models.wq.wq_model.Use_WaterDepth_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Use_WaterDepth_V1</span></code></a> Set the water depth in m and use it to calculate all other properties.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Use_WaterLevel_V1" title="hydpy.models.wq.wq_model.Use_WaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Use_WaterLevel_V1</span></code></a> Set the water level in m and use it to calculate all other properties.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Get_WettedArea_V1" title="hydpy.models.wq.wq_model.Get_WettedArea_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_WettedArea_V1</span></code></a> Get the wetted area in m².</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Get_SurfaceWidth_V1" title="hydpy.models.wq.wq_model.Get_SurfaceWidth_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_SurfaceWidth_V1</span></code></a> Get the surface width in m.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Get_Discharge_V1" title="hydpy.models.wq.wq_model.Get_Discharge_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_Discharge_V1</span></code></a> Get the discharge in m³/s.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Get_Celerity_V1" title="hydpy.models.wq.wq_model.Get_Celerity_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_Celerity_V1</span></code></a> Get the wave celerity in m/s.</p></li>
+</ul>
+</dd>
+<dt>The following “additional methods” might be called by one or more of the other methods or are meant to be directly called by the user:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Set_WaterDepth_V1" title="hydpy.models.wq.wq_model.Set_WaterDepth_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set_WaterDepth_V1</span></code></a> Set the water depth in m.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Set_WaterLevel_V1" title="hydpy.models.wq.wq_model.Set_WaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set_WaterLevel_V1</span></code></a> Set the water level in m.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_WaterDepth_V1" title="hydpy.models.wq.wq_model.Calc_WaterDepth_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WaterDepth_V1</span></code></a> Calculate the water depth based on the current water level.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_WaterLevel_V1" title="hydpy.models.wq.wq_model.Calc_WaterLevel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WaterLevel_V1</span></code></a> Calculate the water level based on the current water depth.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_WettedAreas_V1" title="hydpy.models.wq.wq_model.Calc_WettedAreas_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WettedAreas_V1</span></code></a> Calculate the wetted area for each trapeze range.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_WettedArea_V1" title="hydpy.models.wq.wq_model.Calc_WettedArea_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WettedArea_V1</span></code></a> Sum up the individual trapeze ranges’ wetted areas.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_WettedPerimeters_V1" title="hydpy.models.wq.wq_model.Calc_WettedPerimeters_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WettedPerimeters_V1</span></code></a> Calculate the wetted perimeter for each trapeze range.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_WettedPerimeterDerivatives_V1" title="hydpy.models.wq.wq_model.Calc_WettedPerimeterDerivatives_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WettedPerimeterDerivatives_V1</span></code></a> Calculate the change in the wetted perimeter of each trapeze range with respect to the water level increase.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_SurfaceWidths_V1" title="hydpy.models.wq.wq_model.Calc_SurfaceWidths_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SurfaceWidths_V1</span></code></a> Calculate the surface width for each trapeze range.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_SurfaceWidth_V1" title="hydpy.models.wq.wq_model.Calc_SurfaceWidth_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SurfaceWidth_V1</span></code></a> Sum the individual trapeze ranges’ surface widths.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_Discharges_V1" title="hydpy.models.wq.wq_model.Calc_Discharges_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Discharges_V1</span></code></a> Calculate the discharge for each trapeze range.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_Discharge_V2" title="hydpy.models.wq.wq_model.Calc_Discharge_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Discharge_V2</span></code></a> Sum the individual trapeze ranges’ discharges.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_DischargeDerivatives_V1" title="hydpy.models.wq.wq_model.Calc_DischargeDerivatives_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_DischargeDerivatives_V1</span></code></a> Calculate the discharge change for each trapeze range with respect to a water level increase.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_DischargeDerivative_V1" title="hydpy.models.wq.wq_model.Calc_DischargeDerivative_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_DischargeDerivative_V1</span></code></a> Sum the individual trapeze ranges’ discharge derivatives.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_model.Calc_Celerity_V1" title="hydpy.models.wq.wq_model.Calc_Celerity_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Celerity_V1</span></code></a> Calculate the kinematic wave celerity.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.wq_trapeze_strickler.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('WQ-Trapeze-Strickler',</span> <span class="pre">'multi-trapeze</span> <span class="pre">river</span> <span class="pre">profile</span> <span class="pre">submodel</span> <span class="pre">including</span> <span class="pre">Strickler-based</span> <span class="pre">calculations')</span></span><a class="headerlink" href="#hydpy.models.wq_trapeze_strickler.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.wq_trapeze_strickler.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.wq_trapeze_strickler.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.wq_trapeze_strickler.Model.prepare_bottomslope">
+<span class="sig-name descname"><span class="pre">prepare_bottomslope</span></span><a class="headerlink" href="#hydpy.models.wq_trapeze_strickler.Model.prepare_bottomslope" title="Link to this definition">¶</a></dt>
+<dd><p>Set the bottom’s slope (in the longitudinal direction) [-].</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.wq_trapeze_strickler</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">prepare_bottomslope</span><span class="p">(</span><span class="mf">0.01</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bottomslope</span>
+<span class="go">bottomslope(0.01)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.wq_trapeze_strickler.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.wq_trapeze_strickler.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.wq_trapeze_strickler.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.wq_trapeze_strickler.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.wq_trapeze_strickler.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model wq_trapeze_strickler.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_control.NmbTrapezes" title="hydpy.models.wq.wq_control.NmbTrapezes"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbTrapezes()</span></code></a> Number of trapezes defining the cross section [-].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_control.BottomLevels" title="hydpy.models.wq.wq_control.BottomLevels"><code class="xref py py-func docutils literal notranslate"><span class="pre">BottomLevels()</span></code></a> The bottom level for each trapeze [m].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_control.BottomWidths" title="hydpy.models.wq.wq_control.BottomWidths"><code class="xref py py-func docutils literal notranslate"><span class="pre">BottomWidths()</span></code></a> The bottom width for each trapeze [m].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_control.SideSlopes" title="hydpy.models.wq.wq_control.SideSlopes"><code class="xref py py-func docutils literal notranslate"><span class="pre">SideSlopes()</span></code></a> The side slope for each trapeze[-].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_control.StricklerCoefficients" title="hydpy.models.wq.wq_control.StricklerCoefficients"><code class="xref py py-func docutils literal notranslate"><span class="pre">StricklerCoefficients()</span></code></a> Manning-Strickler coefficient for each trapeze or sector [m^(1/3)/s].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_control.CalibrationFactors" title="hydpy.models.wq.wq_control.CalibrationFactors"><code class="xref py py-func docutils literal notranslate"><span class="pre">CalibrationFactors()</span></code></a> Calibration factor for each trapeze or sector [-].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_control.BottomSlope" title="hydpy.models.wq.wq_control.BottomSlope"><code class="xref py py-func docutils literal notranslate"><span class="pre">BottomSlope()</span></code></a> Bottom slope [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.wq_trapeze_strickler.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.wq_trapeze_strickler.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.wq_trapeze_strickler.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model wq_trapeze_strickler.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_derived.BottomDepths" title="hydpy.models.wq.wq_derived.BottomDepths"><code class="xref py py-func docutils literal notranslate"><span class="pre">BottomDepths()</span></code></a> The cumulated depth of a trapeze and its lower neighbours [m].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_derived.TrapezeHeights" title="hydpy.models.wq.wq_derived.TrapezeHeights"><code class="xref py py-func docutils literal notranslate"><span class="pre">TrapezeHeights()</span></code></a> The individual height of each trapeze [m].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_derived.SlopeWidths" title="hydpy.models.wq.wq_derived.SlopeWidths"><code class="xref py py-func docutils literal notranslate"><span class="pre">SlopeWidths()</span></code></a> The total width of both side slopes of each trapeze.</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_derived.PerimeterDerivatives" title="hydpy.models.wq.wq_derived.PerimeterDerivatives"><code class="xref py py-func docutils literal notranslate"><span class="pre">PerimeterDerivatives()</span></code></a> Change of the perimeter of each trapeze relative to a water level increase within the trapeze’s range [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.wq_trapeze_strickler.FactorSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.wq_trapeze_strickler.</span></span><span class="sig-name descname"><span class="pre">FactorSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.wq_trapeze_strickler.FactorSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequences" title="hydpy.core.sequencetools.FactorSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></p>
+<p>Factor sequences of model wq_trapeze_strickler.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.WaterDepth" title="hydpy.models.wq.wq_factors.WaterDepth"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterDepth()</span></code></a> Water depth [m].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.WaterLevel" title="hydpy.models.wq.wq_factors.WaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevel()</span></code></a> Water level [m].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.WettedAreas" title="hydpy.models.wq.wq_factors.WettedAreas"><code class="xref py py-func docutils literal notranslate"><span class="pre">WettedAreas()</span></code></a> Wetted area of each trapeze range [m²].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.WettedArea" title="hydpy.models.wq.wq_factors.WettedArea"><code class="xref py py-func docutils literal notranslate"><span class="pre">WettedArea()</span></code></a> Total wetted area [m²].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.WettedPerimeters" title="hydpy.models.wq.wq_factors.WettedPerimeters"><code class="xref py py-func docutils literal notranslate"><span class="pre">WettedPerimeters()</span></code></a> Wetted perimeter of each trapeze range [m].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.WettedPerimeterDerivatives" title="hydpy.models.wq.wq_factors.WettedPerimeterDerivatives"><code class="xref py py-func docutils literal notranslate"><span class="pre">WettedPerimeterDerivatives()</span></code></a> Change in the wetted perimeter of each trapeze range with respect to a water level increase [-].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.SurfaceWidths" title="hydpy.models.wq.wq_factors.SurfaceWidths"><code class="xref py py-func docutils literal notranslate"><span class="pre">SurfaceWidths()</span></code></a> Surface width of each trapeze range [m].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.SurfaceWidth" title="hydpy.models.wq.wq_factors.SurfaceWidth"><code class="xref py py-func docutils literal notranslate"><span class="pre">SurfaceWidth()</span></code></a> Total surface width [m].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.DischargeDerivatives" title="hydpy.models.wq.wq_factors.DischargeDerivatives"><code class="xref py py-func docutils literal notranslate"><span class="pre">DischargeDerivatives()</span></code></a> Discharge change of each trapeze range with respect to a water level increase [m²/s].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.DischargeDerivative" title="hydpy.models.wq.wq_factors.DischargeDerivative"><code class="xref py py-func docutils literal notranslate"><span class="pre">DischargeDerivative()</span></code></a> Total discharge change with respect to a water level increase [m²/s].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_factors.Celerity" title="hydpy.models.wq.wq_factors.Celerity"><code class="xref py py-func docutils literal notranslate"><span class="pre">Celerity()</span></code></a> Kinematic celerity (wave speed) [m/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.wq_trapeze_strickler.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.wq_trapeze_strickler.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.wq_trapeze_strickler.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model wq_trapeze_strickler.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_fluxes.Discharges" title="hydpy.models.wq.wq_fluxes.Discharges"><code class="xref py py-func docutils literal notranslate"><span class="pre">Discharges()</span></code></a> The discharge of each trapeze range [m³/s].</p></li>
+<li><p><a class="reference internal" href="wq.html#hydpy.models.wq.wq_fluxes.Discharge" title="hydpy.models.wq.wq_fluxes.Discharge"><code class="xref py py-func docutils literal notranslate"><span class="pre">Discharge()</span></code></a> Total discharge [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="wq_walrus.html" title="wq_walrus"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="wq_trapeze.html" title="wq_trapeze"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-WQ.html" >HydPy-WQ</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">wq_trapeze_strickler</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

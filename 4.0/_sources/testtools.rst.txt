@@ -1,0 +1,74 @@
+.. |Array| replace:: :class:`~hydpy.core.testtools.Array`
+.. |Cythonizer| replace:: :class:`~hydpy.cythons.modelutils.Cythonizer`
+.. |Date| replace:: :class:`~hydpy.core.timetools.Date`
+.. |IntegrationTest.dateformat| replace:: :const:`~hydpy.core.testtools.IntegrationTest.dateformat`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |Method| replace:: :class:`~hydpy.core.modeltools.Method`
+.. |ModelSequence| replace:: :class:`~hydpy.core.sequencetools.ModelSequence`
+.. |NotImplementedError| replace:: :class:`NotImplementedError`
+.. |NumericalDifferentiator| replace:: :class:`~hydpy.core.testtools.NumericalDifferentiator`
+.. |Open| replace:: :class:`~hydpy.core.testtools.Open`
+.. |Options.usecython| replace:: :const:`~hydpy.core.optiontools.Options.usecython`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |Sequence_| replace:: :class:`~hydpy.core.sequencetools.Sequence_`
+.. |TestIO.clear| replace:: :func:`~hydpy.core.testtools.TestIO.clear`
+.. |TestIO| replace:: :class:`~hydpy.core.testtools.TestIO`
+.. |Tester.perform_tests| replace:: :func:`~hydpy.core.testtools.Tester.perform_tests`
+.. |Tester| replace:: :class:`~hydpy.core.testtools.Tester`
+.. |Test| replace:: :class:`~hydpy.core.testtools.Test`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |True| replace:: :const:`True`
+.. |UnitTest.nexts| replace:: :const:`~hydpy.core.testtools.UnitTest.nexts`
+.. |UnitTest.results| replace:: :const:`~hydpy.core.testtools.UnitTest.results`
+.. |UnitTest| replace:: :class:`~hydpy.core.testtools.UnitTest`
+.. |arma_v1| replace:: :mod:`~hydpy.models.arma_v1`
+.. |arma| replace:: :mod:`~hydpy.models.arma`
+.. |check_methodorder| replace:: :func:`~hydpy.core.testtools.check_methodorder`
+.. |check_selectedvariables| replace:: :func:`~hydpy.core.testtools.check_selectedvariables`
+.. |conv_v001| replace:: :mod:`~hydpy.models.conv_v001`
+.. |datetime| replace:: :mod:`~datetime`
+.. |llake_v1| replace:: :mod:`~hydpy.models.llake_v1`
+.. |lland_v3| replace:: :mod:`~hydpy.models.lland_v3`
+.. |lland| replace:: :mod:`~hydpy.models.lland`
+.. |make_abc_testable| replace:: :func:`~hydpy.core.testtools.make_abc_testable`
+.. |os| replace:: :mod:`~os`
+.. |perform_consistencychecks| replace:: :func:`~hydpy.core.testtools.perform_consistencychecks`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |save_autofig| replace:: :func:`~hydpy.core.testtools.save_autofig`
+.. |update_integrationtests| replace:: :func:`~hydpy.core.testtools.update_integrationtests`
+.. |arma_model.Pick_Q_V1| replace:: :class:`~hydpy.models.arma.arma_model.Pick_Q_V1`
+.. |conv_model.Pass_Outputs_V1| replace:: :class:`~hydpy.models.conv.conv_model.Pass_Outputs_V1`
+.. |datetime.datetime.now| replace:: :func:`~datetime.datetime.now`
+.. |datetime.datetime| replace:: :class:`~datetime.datetime`
+.. |hland_control.ZoneType| replace:: :class:`~hydpy.models.hland.hland_control.ZoneType`
+.. |lland_fluxes.DryAirPressure| replace:: :class:`~hydpy.models.lland.lland_fluxes.DryAirPressure`
+.. |lland_fluxes.TKor| replace:: :class:`~hydpy.models.lland.lland_fluxes.TKor`
+.. |lland_fluxes.WindSpeed10m| replace:: :class:`~hydpy.models.lland.lland_fluxes.WindSpeed10m`
+.. |lland_model.Calc_DryAirPressure_V1| replace:: :class:`~hydpy.models.lland.lland_model.Calc_DryAirPressure_V1`
+.. |lland_model.Calc_QA_V1| replace:: :class:`~hydpy.models.lland.lland_model.Calc_QA_V1`
+.. |lland_model.Calc_TKor_V1| replace:: :class:`~hydpy.models.lland.lland_model.Calc_TKor_V1`
+.. |lland_model.Calc_WindSpeed2m_V1| replace:: :class:`~hydpy.models.lland.lland_model.Calc_WindSpeed2m_V1`
+.. |lland_model.Return_AdjustedWindSpeed_V1| replace:: :class:`~hydpy.models.lland.lland_model.Return_AdjustedWindSpeed_V1`
+.. |lland_model.Return_BackwardEulerError_V1| replace:: :class:`~hydpy.models.lland.lland_model.Return_BackwardEulerError_V1`
+.. |lland_model.Update_ESnow_V1| replace:: :class:`~hydpy.models.lland.lland_model.Update_ESnow_V1`
+.. |lstream_aides.AM| replace:: :class:`~hydpy.models.lstream.lstream_aides.AM`
+.. |lstream_aides.RHM| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHM`
+.. |lstream_aides.RHV| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHV`
+.. |lstream_aides.UM| replace:: :class:`~hydpy.models.lstream.lstream_aides.UM`
+.. |lstream_model.Calc_AMDH_UMDH_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_AMDH_UMDH_V1`
+.. |lstream_model.Calc_AM_UM_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_AM_UM_V1`
+.. |lstream_model.Calc_RHMDH_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_RHMDH_V1`
+.. |lstream_model.Calc_RHM_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_RHM_V1`
+.. |lstream_model.Calc_RHV_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Calc_RHV_V1`
+.. |lstream_states.H| replace:: :class:`~hydpy.models.lstream.lstream_states.H`
+.. |numpy.ndarray| replace:: :class:`~numpy.ndarray`
+
+.. _testtools:
+
+testtools
+=========
+
+.. automodule:: hydpy.core.testtools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

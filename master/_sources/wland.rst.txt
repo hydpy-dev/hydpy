@@ -1,0 +1,92 @@
+.. |AC| replace:: :class:`~hydpy.models.wland.wland_control.AC`
+.. |AGR| replace:: :class:`~hydpy.models.wland.wland_derived.AGR`
+.. |ALR| replace:: :class:`~hydpy.models.wland.wland_derived.ALR`
+.. |ASR| replace:: :class:`~hydpy.models.wland.wland_derived.ASR`
+.. |AT| replace:: :class:`~hydpy.models.wland.wland_control.AT`
+.. |AUR| replace:: :class:`~hydpy.models.wland.wland_control.AUR`
+.. |BL| replace:: :class:`~hydpy.models.wland.wland_control.BL`
+.. |BaseModel.check_waterbalance| replace:: :func:`~hydpy.models.wland.wland_model.BaseModel.check_waterbalance`
+.. |B| replace:: :class:`~hydpy.models.wland.wland_control.B`
+.. |CD| replace:: :class:`~hydpy.models.wland.wland_derived.CD`
+.. |CGF| replace:: :class:`~hydpy.models.wland.wland_control.CGF`
+.. |Calc_CDG_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_CDG_V1`
+.. |Calc_CDG_V2| replace:: :class:`~hydpy.models.wland.wland_model.Calc_CDG_V2`
+.. |Calc_DGEq_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DGEq_V1`
+.. |Calc_DVEq_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V1`
+.. |Calc_DVEq_V2| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V2`
+.. |Calc_DVEq_V3| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V3`
+.. |Calc_DVEq_V4| replace:: :class:`~hydpy.models.wland.wland_model.Calc_DVEq_V4`
+.. |Calc_FGSE_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_FGSE_V1`
+.. |Calc_FGS_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_FGS_V1`
+.. |Calc_GF_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_GF_V1`
+.. |Calc_RH_V1| replace:: :class:`~hydpy.models.wland.wland_model.Calc_RH_V1`
+.. |DDT| replace:: :class:`~hydpy.models.wland.wland_control.DDT`
+.. |DGC| replace:: :class:`~hydpy.models.wland.wland_control.DGC`
+.. |DGEq| replace:: :class:`~hydpy.models.wland.wland_aides.DGEq`
+.. |DG| replace:: :class:`~hydpy.models.wland.wland_states.DG`
+.. |DHS| replace:: :class:`~hydpy.models.wland.wland_factors.DHS`
+.. |DVEq| replace:: :class:`~hydpy.models.wland.wland_aides.DVEq`
+.. |DischargeModel_V2| replace:: :class:`~hydpy.interfaces.dischargeinterfaces.DischargeModel_V2`
+.. |EI| replace:: :class:`~hydpy.models.wland.wland_fluxes.EI`
+.. |FGSE| replace:: :class:`~hydpy.models.wland.wland_fluxes.FGSE`
+.. |FGS| replace:: :class:`~hydpy.models.wland.wland_fluxes.FGS`
+.. |FluxSequence1DComplete| replace:: :class:`~hydpy.models.wland.wland_sequences.FluxSequence1DComplete`
+.. |FluxSequence1DLand| replace:: :class:`~hydpy.models.wland.wland_sequences.FluxSequence1DLand`
+.. |GF| replace:: :class:`~hydpy.models.wland.wland_aides.GF`
+.. |GL| replace:: :class:`~hydpy.models.wland.wland_control.GL`
+.. |HS| replace:: :class:`~hydpy.models.wland.wland_states.HS`
+.. |IC| replace:: :class:`~hydpy.models.wland.wland_states.IC`
+.. |LT| replace:: :class:`~hydpy.models.wland.wland_control.LT`
+.. |Main_DischargeModel_V2.add_dischargemodel_v2| replace:: :func:`~hydpy.models.wland.wland_model.Main_DischargeModel_V2.add_dischargemodel_v2`
+.. |NUG| replace:: :class:`~hydpy.models.wland.wland_derived.NUG`
+.. |NUL| replace:: :class:`~hydpy.models.wland.wland_derived.NUL`
+.. |NU| replace:: :class:`~hydpy.models.wland.wland_control.NU`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PETModel_V2| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V2`
+.. |PET| replace:: :class:`~hydpy.models.wland.wland_fluxes.PET`
+.. |PE| replace:: :class:`~hydpy.models.wland.wland_fluxes.PE`
+.. |PegasusDGEq| replace:: :class:`~hydpy.models.wland.wland_model.PegasusDGEq`
+.. |Pick_HS_V1| replace:: :class:`~hydpy.models.wland.wland_model.Pick_HS_V1`
+.. |PrecipModel_V1| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V1`
+.. |PsiAE| replace:: :class:`~hydpy.models.wland.wland_control.PsiAE`
+.. |QF| replace:: :class:`~hydpy.models.wland.wland_derived.QF`
+.. |RG| replace:: :class:`~hydpy.models.wland.wland_control.RG`
+.. |RH| replace:: :class:`~hydpy.models.wland.wland_fluxes.RH`
+.. |Return_DVH_V1| replace:: :class:`~hydpy.models.wland.wland_model.Return_DVH_V1`
+.. |Return_DVH_V2| replace:: :class:`~hydpy.models.wland.wland_model.Return_DVH_V2`
+.. |Return_ErrorDV_V1| replace:: :class:`~hydpy.models.wland.wland_model.Return_ErrorDV_V1`
+.. |SAND| replace:: :const:`~hydpy.models.wland.wland_constants.SAND`
+.. |SEALED| replace:: :const:`~hydpy.models.wland.wland_constants.SEALED`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |SnowCoverModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.SnowCoverModel_V1`
+.. |SoilParameter| replace:: :class:`~hydpy.models.wland.wland_parameters.SoilParameter`
+.. |TempModel_V1| replace:: :class:`~hydpy.interfaces.tempinterfaces.TempModel_V1`
+.. |ThetaR| replace:: :class:`~hydpy.models.wland.wland_control.ThetaR`
+.. |ThetaS| replace:: :class:`~hydpy.models.wland.wland_control.ThetaS`
+.. |True| replace:: :const:`True`
+.. |WATER| replace:: :const:`~hydpy.models.wland.wland_constants.WATER`
+.. |WaterLevelModel_V1| replace:: :class:`~hydpy.interfaces.stateinterfaces.WaterLevelModel_V1`
+.. |evap_pet_ambav1| replace:: :mod:`~hydpy.models.evap_pet_ambav1`
+.. |evap_ret_tw2002| replace:: :mod:`~hydpy.models.evap_ret_tw2002`
+.. |exch_waterlevel| replace:: :mod:`~hydpy.models.exch_waterlevel`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |wland.DOCNAME.complete| replace:: HydPy-W (base model)
+.. |wland.DOCNAME.long| replace:: HydPy-W
+.. |wland_constants| replace:: :mod:`~hydpy.models.wland.wland_constants`
+.. |wland_gd| replace:: :mod:`~hydpy.models.wland_gd`
+.. |wland_wag| replace:: :mod:`~hydpy.models.wland_wag`
+.. |wland| replace:: :mod:`~hydpy.models.wland`
+.. |wq_walrus| replace:: :mod:`~hydpy.models.wq_walrus`
+.. |evap_model.Update_SoilEvapotranspiration_V3| replace:: :class:`~hydpy.models.evap.evap_model.Update_SoilEvapotranspiration_V3`
+
+.. _wland:
+
+wland
+=====
+
+.. automodule:: hydpy.models.wland
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, MutableSequence, KeysView, SENDER_METHODS, Set, Mapping, TextIO, Container, Tuple, Optional, ValuesView, no_type_check, clear_overloads, TypeForm, LiteralString, subvars, get_original_bases, seqs, REQUIREDSEQUENCES, ADD_METHODS, SOLVERSEQUENCES, overload, type_repr, Sentinel, SUBMETHODS, SupportsBytes, NoReturn, UPDATEDSEQUENCES, SupportsIndex, Generic, Protocol, MutableSet, disjoint_base, Coroutine, fastaccess_new, ReceiverSequences, DERIVEDPARAMETERS, SUBMODELINTERFACES, NoExtraItems, Format, CLASSES, Required, final, Unpack, Text, INLET_METHODS, fastaccess_old, ClassVar, ContextManager, Final, cast, Annotated, Callable, override, ParamSpecKwargs, Sized, List, Generator, SupportsAbs, Concatenate, fastaccess, TypeAlias, FULL_ODE_METHODS, FIXEDPARAMETERS, Reader, RECEIVER_METHODS, TypeVarTuple, CapsuleType, SupportsRound, Collection, SUBMODELS, DefaultDict, ParamSpec, ObserverSequences, Deque, NewType, SupportsFloat, Writer, PART_ODE_METHODS, TypeVar, Sequence, Awaitable, runtime_checkable, SenderSequences, TypeGuard, assert_never, MappingView, RESULTSEQUENCES, runtime, get_annotations, pars, BinaryIO, OUTLET_METHODS, NoDefault, Literal, ItemsView, LogSequences, dataclass_transform, InletSequences, AnyStr, INTERFACE_METHODS, evaluate_forward_ref, OrderedDict, AsyncIterable, Doc, get_args, get_type_hints, NotRequired, Iterator, SupportsComplex, RUN_METHODS, Counter, ByteString, SupportsInt, Buffer, TypeAliasType, Union, Pattern, Never, Self, AbstractSet, CONTROLPARAMETERS, get_protocol_members, AsyncIterator, ForwardRef, Dict, TypeIs, FrozenSet, get_origin, IntVar, NamedTuple, get_overloads, subpars, AsyncContextManager, ReadOnly, Iterable, Hashable, SOLVERPARAMETERS, TypedDict, Type, Reversible, subseqs, Match, AsyncGenerator, IO, TYPE_CHECKING, is_protocol, MutableMapping, assert_type, ChainMap, Any, is_typeddict, no_type_check_decorator, reveal_type, ParamSpecArgs

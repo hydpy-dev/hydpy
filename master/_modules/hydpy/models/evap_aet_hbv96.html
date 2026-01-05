@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.evap_aet_hbv96 &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap_aet_hbv96</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.evap_aet_hbv96</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">|evap_aet_hbv96| serves as a submodel that supplies its main model with estimates of</span>
+<span class="sd">actual evapotranspiration from soils and actual evaporation from interception storages</span>
+<span class="sd">and water areas.  Therefore, it requires potential evapotranspiration data calculated</span>
+<span class="sd">by a sub-submodel.  If you long to emulate HBV96 :cite:p:`ref-Lindstrom1997HBV96` as</span>
+<span class="sd">closely as possible, select |evap_pet_hbv96|.</span>
+
+<span class="sd">Additionally, |evap_aet_hbv96| requires information about the current air temperature,</span>
+<span class="sd">the initial water contents of the interception and soil storages, and the current</span>
+<span class="sd">degree of snow coverage.  By default, |evap_aet_hbv96| queries all these properties</span>
+<span class="sd">from its main model and, at least for the last three properties, this should be the</span>
+<span class="sd">desired behaviour in most cases as it fully synchronises the related states.  However,</span>
+<span class="sd">the following tests use |evap_aet_hbv96| as a stand-alone model.  Hence, we need to</span>
+<span class="sd">connect additional submodels to it that provide pre-defined temperature, water content,</span>
+<span class="sd">and snow cover data.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">According to the intended usage as a submodel, |evap_aet_hbv96| requires no connections</span>
+<span class="sd">to any nodes.  Hence, assigning a model instance to a blank |Element| instance is</span>
+<span class="sd">sufficient:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Element</span>
+<span class="sd">&gt;&gt;&gt; from hydpy.models.evap_aet_hbv96 import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep(&quot;1h&quot;)</span>
+<span class="sd">&gt;&gt;&gt; element = Element(&quot;element&quot;)</span>
+<span class="sd">&gt;&gt;&gt; element.model = model</span>
+
+<span class="sd">We perform the integration test for two simulation steps.  We will configure the first</span>
+<span class="sd">step identical to the first hour of the second day of the simulation period selected</span>
+<span class="sd">for the integration tests of |hland_96|:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import IntegrationTest, pub</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-01-03&quot;, &quot;1d&quot;</span>
+
+<span class="sd">We set all parameter values identical to the ones defined in the :ref:`hland_96_field`</span>
+<span class="sd">example of |hland_96|:</span>
+
+<span class="sd">&gt;&gt;&gt; nmbhru(1)</span>
+<span class="sd">&gt;&gt;&gt; maxsoilwater(200.0)</span>
+<span class="sd">&gt;&gt;&gt; soilmoisturelimit(0.8)</span>
+<span class="sd">&gt;&gt;&gt; excessreduction(0.5)</span>
+<span class="sd">&gt;&gt;&gt; temperaturethresholdice(0.0)</span>
+
+<span class="sd">We add submodels of type |evap_ret_io|, |meteo_temp_io|, |dummy_interceptedwater|,</span>
+<span class="sd">|dummy_soilwater|, and |dummy_snowcover| for providing pre-defined values of potential</span>
+<span class="sd">evapotranspiration (identical values for potential interception evaporation and soil</span>
+<span class="sd">evapotranspiration), air temperature, intercepted water, soil water, and snow cover:</span>
+
+<span class="sd">&gt;&gt;&gt; with model.add_petmodel_v1(&quot;evap_ret_io&quot;):</span>
+<span class="sd">...     hruarea(1.0)</span>
+<span class="sd">...     evapotranspirationfactor(1.0)</span>
+<span class="sd">&gt;&gt;&gt; with model.add_tempmodel_v2(&quot;meteo_temp_io&quot;):</span>
+<span class="sd">...     hruarea(1.0)</span>
+<span class="sd">...     temperatureaddend(0.0)</span>
+<span class="sd">&gt;&gt;&gt; with model.add_intercmodel_v1(&quot;dummy_interceptedwater&quot;):</span>
+<span class="sd">...     pass</span>
+<span class="sd">&gt;&gt;&gt; with model.add_soilwatermodel_v1(&quot;dummy_soilwater&quot;):</span>
+<span class="sd">...     pass</span>
+<span class="sd">&gt;&gt;&gt; with model.add_snowcovermodel_v1(&quot;dummy_snowcover&quot;):</span>
+<span class="sd">...     pass</span>
+
+<span class="sd">Now, we can initialise an |IntegrationTest| object:</span>
+
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%d/%m&quot;</span>
+
+<span class="sd">The first temperature input also stems from the input data of the :ref:`hland_96_field`</span>
+<span class="sd">example, while the second represents winter conditions:</span>
+
+<span class="sd">&gt;&gt;&gt; model.tempmodel.sequences.inputs.temperature.series = 19.2, 0.0</span>
+
+<span class="sd">The (constant) potential evapotranspiration value stems from the output of the</span>
+<span class="sd">integration test of |evap_pet_hbv96|, which is also consistent with the</span>
+<span class="sd">:ref:`hland_96_field` example:</span>
+
+<span class="sd">&gt;&gt;&gt; model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.06896</span>
+
+<span class="sd">The following interception and soil water contents are intermediate values of the</span>
+<span class="sd">:ref:`hland_96_field` example that occur after adding precipitation but before removing</span>
+<span class="sd">evapotranspiration:</span>
+
+<span class="sd">&gt;&gt;&gt; model.intercmodel.sequences.inputs.interceptedwater.series = 2.0</span>
+<span class="sd">&gt;&gt;&gt; model.soilwatermodel.sequences.inputs.soilwater.series = 99.622389</span>
+
+<span class="sd">The first snow cover value represents summer conditions (like in the</span>
+<span class="sd">:ref:`hland_96_field` example), while the second represents winter conditions:</span>
+
+<span class="sd">&gt;&gt;&gt; model.snowcovermodel.sequences.inputs.snowcover.series = [[0.0], [1.0]]</span>
+
+<span class="sd">.. _evap_aet_hbv96_vegetated_soil:</span>
+
+<span class="sd">vegetated soil</span>
+<span class="sd">______________</span>
+
+<span class="sd">For &quot;vegetated soils&quot;, interception evaporation and soil evapotranspiration are</span>
+<span class="sd">relevant:</span>
+
+<span class="sd">&gt;&gt;&gt; interception(True)</span>
+<span class="sd">&gt;&gt;&gt; soil(True)</span>
+<span class="sd">&gt;&gt;&gt; water(False)</span>
+
+<span class="sd">For the first hour, interception evaporation equals potential evapotranspiration, while</span>
+<span class="sd">soil evaporation is smaller due to restricted soil water availability and the priority</span>
+<span class="sd">of interception evaporation.  In the second hour, the snow cover suppresses soil</span>
+<span class="sd">evapotranspiration but does not affect interception evaporation:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |               0.021469 |</span>
+<span class="sd">    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |</span>
+
+<span class="sd">.. _evap_aet_hbv96_bare_soil:</span>
+
+<span class="sd">bare soil</span>
+<span class="sd">_________</span>
+
+<span class="sd">Next, we assume a &quot;bare soil&quot; where interception processes are irrelevant:</span>
+
+<span class="sd">&gt;&gt;&gt; interception(False)</span>
+<span class="sd">&gt;&gt;&gt; soil(True)</span>
+<span class="sd">&gt;&gt;&gt; water(False)</span>
+
+<span class="sd">Unlike the :ref:`evap_aet_hbv96_vegetated_soil`, soil evapotranspiration is stronger in</span>
+<span class="sd">the first hour since interception evaporation does not &quot;consume&quot; any potential</span>
+<span class="sd">evapotranspiration:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |               0.042937 |</span>
+<span class="sd">    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |                    0.0 |</span>
+
+<span class="sd">.. _evap_aet_hbv96_sealed_soil:</span>
+
+<span class="sd">sealed soil</span>
+<span class="sd">___________</span>
+
+<span class="sd">The following &quot;sealed soil&quot; can evaporate water from its surface but not from its body:</span>
+
+<span class="sd">&gt;&gt;&gt; interception(True)</span>
+<span class="sd">&gt;&gt;&gt; soil(False)</span>
+<span class="sd">&gt;&gt;&gt; water(False)</span>
+
+<span class="sd">The results are consistent with those of the previous examples:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |</span>
+<span class="sd">    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |</span>
+
+<span class="sd">.. _evap_aet_hbv96_water_area:</span>
+
+<span class="sd">water area</span>
+<span class="sd">__________</span>
+
+<span class="sd">A &quot;water area&quot; comes neither with a solid surface nor a soil body:</span>
+
+<span class="sd">&gt;&gt;&gt; interception(False)</span>
+<span class="sd">&gt;&gt;&gt; soil(False)</span>
+<span class="sd">&gt;&gt;&gt; water(True)</span>
+
+<span class="sd">In the first hour, the actual evaporation from the water area is identical to potential</span>
+<span class="sd">evapotranspiration.  In the second hour, an assumed ice surface suppresses any</span>
+<span class="sd">evaporation:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |          0.06896 |                     0.0 |                    0.0 |</span>
+<span class="sd">    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |                    0.0 |</span>
+
+<span class="sd">unequal potential values, soil</span>
+<span class="sd">______________________________</span>
+
+<span class="sd">The previous examples relied on the |evap_ret_io| submodel, which complies with the</span>
+<span class="sd">|PETModel_V1| interface that provides only a single potential evapotranspiration value</span>
+<span class="sd">per time step.  |evap_aet_hbv96| is also compatible with submodels that follow</span>
+<span class="sd">|PETModel_V2|, which offers separate potential values for interception evaporation,</span>
+<span class="sd">soil evapotranspiration, and evaporation from water areas.  We use |evap_pet_ambav1| to</span>
+<span class="sd">demonstrate this functionality:</span>
+
+<span class="sd">&gt;&gt;&gt; with model.add_petmodel_v2(&quot;evap_pet_ambav1&quot;):</span>
+<span class="sd">...     hrutype(0)</span>
+<span class="sd">...     plant(True)</span>
+<span class="sd">...     measuringheightwindspeed(10.0)</span>
+<span class="sd">...     leafalbedo(0.2)</span>
+<span class="sd">...     leafalbedosnow(0.8)</span>
+<span class="sd">...     groundalbedo(0.2)</span>
+<span class="sd">...     groundalbedosnow(0.8)</span>
+<span class="sd">...     leafareaindex(5.0)</span>
+<span class="sd">...     cropheight(1.0)</span>
+<span class="sd">...     leafresistance(40.0)</span>
+<span class="sd">...     wetsoilresistance(100.0)</span>
+<span class="sd">...     soilresistanceincrease(1.0)</span>
+<span class="sd">...     wetnessthreshold(0.5)</span>
+<span class="sd">...     cloudtypefactor(0.2)</span>
+<span class="sd">...     nightcloudfactor(1.0)</span>
+<span class="sd">...     with model.add_tempmodel_v2(&quot;meteo_temp_io&quot;):</span>
+<span class="sd">...         hruarea(1.0)</span>
+<span class="sd">...         temperatureaddend(0.0)</span>
+<span class="sd">...     with model.add_precipmodel_v2(&quot;meteo_precip_io&quot;):</span>
+<span class="sd">...         hruarea(1.0)</span>
+<span class="sd">...         precipitationfactor(1.0)</span>
+<span class="sd">...     with model.add_radiationmodel_v4(&quot;meteo_psun_sun_glob_io&quot;):</span>
+<span class="sd">...         pass</span>
+<span class="sd">...     with model.add_snowcovermodel_v1(&quot;dummy_snowcover&quot;):</span>
+<span class="sd">...         pass</span>
+
+<span class="sd">After recreating the |IntegrationTest| object, we can define the time series and</span>
+<span class="sd">initial conditions required by |evap_pet_ambav1|:</span>
+
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(element)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%d/%m&quot;</span>
+
+<span class="sd">&gt;&gt;&gt; model.petmodel.sequences.inputs.windspeed.series = 2.0</span>
+<span class="sd">&gt;&gt;&gt; model.petmodel.sequences.inputs.relativehumidity.series = 80.0</span>
+<span class="sd">&gt;&gt;&gt; model.petmodel.sequences.inputs.atmosphericpressure.series = 1000.0</span>
+<span class="sd">&gt;&gt;&gt; model.petmodel.tempmodel.sequences.inputs.temperature.series = 19.2, 0.0</span>
+<span class="sd">&gt;&gt;&gt; model.petmodel.precipmodel.sequences.inputs.precipitation.series = 0.0</span>
+<span class="sd">&gt;&gt;&gt; model.petmodel.radiationmodel.sequences.inputs.sunshineduration.series = 6.0</span>
+<span class="sd">&gt;&gt;&gt; model.petmodel.radiationmodel.sequences.inputs.possiblesunshineduration.series = 16.0</span>
+<span class="sd">&gt;&gt;&gt; model.petmodel.radiationmodel.sequences.inputs.globalradiation.series = 190.0</span>
+<span class="sd">&gt;&gt;&gt; model.petmodel.snowcovermodel.sequences.inputs.snowcover.series = [[0.0], [1.0]]</span>
+
+<span class="sd">&gt;&gt;&gt; test.inits = (</span>
+<span class="sd">...     (model.petmodel.sequences.states.soilresistance, 100.0),</span>
+<span class="sd">...     (model.petmodel.sequences.logs.loggedprecipitation, [0.0]),</span>
+<span class="sd">...     (model.petmodel.sequences.logs.loggedpotentialsoilevapotranspiration, [1.0])</span>
+<span class="sd">... )</span>
+
+<span class="sd">The time series of air temperature, intercepted water, soil water, and the snow cover</span>
+<span class="sd">degree correspond to the previous examples:</span>
+
+<span class="sd">&gt;&gt;&gt; model.tempmodel.sequences.inputs.temperature.series = 19.2, 0.0</span>
+<span class="sd">&gt;&gt;&gt; model.intercmodel.sequences.inputs.interceptedwater.series = 2.0</span>
+<span class="sd">&gt;&gt;&gt; model.soilwatermodel.sequences.inputs.soilwater.series = 99.622389</span>
+<span class="sd">&gt;&gt;&gt; model.snowcovermodel.sequences.inputs.snowcover.series = [[0.0], [1.0]]</span>
+
+<span class="sd">The following results are comparable to the :ref:`evap_aet_hbv96_vegetated_soil`</span>
+<span class="sd">example:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; interception(True)</span>
+<span class="sd">    &gt;&gt;&gt; soil(True)</span>
+<span class="sd">    &gt;&gt;&gt; water(False)</span>
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          3.42978 |                        2.604398 |                       0.0 |              0.0 |                     2.0 |               1.422518 |</span>
+<span class="sd">    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                         0.482794 |                         0.30027 |                       0.0 |              0.0 |                0.482794 |                    0.0 |</span>
+
+<span class="sd">unequal potential values, water</span>
+<span class="sd">_______________________________</span>
+
+<span class="sd">For water areas, |evap_aet_hbv96| takes the potential water evaporation calculated by</span>
+<span class="sd">|evap_pet_ambav1| as actual water evaporation, as long as the occurrence of an ice</span>
+<span class="sd">surface does not suppress evaporation:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; interception(False)</span>
+<span class="sd">    &gt;&gt;&gt; soil(False)</span>
+<span class="sd">    &gt;&gt;&gt; water(True)</span>
+<span class="sd">    &gt;&gt;&gt; test()</span>
+<span class="sd">    |  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                              0.0 |                             0.0 |                  3.576338 |         3.576338 |                     0.0 |                    0.0 |</span>
+<span class="sd">    | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                              0.0 |                             0.0 |                  0.449853 |              0.0 |                     0.0 |                    0.0 |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">aetinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">petinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">tempinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">stateinterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.evap</span><span class="w"> </span><span class="kn">import</span> <span class="n">evap_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../evap_aet_hbv96.html#hydpy.models.evap_aet_hbv96.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_TempModel_V1</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_TempModel_V2B</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_PET_PETModel_V1</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_PET_PETModel_V2</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_IntercModel_V1</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_SoilWaterModel_V1</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Main_SnowCoverModel_V1</span><span class="p">,</span>
+    <span class="n">evap_model</span><span class="o">.</span><span class="n">Sub_ETModel</span><span class="p">,</span>
+    <span class="n">aetinterfaces</span><span class="o">.</span><span class="n">AETModel_V1</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|evap_aet_hbv96.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;Evap-AET-HBV96&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;actual evapotranspiration after HBV96&quot;</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_InterceptionEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_SoilEvapotranspiration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_WaterEvaporation_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">INTERFACE_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_InterceptionEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_SoilEvapotranspiration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Determine_WaterEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Get_WaterEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Get_InterceptionEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Get_SoilEvapotranspiration_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_AirTemperature_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialInterceptionEvaporation_PETModel_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialInterceptionEvaporation_PETModel_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialInterceptionEvaporation_V3</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialWaterEvaporation_PETModel_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialWaterEvaporation_PETModel_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialWaterEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_WaterEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_InterceptedWater_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_InterceptionEvaporation_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SoilWater_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SnowCover_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialSoilEvapotranspiration_PETModel_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialSoilEvapotranspiration_PETModel_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_PotentialSoilEvapotranspiration_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SoilEvapotranspiration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Update_SoilEvapotranspiration_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Update_SoilEvapotranspiration_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_AirTemperature_TempModel_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_AirTemperature_TempModel_V2</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_InterceptedWater_IntercModel_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SoilWater_SoilWaterModel_V1</span><span class="p">,</span>
+        <span class="n">evap_model</span><span class="o">.</span><span class="n">Calc_SnowCover_SnowCoverModel_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">(</span><span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">,)</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="n">tempmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span>
+        <span class="n">tempinterfaces</span><span class="o">.</span><span class="n">TempModel_V1</span><span class="p">,</span> <span class="n">tempinterfaces</span><span class="o">.</span><span class="n">TempModel_V2</span>
+    <span class="p">)</span>
+    <span class="n">petmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span>
+        <span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V1</span><span class="p">,</span> <span class="n">petinterfaces</span><span class="o">.</span><span class="n">PETModel_V2</span>
+    <span class="p">)</span>
+    <span class="n">intercmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span><span class="n">stateinterfaces</span><span class="o">.</span><span class="n">IntercModel_V1</span><span class="p">)</span>
+    <span class="n">soilwatermodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span><span class="n">stateinterfaces</span><span class="o">.</span><span class="n">SoilWaterModel_V1</span><span class="p">)</span>
+    <span class="n">snowcovermodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span><span class="n">stateinterfaces</span><span class="o">.</span><span class="n">SnowCoverModel_V1</span><span class="p">)</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap_aet_hbv96</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.whmod.whmod_masks &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_masks</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.whmod.whmod_masks</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">masktools</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod</span><span class="w"> </span><span class="kn">import</span> <span class="n">whmod_constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod.whmod_constants</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_exclude</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span>
+        <span class="n">value</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">whmod_constants</span><span class="o">.</span><span class="n">LANDTYPE_CONSTANTS</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">args</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="LandTypeBase">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeBase">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeBase</span><span class="p">(</span><span class="n">masktools</span><span class="o">.</span><span class="n">IndexMask</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all land type-specific masks.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LandTypeBase.get_refindices">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeBase.get_refindices">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_refindices</span><span class="p">(</span><span class="n">variable</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reference to the associated instance of |LandType|.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">variable</span><span class="o">.</span><span class="n">subvars</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">landtype</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="LandTypeComplete">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeComplete">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeComplete</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes all land use types.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="n">_exclude</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeNonWater">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeNonWater">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeNonWater</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that excludes water areas.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="n">_exclude</span><span class="p">(</span><span class="n">WATER</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeGroundwater">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeGroundwater">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeGroundwater</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes all areas with groundwater recharge.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="n">_exclude</span><span class="p">(</span><span class="n">SEALED</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeSoil">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeSoil">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeSoil</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes areas with soils.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="n">_exclude</span><span class="p">(</span><span class="n">SEALED</span><span class="p">,</span> <span class="n">WATER</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeGras">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeGras">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeGras</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only grassland.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">GRASS</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeDeciduous">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeDeciduous">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeDeciduous</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only decidious forests.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">DECIDUOUS</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeCorn">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeCorn">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeCorn</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only corn fields.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">CORN</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeConifer">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeConifer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeConifer</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only conifer forests.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">CONIFER</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeSpringWheat">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeSpringWheat">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeSpringWheat</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only spring wheat fields.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">SPRINGWHEAT</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeWinterWheat">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeWinterWheat">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeWinterWheat</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only winter wheat fields.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">WINTERWHEAT</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeSugarbeets">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeSugarbeets">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeSugarbeets</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only sugar beet fields.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">SUGARBEETS</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeSealed">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeSealed">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeSealed</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only sealed areas.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">SEALED</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="LandTypeWater">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.LandTypeWater">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandTypeWater</span><span class="p">(</span><span class="n">LandTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only water areas.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">WATER</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="SoilTypeBase">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.SoilTypeBase">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilTypeBase</span><span class="p">(</span><span class="n">masktools</span><span class="o">.</span><span class="n">IndexMask</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all soil type-specific masks.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SoilTypeBase.get_refindices">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.SoilTypeBase.get_refindices">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_refindices</span><span class="p">(</span><span class="n">variable</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reference to the associated instance of |SoilType|.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">variable</span><span class="o">.</span><span class="n">subvars</span><span class="o">.</span><span class="n">vars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">soiltype</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SoilTypeComplete">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.SoilTypeComplete">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilTypeComplete</span><span class="p">(</span><span class="n">SoilTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes all soil types.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">SAND</span><span class="p">,</span> <span class="n">SAND_COHESIVE</span><span class="p">,</span> <span class="n">LOAM</span><span class="p">,</span> <span class="n">CLAY</span><span class="p">,</span> <span class="n">SILT</span><span class="p">,</span> <span class="n">PEAT</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SoilTypeSand">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.SoilTypeSand">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilTypeSand</span><span class="p">(</span><span class="n">SoilTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only sand soils.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">SAND</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="SoilTypeSandCohesive">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.SoilTypeSandCohesive">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilTypeSandCohesive</span><span class="p">(</span><span class="n">SoilTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only cohesive sand soils.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">SAND_COHESIVE</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="SoilTypeLoam">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.SoilTypeLoam">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilTypeLoam</span><span class="p">(</span><span class="n">SoilTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only loam soils.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">LOAM</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="SoilTypeClay">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.SoilTypeClay">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilTypeClay</span><span class="p">(</span><span class="n">SoilTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only clay soils.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">CLAY</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="SoilTypeSilt">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.SoilTypeSilt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilTypeSilt</span><span class="p">(</span><span class="n">SoilTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only silt soils.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">SILT</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="SoilTypePeat">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.SoilTypePeat">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilTypePeat</span><span class="p">(</span><span class="n">SoilTypeBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mask that includes only peat soils.&quot;&quot;&quot;</span>
+
+    <span class="n">relevant</span> <span class="o">=</span> <span class="p">(</span><span class="n">PEAT</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Masks">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_parameters.Masks">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Masks</span><span class="p">(</span><span class="n">masktools</span><span class="o">.</span><span class="n">Masks</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Masks of |whmod.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">CLASSES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">LandTypeComplete</span><span class="p">,</span>
+        <span class="n">LandTypeNonWater</span><span class="p">,</span>
+        <span class="n">LandTypeSoil</span><span class="p">,</span>
+        <span class="n">LandTypeGras</span><span class="p">,</span>
+        <span class="n">LandTypeDeciduous</span><span class="p">,</span>
+        <span class="n">LandTypeCorn</span><span class="p">,</span>
+        <span class="n">LandTypeConifer</span><span class="p">,</span>
+        <span class="n">LandTypeSpringWheat</span><span class="p">,</span>
+        <span class="n">LandTypeWinterWheat</span><span class="p">,</span>
+        <span class="n">LandTypeSugarbeets</span><span class="p">,</span>
+        <span class="n">LandTypeSealed</span><span class="p">,</span>
+        <span class="n">LandTypeWater</span><span class="p">,</span>
+        <span class="n">SoilTypeComplete</span><span class="p">,</span>
+        <span class="n">SoilTypeSand</span><span class="p">,</span>
+        <span class="n">SoilTypeSandCohesive</span><span class="p">,</span>
+        <span class="n">SoilTypeLoam</span><span class="p">,</span>
+        <span class="n">SoilTypeClay</span><span class="p">,</span>
+        <span class="n">SoilTypeSilt</span><span class="p">,</span>
+        <span class="n">SoilTypePeat</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_masks</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

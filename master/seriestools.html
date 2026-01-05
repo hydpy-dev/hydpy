@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>seriestools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="testtools" href="testtools.html" />
+    <link rel="prev" title="sequencetools" href="sequencetools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="testtools.html" title="testtools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="sequencetools.html" title="sequencetools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">seriestools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">seriestools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.seriestools.aggregate_series"><code class="docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="threadingtools.html">threadingtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="sequencetools.html"
+                          title="previous chapter">sequencetools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="testtools.html"
+                          title="next chapter">testtools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/seriestools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="seriestools">
+<span id="id1"></span><h1>seriestools<a class="headerlink" href="#seriestools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.core.seriestools">This module provides features for working with time series.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.seriestools" title="hydpy.core.seriestools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">seriestools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> Aggregate the time series on a daily, monthly, or yearly basis.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="hydpy.core.seriestools.aggregate_series">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.seriestools.</span></span><span class="sig-name descname"><span class="pre">aggregate_series</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stepsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'daily'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'d'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'monthly'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'m'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'yearly'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'y'</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mean'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subperiod</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basetime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'00:00'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="_modules/hydpy/core/seriestools.html#aggregate_series"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.seriestools.aggregate_series" title="Link to this definition">¶</a></dt>
+<dd><p>Aggregate the time series on a daily, monthly, or yearly basis.</p>
+<p>Often, we need some aggregation before analysing deviations between simulation
+results and observations.  Function <a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> performs such aggregation on
+a daily, monthly, or yearly basis.  You are free to specify arbitrary aggregation
+functions.</p>
+<p>We first show the behaviour of function <a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> when calculating monthly
+averages.  Therefore, we first say the hydrological summer half-year 2001 to be our
+simulation period and define a daily simulation step size:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">aggregate_series</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">Node</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;01.11.2000&quot;</span><span class="p">,</span> <span class="s2">&quot;01.05.2001&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<p>Next, we prepare a <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> object and assign some constantly increasing values to
+its <cite>simulation</cite> series:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span><span class="o">.</span><span class="n">prepare_simseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">181</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> returns the data within index-sorted <a class="reference external" href="https://pandas.pydata.org/pandas-docs/dev/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.0rc1+56.g3444622a53)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a> objects
+(note that the index addresses the left boundary of each time step):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">)</span>
+<span class="go">            series</span>
+<span class="go">2000-11-01    15.5</span>
+<span class="go">2000-12-01    46.0</span>
+<span class="go">2001-01-01    77.0</span>
+<span class="go">2001-02-01   106.5</span>
+<span class="go">2001-03-01   136.0</span>
+<span class="go">2001-04-01   166.5</span>
+</pre></div>
+</div>
+<p>The following example shows how to restrict the considered period via the
+<a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.eval_" title="hydpy.core.timetools.Timegrids.eval_"><code class="xref py py-attr docutils literal notranslate"><span class="pre">eval_</span></code></a> <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid" title="hydpy.core.timetools.Timegrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrid</span></code></a> of the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a> object available in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>
+module and pass a different aggregation function:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">eval_</span><span class="o">.</span><span class="n">dates</span> <span class="o">=</span> <span class="s2">&quot;2001-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-03-01&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">aggregator</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span>
+<span class="go">            series</span>
+<span class="go">2001-01-01  2387.0</span>
+<span class="go">2001-02-01  2982.0</span>
+</pre></div>
+</div>
+<p>Even for short evaluation periods, the passed data must still cover the correspond
+to the complete initialisation period:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">eval_</span><span class="o">.</span><span class="n">dates</span> <span class="o">=</span> <span class="s2">&quot;2001-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-03-01&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">evalseries</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">aggregator</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to aggregate the given series, the following error occurred: The length of the passed vector (59) differs from the length of the initialisation time grid (181).</span>
+</pre></div>
+</div>
+<p>Functions <a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> raises errors like the following for unsuitable
+functions:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">wrong</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;wrong function&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">aggregator</span><span class="o">=</span><span class="n">wrong</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AssertionError</span>: <span class="n">While trying to aggregate the given series, the following error occurred: While trying to perform the aggregation based on method `wrong`, the following error occurred: wrong function</span>
+</pre></div>
+</div>
+<p>When passing a string, <a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> queries it from <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v2.4)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">eval_</span><span class="o">.</span><span class="n">dates</span> <span class="o">=</span> <span class="s2">&quot;2001-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-02-01&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">aggregator</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
+<span class="go">            series</span>
+<span class="go">2001-01-01  2387.0</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> raises the following error when the requested function does not
+exist:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">aggregator</span><span class="o">=</span><span class="s2">&quot;Sum&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to aggregate the given series, the following error occurred: Module `numpy` does not provide a function named `Sum`.</span>
+</pre></div>
+</div>
+<p>To prevent from wrong conclusions, <a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> generally ignores all data of
+incomplete intervals:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-11-30&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-04-02&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span><span class="o">.</span><span class="n">prepare_simseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">152</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">aggregator</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
+<span class="go">            series</span>
+<span class="go">2000-12-01  1426.0</span>
+<span class="go">2001-01-01  2387.0</span>
+<span class="go">2001-02-01  2982.0</span>
+<span class="go">2001-03-01  4216.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">eval_</span><span class="o">.</span><span class="n">dates</span> <span class="o">=</span> <span class="s2">&quot;2001-01-02&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-02-28&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">)</span>
+<span class="go">Empty DataFrame</span>
+<span class="go">Columns: [series]</span>
+<span class="go">Index: []</span>
+</pre></div>
+</div>
+<p>If you want to analyse the data of the complete initialisation period independently
+of the state of <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.eval_" title="hydpy.core.timetools.Timegrids.eval_"><code class="xref py py-attr docutils literal notranslate"><span class="pre">eval_</span></code></a>, set argument <cite>subperiod</cite> to <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">aggregator</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">,</span> <span class="n">subperiod</span><span class="o">=</span><span class="kc">False</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="go">            series</span>
+<span class="go">2000-12-01  1426.0</span>
+<span class="go">2001-01-01  2387.0</span>
+<span class="go">2001-02-01  2982.0</span>
+<span class="go">2001-03-01  4216.0</span>
+</pre></div>
+</div>
+<p>The following example shows that even with only one missing value at the respective
+ends of the simulation period, <a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> does not return any result for
+the first (November 2000) and the last aggregation interval (April 2001):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;02.11.2000&quot;</span><span class="p">,</span> <span class="s2">&quot;30.04.2001&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span><span class="o">.</span><span class="n">prepare_simseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">180</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;m&quot;</span><span class="p">)</span>
+<span class="go">            series</span>
+<span class="go">2000-12-01    46.0</span>
+<span class="go">2001-01-01    77.0</span>
+<span class="go">2001-02-01   106.5</span>
+<span class="go">2001-03-01   136.0</span>
+</pre></div>
+</div>
+<p>Now, we prepare a time grid with an hourly simulation step size to show some
+examples of daily aggregation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;01.01.2000 22:00&quot;</span><span class="p">,</span> <span class="s2">&quot;05.01.2000 22:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1h&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span><span class="o">.</span><span class="n">prepare_simseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">+</span><span class="mi">4</span><span class="o">*</span><span class="mi">24</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, function <a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> aggregates daily from 0 o’clock to
+0 o’clock, resulting in a loss of the first two and the last 22 values of the
+entire period:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span><span class="p">)</span>
+<span class="go">            series</span>
+<span class="go">2000-01-02    14.5</span>
+<span class="go">2000-01-03    38.5</span>
+<span class="go">2000-01-04    62.5</span>
+</pre></div>
+</div>
+<p>If you want the aggregation to start at a different time of the day, use the
+<cite>basetime</cite> argument.  In our example, starting at 22 o’clock fits the defined
+initialisation time grid and ensures the usage of all available data:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span><span class="p">,</span> <span class="n">basetime</span><span class="o">=</span><span class="s2">&quot;22:00&quot;</span><span class="p">)</span>
+<span class="go">                     series</span>
+<span class="go">2000-01-01 22:00:00    12.5</span>
+<span class="go">2000-01-02 22:00:00    36.5</span>
+<span class="go">2000-01-03 22:00:00    60.5</span>
+<span class="go">2000-01-04 22:00:00    84.5</span>
+</pre></div>
+</div>
+<p>So far, the <cite>basetime</cite> argument works only for daily aggregation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;monthly&quot;</span><span class="p">,</span> <span class="n">basetime</span><span class="o">=</span><span class="s2">&quot;22:00&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to aggregate the given series, the following error occurred: Use the `basetime` argument in combination with a `daily` aggregation step size only.</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#hydpy.core.seriestools.aggregate_series" title="hydpy.core.seriestools.aggregate_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">aggregate_series()</span></code></a> does not support aggregation for simulation step sizes larger
+one day:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;01.01.2000 22:00&quot;</span><span class="p">,</span> <span class="s2">&quot;05.01.2000 22:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span><span class="o">.</span><span class="n">prepare_simseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">+</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span><span class="p">)</span>
+<span class="go">            series</span>
+<span class="go">2000-01-02     2.0</span>
+<span class="go">2000-01-03     3.0</span>
+<span class="go">2000-01-04     4.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;01.01.2000 22:00&quot;</span><span class="p">,</span> <span class="s2">&quot;05.01.2000 22:00&quot;</span><span class="p">,</span> <span class="s2">&quot;2d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span><span class="o">.</span><span class="n">prepare_simseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;daily&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to aggregate the given series, the following error occurred: Data aggregation is not supported for simulation step sizes greater one day.</span>
+</pre></div>
+</div>
+<p>The following example shows the yearly aggregation, which so far only works for
+calendar years:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;01.10.2000 22:00&quot;</span><span class="p">,</span> <span class="s2">&quot;01.10.2003 22:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span><span class="o">.</span><span class="n">prepare_simseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1095</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;yearly&quot;</span><span class="p">,</span> <span class="n">aggregator</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
+<span class="go">            series</span>
+<span class="go">2001-01-01   365.0</span>
+<span class="go">2002-01-01   365.0</span>
+</pre></div>
+</div>
+<p>We are looking forward supporting other useful aggregation step sizes later:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;01.01.2000 22:00&quot;</span><span class="p">,</span> <span class="s2">&quot;05.01.2000 22:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span><span class="o">.</span><span class="n">prepare_simseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aggregate_series</span><span class="p">(</span><span class="n">series</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;minutely&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to aggregate the given series, the following error occurred: Argument `stepsize` received value `minutely`, but only the following ones are supported: `monthly` (default), `daily`, and `yearly`.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="testtools.html" title="testtools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="sequencetools.html" title="sequencetools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">seriestools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

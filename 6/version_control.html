@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Version control &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Dependencies" href="hydpydependencies.html" />
+    <link rel="prev" title="Required tools" href="required_tools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hydpydependencies.html" title="Dependencies"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="required_tools.html" title="Required tools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="developer_guide.html" accesskey="U">Developer Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Version control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="developer_guide.html">Developer Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="required_tools.html">Required tools</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Version control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hydpydependencies.html">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="continuous_integration.html">Continuous Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests_and_documentation.html">Tests &amp; documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="programming_style.html">Programming style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="additional_repositories.html">Additional repositories</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="required_tools.html"
+                          title="previous chapter">Required tools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="hydpydependencies.html"
+                          title="next chapter">Dependencies</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/version_control.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="version-control">
+<span id="id1"></span><h1>Version control<a class="headerlink" href="#version-control" title="Link to this heading">¶</a></h1>
+<p>To work collaboratively on the same software code requires version control.
+It must be clear who is working on which part of the code, when (and why)
+someone conducted code changes, and which code sections of one developer
+are compatible with code sections of another developer (or not).  Also,
+one might need to fall back on an older code version when some current
+changes turned out to be a dead end.</p>
+<p>For <em>HydPy</em>, we choose <a class="reference external" href="https://git-scm.com/">Git</a> for these tasks.  <a class="reference external" href="https://git-scm.com/">Git</a> is a distributed
+version control software, allowing for handling multiple repositories
+of the same project at different places by different people. Each
+repository contains all projects files including their change histories.
+We host the main <a class="reference external" href="https://github.com/hydpy-dev/hydpy">hydpy repository</a> on <a class="reference external" href="https://github.com">GitHub</a>.  So you first should
+sing up for a free <a class="reference external" href="https://github.com/signup/free">GitHub account</a>.  After that, you can contribute to
+<em>HydPy</em> online without installing any software or downloading the repository.
+If you are only aiming to improve the documentation, this could be
+reasonable.  However, for more substantial contributions you need to
+handle a separate <em>HydPy</em> repository on your local computer with a local
+installation of <a class="reference external" href="https://git-scm.com/">Git</a>. <a class="reference external" href="https://git-scm.com/">Git</a> itself works via command lines, but in
+the majority of cases using graphical user interface as <a class="reference external" href="https://www.sourcetreeapp.com/">Sourcetree</a>
+is much more comfortable.</p>
+<p>Contributing to <em>HydPy</em> essentially requires three or four steps, no matter
+if working on <a class="reference external" href="https://github.com">GitHub</a> directly or with your local <a class="reference external" href="https://git-scm.com/">Git</a> software. For
+simplicity and generality, we explain these steps using the example of a
+single file change via <a class="reference external" href="https://github.com">GitHub</a>:</p>
+<blockquote>
+<div><ul>
+<li><p>Go to the main <a class="reference external" href="https://github.com/hydpy-dev/hydpy">hydpy repository</a> and click on “Fork”, creating a
+new <em>HydPy</em> repository under your own <a class="reference external" href="https://github.com">GitHub</a> account, allowing to
+add, change, or delete any files without intervening in the
+development the original <a class="reference external" href="https://github.com/hydpy-dev/hydpy">hydpy repository</a>.</p></li>
+<li><p>Click on “Branch: master”, type a name reflecting your goal (e.g.
+“improve_gitignore” and click on “Create branch: improve_gitignore
+from <cite>master</cite>”.  Now that you have created a new branch, you can
+experiment without affecting the master branch of your forked
+repository. (This step is not required, but creating branches for
+different tasks helps to structure your work, to cooperate with others,
+and to keep the “official” history free from unsuccessful experiments.)</p></li>
+<li><dl class="simple">
+<dt>Change the content of a file.  For example:</dt><dd><ul class="simple">
+<li><p>Click on <a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/master/.gitignore">gitignore</a>.</p></li>
+<li><p>Click on the pen symbol (“Edit this file”).</p></li>
+<li><p>change the order of two lines (e.g. “<em>c.” and “</em>.h”)</p></li>
+<li><p>Write something under “Commit changes” to explain your purpose
+(e.g. “change the order of two lines in <cite>.gitignore</cite> to practise it”).</p></li>
+<li><p>Click on the green “Commit changes” button.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Now you have changed the <a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/master/.gitignore">gitignore</a> file of your specialised branch.
+Typically, you would commit multiple small changes to one branch.
+Keeping the single commits small allows for inspecting and reversing
+different changes.</p>
+</li>
+<li><p>At last, you can suggest incorporating your changes in the original
+<a class="reference external" href="https://github.com/hydpy-dev/hydpy">hydpy repository</a>.  Click on “Compare &amp; pull request” to visualise
+the relevant differences and add some explanations.  Click on
+“Create pull request” to ask others to discuss your changes and to
+ask the maintainer of the original <a class="reference external" href="https://github.com/hydpy-dev/hydpy">hydpy repository</a>  to pull and
+merge them into the main development line.</p></li>
+</ul>
+</div></blockquote>
+<p>You are responsible for your forked repository only and do not have to
+be afraid to break the original <a class="reference external" href="https://github.com/hydpy-dev/hydpy">hydpy repository</a> accidentally.
+However, you should give your best to focus your pull requests on single
+issues and explain them clearly.  Otherwise, the package maintainer
+might refuse your contributions in the sake of safeguarding <em>HydPy’s</em>
+code integrity.</p>
+<p>Of course, things are not always as easy as in the example above.  Not only
+your code changes, but the main line of development evolves as well.
+Then you first have to merge the latest changes of the master branch of the
+original <a class="reference external" href="https://github.com/hydpy-dev/hydpy">hydpy repository</a> into your current working branch, to resolve
+some conflicts if necessary, and to “rebase” everything to provide a granular
+and understandable pull request.  See the much more thorough explanations
+<a class="reference external" href="https://github.com/edx/edx-platform/wiki/How-to-Rebase-a-Pull-Request">How to Rebase a Pull Request</a> and <a class="reference external" href="https://progit2.s3.amazonaws.com/en/2016-03-22-f3531/progit-en.1084.pdf">Pro Git</a> to improve your <a class="reference external" href="https://git-scm.com/">Git</a> skills.</p>
+<p>Besides working in separate forks, it is a standard <a class="reference external" href="https://git-scm.com/">Git</a> approach to
+structure code development in multiple branches.  For <em>HydPy</em>, we decided
+on the following branching model.</p>
+<p>First and most importantly, there is the “master” branch, tracking the
+“stable” changes of the code base, serving as the foundation of collaborative
+development.  Second, there are the “feature” and “fix” branches related to
+specific issues.  Third, there are the “release” branches, one for each
+official <em>HydPy</em> release.</p>
+<p>The master branch is never removed or rebased.  Hence, its commits cannot
+be changed or undone (except by later commits, of course). To avoid
+confusion and a messy commit historiy, do not commit to the master branch
+directly.  Instead, create new “feature” or “fix” branches based on the
+head of the master branch and develop the new feature or fix the addressed
+problem within this branch. Afterwards, you might need to merge recent
+changes of the master branch into your branch or to clean up your commit
+history through rebasing.  Finally, when everything seems right, your
+branch can be merged into the master branch with little risk to break
+something or affect the work of others.</p>
+<p>Feature and fix branches should contain both the affected subpackage and
+module name, as well as a short description of the topic.  If reasonable,
+follow the following pattern: “fix/core/hydpytools/typos”.</p>
+<p>We use the tag name patterns “v4.0.0” and “v4.0a0” for stable and
+preliminary releases, respectively.  For stable releases, we tag
+commits to the master branch, only.  We create a separate branch for
+each minor version number (e.g. release/v4.0 and release/v4.1) to be able
+to apply fixes later.  Fixes are indicated by tags only, increasing
+the bugfix number (e.g. from v4.0.0 to v4.0.1).</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hydpydependencies.html" title="Dependencies"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="required_tools.html" title="Required tools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="developer_guide.html" >Developer Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Version control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

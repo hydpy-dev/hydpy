@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>ppolytools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"chtml": {"displayAlign": "left"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="quadtools" href="quadtools.html" />
+    <link rel="prev" title="networktools" href="networktools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="quadtools.html" title="quadtools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="networktools.html" title="networktools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" accesskey="U">Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ppolytools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="anntools.html">anntools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="armatools.html">armatools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="calibtools.html">calibtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="interptools.html">interptools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="iuhtools.html">iuhtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="networktools.html">networktools</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">ppolytools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.ppolytools.Poly"><code class="docutils literal notranslate"><span class="pre">Poly</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.Poly.x0"><code class="docutils literal notranslate"><span class="pre">Poly.x0</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.Poly.cs"><code class="docutils literal notranslate"><span class="pre">Poly.cs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.Poly.assignrepr"><code class="docutils literal notranslate"><span class="pre">Poly.assignrepr()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly"><code class="docutils literal notranslate"><span class="pre">PPoly</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.from_data"><code class="docutils literal notranslate"><span class="pre">PPoly.from_data()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_inputs"><code class="docutils literal notranslate"><span class="pre">PPoly.nmb_inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.inputs"><code class="docutils literal notranslate"><span class="pre">PPoly.inputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_outputs"><code class="docutils literal notranslate"><span class="pre">PPoly.nmb_outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.outputs"><code class="docutils literal notranslate"><span class="pre">PPoly.outputs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.output_derivatives"><code class="docutils literal notranslate"><span class="pre">PPoly.output_derivatives</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_ps"><code class="docutils literal notranslate"><span class="pre">PPoly.nmb_ps</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_cs"><code class="docutils literal notranslate"><span class="pre">PPoly.nmb_cs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.x0s"><code class="docutils literal notranslate"><span class="pre">PPoly.x0s</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.cs"><code class="docutils literal notranslate"><span class="pre">PPoly.cs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.calculate_values"><code class="docutils literal notranslate"><span class="pre">PPoly.calculate_values()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.calculate_derivatives"><code class="docutils literal notranslate"><span class="pre">PPoly.calculate_derivatives()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.polynomials"><code class="docutils literal notranslate"><span class="pre">PPoly.polynomials</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.sort"><code class="docutils literal notranslate"><span class="pre">PPoly.sort()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.verify"><code class="docutils literal notranslate"><span class="pre">PPoly.verify()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.assignrepr"><code class="docutils literal notranslate"><span class="pre">PPoly.assignrepr()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="quadtools.html">quadtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="roottools.html">roottools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smoothtools.html">smoothtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="statstools.html">statstools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="validtools.html">validtools</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="networktools.html"
+                          title="previous chapter">networktools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="quadtools.html"
+                          title="next chapter">quadtools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/ppolytools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="ppolytools">
+<span id="id1"></span><h1>ppolytools<a class="headerlink" href="#ppolytools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.auxs.ppolytools">This module implements interpolation approaches based on piecewise polynomials
+required for some models implemented in the <em>HydPy</em> framework.</p>
+<p>The relevant models perform the interpolation during simulation runs, which is why we
+implement the related methods in the Cython extension module <code class="xref py py-mod docutils literal notranslate"><span class="pre">ppolyutils</span></code>.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.ppolytools" title="hydpy.auxs.ppolytools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ppolytools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.auxs.ppolytools.Poly" title="hydpy.auxs.ppolytools.Poly"><code class="xref py py-class docutils literal notranslate"><span class="pre">Poly</span></code></a> Parameter handler for a power series representation of a single polynomial function.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> Piecewise polynomial interpolator.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.Poly">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.ppolytools.</span></span><span class="sig-name descname"><span class="pre">Poly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/ppolytools.html#Poly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.ppolytools.Poly" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.NamedTuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NamedTuple</span></code></a></p>
+<p>Parameter handler for a power series representation of a single polynomial
+function.</p>
+<p>The following <a class="reference internal" href="#hydpy.auxs.ppolytools.Poly" title="hydpy.auxs.ppolytools.Poly"><code class="xref py py-class docutils literal notranslate"><span class="pre">Poly</span></code></a> object corresponds to the polynomial function
+<span class="math notranslate nohighlight">\(f(x) = 2 + 3 \cdot (x - 1) + 4 \cdot (x - 1)^2\)</span>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Proper application of the constant and all coefficients for <span class="math notranslate nohighlight">\(x = 3\)</span> results
+in 24:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span><span class="o">.</span><span class="n">cs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">p</span><span class="o">.</span><span class="n">cs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">p</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span> <span class="o">+</span> <span class="n">p</span><span class="o">.</span><span class="n">cs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">p</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="go">24.0</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.Poly.x0">
+<span class="sig-name descname"><span class="pre">x0</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#hydpy.auxs.ppolytools.Poly.x0" title="Link to this definition">¶</a></dt>
+<dd><p>Constant of the power series.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.Poly.cs">
+<span class="sig-name descname"><span class="pre">cs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.Poly.cs" title="Link to this definition">¶</a></dt>
+<dd><p>Coefficients of the power series.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.Poly.assignrepr">
+<span class="sig-name descname"><span class="pre">assignrepr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/ppolytools.html#Poly.assignrepr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.ppolytools.Poly.assignrepr" title="Link to this definition">¶</a></dt>
+<dd><p>Return a string representation of the actual <a class="reference internal" href="#hydpy.auxs.ppolytools.Poly" title="hydpy.auxs.ppolytools.Poly"><code class="xref py py-class docutils literal notranslate"><span class="pre">Poly</span></code></a> object
+prefixed with the given string.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">poly</span> <span class="o">=</span> <span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="o">/</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="o">/</span><span class="mf">3.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">poly</span>
+<span class="go">Poly(x0=0.333333, cs=(2.0, 3.0, 1.333333))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">poly</span><span class="o">.</span><span class="n">assignrepr</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;poly = &quot;</span><span class="p">))</span>
+<span class="go">poly = Poly(x0=0.333333, cs=(2.0, 3.0, 1.333333))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.ppolytools.</span></span><span class="sig-name descname"><span class="pre">PPoly</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">polynomials</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.auxs.ppolytools.Poly" title="hydpy.auxs.ppolytools.Poly"><span class="pre">Poly</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/ppolytools.html#PPoly"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="interptools.html#hydpy.auxs.interptools.InterpAlgorithm" title="hydpy.auxs.interptools.InterpAlgorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">InterpAlgorithm</span></code></a></p>
+<p>Piecewise polynomial interpolator.</p>
+<p>Class <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> supports univariate data interpolation via multiple polynomial
+functions.  Typical use cases are linear or spline interpolation.  The primary
+purpose of <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> is to allow for such interpolation within model equations (for
+example, to represent the relationship between water volume and water stage as in
+the model <a class="reference internal" href="dam_v001.html#module-hydpy.models.dam_v001" title="hydpy.models.dam_v001"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_v001</span></code></a>).  Then, the user selects <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> as the interpolation
+algorithm employed by parameters derived from <a class="reference internal" href="interptools.html#hydpy.auxs.interptools.SimpleInterpolator" title="hydpy.auxs.interptools.SimpleInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SimpleInterpolator</span></code></a> (e.g.
+<a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterVolume2WaterLevel" title="hydpy.models.dam.dam_control.WaterVolume2WaterLevel"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterVolume2WaterLevel</span></code></a>) or <a class="reference internal" href="interptools.html#hydpy.auxs.interptools.SeasonalInterpolator" title="hydpy.auxs.interptools.SeasonalInterpolator"><code class="xref py py-class docutils literal notranslate"><span class="pre">SeasonalInterpolator</span></code></a> (e.g.
+<a class="reference internal" href="dam.html#hydpy.models.dam.dam_control.WaterLevel2FloodDischarge" title="hydpy.models.dam.dam_control.WaterLevel2FloodDischarge"><code class="xref py py-class docutils literal notranslate"><span class="pre">WaterLevel2FloodDischarge</span></code></a>).  However, one can apply <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> also
+directly, as shown in the following examples.</p>
+<p>You can prepare a <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> object by handing multiple <a class="reference internal" href="#hydpy.auxs.ppolytools.Poly" title="hydpy.auxs.ppolytools.Poly"><code class="xref py py-class docutils literal notranslate"><span class="pre">Poly</span></code></a> objects to its
+constructor:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly</span><span class="p">,</span> <span class="n">PPoly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,)),</span>
+<span class="gp">... </span>        <span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span>
+<span class="gp">... </span>        <span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>Note that each power series constant (<a class="reference internal" href="#hydpy.auxs.ppolytools.Poly.x0" title="hydpy.auxs.ppolytools.Poly.x0"><code class="xref py py-attr docutils literal notranslate"><span class="pre">x0</span></code></a>) also serves as a breakpoint.  Each
+<a class="reference internal" href="#hydpy.auxs.ppolytools.Poly.x0" title="hydpy.auxs.ppolytools.Poly.x0"><code class="xref py py-attr docutils literal notranslate"><span class="pre">x0</span></code></a> value defines the lower bound of the interval for which the polynomial is
+valid.  The only exception affects the first <a class="reference internal" href="#hydpy.auxs.ppolytools.Poly" title="hydpy.auxs.ppolytools.Poly"><code class="xref py py-class docutils literal notranslate"><span class="pre">Poly</span></code></a> object.  Here, <a class="reference internal" href="#hydpy.auxs.ppolytools.Poly.x0" title="hydpy.auxs.ppolytools.Poly.x0"><code class="xref py py-attr docutils literal notranslate"><span class="pre">x0</span></code></a> also
+serves as the power series constant but not as a breakpoint.  Hence, <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> uses
+the first polynomial for extrapolation into the negative range (as it uses the last
+polynomial for extrapolating into the positive range).  The following equation,
+which reflects the configuration of the prepared interpolator, should clarify this
+definition:</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[\begin{split}f(x) = \begin{cases}
+1
+&amp;|\
+x &lt; 2
+\\
+1 + x - 2
+&amp;|\
+2 \leq x &lt; 3
+\\
+2 + 3 \cdot (x - 3)
+&amp;|\
+3 \leq x
+\end{cases}\end{split}\]</div>
+</div></blockquote>
+<p>For applying <cite>ppoly</cite>, we need to set the input value before calling
+<a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.calculate_values" title="hydpy.auxs.ppolytools.PPoly.calculate_values"><code class="xref py py-func docutils literal notranslate"><span class="pre">calculate_values()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">calculate_values</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">1.5</span>
+</pre></div>
+</div>
+<p>The same holds when calling method <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.calculate_derivatives" title="hydpy.auxs.ppolytools.PPoly.calculate_derivatives"><code class="xref py py-func docutils literal notranslate"><span class="pre">calculate_derivatives()</span></code></a> for calculating
+first order derivatives:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">calculate_derivatives</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">output_derivatives</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<p>Use method <a class="reference internal" href="interptools.html#hydpy.auxs.interptools.InterpAlgorithm.print_table" title="hydpy.auxs.interptools.InterpAlgorithm.print_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">print_table()</span></code></a> or method <a class="reference internal" href="interptools.html#hydpy.auxs.interptools.InterpAlgorithm.plot" title="hydpy.auxs.interptools.InterpAlgorithm.plot"><code class="xref py py-func docutils literal notranslate"><span class="pre">plot()</span></code></a> to
+inspect the results of <cite>ppoly</cite> within the relevant data range:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">print_table</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">])</span>
+<span class="go">x    y    dy/dx</span>
+<span class="go">0.5  1.0  0.0</span>
+<span class="go">1.0  1.0  0.0</span>
+<span class="go">1.5  1.0  0.0</span>
+<span class="go">2.0  1.0  1.0</span>
+<span class="go">2.5  1.5  1.0</span>
+<span class="go">3.0  2.0  3.0</span>
+<span class="go">3.5  3.5  3.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_autofig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_autofig</span><span class="p">(</span><span class="s2">&quot;PPoly_base_example.png&quot;</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">figure</span><span class="p">)</span>
+</pre></div>
+</div>
+<blockquote>
+<div><img alt="_images/PPoly_base_example.png" src="_images/PPoly_base_example.png" />
+</div></blockquote>
+<p><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> collects all constants and coefficients and provides access to them via
+properties <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.x0s" title="hydpy.auxs.ppolytools.PPoly.x0s"><code class="xref py py-const docutils literal notranslate"><span class="pre">x0s</span></code></a> and <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.cs" title="hydpy.auxs.ppolytools.PPoly.cs"><code class="xref py py-const docutils literal notranslate"><span class="pre">cs</span></code></a> available:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_matrix</span><span class="p">,</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">x0s</span><span class="p">)</span>
+<span class="go">1.0, 2.0, 3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_matrix</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">cs</span><span class="p">)</span>
+<span class="go">| 1.0, 0.0 |</span>
+<span class="go">| 1.0, 1.0 |</span>
+<span class="go">| 2.0, 3.0 |</span>
+</pre></div>
+</div>
+<p>Property <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_ps" title="hydpy.auxs.ppolytools.PPoly.nmb_ps"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_ps</span></code></a> reflects the total number of polynomials:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_ps</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+<p>Property <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_cs" title="hydpy.auxs.ppolytools.PPoly.nmb_cs"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_cs</span></code></a> informs about the number of relevant coefficients for each
+polynomial (the last non-negative coefficient is the last relevant one):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_cs</span><span class="p">)</span>
+<span class="go">1, 2, 2</span>
+</pre></div>
+</div>
+<p>You are free to manipulate both the breakpoints and the coefficients:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">x0s</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">cs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">polynomials</span>
+<span class="go">(Poly(x0=1.0, cs=(1.0,)), Poly(x0=2.0, cs=(1.0, 2.0)), Poly(x0=2.5, cs=(2.0, 3.0)))</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">print_table</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">])</span>
+<span class="go">x    y    dy/dx</span>
+<span class="go">0.5  1.0  0.0</span>
+<span class="go">1.0  1.0  0.0</span>
+<span class="go">1.5  1.0  0.0</span>
+<span class="go">2.0  1.0  2.0</span>
+<span class="go">2.5  2.0  3.0</span>
+<span class="go">3.0  3.5  3.0</span>
+<span class="go">3.5  5.0  3.0</span>
+</pre></div>
+</div>
+<p>However, be aware that manipulating <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_ps" title="hydpy.auxs.ppolytools.PPoly.nmb_ps"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_ps</span></code></a>, <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_cs" title="hydpy.auxs.ppolytools.PPoly.nmb_cs"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_cs</span></code></a>, <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.x0s" title="hydpy.auxs.ppolytools.PPoly.x0s"><code class="xref py py-const docutils literal notranslate"><span class="pre">x0s</span></code></a>,
+<a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_cs" title="hydpy.auxs.ppolytools.PPoly.nmb_cs"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_cs</span></code></a> can cause severe problems, including program crashes.  Hence, you
+should always call the <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.verify" title="hydpy.auxs.ppolytools.PPoly.verify"><code class="xref py py-func docutils literal notranslate"><span class="pre">verify()</span></code></a> method after manipulating these properties,
+which checks the integrity of the current configuration of <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> objects:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_ps</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to verify parameter `ppoly` of element `?`, the following error occurred: The number of constants indicated by `nmb_ps` (1) does not agree with the actual number of constants held by vector `x0s` (3).</span>
+</pre></div>
+</div>
+<p>To change an existing <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> object more safely, you can “call” it with different
+<a class="reference internal" href="#hydpy.auxs.ppolytools.Poly" title="hydpy.auxs.ppolytools.Poly"><code class="xref py py-class docutils literal notranslate"><span class="pre">Poly</span></code></a> objects, which overwrites all current information, as shown by the following
+example, defining only a single polynomial:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">print_table</span><span class="p">([</span><span class="o">-</span><span class="mf">3.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+<span class="go">x     y    dy/dx</span>
+<span class="go">-3.0  4.0  -4.0</span>
+<span class="go">-2.0  1.0  -2.0</span>
+<span class="go">-1.0  0.0  0.0</span>
+<span class="go">0.0   1.0  2.0</span>
+<span class="go">1.0   4.0  4.0</span>
+</pre></div>
+</div>
+<p>Calling <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> objects without any arguments results in the following error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">When calling an `PPoly` object, you need to define at least one polynomial function by passing at leas one `Poly` object.</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.from_data">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">VectorInputFloat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ys</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">VectorInputFloat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'linear'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">interpolate.CubicHermiteSpline</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'linear'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><span class="pre">PPoly</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/ppolytools.html#PPoly.from_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.from_data" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare a <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> object based on x-y data.</p>
+<p>As explained in the main documentation on class <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a>, you are free to define
+an arbitrary number of polynomials, each with arbitrary constants and
+coefficients.  However, one usually prefers functionally similar polynomials
+that standardised algorithms can compute. Method <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.from_data" title="hydpy.auxs.ppolytools.PPoly.from_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">from_data()</span></code></a> is a
+convenience function for following this route.  So far, it supports linear
+interpolation and some spline techniques.</p>
+<p>We start our explanations with a small and smooth x-y data set:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>By default, method <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.from_data" title="hydpy.auxs.ppolytools.PPoly.from_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">from_data()</span></code></a> prepares everything for a piecewise linear
+interpolation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPoly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="n">ys</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span>
+<span class="go">PPoly(</span>
+<span class="go">    Poly(x0=1.0, cs=(1.0, 1.0)),</span>
+<span class="go">    Poly(x0=2.0, cs=(2.0, 1.5)),</span>
+<span class="go">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">print_table</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">1.9</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">])</span>
+<span class="go">x    y     dy/dx</span>
+<span class="go">1.9  1.9   1.0</span>
+<span class="go">2.0  2.0   1.5</span>
+<span class="go">2.1  2.15  1.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Alternatively, <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> can use the following <a class="reference external" href="https://docs.scipy.org/doc/scipy/index.html#module-scipy" title="(in SciPy v1.16.2)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">scipy</span></code></a> classes for determining
+higher-order polynomials:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">CubicSpline</span><span class="p">,</span> <span class="n">Akima1DInterpolator</span><span class="p">,</span> <span class="n">PchipInterpolator</span>
+</pre></div>
+</div>
+<p>For sufficiently smooth data, cubic spline interpolation is often a good choice,
+as it preserves much smoothness around breakpoints (helpful for reaching
+required accuracies when applying numerical integration algorithms):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="n">ys</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">CubicSpline</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span>
+<span class="go">PPoly(</span>
+<span class="go">    Poly(x0=1.0, cs=(1.0, 0.75, 0.25)),</span>
+<span class="go">    Poly(x0=2.0, cs=(2.0, 1.25, 0.25)),</span>
+<span class="go">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">print_table</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">1.9</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">])</span>
+<span class="go">x    y       dy/dx</span>
+<span class="go">1.9  1.8775  1.2</span>
+<span class="go">2.0  2.0     1.25</span>
+<span class="go">2.1  2.1275  1.3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Cubic&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the given data, the Akima spline results in the same coefficients as the
+cubic spline:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="n">ys</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">Akima1DInterpolator</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span>
+<span class="go">PPoly(</span>
+<span class="go">    Poly(x0=1.0, cs=(1.0, 0.75, 0.25)),</span>
+<span class="go">    Poly(x0=2.0, cs=(2.0, 1.25, 0.25)),</span>
+<span class="go">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Akima&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The PCHIP (Piecewise Cubic Hermite Interpolating Polynomial) algorithm
+generally tends to less smooth interpolations:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="o">=</span><span class="n">ys</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="n">PchipInterpolator</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span>
+<span class="go">PPoly(</span>
+<span class="go">    Poly(x0=1.0, cs=(1.0, 0.75, 0.3, -0.05)),</span>
+<span class="go">    Poly(x0=2.0, cs=(2.0, 1.2, 0.35, -0.05)),</span>
+<span class="go">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">print_table</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">1.9</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">])</span>
+<span class="go">x    y        dy/dx</span>
+<span class="go">1.9  1.88155  1.1685</span>
+<span class="go">2.0  2.0      1.2</span>
+<span class="go">2.1  2.12345  1.2685</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Pchip&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following figure compares the linear and all spline interpolation results.
+As to be expected, the most sensible differences show in the interpolation
+ranges:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_autofig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_autofig</span><span class="p">(</span><span class="s2">&quot;PPoly_data_smooth.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/PPoly_data_smooth.png" src="_images/PPoly_data_smooth.png" />
+<p>Next, we apply all four interpolation approaches on a non-smooth data set.
+Cubic interpolation is again the smoothest one but tends to overshoot, which
+can be problematic when violating physical constraints.  Besides the linear
+approach, only the PCHIP interpolation always preserves monotonicity in the
+original data. The Akima interpolation appears as a good compromise between
+these two approaches:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">method</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;linear&quot;</span><span class="p">,</span> <span class="s2">&quot;linear&quot;</span><span class="p">),</span>
+<span class="gp">... </span>                      <span class="p">(</span><span class="n">CubicSpline</span><span class="p">,</span> <span class="s2">&quot;Cubic&quot;</span><span class="p">),</span>
+<span class="gp">... </span>                      <span class="p">(</span><span class="n">Akima1DInterpolator</span><span class="p">,</span> <span class="s2">&quot;Akima&quot;</span><span class="p">),</span>
+<span class="gp">... </span>                      <span class="p">(</span><span class="n">PchipInterpolator</span><span class="p">,</span> <span class="s2">&quot;Pchip&quot;</span><span class="p">)):</span>
+<span class="gp">... </span>    <span class="n">figure</span> <span class="o">=</span> <span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span>
+<span class="gp">... </span>        <span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span>
+<span class="gp">... </span>    <span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_autofig</span><span class="p">(</span><span class="s2">&quot;PPoly_data_not_smooth.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/PPoly_data_not_smooth.png" src="_images/PPoly_data_not_smooth.png" />
+<p>Passing data sets with one or two x-y pairs works fine:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">])</span>
+<span class="go">PPoly(</span>
+<span class="go">    Poly(x0=0.0, cs=(1.0,)),</span>
+<span class="go">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+<span class="go">PPoly(</span>
+<span class="go">    Poly(x0=0.0, cs=(2.0, 3.0)),</span>
+<span class="go">)</span>
+</pre></div>
+</div>
+<p>Empty data sets or data sets of different lengths result in the following
+error messages:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[])</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to derive polynomials from the vectors `x` ([]) and `y` ([]), the following error occurred: Vectors `x` and `y` must not be empty.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">PPoly</span><span class="o">.</span><span class="n">from_data</span><span class="p">(</span><span class="n">xs</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">ys</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">])</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">While trying to derive polynomials from the vectors `x` ([0.0 and 1.0]) and `y` ([1.0, 2.0, and 3.0]), the following error occurred: The lenghts of vectors `x` (2) and `y` (3) must be identical.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.nmb_inputs">
+<span class="sig-name descname"><span class="pre">nmb_inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.nmb_inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The number of input values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.inputs">
+<span class="sig-name descname"><span class="pre">inputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.inputs" title="Link to this definition">¶</a></dt>
+<dd><p>The current input values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.nmb_outputs">
+<span class="sig-name descname"><span class="pre">nmb_outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.nmb_outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The lastly calculated output values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.outputs">
+<span class="sig-name descname"><span class="pre">outputs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.outputs" title="Link to this definition">¶</a></dt>
+<dd><p>The lastly calculated output values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.output_derivatives">
+<span class="sig-name descname"><span class="pre">output_derivatives</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="propertytools.html#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><span class="pre">BaseProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Never" title="(in Python v3.14)"><span class="pre">Never</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.output_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>The lastly calculated first-order derivatives.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.nmb_ps">
+<span class="sig-name descname"><span class="pre">nmb_ps</span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.nmb_ps" title="Link to this definition">¶</a></dt>
+<dd><p>The number of polynomials.</p>
+<p><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_ps" title="hydpy.auxs.ppolytools.PPoly.nmb_ps"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_ps</span></code></a> is “protected” (implemented by <a class="reference internal" href="propertytools.html#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a>) for the sake
+of preventing segmentation faults when trying to access the related data from
+the underlying Cython extension class before allocation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPoly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_ps</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_ps</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_ps</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_ps</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `nmb_ps` of object `ppoly` has not been prepared so far.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.nmb_cs">
+<span class="sig-name descname"><span class="pre">nmb_cs</span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.nmb_cs" title="Link to this definition">¶</a></dt>
+<dd><p>The number of relevant coefficients for each polynomial.</p>
+<p><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_cs" title="hydpy.auxs.ppolytools.PPoly.nmb_cs"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_cs</span></code></a> is “protected” (implemented by <a class="reference internal" href="propertytools.html#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a>) for the sake
+of preventing segmentation faults when trying to access the related data from
+the underlying Cython extension class before allocation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPoly</span><span class="p">,</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_cs</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_cs</span><span class="p">)</span>
+<span class="go">1, 2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_cs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_cs</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `nmb_cs` of object `ppoly` has not been prepared so far.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.x0s">
+<span class="sig-name descname"><span class="pre">x0s</span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.x0s" title="Link to this definition">¶</a></dt>
+<dd><p>The power series constants of all polynomials.</p>
+<p><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.x0s" title="hydpy.auxs.ppolytools.PPoly.x0s"><code class="xref py py-const docutils literal notranslate"><span class="pre">x0s</span></code></a> is “protected” (implemented by <a class="reference internal" href="propertytools.html#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a>) for the sake of
+preventing segmentation faults when trying to access the related data from the
+underlying Cython extension class before allocation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPoly</span><span class="p">,</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">x0s</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">x0s</span><span class="p">)</span>
+<span class="go">1.0, 2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">x0s</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">x0s</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `x0s` of object `ppoly` has not been prepared so far.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.cs">
+<span class="sig-name descname"><span class="pre">cs</span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.cs" title="Link to this definition">¶</a></dt>
+<dd><p>The power series coefficients of all polynomials.</p>
+<p><a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.cs" title="hydpy.auxs.ppolytools.PPoly.cs"><code class="xref py py-const docutils literal notranslate"><span class="pre">cs</span></code></a> is “protected” (implemented by <a class="reference internal" href="propertytools.html#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a>) for the sake of
+preventing segmentation faults when trying to access the related data from the
+underlying Cython extension class before allocation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPoly</span><span class="p">,</span> <span class="n">print_matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">cs</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_matrix</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">cs</span><span class="p">)</span>
+<span class="go">| 1.0, 2.0 |</span>
+<span class="go">| 3.0, 4.0 |</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">cs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">cs</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `cs` of object `ppoly` has not been prepared so far.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.calculate_values">
+<span class="sig-name descname"><span class="pre">calculate_values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/ppolytools.html#PPoly.calculate_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.calculate_values" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the output value based on the input values defined previously.</p>
+<p>For more information, see the documentation on class <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.calculate_derivatives">
+<span class="sig-name descname"><span class="pre">calculate_derivatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/ppolytools.html#PPoly.calculate_derivatives"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.calculate_derivatives" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the derivative of the output value with respect to the input value.</p>
+<p>For more information, see the documentation on class <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.polynomials">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">polynomials</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#hydpy.auxs.ppolytools.Poly" title="hydpy.auxs.ppolytools.Poly"><span class="pre">Poly</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.polynomials" title="Link to this definition">¶</a></dt>
+<dd><p>The configuration of the current <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> object, represented by a
+tuple of <a class="reference internal" href="#hydpy.auxs.ppolytools.Poly" title="hydpy.auxs.ppolytools.Poly"><code class="xref py py-class docutils literal notranslate"><span class="pre">Poly</span></code></a> objects.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly</span><span class="p">,</span> <span class="n">PPoly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,)),</span> <span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">polynomials</span>
+<span class="go">(Poly(x0=1.0, cs=(1.0,)), Poly(x0=2.0, cs=(1.0, 1.0)))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.sort">
+<span class="sig-name descname"><span class="pre">sort</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/ppolytools.html#PPoly.sort"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.sort" title="Link to this definition">¶</a></dt>
+<dd><p>Sort the currently handled polynomials.</p>
+<p>The power series constants held by array <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.x0s" title="hydpy.auxs.ppolytools.PPoly.x0s"><code class="xref py py-const docutils literal notranslate"><span class="pre">x0s</span></code></a> also
+serve as breakpoints, defining the lower bounds of the intervals for which the
+available polynomials are valid. The algorithm underlying <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> expects them
+in sorted order.</p>
+<p>In the following example, we hand over two wrongly-ordered <a class="reference internal" href="#hydpy.auxs.ppolytools.Poly" title="hydpy.auxs.ppolytools.Poly"><code class="xref py py-class docutils literal notranslate"><span class="pre">Poly</span></code></a> objects:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly</span><span class="p">,</span> <span class="n">PPoly</span><span class="p">,</span> <span class="n">print_matrix</span><span class="p">,</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span> <span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">polynomials</span>
+<span class="go">(Poly(x0=2.0, cs=(1.0, 1.0)), Poly(x0=1.0, cs=(1.0,)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">x0s</span><span class="p">)</span>
+<span class="go">2.0, 1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_cs</span><span class="p">)</span>
+<span class="go">2, 1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_matrix</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">cs</span><span class="p">)</span>
+<span class="go">| 1.0, 1.0 |</span>
+<span class="go">| 1.0, 0.0 |</span>
+</pre></div>
+</div>
+<p>Method <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.sort" title="hydpy.auxs.ppolytools.PPoly.sort"><code class="xref py py-func docutils literal notranslate"><span class="pre">sort()</span></code></a> sorts <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.x0s" title="hydpy.auxs.ppolytools.PPoly.x0s"><code class="xref py py-const docutils literal notranslate"><span class="pre">x0s</span></code></a> and the related
+arrays <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.nmb_cs" title="hydpy.auxs.ppolytools.PPoly.nmb_cs"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_cs</span></code></a> and <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.cs" title="hydpy.auxs.ppolytools.PPoly.cs"><code class="xref py py-const docutils literal notranslate"><span class="pre">cs</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">polynomials</span>
+<span class="go">(Poly(x0=1.0, cs=(1.0,)), Poly(x0=2.0, cs=(1.0, 1.0)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">x0s</span><span class="p">)</span>
+<span class="go">1.0, 2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_cs</span><span class="p">)</span>
+<span class="go">1, 2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_matrix</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">cs</span><span class="p">)</span>
+<span class="go">| 1.0, 0.0 |</span>
+<span class="go">| 1.0, 1.0 |</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.verify">
+<span class="sig-name descname"><span class="pre">verify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/ppolytools.html#PPoly.verify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.verify" title="Link to this definition">¶</a></dt>
+<dd><p>Raise a <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a> if the current <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> object shows
+inconsistencies.</p>
+<p>Note that <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> never calls <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.verify" title="hydpy.auxs.ppolytools.PPoly.verify"><code class="xref py py-func docutils literal notranslate"><span class="pre">verify()</span></code></a>
+automatically.  Hence, we strongly advise applying it manually before using a
+new <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> configuration the first time.</p>
+<p>So far, method <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly.verify" title="hydpy.auxs.ppolytools.PPoly.verify"><code class="xref py py-func docutils literal notranslate"><span class="pre">verify()</span></code></a> reports the following problems:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPoly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span> <span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to verify parameter `ppoly` of element `?`, the following error occurred: The constants held in vector `x0s` are not strictly increasing, which is necessary as they also serve as breakpoints for selecting the relevant polynomials.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">nmb_cs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to verify parameter `ppoly` of element `?`, the following error occurred: The highest number of coefficients indicated by `nmb_cs` (3) is larger than the possible number of coefficients storable in the coefficient matrix `cs` (2).</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">cs</span> <span class="o">=</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">cs</span><span class="p">[:</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to verify parameter `ppoly` of element `?`, the following error occurred: The number of polynomials indicated by `nmb_ps` (2) does not agree with the actual number of coefficient arrays held by matrix `cs` (1).</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">x0s</span> <span class="o">=</span> <span class="n">ppoly</span><span class="o">.</span><span class="n">x0s</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to verify parameter `ppoly` of element `?`, the following error occurred: The number of constants indicated by `nmb_ps` (2) does not agree with the actual number of constants held by vector `x0s` (1).</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.ppolytools.PPoly.assignrepr">
+<span class="sig-name descname"><span class="pre">assignrepr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/ppolytools.html#PPoly.assignrepr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.ppolytools.PPoly.assignrepr" title="Link to this definition">¶</a></dt>
+<dd><p>Return a string representation of the actual <a class="reference internal" href="#hydpy.auxs.ppolytools.PPoly" title="hydpy.auxs.ppolytools.PPoly"><code class="xref py py-class docutils literal notranslate"><span class="pre">PPoly</span></code></a> object
+prefixed with the given string.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Poly</span><span class="p">,</span> <span class="n">PPoly</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span> <span class="o">=</span> <span class="n">PPoly</span><span class="p">(</span><span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,)),</span> <span class="n">Poly</span><span class="p">(</span><span class="n">x0</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">cs</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ppoly</span>
+<span class="go">PPoly(</span>
+<span class="go">    Poly(x0=1.0, cs=(1.0,)),</span>
+<span class="go">    Poly(x0=2.0, cs=(1.0, 1.0)),</span>
+<span class="go">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ppoly</span><span class="o">.</span><span class="n">assignrepr</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;    ppoly = &quot;</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+<span class="go">    ppoly = PPoly(</span>
+<span class="go">        Poly(x0=1.0, cs=(1.0,)),</span>
+<span class="go">        Poly(x0=2.0, cs=(1.0, 1.0)),</span>
+<span class="go">    )</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="quadtools.html" title="quadtools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="networktools.html" title="networktools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" >Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ppolytools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.optiontools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.optiontools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.optiontools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module implements features for defining local or global *HydPy* options.&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hydpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">propertytools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">timetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">TypeOption</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span>
+    <span class="s2">&quot;TypeOption&quot;</span><span class="p">,</span>
+    <span class="nb">bool</span><span class="p">,</span>
+    <span class="nb">int</span><span class="p">,</span>
+    <span class="nb">str</span><span class="p">,</span>
+    <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">,</span>
+    <span class="n">SeriesFileType</span><span class="p">,</span>
+    <span class="n">SeriesAggregationType</span><span class="p">,</span>
+    <span class="n">SeriesConventionType</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">TypeOptionContextBase</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;TypeOptionContextBase&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;OptionContextBase[Any]&quot;</span><span class="p">)</span>
+<span class="n">TypeOptionPropertyBase</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span>
+    <span class="s2">&quot;TypeOptionPropertyBase&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;OptionPropertyBase[Any, Any]&quot;</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="OptionContextBase">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionContextBase">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionContextBase</span><span class="p">(</span><span class="n">Generic</span><span class="p">[</span><span class="n">TypeOption</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for defining context managers required for the different</span>
+<span class="sd">    |OptionPropertyBase| subclasses.&quot;&quot;&quot;</span>
+
+    <span class="n">_old_value</span><span class="p">:</span> <span class="n">TypeOption</span>
+    <span class="n">_new_value</span><span class="p">:</span> <span class="n">TypeOption</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">_set_value</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">TypeOption</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">TypeOption</span><span class="p">,</span>
+        <span class="n">set_value</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">TypeOption</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_old_value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">set_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_value</span> <span class="o">=</span> <span class="p">(</span><span class="n">set_value</span><span class="p">,)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">TypeOptionContextBase</span><span class="p">,</span> <span class="n">new_value</span><span class="p">:</span> <span class="n">TypeOption</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TypeOptionContextBase</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span> <span class="o">=</span> <span class="n">new_value</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_value</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">exception_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="ne">BaseException</span><span class="p">],</span>
+        <span class="n">exception_value</span><span class="p">:</span> <span class="ne">BaseException</span><span class="p">,</span>
+        <span class="n">traceback_</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">TracebackType</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_value</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_old_value</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="OptionContextBool">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionContextBool">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionContextBool</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">OptionContextBase</span><span class="p">[</span><span class="nb">bool</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager required by |OptionPropertyBool|.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span>  <span class="c1"># pylint: disable=unused-argument</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">set_value</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">bool</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OptionContextBool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;TRUE&quot;</span> <span class="k">if</span> <span class="bp">self</span> <span class="k">else</span> <span class="s2">&quot;FALSE&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="OptionContextInt">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionContextInt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionContextInt</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">OptionContextBase</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager required by |OptionPropertyInt|.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span>  <span class="c1"># pylint: disable=unused-argument</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">set_value</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OptionContextInt</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_OptionContextEllipsis</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">OptionContextBase</span><span class="p">[</span><span class="nb">int</span><span class="p">]):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span>  <span class="c1"># pylint: disable=unused-argument</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">set_value</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">optional</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_OptionContextEllipsis</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">TypeOptionContextBase</span><span class="p">,</span>
+        <span class="n">new_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">optional</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TypeOptionContextBase</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">optional</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_old_value</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">999</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_old_value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span> <span class="o">=</span> <span class="n">new_value</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+
+<div class="viewcode-block" id="OptionContextStr">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionContextStr">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionContextStr</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">OptionContextBase</span><span class="p">[</span><span class="n">TypeOption</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager required by |OptionPropertyStr|.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span>  <span class="c1"># pylint: disable=unused-argument</span>
+        <span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">TypeOption</span><span class="p">,</span> <span class="n">set_value</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">TypeOption</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="OptionContextPeriod">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionContextPeriod">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionContextPeriod</span><span class="p">(</span><span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">,</span> <span class="n">OptionContextBase</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Context manager required by |OptionPropertyPeriod|.&quot;&quot;&quot;</span>
+
+    <span class="n">_set_value</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span> <span class="kc">None</span><span class="p">]]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span>  <span class="c1"># pylint: disable=unused-argument</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span><span class="p">,</span>
+        <span class="n">set_value</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="p">(</span><span class="n">Callable</span><span class="p">[[</span><span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span> <span class="kc">None</span><span class="p">])</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OptionContextPeriod</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">TypeOptionContextBase</span><span class="p">,</span> <span class="n">new_value</span><span class="p">:</span> <span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TypeOptionContextBase</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_value</span> <span class="o">=</span> <span class="n">new_value</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+
+<div class="viewcode-block" id="OptionPropertyBase">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionPropertyBase">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionPropertyBase</span><span class="p">(</span>
+    <span class="n">propertytools</span><span class="o">.</span><span class="n">BaseDescriptor</span><span class="p">,</span> <span class="n">Generic</span><span class="p">[</span><span class="n">TypeOption</span><span class="p">,</span> <span class="n">TypeOptionContextBase</span><span class="p">]</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for defining descriptors that work like regular |property| instances</span>
+<span class="sd">    and support the `with` statement to change the property&#39;s value temporarily.&quot;&quot;&quot;</span>
+
+    <span class="n">_CONVERTER</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">TypeOption</span><span class="p">],</span> <span class="n">TypeOption</span><span class="p">]]</span>
+    <span class="n">_CONTEXT</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">TypeOptionContextBase</span><span class="p">]</span>
+    <span class="n">_default</span><span class="p">:</span> <span class="n">TypeOption</span>
+    <span class="n">_obj2value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Hashable</span><span class="p">,</span> <span class="n">TypeOption</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="p">:</span> <span class="n">TypeOption</span><span class="p">,</span> <span class="n">doc</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default</span> <span class="o">=</span> <span class="n">default</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obj2value</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_doc</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="n">typ</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Hashable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">typ</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Hashable</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">TypeOptionContextBase</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__get__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Hashable</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">typ</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Hashable</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span> <span class="o">|</span> <span class="n">TypeOptionContextBase</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CONTEXT</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_value</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="k">lambda</span> <span class="n">value</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_value</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">TypeOption</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obj2value</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CONVERTER</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delete__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obj2value</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obj2value</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TypeOption</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_obj2value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">TypeOption</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_obj2value</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CONVERTER</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">value</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="OptionPropertyBool">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionPropertyBool">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionPropertyBool</span><span class="p">(</span><span class="n">OptionPropertyBase</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">OptionContextBool</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Descriptor for defining bool-like options.</span>
+
+<span class="sd">    Framework developers should implement bool-like options as follows:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.optiontools import OptionPropertyBool</span>
+<span class="sd">    &gt;&gt;&gt; class T:</span>
+<span class="sd">    ...     v = OptionPropertyBool(True, &quot;x&quot;)</span>
+
+<span class="sd">    The given string serves as documentation:</span>
+
+<span class="sd">    &gt;&gt;&gt; T.v.__doc__</span>
+<span class="sd">    &#39;x&#39;</span>
+
+<span class="sd">    Users can change the current value &quot;normally&quot; by assignments:</span>
+
+<span class="sd">    &gt;&gt;&gt; t = T()</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v</span>
+<span class="sd">    &gt;&gt;&gt; t.v = False</span>
+<span class="sd">    &gt;&gt;&gt; assert not t.v</span>
+
+<span class="sd">    Deleting restores the default value:</span>
+
+<span class="sd">    &gt;&gt;&gt; del t.v</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v</span>
+
+<span class="sd">    In most cases, the preferred way is to change options &quot;temporarily&quot; for a specific</span>
+<span class="sd">    code block introduced by the `with` statement:</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(False):</span>
+<span class="sd">    ...     assert not t.v</span>
+<span class="sd">    ...     with t.v(True):</span>
+<span class="sd">    ...         assert t.v</span>
+<span class="sd">    ...         with t.v():</span>
+<span class="sd">    ...             assert t.v</span>
+<span class="sd">    ...             with t.v(None):</span>
+<span class="sd">    ...                 assert t.v</span>
+<span class="sd">    ...                 with t.v(False):</span>
+<span class="sd">    ...                     assert not t.v</span>
+<span class="sd">    ...                 with t.v():</span>
+<span class="sd">    ...                     t.v = False</span>
+<span class="sd">    ...                     assert not t.v</span>
+<span class="sd">    ...                 assert t.v</span>
+<span class="sd">    ...             assert t.v</span>
+<span class="sd">    ...         assert t.v</span>
+<span class="sd">    ...     assert not t.v</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(False):</span>
+<span class="sd">    ...     assert not t.v</span>
+<span class="sd">    ...     raise RuntimeError</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_CONVERTER</span> <span class="o">=</span> <span class="p">(</span><span class="nb">bool</span><span class="p">,)</span>
+    <span class="n">_CONTEXT</span> <span class="o">=</span> <span class="n">OptionContextBool</span></div>
+
+
+
+<div class="viewcode-block" id="OptionPropertyInt">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionPropertyInt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionPropertyInt</span><span class="p">(</span><span class="n">OptionPropertyBase</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">OptionContextInt</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Descriptor for defining integer-like options.</span>
+
+<span class="sd">    Framework developers should implement integer-like options as follows:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.optiontools import OptionPropertyInt</span>
+<span class="sd">    &gt;&gt;&gt; class T:</span>
+<span class="sd">    ...     v = OptionPropertyInt(1, &quot;x&quot;)</span>
+
+<span class="sd">    The given string serves as documentation:</span>
+
+<span class="sd">    &gt;&gt;&gt; T.v.__doc__</span>
+<span class="sd">    &#39;x&#39;</span>
+
+<span class="sd">    Users can change the current value &quot;normally&quot; by assignments:</span>
+
+<span class="sd">    &gt;&gt;&gt; t = T()</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == 1</span>
+<span class="sd">    &gt;&gt;&gt; t.v = 2</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == 2</span>
+
+<span class="sd">    Deleting restores the default value:</span>
+
+<span class="sd">    &gt;&gt;&gt; del t.v</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == 1</span>
+
+<span class="sd">    In most cases, the prefered way is to change options &quot;temporarily&quot; for a specific</span>
+<span class="sd">    code block introduced by the `with` statement:</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(2):</span>
+<span class="sd">    ...     assert t.v == 2</span>
+<span class="sd">    ...     with t.v(3):</span>
+<span class="sd">    ...         assert t.v == 3</span>
+<span class="sd">    ...         with t.v():</span>
+<span class="sd">    ...             assert t.v == 3</span>
+<span class="sd">    ...             with t.v(None):</span>
+<span class="sd">    ...                 assert t.v == 3</span>
+<span class="sd">    ...                 with t.v(1):</span>
+<span class="sd">    ...                     assert t.v == 1</span>
+<span class="sd">    ...                 with t.v():</span>
+<span class="sd">    ...                     t.v = 4</span>
+<span class="sd">    ...                     assert t.v == 4</span>
+<span class="sd">    ...                 assert t.v == 3</span>
+<span class="sd">    ...             assert t.v == 3</span>
+<span class="sd">    ...         assert t.v == 3</span>
+<span class="sd">    ...     assert t.v == 2</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == 1</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(2):</span>
+<span class="sd">    ...     assert t.v == 2</span>
+<span class="sd">    ...     raise RuntimeError</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == 1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_CONVERTER</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">,)</span>
+    <span class="n">_CONTEXT</span> <span class="o">=</span> <span class="n">OptionContextInt</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_OptionPropertyEllipsis</span><span class="p">(</span><span class="n">OptionPropertyBase</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">_OptionContextEllipsis</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.optiontools import _OptionPropertyEllipsis</span>
+<span class="sd">    &gt;&gt;&gt; class T:</span>
+<span class="sd">    ...     v = _OptionPropertyEllipsis(1, &quot;x&quot;)</span>
+
+<span class="sd">    &gt;&gt;&gt; T.v.__doc__</span>
+<span class="sd">    &#39;x&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; t = T()</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == 1</span>
+<span class="sd">    &gt;&gt;&gt; t.v = 2</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == 2</span>
+
+<span class="sd">    &gt;&gt;&gt; del t.v</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == 1</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(2):</span>
+<span class="sd">    ...     assert t.v == 2</span>
+<span class="sd">    ...     with t.v(3):</span>
+<span class="sd">    ...         assert t.v == 3</span>
+<span class="sd">    ...         with t.v():</span>
+<span class="sd">    ...             assert t.v == 3</span>
+<span class="sd">    ...             with t.v(None):</span>
+<span class="sd">    ...                 assert t.v == 3</span>
+<span class="sd">    ...                 with t.v(1):</span>
+<span class="sd">    ...                     assert t.v == 1</span>
+<span class="sd">    ...                 with t.v():</span>
+<span class="sd">    ...                     t.v = 4</span>
+<span class="sd">    ...                     assert t.v == 4</span>
+<span class="sd">    ...                 assert t.v == 3</span>
+<span class="sd">    ...             assert t.v == 3</span>
+<span class="sd">    ...         assert t.v == 3</span>
+<span class="sd">    ...     assert t.v == 2</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == 1</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(2):</span>
+<span class="sd">    ...     assert t.v == 2</span>
+<span class="sd">    ...     raise RuntimeError</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == 1</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(2, optional=True):</span>
+<span class="sd">    ...     assert t.v == 1</span>
+<span class="sd">    &gt;&gt;&gt; t.v = -999</span>
+<span class="sd">    &gt;&gt;&gt; with t.v(2, optional=True):</span>
+<span class="sd">    ...     assert t.v == 2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_CONVERTER</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">,)</span>
+    <span class="n">_CONTEXT</span> <span class="o">=</span> <span class="n">_OptionContextEllipsis</span>
+
+
+<div class="viewcode-block" id="OptionPropertyStr">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionPropertyStr">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionPropertyStr</span><span class="p">(</span><span class="n">OptionPropertyBase</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">OptionContextStr</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Descriptor for defining string-like options.</span>
+
+<span class="sd">    Framework developers should implement string-like options as follows:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.optiontools import OptionPropertyStr</span>
+<span class="sd">    &gt;&gt;&gt; class T:</span>
+<span class="sd">    ...     v = OptionPropertyStr(&quot;1&quot;, &quot;x&quot;)</span>
+
+<span class="sd">    The given string serves as documentation:</span>
+
+<span class="sd">    &gt;&gt;&gt; T.v.__doc__</span>
+<span class="sd">    &#39;x&#39;</span>
+
+<span class="sd">    Users can change the current value &quot;normally&quot; by assignments:</span>
+
+<span class="sd">    &gt;&gt;&gt; t = T()</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;1&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;2&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;2&quot;</span>
+
+<span class="sd">    Deleting restores the default value:</span>
+
+<span class="sd">    &gt;&gt;&gt; del t.v</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;1&quot;</span>
+
+<span class="sd">    In most cases, the prefered way is to change options &quot;temporarily&quot; for a specific</span>
+<span class="sd">    code block introduced by the `with` statement:</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(&quot;2&quot;):</span>
+<span class="sd">    ...     assert t.v == &quot;2&quot;</span>
+<span class="sd">    ...     with t.v(&quot;3&quot;):</span>
+<span class="sd">    ...         assert t.v == &quot;3&quot;</span>
+<span class="sd">    ...         with t.v():</span>
+<span class="sd">    ...             assert t.v == &quot;3&quot;</span>
+<span class="sd">    ...             with t.v(None):</span>
+<span class="sd">    ...                 assert t.v == &quot;3&quot;</span>
+<span class="sd">    ...                 with t.v(&quot;1&quot;):</span>
+<span class="sd">    ...                     assert t.v == &quot;1&quot;</span>
+<span class="sd">    ...                 with t.v():</span>
+<span class="sd">    ...                     t.v = &quot;4&quot;</span>
+<span class="sd">    ...                     assert t.v == &quot;4&quot;</span>
+<span class="sd">    ...                 assert t.v == &quot;3&quot;</span>
+<span class="sd">    ...             assert t.v == &quot;3&quot;</span>
+<span class="sd">    ...         assert t.v == &quot;3&quot;</span>
+<span class="sd">    ...     assert t.v == &quot;2&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;1&quot;</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(&quot;2&quot;):</span>
+<span class="sd">    ...     assert t.v == &quot;2&quot;</span>
+<span class="sd">    ...     raise RuntimeError</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;1&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_CONVERTER</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">,)</span>
+    <span class="n">_CONTEXT</span> <span class="o">=</span> <span class="n">OptionContextStr</span></div>
+
+
+
+<div class="viewcode-block" id="OptionPropertyPeriod">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionPropertyPeriod">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionPropertyPeriod</span><span class="p">(</span><span class="n">OptionPropertyBase</span><span class="p">[</span><span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">,</span> <span class="n">OptionContextPeriod</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Descriptor for defining options of type |Period|.</span>
+
+<span class="sd">    Framework or model developers should implement options of type |Period| as follows:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.optiontools import OptionPropertyPeriod</span>
+<span class="sd">    &gt;&gt;&gt; class T:</span>
+<span class="sd">    ...     v = OptionPropertyPeriod(&quot;1d&quot;, &quot;x&quot;)</span>
+
+<span class="sd">    The given string serves as documentation:</span>
+
+<span class="sd">    &gt;&gt;&gt; T.v.__doc__</span>
+<span class="sd">    &#39;x&#39;</span>
+
+<span class="sd">    Users can change the current value &quot;normally&quot; by assignments (note the automatic</span>
+<span class="sd">    type conversion):</span>
+
+<span class="sd">    &gt;&gt;&gt; t = T()</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;1d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;2d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import Period</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == Period(&quot;2d&quot;)</span>
+
+<span class="sd">    Deleting restores the default value:</span>
+
+<span class="sd">    &gt;&gt;&gt; del t.v</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;1d&quot;</span>
+
+<span class="sd">    In most cases, the prefered way is to change options &quot;temporarily&quot; for a specific</span>
+<span class="sd">    code block introduced by the `with` statement:</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(&quot;2d&quot;):</span>
+<span class="sd">    ...     assert t.v == &quot;2d&quot;</span>
+<span class="sd">    ...     with t.v(&quot;3d&quot;):</span>
+<span class="sd">    ...         assert t.v == &quot;3d&quot;</span>
+<span class="sd">    ...         with t.v():</span>
+<span class="sd">    ...             assert t.v == &quot;3d&quot;</span>
+<span class="sd">    ...             with t.v(None):</span>
+<span class="sd">    ...                 assert t.v == &quot;3d&quot;</span>
+<span class="sd">    ...                 with t.v(&quot;1d&quot;):</span>
+<span class="sd">    ...                     assert t.v == &quot;1d&quot;</span>
+<span class="sd">    ...                 with t.v():</span>
+<span class="sd">    ...                     t.v = &quot;4d&quot;</span>
+<span class="sd">    ...                     assert t.v == &quot;4d&quot;</span>
+<span class="sd">    ...                 assert t.v == &quot;3d&quot;</span>
+<span class="sd">    ...             assert t.v == &quot;3d&quot;</span>
+<span class="sd">    ...         assert t.v == &quot;3d&quot;</span>
+<span class="sd">    ...     assert t.v == &quot;2d&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;1d&quot;</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(&quot;2d&quot;):</span>
+<span class="sd">    ...     assert t.v == &quot;2d&quot;</span>
+<span class="sd">    ...     raise RuntimeError</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;1d&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_CONVERTER</span> <span class="o">=</span> <span class="p">(</span><span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">,)</span>
+    <span class="n">_CONTEXT</span> <span class="o">=</span> <span class="n">OptionContextPeriod</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_obj2value</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CONVERTER</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_value</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">timetools</span><span class="o">.</span><span class="n">PeriodConstrArg</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_obj2value</span><span class="p">[</span><span class="n">obj</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CONVERTER</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">value</span><span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_OptionPropertySimulationstep</span><span class="p">(</span><span class="n">OptionPropertyPeriod</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">stepsize</span>
+        <span class="k">except</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_get_value</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_seriesfiletype</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">SeriesFileType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SeriesFileType</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;nc&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;nc&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;npy&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;npy&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;asc&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;asc&quot;</span>
+        <span class="n">assert_never</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The given sequence file type `</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">` is not implemented.  Please &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;choose one of the following file types: npy, asc, and nc.&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">assert</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="OptionPropertySeriesFileType">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionPropertySeriesFileType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionPropertySeriesFileType</span><span class="p">(</span>
+    <span class="n">OptionPropertyBase</span><span class="p">[</span><span class="n">SeriesFileType</span><span class="p">,</span> <span class="n">OptionContextStr</span><span class="p">[</span><span class="n">SeriesFileType</span><span class="p">]]</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Descriptor for defining options of type |SeriesFileType|.</span>
+
+<span class="sd">    *HydPy* currently supports a simple text format (`asc`), the numpy binary format</span>
+<span class="sd">    (`npy`) and NetCDF files (`nc`).  Options based on |OptionPropertySeriesFileType|</span>
+<span class="sd">    automatically check if the given string is a supported file-ending and raise errors</span>
+<span class="sd">    if not:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.optiontools import OptionPropertySeriesFileType</span>
+<span class="sd">    &gt;&gt;&gt; class T:</span>
+<span class="sd">    ...     v = OptionPropertySeriesFileType(&quot;asc&quot;, &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; T.v.__doc__</span>
+<span class="sd">    &#39;x&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; t = T()</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;asc&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;abc&quot;</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The given sequence file type `abc` is not implemented.  Please choose \</span>
+<span class="sd">one of the following file types: npy, asc, and nc.</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;asc&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;npy&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;npy&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;nc&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;nc&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;asc&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;asc&quot;</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(&quot;abc&quot;):</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The given sequence file type `abc` is not implemented.  Please choose \</span>
+<span class="sd">one of the following file types: npy, asc, and nc.</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;asc&quot;</span>
+<span class="sd">    &gt;&gt;&gt; with t.v(&quot;npy&quot;):</span>
+<span class="sd">    ...     assert t.v == &quot;npy&quot;</span>
+<span class="sd">    ...     with t.v(&quot;nc&quot;):</span>
+<span class="sd">    ...         assert t.v == &quot;nc&quot;</span>
+<span class="sd">    ...         with t.v():</span>
+<span class="sd">    ...             assert t.v == &quot;nc&quot;</span>
+<span class="sd">    ...         with t.v(None):</span>
+<span class="sd">    ...             assert t.v == &quot;nc&quot;</span>
+<span class="sd">    ...     assert t.v == &quot;npy&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;asc&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_CONVERTER</span> <span class="o">=</span> <span class="p">(</span><span class="n">_check_seriesfiletype</span><span class="p">,)</span>
+    <span class="n">_CONTEXT</span> <span class="o">=</span> <span class="n">OptionContextStr</span><span class="p">[</span><span class="n">SeriesFileType</span><span class="p">]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_seriesaggregationtype</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">SeriesAggregationType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SeriesAggregationType</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;none&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;mean&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;mean&quot;</span>
+        <span class="n">assert_never</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The given aggregation mode `</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">` is not implemented.  Please &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;choose one of the following modes: none and mean.&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">assert</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="OptionPropertySeriesAggregation">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionPropertySeriesAggregation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionPropertySeriesAggregation</span><span class="p">(</span>
+    <span class="n">OptionPropertyBase</span><span class="p">[</span><span class="n">SeriesAggregationType</span><span class="p">,</span> <span class="n">OptionContextStr</span><span class="p">[</span><span class="n">SeriesAggregationType</span><span class="p">]]</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Descriptor for defining options of type |SeriesAggregationType|.</span>
+
+<span class="sd">    The only currently supported aggregation is averaging (`mean`).  Use `none` to</span>
+<span class="sd">    avoid any aggregation.  Options based on |OptionPropertySeriesAggregation|</span>
+<span class="sd">    automatically check if the given string meets one of these modes and raise errors</span>
+<span class="sd">    if not:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.optiontools import OptionPropertySeriesAggregation</span>
+<span class="sd">    &gt;&gt;&gt; class T:</span>
+<span class="sd">    ...     v = OptionPropertySeriesAggregation(&quot;none&quot;, &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; T.v.__doc__</span>
+<span class="sd">    &#39;x&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; t = T()</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;none&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;sum&quot;</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The given aggregation mode `sum` is not implemented.  Please choose \</span>
+<span class="sd">one of the following modes: none and mean.</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;none&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;mean&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;mean&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;none&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;none&quot;</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(&quot;sum&quot;):</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The given aggregation mode `sum` is not implemented.  Please choose \</span>
+<span class="sd">one of the following modes: none and mean.</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;none&quot;</span>
+<span class="sd">    &gt;&gt;&gt; with t.v(&quot;mean&quot;):</span>
+<span class="sd">    ...     assert t.v == &quot;mean&quot;</span>
+<span class="sd">    ...     with t.v():</span>
+<span class="sd">    ...         assert t.v == &quot;mean&quot;</span>
+<span class="sd">    ...     with t.v(None):</span>
+<span class="sd">    ...         assert t.v == &quot;mean&quot;</span>
+<span class="sd">    ...     assert t.v == &quot;mean&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;none&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_CONVERTER</span> <span class="o">=</span> <span class="p">(</span><span class="n">_check_seriesaggregationtype</span><span class="p">,)</span>
+    <span class="n">_CONTEXT</span> <span class="o">=</span> <span class="n">OptionContextStr</span><span class="p">[</span><span class="n">SeriesAggregationType</span><span class="p">]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_seriesconventiontype</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">SeriesConventionType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SeriesConventionType</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;model-specific&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;model-specific&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">&quot;HydPy&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;HydPy&quot;</span>
+        <span class="n">assert_never</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AssertionError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The given time series naming convention `</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">` is not &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;implemented.  Please choose one of the following modes: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;model-specific and HydPy.&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">assert</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="OptionPropertySeriesConvention">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.OptionPropertySeriesConvention">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">OptionPropertySeriesConvention</span><span class="p">(</span>
+    <span class="n">OptionPropertyBase</span><span class="p">[</span><span class="n">SeriesConventionType</span><span class="p">,</span> <span class="n">OptionContextStr</span><span class="p">[</span><span class="n">SeriesConventionType</span><span class="p">]]</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Descriptor for defining options of type |SeriesConventionType|.</span>
+
+<span class="sd">    *HydPy* currently follows two naming conventions when reading input time series.</span>
+<span class="sd">    The original convention is to rely on the model-specific sequence names in</span>
+<span class="sd">    lowercase letters (&quot;model-specific&quot;).  The more convenient convention is to rely on</span>
+<span class="sd">    the standard names defined by the enum |sequencetools.StandardInputNames|</span>
+<span class="sd">    (&quot;HydPy&quot;).  We will likely support more official naming conventions later and</span>
+<span class="sd">    eventually allow writing time series following other conventions than the</span>
+<span class="sd">    &quot;model-specific&quot; one:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.optiontools import OptionPropertySeriesConvention</span>
+<span class="sd">    &gt;&gt;&gt; class T:</span>
+<span class="sd">    ...     v = OptionPropertySeriesConvention(&quot;model-specific&quot;, &quot;x&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; T.v.__doc__</span>
+<span class="sd">    &#39;x&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; t = T()</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;model-specific&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;WMO&quot;</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The given time series naming convention `WMO` is not implemented.  \</span>
+<span class="sd">Please choose one of the following modes: model-specific and HydPy.</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;model-specific&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;HydPy&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;HydPy&quot;</span>
+<span class="sd">    &gt;&gt;&gt; t.v = &quot;model-specific&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;model-specific&quot;</span>
+
+<span class="sd">    &gt;&gt;&gt; with t.v(&quot;WMO&quot;):</span>
+<span class="sd">    ...     pass</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: The given time series naming convention `WMO` is not implemented.  \</span>
+<span class="sd">Please choose one of the following modes: model-specific and HydPy.</span>
+
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;model-specific&quot;</span>
+<span class="sd">    &gt;&gt;&gt; with t.v(&quot;HydPy&quot;):</span>
+<span class="sd">    ...     assert t.v == &quot;HydPy&quot;</span>
+<span class="sd">    ...     with t.v():</span>
+<span class="sd">    ...         assert t.v == &quot;HydPy&quot;</span>
+<span class="sd">    ...     with t.v(None):</span>
+<span class="sd">    ...         assert t.v == &quot;HydPy&quot;</span>
+<span class="sd">    ...     assert t.v == &quot;HydPy&quot;</span>
+<span class="sd">    &gt;&gt;&gt; assert t.v == &quot;model-specific&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_CONVERTER</span> <span class="o">=</span> <span class="p">(</span><span class="n">_check_seriesconventiontype</span><span class="p">,)</span>
+    <span class="n">_CONTEXT</span> <span class="o">=</span> <span class="n">OptionContextStr</span><span class="p">[</span><span class="n">SeriesConventionType</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Options">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.Options">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Options</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Singleton class for the general options available in the global |pub| module.</span>
+
+<span class="sd">    Most options are simple bool-like flags.</span>
+
+<span class="sd">    You can change all options in two ways.  First, using the `with` statement makes</span>
+<span class="sd">    sure the change is reverted after leaving the corresponding code block (even if an</span>
+<span class="sd">    error occurs):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = 0</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress</span>
+<span class="sd">    FALSE</span>
+<span class="sd">    &gt;&gt;&gt; with pub.options.printprogress(True):</span>
+<span class="sd">    ...     print(pub.options.printprogress)</span>
+<span class="sd">    TRUE</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress</span>
+<span class="sd">    FALSE</span>
+
+<span class="sd">    Alternatively, you can change all options via simple assignments:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = True</span>
+<span class="sd">    &gt;&gt;&gt; assert pub.options.printprogress</span>
+
+<span class="sd">    But then you might have to keep in mind to undo the change later:</span>
+
+<span class="sd">    &gt;&gt;&gt; assert pub.options.printprogress</span>
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = False</span>
+<span class="sd">    &gt;&gt;&gt; assert not pub.options.printprogress</span>
+
+<span class="sd">    When using the `with` statement, you can pass nothing or |None|, which does not</span>
+<span class="sd">    change the original setting and resets it after leaving the `with` block:</span>
+
+<span class="sd">    &gt;&gt;&gt; with pub.options.printprogress(None):</span>
+<span class="sd">    ...     assert not pub.options.printprogress</span>
+<span class="sd">    ...     pub.options.printprogress = True</span>
+<span class="sd">    ...     assert pub.options.printprogress</span>
+<span class="sd">    &gt;&gt;&gt; assert not pub.options.printprogress</span>
+
+<span class="sd">    The delete statement restores the respective default setting:</span>
+
+<span class="sd">    &gt;&gt;&gt; del pub.options.printprogress</span>
+<span class="sd">    &gt;&gt;&gt; assert pub.options.printprogress</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.options.printprogress = False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">checkprojectstructure</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for raising a warning when creating a |HydPy| instance for</span>
+<span class="sd">        a project without the basic project structure on disk.</span>
+
+<span class="sd">         Defaults usually to true but during testing to false:</span>
+<span class="sd">         </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import HydPy, pub</span>
+<span class="sd">        &gt;&gt;&gt; assert not pub.options.checkprojectstructure</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.checkprojectstructure</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.checkprojectstructure</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">checkseries</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for raising an error when loading an input time series that </span>
+<span class="sd">        does not cover the whole initialisation period or contains |numpy.nan| </span>
+<span class="sd">        values.</span>
+<span class="sd">        </span>
+<span class="sd">        Defaults to true:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.checkseries</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.checkseries</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.checkseries</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ellipsis</span> <span class="o">=</span> <span class="n">_OptionPropertyEllipsis</span><span class="p">(</span>
+        <span class="o">-</span><span class="mi">999</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The maximum number of collection members shown in string representations </span>
+<span class="sd">        before and behind ellipsis points.</span>
+<span class="sd">        </span>
+<span class="sd">        Ellipsis points serve to shorten the string representations of iterable HydPy </span>
+<span class="sd">        objects that contain many entries.  Set this option to -999 to rely on the </span>
+<span class="sd">        default values of the respective iterable objects or zero to avoid any </span>
+<span class="sd">        ellipsis points.  -999 is the default value, but zero is the preferred value </span>
+<span class="sd">        during testing:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.ellipsis == 0</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.ellipsis</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.ellipsis == -999</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parameterstep</span> <span class="o">=</span> <span class="n">OptionPropertyPeriod</span><span class="p">(</span>
+        <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">),</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The actual parameter time step size.  Change it by passing a |Period| object </span>
+<span class="sd">        or any valid |Period| constructor argument.  </span>
+<span class="sd">        </span>
+<span class="sd">        Defaults to one day:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.parameterstep == &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.parameterstep</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.parameterstep == &quot;1d&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">printprogress</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for printing information about the progress of some </span>
+<span class="sd">        processes to the standard output.</span>
+<span class="sd">        </span>
+<span class="sd">        Defaults usually to true but during testing to false:</span>
+<span class="sd">         </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert not pub.options.printprogress</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.printprogress</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.printprogress</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">reprdigits</span> <span class="o">=</span> <span class="n">OptionPropertyInt</span><span class="p">(</span>
+        <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The maximum number of decimal places for floating point numbers that are </span>
+<span class="sd">        part of HydPy&#39;s string representations (see function |repr_|).</span>
+<span class="sd">        </span>
+<span class="sd">        -1 means printing with the highest available precision.  Defaults usually to </span>
+<span class="sd">        -1 but during testing to 6:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.reprdigits == 6   </span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.reprdigits</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.reprdigits == -1</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">simulationstep</span> <span class="o">=</span> <span class="n">_OptionPropertySimulationstep</span><span class="p">(</span>
+        <span class="n">timetools</span><span class="o">.</span><span class="n">Period</span><span class="p">(),</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The actual simulation time step size.  </span>
+<span class="sd">        </span>
+<span class="sd">        HydPy does not define a default simulation step, which is indicated by an empty </span>
+<span class="sd">        |Period| object).  </span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">        Period()</span>
+<span class="sd">        </span>
+<span class="sd">        Change it by passing a |Period| object or any valid |Period| constructor </span>
+<span class="sd">        argument, but note that you cannot manually define the |Options.simulationstep| </span>
+<span class="sd">        whenever it is already available via attribute |Timegrids.stepsize| of the </span>
+<span class="sd">        global |Timegrids| object in module |pub| (`pub.timegrids`):</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; pub.options.simulationstep = &quot;1h&quot;</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">        Period(&quot;1h&quot;)</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2001-01-01&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">        Period(&quot;1d&quot;)</span>
+<span class="sd">     </span>
+<span class="sd">        &gt;&gt;&gt; pub.options.simulationstep = &quot;1s&quot;</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">        Period(&quot;1d&quot;)</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; del pub.timegrids</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">        Period(&quot;1s&quot;)</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.simulationstep</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.simulationstep</span>
+<span class="sd">        Period()</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">threads</span> <span class="o">=</span> <span class="n">OptionPropertyInt</span><span class="p">(</span>
+        <span class="mi">0</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The number of additional threads opened during a simulation run.</span>
+
+<span class="sd">        Defaults to zero (no multi-threading), but note that all tests work with an </span>
+<span class="sd">        arbitrary number of additional threads.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.threads</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.threads == 0</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">timestampleft</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag telling if assigning interval data (like hourly </span>
+<span class="sd">        precipitation) to single time points relies on the start (True, default) or the </span>
+<span class="sd">        end (False) of the respective interval.  </span>
+
+<span class="sd">        HydPy-internally, we usually prevent such potentially problematic assignments </span>
+<span class="sd">        by using |Timegrid| objects that define grids of intervals instead of time </span>
+<span class="sd">        points.  However, exceptions cannot be avoided, such as when reading or writing </span>
+<span class="sd">        NetCDF files.</span>
+<span class="sd">        </span>
+<span class="sd">        Defaults to true:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.timestampleft</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.timestampleft</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.timestampleft</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">trimvariables</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for enabling/disabling function |trim|.  Set it to |False| </span>
+<span class="sd">        only for good reasons.</span>
+<span class="sd">        </span>
+<span class="sd">        Defaults to true:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.trimvariables</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.trimvariables</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.trimvariables</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">usecython</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for applying cythonized models, which are much faster than </span>
+<span class="sd">        pure Python models.</span>
+<span class="sd">        </span>
+<span class="sd">        The benefit of using pure Python models is they simplify debugging a lot.  </span>
+<span class="sd">        Hence, setting this option to false makes sense when implementing a new model</span>
+<span class="sd">        or when trying to discover why a model does not work as expected.</span>
+<span class="sd">              </span>
+<span class="sd">        Defaults to true, but note that all tests work with this flag being enabled and</span>
+<span class="sd">        disabled.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.usecython</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.usecython</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">usedefaultvalues</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">False</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for initialising parameters with standard values.        </span>
+<span class="sd">        </span>
+<span class="sd">        Defaults to false:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert not pub.options.usedefaultvalues</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.usedefaultvalues</span>
+<span class="sd">        &gt;&gt;&gt; assert not pub.options.usedefaultvalues</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">utclongitude</span> <span class="o">=</span> <span class="n">OptionPropertyInt</span><span class="p">(</span>
+        <span class="mi">15</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Longitude of the centre of the local time zone (see option</span>
+<span class="sd">        |Options.utcoffset|).  </span>
+<span class="sd">        </span>
+<span class="sd">        Defaults to 15, which corresponds to the central meridian of UTC+01:00:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.utclongitude == 15</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.utclongitude</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.utclongitude == 15</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">utcoffset</span> <span class="o">=</span> <span class="n">OptionPropertyInt</span><span class="p">(</span>
+        <span class="mi">60</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Local time offset from UTC in minutes s(see option |Options.utclongitude|.  </span>
+<span class="sd">        </span>
+<span class="sd">        Defaults to 60, which corresponds to UTC+01:00.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.utcoffset == 60</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.utcoffset</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.utcoffset == 60</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">warnmissingcontrolfile</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">False</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for only raising a warning instead of an exception when a </span>
+<span class="sd">        necessary control file is missing.</span>
+
+<span class="sd">        Defaults to false:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert not pub.options.warnmissingcontrolfile</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.warnmissingcontrolfile</span>
+<span class="sd">        &gt;&gt;&gt; assert not pub.options.warnmissingcontrolfile</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">warnmissingobsfile</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for raising a warning when a requested observation sequence </span>
+<span class="sd">        demanded by a node instance is missing.</span>
+
+<span class="sd">        Defaults to true:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.warnmissingobsfile</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.warnmissingobsfile</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.warnmissingobsfile</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">warnmissingsimfile</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for raising a warning when a requested simulation sequence </span>
+<span class="sd">        demanded by a node instance is missing.</span>
+
+<span class="sd">        Defaults to true:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.warnmissingsimfile</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.warnmissingsimfile</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.warnmissingsimfile</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">warnsimulationstep</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for raising a warning when function |simulationstep| is</span>
+<span class="sd">        called for the first time directly by the user.</span>
+
+<span class="sd">        Defaults usually to true but during testing to false:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert not pub.options.warnsimulationstep</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.warnsimulationstep</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.warnsimulationstep</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">warntrim</span> <span class="o">=</span> <span class="n">OptionPropertyBool</span><span class="p">(</span>
+        <span class="kc">True</span><span class="p">,</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A bool-like flag for raising a warning when a |Variable| object trims its</span>
+<span class="sd">        value(s) not to violate certain boundaries.  </span>
+<span class="sd">        </span>
+<span class="sd">        To cope with the limited precision of floating-point numbers, only those </span>
+<span class="sd">        violations beyond a small tolerance value are reported (see function |trim|).</span>
+
+<span class="sd">        Defaults usually to true but during testing to false:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; assert not pub.options.warntrim</span>
+<span class="sd">        &gt;&gt;&gt; del pub.options.warntrim</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.warntrim</span>
+<span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="Options.reset_defaults">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.Options.reset_defaults">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset all options to their default values.</span>
+
+<span class="sd">        .. testsetup::</span>
+
+<span class="sd">            &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">            &gt;&gt;&gt; threads = pub.options.threads</span>
+<span class="sd">            &gt;&gt;&gt; usecython = pub.options.usecython</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.reprdigits = 2</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.reprdigits == 2</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.reset_defaults()</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.reprdigits == -1</span>
+
+<span class="sd">        .. testsetup::</span>
+
+<span class="sd">            &gt;&gt;&gt; pub.options.prepare_testing(usecython=usecython, threads=threads)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">OptionPropertyBase</span><span class="p">):</span>
+                <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Options.prepare_testing">
+<a class="viewcode-back" href="../../../optiontools.html#hydpy.core.optiontools.Options.prepare_testing">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_testing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">usecython</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">threads</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set all options to the values usually used during testing.</span>
+
+<span class="sd">        .. testsetup::</span>
+
+<span class="sd">            &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">            &gt;&gt;&gt; threads = pub.options.threads</span>
+<span class="sd">            &gt;&gt;&gt; usecython = pub.options.usecython</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.checkseries = False</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.reprdigits = 2</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.threads = 0</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.usecython = True</span>
+<span class="sd">        &gt;&gt;&gt; pub.options.prepare_testing(usecython=False, threads=4)</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.checkseries</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.reprdigits == 6</span>
+<span class="sd">        &gt;&gt;&gt; assert pub.options.threads == 4</span>
+<span class="sd">        &gt;&gt;&gt; assert not pub.options.usecython</span>
+
+<span class="sd">        .. testsetup::</span>
+
+<span class="sd">            &gt;&gt;&gt; pub.options.prepare_testing(usecython=usecython, threads=threads)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_defaults</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">checkprojectstructure</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ellipsis</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">printprogress</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reprdigits</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threads</span> <span class="o">=</span> <span class="n">threads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">usecython</span> <span class="o">=</span> <span class="n">usecython</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warnsimulationstep</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">warntrim</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Options(&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">OptionPropertyBase</span><span class="p">):</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.optiontools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

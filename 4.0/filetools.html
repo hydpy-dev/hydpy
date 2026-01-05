@@ -1,0 +1,1628 @@
+﻿
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>filetools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="hydpytools" href="hydpytools.html" />
+    <link rel="prev" title="exceptiontools" href="exceptiontools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hydpytools.html" title="hydpytools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="exceptiontools.html" title="exceptiontools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">filetools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="filetools">
+<span id="id1"></span><h1>filetools<a class="headerlink" href="#filetools" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-hydpy.core.filetools"></span><p>This module provides features for handling the folder structure of
+<em>HydPy</em>  projects as well as loading data from and storing data to files.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.filetools" title="hydpy.core.filetools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">filetools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.filetools.Folder2Path" title="hydpy.core.filetools.Folder2Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Folder2Path</span></code></a> Map folder names to their path names.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileManager</span></code></a> Base class for <a class="reference internal" href="#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a>, <a class="reference internal" href="#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a>, <a class="reference internal" href="#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a>, and <a class="reference internal" href="#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a> Manager for network files.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a> Manager for control parameter files.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a> Manager for condition files.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a> Manager for sequence files.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt id="hydpy.core.filetools.Folder2Path">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.filetools.</span></code><code class="sig-name descname"><span class="pre">Folder2Path</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/filetools.html#Folder2Path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.Folder2Path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Map folder names to their path names.</p>
+<p>You can both pass positional arguments and keyword arguments when
+initialising <a class="reference internal" href="#hydpy.core.filetools.Folder2Path" title="hydpy.core.filetools.Folder2Path"><code class="xref py py-class docutils literal notranslate"><span class="pre">Folder2Path</span></code></a>.  For positional arguments, the folder
+and its path are assumed to be identical.  For keyword arguments,
+the keyword corresponds to the folder name and its value to the
+path name:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">Folder2Path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Folder2Path</span><span class="p">()</span>
+<span class="go">Folder2Path()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2p</span> <span class="o">=</span> <span class="n">Folder2Path</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;folder1&quot;</span><span class="p">,</span> <span class="s2">&quot;folder2&quot;</span><span class="p">,</span> <span class="n">folder3</span><span class="o">=</span><span class="s2">&quot;folder3&quot;</span><span class="p">,</span> <span class="n">folder4</span><span class="o">=</span><span class="s2">&quot;path4&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2p</span>
+<span class="go">Folder2Path(folder1,</span>
+<span class="go">            folder2,</span>
+<span class="go">            folder3,</span>
+<span class="go">            folder4=path4)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f2p</span><span class="p">)</span>
+<span class="go">Folder2Path(folder1, folder2, folder3, folder4=path4)</span>
+</pre></div>
+</div>
+<p>To add folders after initialisation is supported:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f2p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;folder5&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;folder6&quot;</span><span class="p">,</span> <span class="s2">&quot;path6&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2p</span>
+<span class="go">Folder2Path(folder1,</span>
+<span class="go">            folder2,</span>
+<span class="go">            folder3,</span>
+<span class="go">            folder5,</span>
+<span class="go">            folder4=path4,</span>
+<span class="go">            folder6=path6)</span>
+</pre></div>
+</div>
+<p>Folder names are required to be valid Python identifiers:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f2p</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;folder 7&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The given name string `folder 7` does not define a valid variable identifier.  Valid identifiers do not contain characters like `-` or empty spaces, do not start with numbers, cannot be mistaken with Python built-ins like `for`...)</span>
+</pre></div>
+</div>
+<p>You can query the folder and attribute names:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f2p</span><span class="o">.</span><span class="n">folders</span>
+<span class="go">[&#39;folder1&#39;, &#39;folder2&#39;, &#39;folder3&#39;, &#39;folder4&#39;, &#39;folder5&#39;, &#39;folder6&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2p</span><span class="o">.</span><span class="n">paths</span>
+<span class="go">[&#39;folder1&#39;, &#39;folder2&#39;, &#39;folder3&#39;, &#39;path4&#39;, &#39;folder5&#39;, &#39;path6&#39;]</span>
+</pre></div>
+</div>
+<p>Attribute access and iteration are also supported:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="s2">&quot;folder1&quot;</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">f2p</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2p</span><span class="o">.</span><span class="n">folder1</span>
+<span class="go">&#39;folder1&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2p</span><span class="o">.</span><span class="n">folder4</span>
+<span class="go">&#39;path4&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">folder</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">f2p</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+<span class="go">folder1 folder1</span>
+<span class="go">folder2 folder2</span>
+<span class="go">folder3 folder3</span>
+<span class="go">folder4 path4</span>
+<span class="go">folder5 folder5</span>
+<span class="go">folder6 path6</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">f2p</span><span class="p">)</span>
+<span class="go">6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">f2p</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">Folder2Path</span><span class="p">())</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt id="hydpy.core.filetools.Folder2Path.add">
+<code class="sig-name descname"><span class="pre">add</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#Folder2Path.add"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.Folder2Path.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a directory and optionally its path.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.Folder2Path.folders">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">folders</span></code><a class="headerlink" href="#hydpy.core.filetools.Folder2Path.folders" title="Permalink to this definition">¶</a></dt>
+<dd><p>The currently handled folder names.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.Folder2Path.paths">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">paths</span></code><a class="headerlink" href="#hydpy.core.filetools.Folder2Path.paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>The currently handled path names.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.filetools.FileManager">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.filetools.</span></code><code class="sig-name descname"><span class="pre">FileManager</span></code><a class="reference internal" href="_modules/hydpy/core/filetools.html#FileManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.FileManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for <a class="reference internal" href="#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a>, <a class="reference internal" href="#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a>, <a class="reference internal" href="#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a>,
+and <a class="reference internal" href="#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a>.</p>
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.FileManager.BASEDIR">
+<code class="sig-name descname"><span class="pre">BASEDIR</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><a class="headerlink" href="#hydpy.core.filetools.FileManager.BASEDIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.FileManager.DEFAULTDIR">
+<code class="sig-name descname"><span class="pre">DEFAULTDIR</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#hydpy.core.filetools.FileManager.DEFAULTDIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.FileManager.projectdir">
+<code class="sig-name descname"><span class="pre">projectdir</span></code><a class="headerlink" href="#hydpy.core.filetools.FileManager.projectdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the main folder of a project.</p>
+<p>For the <cite>LahnH</cite> example project, <a class="reference internal" href="#hydpy.core.filetools.FileManager.projectdir" title="hydpy.core.filetools.FileManager.projectdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">projectdir</span></code></a> is
+(not surprisingly) <cite>LahnH</cite>, and is queried from the <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> module.
+However, you can define or change <a class="reference internal" href="#hydpy.core.filetools.FileManager.projectdir" title="hydpy.core.filetools.FileManager.projectdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">projectdir</span></code></a>
+interactively, which can be useful for more complex tasks like
+copying (parts of) projects:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">FileManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">projectname</span> <span class="o">=</span> <span class="s2">&quot;project_A&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span>
+<span class="go">&#39;project_A&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `projectdir` of object `filemanager` has not been prepared so far.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="s2">&quot;project_B&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span>
+<span class="go">&#39;project_B&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">projectname</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">FileManager</span><span class="p">()</span><span class="o">.</span><span class="n">projectdir</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `projectdir` of object `filemanager` has not been prepared so far.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.FileManager.basepath">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">basepath</span></code><a class="headerlink" href="#hydpy.core.filetools.FileManager.basepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>The absolute path pointing to the available working directories.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">FileManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;basename&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="s2">&quot;projectname&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">repr_</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">filemanager</span><span class="o">.</span><span class="n">basepath</span><span class="p">)</span>   
+<span class="go">&#39;...hydpy/tests/iotesting/projectname/basename&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.FileManager.availabledirs">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">availabledirs</span></code><a class="headerlink" href="#hydpy.core.filetools.FileManager.availabledirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>The names and paths of the available working directories.</p>
+<p>All possible working directories must be availablein the
+base directory of the respective <a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileManager</span></code></a> subclass.
+Folders with names starting with an underscore do not count
+(use this for directories handling additional data files,
+if you like), while zipped directories do count as available
+directories:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">FileManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;basename&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="s2">&quot;projectname&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">repr_</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TestIO</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;projectname/basename/folder1&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;projectname/basename/folder2&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;projectname/basename/folder3.zip&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;projectname/basename/_folder4&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;projectname/basename/folder5.tar&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">availabledirs</span>   
+<span class="go">Folder2Path(folder1=.../projectname/basename/folder1,</span>
+<span class="go">            folder2=.../projectname/basename/folder2,</span>
+<span class="go">            folder3=.../projectname/basename/folder3.zip)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.FileManager.currentdir">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">currentdir</span></code><a class="headerlink" href="#hydpy.core.filetools.FileManager.currentdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the current working directory containing the
+relevant files.</p>
+<p>To show most of the functionality of <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>
+<a class="reference internal" href="#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a> (we explain unpacking zipped files on the
+fly in the documentation on function <a class="reference internal" href="#hydpy.core.filetools.FileManager.zip_currentdir" title="hydpy.core.filetools.FileManager.zip_currentdir"><code class="xref py py-func docutils literal notranslate"><span class="pre">zip_currentdir()</span></code></a>),
+we first prepare a <a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileManager</span></code></a> object with the default
+<a class="reference internal" href="#hydpy.core.filetools.FileManager.basepath" title="hydpy.core.filetools.FileManager.basepath"><code class="xref py py-const docutils literal notranslate"><span class="pre">basepath</span></code></a> <cite>projectname/basename</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">FileManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;basename&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">DEFAULTDIR</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="s2">&quot;projectname&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">repr_</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TestIO</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;projectname/basename&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">filemanager</span><span class="o">.</span><span class="n">basepath</span><span class="p">)</span>    
+<span class="go">&#39;...hydpy/tests/iotesting/projectname/basename&#39;</span>
+</pre></div>
+</div>
+<p>At first, the base directory is empty and asking for the
+current working directory results in the following error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>   
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The current working directory of the FileManager object has not been defined manually and cannot be determined automatically: `.../projectname/basename` does not contain any available directories.</span>
+</pre></div>
+</div>
+<p>If only one directory exists, it is considered as the current
+working directory automatically:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s2">&quot;projectname/basename/dir1&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>
+<span class="go">&#39;dir1&#39;</span>
+</pre></div>
+</div>
+<p><a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> <a class="reference internal" href="#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a> memorises the name of the
+current working directory, even if another directory is added
+later to the base path:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s2">&quot;projectname/basename/dir2&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>
+<span class="go">&#39;dir1&#39;</span>
+</pre></div>
+</div>
+<p>Set the value of <a class="reference internal" href="#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a> to <code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code> to let it
+forget the memorised directory.  After that, to try to query
+the current working directory results in another error, as
+it is not clear which directory to select:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>   
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The current working directory of the FileManager object has not been defined manually and cannot be determined automatically: `....../projectname/basename` does contain multiple available directories (dir1 and dir2).</span>
+</pre></div>
+</div>
+<p>Setting <a class="reference internal" href="#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a> manually solves the problem:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;dir1&quot;</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>
+<span class="go">&#39;dir1&#39;</span>
+</pre></div>
+</div>
+<p>Remove the current working directory <cite>dir1</cite> with the <cite>del</cite> statement:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">del</span> <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;projectname/basename/dir1&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileManager</span></code></a> subclasses can define a default directory name.
+When many directories exist, and none is selected manually, the
+default directory is selected automatically.  The following
+example shows an error message due to multiple directories
+without any having the default name:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s2">&quot;projectname/basename/dir1&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">DEFAULTDIR</span> <span class="o">=</span> <span class="s2">&quot;dir3&quot;</span>
+<span class="gp">... </span>    <span class="k">del</span> <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>   
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The current working directory of the FileManager object has not been defined manually and cannot be determined automatically: The default directory (dir3) is not among the available directories (dir1 and dir2).</span>
+</pre></div>
+</div>
+<p>We can fix this by adding the required default directory manually:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s2">&quot;projectname/basename/dir3&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>
+<span class="go">&#39;dir3&#39;</span>
+</pre></div>
+</div>
+<p>Setting the <a class="reference internal" href="#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a> to <cite>dir4</cite> not only overwrites
+the default name but also creates the required folder:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;dir4&quot;</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>
+<span class="go">&#39;dir4&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;projectname/basename&quot;</span><span class="p">))</span>
+<span class="go">[&#39;dir1&#39;, &#39;dir2&#39;, &#39;dir3&#39;, &#39;dir4&#39;]</span>
+</pre></div>
+</div>
+<p>Failed attempts in removing directories result in error messages
+like the following one:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">shutil</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">unittest.mock</span> <span class="kn">import</span> <span class="n">patch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">patch</span><span class="o">.</span><span class="n">object</span><span class="p">(</span><span class="n">shutil</span><span class="p">,</span> <span class="s2">&quot;rmtree&quot;</span><span class="p">,</span> <span class="n">side_effect</span><span class="o">=</span><span class="ne">AttributeError</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>        <span class="k">del</span> <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>   
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">While trying to delete the current working directory `.../projectname/basename/dir4` of the FileManager object, the following error occurred: ...</span>
+</pre></div>
+</div>
+<p>Then, the current working directory still exists and is remembered
+by property <a class="reference internal" href="#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span>
+<span class="go">&#39;dir4&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;projectname/basename&quot;</span><span class="p">))</span>
+<span class="go">[&#39;dir1&#39;, &#39;dir2&#39;, &#39;dir3&#39;, &#39;dir4&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.FileManager.currentpath">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">currentpath</span></code><a class="headerlink" href="#hydpy.core.filetools.FileManager.currentpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>The absolute path of the current working directory.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">FileManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;basename&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="s2">&quot;projectname&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">repr_</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;testdir&quot;</span>
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">filemanager</span><span class="o">.</span><span class="n">currentpath</span><span class="p">)</span>    
+<span class="go">&#39;...hydpy/tests/iotesting/projectname/basename/testdir&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.FileManager.filenames">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">filenames</span></code><a class="headerlink" href="#hydpy.core.filetools.FileManager.filenames" title="Permalink to this definition">¶</a></dt>
+<dd><p>The names of the files placed in the current working directory,
+except those starting with an underscore.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">FileManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;basename&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="s2">&quot;projectname&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;testdir&quot;</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;projectname/basename/testdir/file1.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;projectname/basename/testdir/file2.npy&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;projectname/basename/testdir/_file1.nc&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">filenames</span>
+<span class="go">[&#39;file1.txt&#39;, &#39;file2.npy&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.FileManager.filepaths">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">filepaths</span></code><a class="headerlink" href="#hydpy.core.filetools.FileManager.filepaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>The absolute path names of the files returned by property
+<a class="reference internal" href="#hydpy.core.filetools.FileManager.filenames" title="hydpy.core.filetools.FileManager.filenames"><code class="xref py py-const docutils literal notranslate"><span class="pre">filenames</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">FileManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;basename&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="s2">&quot;projectname&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">repr_</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;testdir&quot;</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;projectname/basename/testdir/file1.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;projectname/basename/testdir/file2.npy&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;projectname/basename/testdir/_file1.nc&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="n">filemanager</span><span class="o">.</span><span class="n">filepaths</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">repr_</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>    
+<span class="go">&#39;...hydpy/tests/iotesting/projectname/basename/testdir/file1.txt&#39;</span>
+<span class="go">&#39;...hydpy/tests/iotesting/projectname/basename/testdir/file2.npy&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.FileManager.zip_currentdir">
+<code class="sig-name descname"><span class="pre">zip_currentdir</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#FileManager.zip_currentdir"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.FileManager.zip_currentdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pack the current working directory in a <cite>zip</cite> file.</p>
+<p><a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileManager</span></code></a> subclasses allow for manual packing and automatic
+unpacking of working directories.  The only supported format is “zip”.
+The original directories and zip files are removed after packing
+or unpacking, respectively, to avoid possible inconsistencies.</p>
+<p>As an example scenario, we prepare a <a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileManager</span></code></a> object with
+the current working directory <cite>folder</cite> containing the files
+<cite>test1.txt</cite> and <cite>text2.txt</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">FileManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span> <span class="o">=</span> <span class="n">FileManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">=</span> <span class="s2">&quot;basename&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">DEFAULTDIR</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filemanager</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="s2">&quot;projectname&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">repr_</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">TestIO</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">basepath</span> <span class="o">=</span> <span class="s2">&quot;projectname/basename&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">basepath</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;folder&quot;</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basepath</span><span class="si">}</span><span class="s2">/folder/file1.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">basepath</span><span class="si">}</span><span class="s2">/folder/file2.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">filenames</span>
+<span class="go">[&#39;file1.txt&#39;, &#39;file2.txt&#39;]</span>
+</pre></div>
+</div>
+<p>The directories existing under the base path are identical
+with the ones returned by property <a class="reference internal" href="#hydpy.core.filetools.FileManager.availabledirs" title="hydpy.core.filetools.FileManager.availabledirs"><code class="xref py py-const docutils literal notranslate"><span class="pre">availabledirs</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">basepath</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">availabledirs</span>    
+<span class="go">[&#39;folder&#39;]</span>
+<span class="go">Folder2Path(folder=.../projectname/basename/folder)</span>
+</pre></div>
+</div>
+<p>After packing the current working directory manually, it still
+counts as an available directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">zip_currentdir</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">basepath</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">availabledirs</span>    
+<span class="go">[&#39;folder.zip&#39;]</span>
+<span class="go">Folder2Path(folder=.../projectname/basename/folder.zip)</span>
+</pre></div>
+</div>
+<p>Instead of the complete directory, only the contained files
+are packed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">zipfile</span> <span class="kn">import</span> <span class="n">ZipFile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="s2">&quot;projectname/basename/folder.zip&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zp</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="nb">sorted</span><span class="p">(</span><span class="n">zp</span><span class="o">.</span><span class="n">namelist</span><span class="p">())</span>
+<span class="go">[&#39;file1.txt&#39;, &#39;file2.txt&#39;]</span>
+</pre></div>
+</div>
+<p>The zip file is unpacked again, as soon as <cite>folder</cite> becomes
+the current working directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;folder&quot;</span>
+<span class="gp">... </span>    <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">basepath</span><span class="p">))</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">availabledirs</span>
+<span class="gp">... </span>    <span class="n">filemanager</span><span class="o">.</span><span class="n">filenames</span>    
+<span class="go">[&#39;folder&#39;]</span>
+<span class="go">Folder2Path(folder=.../projectname/basename/folder)</span>
+<span class="go">[&#39;file1.txt&#39;, &#39;file2.txt&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.filetools.NetworkManager">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.filetools.</span></code><code class="sig-name descname"><span class="pre">NetworkManager</span></code><a class="reference internal" href="_modules/hydpy/core/filetools.html#NetworkManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.NetworkManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.filetools.FileManager</span></code></a></p>
+<p>Manager for network files.</p>
+<p>The base and default folder names of class <a class="reference internal" href="#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a> are:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">NetworkManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NetworkManager</span><span class="o">.</span><span class="n">BASEDIR</span>
+<span class="go">&#39;network&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">NetworkManager</span><span class="o">.</span><span class="n">DEFAULTDIR</span>
+<span class="go">&#39;default&#39;</span>
+</pre></div>
+</div>
+<p>The documentation of base class <a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileManager</span></code></a> explains most aspects
+of using <a class="reference internal" href="#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a> objects.  The following examples deal with
+the extended features of class <a class="reference internal" href="#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a>, which are reading,
+writing, and removing network files.  For this purpose, we prepare
+the example project <cite>LahnH</cite> in the <cite>iotesting</cite> directory by calling
+function <a class="reference internal" href="examples.html#hydpy.examples.prepare_full_example_1" title="hydpy.examples.prepare_full_example_1"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_full_example_1()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prepare_full_example_1</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You can define the complete network structure of an <cite>HydPy</cite> project
+by an arbitrary number of “network files”.  These are valid Python
+files which define certain <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> and <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> as well as their
+connections.  Network files are allowed to overlap, meaning two or
+more files can define the same objects (in a consistent manner only,
+of course).  The primary purpose of class <a class="reference internal" href="#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a> is to
+execute each network file individually and pass its content to a
+<a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selection</span></code></a> object, which is done by method <a class="reference internal" href="#hydpy.core.filetools.NetworkManager.load_files" title="hydpy.core.filetools.NetworkManager.load_files"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_files()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">networkmanager</span> <span class="o">=</span> <span class="n">NetworkManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">networkmanager</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="s2">&quot;LahnH&quot;</span>
+<span class="gp">... </span>    <span class="n">selections</span> <span class="o">=</span> <span class="n">networkmanager</span><span class="o">.</span><span class="n">load_files</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Method <a class="reference internal" href="#hydpy.core.filetools.NetworkManager.load_files" title="hydpy.core.filetools.NetworkManager.load_files"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_files()</span></code></a> takes file names as selection
+names (without file endings).  Additionally, it creates a “complete”
+selection, including the whole set of <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> and <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> objects
+of the file specific selections:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">selections</span>
+<span class="go">Selections(&quot;complete&quot;, &quot;headwaters&quot;, &quot;nonheadwaters&quot;, &quot;streams&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">selections</span><span class="o">.</span><span class="n">headwaters</span>
+<span class="go">Selection(&quot;headwaters&quot;,</span>
+<span class="go">          nodes=(&quot;dill&quot;, &quot;lahn_1&quot;),</span>
+<span class="go">          elements=(&quot;land_dill&quot;, &quot;land_lahn_1&quot;))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">selections</span><span class="o">.</span><span class="n">complete</span>
+<span class="go">Selection(&quot;complete&quot;,</span>
+<span class="go">          nodes=(&quot;dill&quot;, &quot;lahn_1&quot;, &quot;lahn_2&quot;, &quot;lahn_3&quot;),</span>
+<span class="go">          elements=(&quot;land_dill&quot;, &quot;land_lahn_1&quot;, &quot;land_lahn_2&quot;,</span>
+<span class="go">                    &quot;land_lahn_3&quot;, &quot;stream_dill_lahn_2&quot;,</span>
+<span class="go">                    &quot;stream_lahn_1_lahn_2&quot;, &quot;stream_lahn_2_lahn_3&quot;))</span>
+</pre></div>
+</div>
+<p>Method <a class="reference internal" href="#hydpy.core.filetools.NetworkManager.save_files" title="hydpy.core.filetools.NetworkManager.save_files"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_files()</span></code></a> writes all <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selection</span></code></a> objects
+into separate files.  We first change the current working directory
+to assure we do not overwrite already existing files:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">networkmanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;testdir&quot;</span>
+<span class="gp">... </span>    <span class="n">networkmanager</span><span class="o">.</span><span class="n">save_files</span><span class="p">(</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;LahnH/network/testdir&quot;</span><span class="p">))</span>
+<span class="go">[&#39;headwaters.py&#39;, &#39;nonheadwaters.py&#39;, &#39;streams.py&#39;]</span>
+</pre></div>
+</div>
+<p>Reloading and comparing with the still available <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selection</span></code></a> objects
+proves that the contents of the original and the new network files
+are equivalent:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">selections</span> <span class="o">==</span> <span class="n">networkmanager</span><span class="o">.</span><span class="n">load_files</span><span class="p">()</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Method <a class="reference internal" href="#hydpy.core.filetools.NetworkManager.delete_files" title="hydpy.core.filetools.NetworkManager.delete_files"><code class="xref py py-func docutils literal notranslate"><span class="pre">delete_files()</span></code></a> removes the network files of
+the given <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selection</span></code></a> objects:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">selections</span> <span class="o">-=</span> <span class="n">selections</span><span class="o">.</span><span class="n">streams</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">networkmanager</span><span class="o">.</span><span class="n">delete_files</span><span class="p">(</span><span class="n">selections</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="nb">sorted</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s2">&quot;LahnH/network/testdir&quot;</span><span class="p">))</span>
+<span class="go">[&#39;streams.py&#39;]</span>
+</pre></div>
+</div>
+<p>When defining network files, many things can go wrong.  In the
+following, we list all specialised error messages, of what we hope
+to be concrete enough to aid in finding the relevant problems:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">networkmanager</span><span class="o">.</span><span class="n">delete_files</span><span class="p">([</span><span class="s2">&quot;headwaters&quot;</span><span class="p">])</span>   
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">FileNotFoundError</span>: <span class="n">While trying to remove the network files of selections `[&#39;headwaters&#39;]`, the following error occurred: ...</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;LahnH/network/testdir/streams.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">wrongfile</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">wrongfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;x = y&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">networkmanager</span><span class="o">.</span><span class="n">load_files</span><span class="p">()</span>   
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NameError</span>: <span class="n">While trying to load the network file `...streams.py`, the following error occurred: name &#39;y&#39; is not defined</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;LahnH/network/testdir/streams.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">wrongfile</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">wrongfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;from hydpy import Node&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">networkmanager</span><span class="o">.</span><span class="n">load_files</span><span class="p">()</span>   
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The class Element cannot be loaded from the network file `...streams.py`.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;LahnH/network/testdir/streams.py&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">wrongfile</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">wrongfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;from hydpy import Element&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">networkmanager</span><span class="o">.</span><span class="n">load_files</span><span class="p">()</span>   
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The class Node cannot be loaded from the network file `...streams.py`.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">shutil</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="s2">&quot;LahnH/network/testdir&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">networkmanager</span><span class="o">.</span><span class="n">save_files</span><span class="p">(</span><span class="n">selections</span><span class="p">)</span>   
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">FileNotFoundError</span>: <span class="n">While trying to save the selections `Selections(&quot;complete&quot;, &quot;headwaters&quot;, &quot;nonheadwaters&quot;)` into network files, the following error occurred: ...</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.NetworkManager.BASEDIR">
+<code class="sig-name descname"><span class="pre">BASEDIR</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'network'</span></em><a class="headerlink" href="#hydpy.core.filetools.NetworkManager.BASEDIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.NetworkManager.DEFAULTDIR">
+<code class="sig-name descname"><span class="pre">DEFAULTDIR</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">'default'</span></em><a class="headerlink" href="#hydpy.core.filetools.NetworkManager.DEFAULTDIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.NetworkManager.load_files">
+<code class="sig-name descname"><span class="pre">load_files</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><span class="pre">hydpy.core.selectiontools.Selections</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#NetworkManager.load_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.NetworkManager.load_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read all network files of the current working directory, structure
+their contents in a <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a> object, and return it.</p>
+<p>See the main documentation on class <a class="reference internal" href="#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a> for further
+information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.NetworkManager.save_files">
+<code class="sig-name descname"><span class="pre">save_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selections</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><span class="pre">hydpy.core.selectiontools.Selection</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#NetworkManager.save_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.NetworkManager.save_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selection</span></code></a> objects contained in the given <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a>
+instance to separate network files.</p>
+<p>See the main documentation on class <a class="reference internal" href="#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a> for further
+information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.NetworkManager.delete_files">
+<code class="sig-name descname"><span class="pre">delete_files</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">selections</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><span class="pre">hydpy.core.selectiontools.Selection</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#NetworkManager.delete_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.NetworkManager.delete_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete the network files corresponding to the given selections
+(e.g. a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> objects or a <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a> object).</p>
+<p>See the main documentation on class <a class="reference internal" href="#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a> for further
+information.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.filetools.ControlManager">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.filetools.</span></code><code class="sig-name descname"><span class="pre">ControlManager</span></code><a class="reference internal" href="_modules/hydpy/core/filetools.html#ControlManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.ControlManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.filetools.FileManager</span></code></a></p>
+<p>Manager for control parameter files.</p>
+<p>The base and default folder names of class <a class="reference internal" href="#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a> are:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">ControlManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ControlManager</span><span class="o">.</span><span class="n">BASEDIR</span>
+<span class="go">&#39;control&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ControlManager</span><span class="o">.</span><span class="n">DEFAULTDIR</span>
+<span class="go">&#39;default&#39;</span>
+</pre></div>
+</div>
+<p>Class <a class="reference internal" href="#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a> extends the functionalities of class
+<a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileManager</span></code></a> only slightly, which is why the documentation on
+class <a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileManager</span></code></a> should serve as a good starting point for
+understanding class <a class="reference internal" href="#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a>.  Also see the documentation
+on method <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.prepare_models" title="hydpy.core.hydpytools.HydPy.prepare_models"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_models()</span></code></a> of class <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a>, which relies
+on the functionalities of class <a class="reference internal" href="#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a>.</p>
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.ControlManager.BASEDIR">
+<code class="sig-name descname"><span class="pre">BASEDIR</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'control'</span></em><a class="headerlink" href="#hydpy.core.filetools.ControlManager.BASEDIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.ControlManager.DEFAULTDIR">
+<code class="sig-name descname"><span class="pre">DEFAULTDIR</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">'default'</span></em><a class="headerlink" href="#hydpy.core.filetools.ControlManager.DEFAULTDIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.ControlManager.load_file">
+<code class="sig-name descname"><span class="pre">load_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><span class="pre">hydpy.core.devicetools.Element</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clear_registry</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><a class="reference internal" href="_modules/hydpy/core/filetools.html#ControlManager.load_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.ControlManager.load_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the namespace of the given file (and eventually of its
+corresponding auxiliary subfiles).</p>
+<p>By default, <a class="reference internal" href="#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a> clears the internal registry when
+after having loaded a control file and all its corresponding
+auxiliary files.  You can change this behaviour by passing
+<cite>False</cite> to the <cite>clear_registry</cite> argument, which might decrease
+model initialisation times significantly.  However, then it is
+your own responsibility to call the method
+<a class="reference internal" href="#hydpy.core.filetools.ControlManager.clear_registry" title="hydpy.core.filetools.ControlManager.clear_registry"><code class="xref py py-func docutils literal notranslate"><span class="pre">clear_registry()</span></code></a> when necessary (usually, before
+reloading a changed control file).</p>
+<p>One advantage of using method <a class="reference internal" href="#hydpy.core.filetools.ControlManager.load_file" title="hydpy.core.filetools.ControlManager.load_file"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_file()</span></code></a>
+directly is that it supports reading control files that are
+yet not correctly integrated into a complete <em>HydPy</em> project
+by passing its name:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prepare_full_example_1</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">ControlManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">controlmanager</span> <span class="o">=</span> <span class="n">ControlManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">round_</span><span class="p">,</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2001-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;12h&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">controlmanager</span><span class="o">.</span><span class="n">projectdir</span> <span class="o">=</span> <span class="s2">&quot;LahnH&quot;</span>
+<span class="gp">... </span>    <span class="n">results</span> <span class="o">=</span> <span class="n">controlmanager</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;land_dill&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;control&quot;</span><span class="p">]</span>
+<span class="go">area(692.3)</span>
+<span class="go">nmbzones(12)</span>
+<span class="go">zonetype(FIELD, FOREST, FIELD, FOREST, FIELD, FOREST, FIELD, FOREST,</span>
+<span class="go">         FIELD, FOREST, FIELD, FOREST)</span>
+<span class="go">zonearea(14.41, 7.06, 70.83, 84.36, 70.97, 198.0, 27.75, 130.0, 27.28,</span>
+<span class="go">         56.94, 1.09, 3.61)</span>
+<span class="go">zonez(2.0, 2.0, 3.0, 3.0, 4.0, 4.0, 5.0, 5.0, 6.0, 6.0, 7.0, 7.0)</span>
+<span class="go">zrelp(3.75)</span>
+<span class="go">zrelt(3.75)</span>
+<span class="go">zrele(3.665)</span>
+<span class="go">pcorr(1.0)</span>
+<span class="go">pcalt(0.1)</span>
+<span class="go">rfcf(1.04283)</span>
+<span class="go">sfcf(1.1)</span>
+<span class="go">tcalt(0.6)</span>
+<span class="go">ecorr(1.0)</span>
+<span class="go">ecalt(0.0)</span>
+<span class="go">epf(0.02)</span>
+<span class="go">etf(0.1)</span>
+<span class="go">ered(0.0)</span>
+<span class="go">ttice(nan)</span>
+<span class="go">icmax(field=1.0, forest=1.5)</span>
+<span class="go">tt(0.55824)</span>
+<span class="go">ttint(2.0)</span>
+<span class="go">dttm(0.0)</span>
+<span class="go">cfmax(field=4.55853, forest=2.735118)</span>
+<span class="go">gmelt(nan)</span>
+<span class="go">cfr(0.05)</span>
+<span class="go">whc(0.1)</span>
+<span class="go">fc(278.0)</span>
+<span class="go">lp(0.9)</span>
+<span class="go">beta(2.54011)</span>
+<span class="go">percmax(1.39636)</span>
+<span class="go">cflux(0.0)</span>
+<span class="go">resparea(True)</span>
+<span class="go">recstep(1200.0)</span>
+<span class="go">alpha(1.0)</span>
+<span class="go">k(0.005618)</span>
+<span class="go">k4(0.05646)</span>
+<span class="go">gamma(0.0)</span>
+<span class="go">maxbaz(0.36728)</span>
+<span class="go">abstr(0.0)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">results</span><span class="p">[</span><span class="s2">&quot;percmax&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+<span class="go">0.69818</span>
+</pre></div>
+</div>
+<p>Passing neither a filename nor an <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> object raises the
+following error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">controlmanager</span><span class="o">.</span><span class="n">load_file</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">When trying to load a control file you must either pass its name or the responsible Element object.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.ControlManager.read2dict">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">read2dict</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#ControlManager.read2dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.ControlManager.read2dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the control parameters from the given path (and its
+auxiliary paths, where appropriate) and store them in the given
+<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> object <cite>info</cite>.</p>
+<p>Note that`info` can be used to feed information into the execution
+of control files.  Use this method only if you are entirely sure
+on how the control parameter import of <em>HydPy</em> works.  Otherwise,
+you should most probably prefer to use the method
+<a class="reference internal" href="#hydpy.core.filetools.ControlManager.load_file" title="hydpy.core.filetools.ControlManager.load_file"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_file()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.ControlManager.clear_registry">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">clear_registry</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#ControlManager.clear_registry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.ControlManager.clear_registry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the internal registry from control file information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.ControlManager.save_file">
+<code class="sig-name descname"><span class="pre">save_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#ControlManager.save_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.ControlManager.save_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the given text under the given control filename and the
+current path.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.filetools.ConditionManager">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.filetools.</span></code><code class="sig-name descname"><span class="pre">ConditionManager</span></code><a class="reference internal" href="_modules/hydpy/core/filetools.html#ConditionManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.ConditionManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.filetools.FileManager</span></code></a></p>
+<p>Manager for condition files.</p>
+<p>The base folder name of class <a class="reference internal" href="#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a> is:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">ConditionManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ConditionManager</span><span class="o">.</span><span class="n">BASEDIR</span>
+<span class="go">&#39;conditions&#39;</span>
+</pre></div>
+</div>
+<p>Class <a class="reference internal" href="#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a> generally works like class <a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">FileManager</span></code></a>.
+The following examples, based on the <cite>LahnH</cite> example project,
+explain the additional functionalities of the <a class="reference internal" href="#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a>
+specific properties <a class="reference internal" href="#hydpy.core.filetools.ConditionManager.inputpath" title="hydpy.core.filetools.ConditionManager.inputpath"><code class="xref py py-const docutils literal notranslate"><span class="pre">inputpath</span></code></a> and
+<a class="reference internal" href="#hydpy.core.filetools.ConditionManager.outputpath" title="hydpy.core.filetools.ConditionManager.outputpath"><code class="xref py py-const docutils literal notranslate"><span class="pre">outputpath</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_full_example_2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="p">,</span> <span class="n">pub</span><span class="p">,</span> <span class="n">TestIO</span> <span class="o">=</span> <span class="n">prepare_full_example_2</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If the current directory named is not defined explicitly, both
+properties construct it following the actual simulation start or
+end date, respectively:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">repr_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>    
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">inputpath</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">outputpath</span><span class="p">)</span>
+<span class="go">&#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_01_00_00_00&#39;</span>
+<span class="go">&#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_05_00_00_00&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">firstdate</span> <span class="o">+=</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">lastdate</span> <span class="o">-=</span> <span class="s2">&quot;1d&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="go">Timegrids(init=Timegrid(&quot;1996-01-01 00:00:00&quot;,</span>
+<span class="go">                        &quot;1996-01-05 00:00:00&quot;,</span>
+<span class="go">                        &quot;1d&quot;),</span>
+<span class="go">          sim=Timegrid(&quot;1996-01-02 00:00:00&quot;,</span>
+<span class="go">                       &quot;1996-01-04 00:00:00&quot;,</span>
+<span class="go">                       &quot;1d&quot;),</span>
+<span class="go">          eval_=Timegrid(&quot;1996-01-01 00:00:00&quot;,</span>
+<span class="go">                         &quot;1996-01-05 00:00:00&quot;,</span>
+<span class="go">                         &quot;1d&quot;))</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>    
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">inputpath</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">outputpath</span><span class="p">)</span>
+<span class="go">&#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_02_00_00_00&#39;</span>
+<span class="go">&#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_04_00_00_00&#39;</span>
+</pre></div>
+</div>
+<p>Use the property <a class="reference internal" href="#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a> to change the values of
+both properties:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>    
+<span class="gp">... </span>    <span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;test&quot;</span>
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">inputpath</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">outputpath</span><span class="p">)</span>
+<span class="go">&#39;.../hydpy/tests/iotesting/LahnH/conditions/test&#39;</span>
+<span class="go">&#39;.../hydpy/tests/iotesting/LahnH/conditions/test&#39;</span>
+</pre></div>
+</div>
+<p>After deleting the custom value of property <a class="reference internal" href="#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a>,
+both properties <a class="reference internal" href="#hydpy.core.filetools.ConditionManager.inputpath" title="hydpy.core.filetools.ConditionManager.inputpath"><code class="xref py py-const docutils literal notranslate"><span class="pre">inputpath</span></code></a> and
+<a class="reference internal" href="#hydpy.core.filetools.ConditionManager.outputpath" title="hydpy.core.filetools.ConditionManager.outputpath"><code class="xref py py-const docutils literal notranslate"><span class="pre">outputpath</span></code></a> work as before:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>    
+<span class="gp">... </span>    <span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">currentdir</span>
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">inputpath</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">outputpath</span><span class="p">)</span>
+<span class="go">&#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_02_00_00_00&#39;</span>
+<span class="go">&#39;.../hydpy/tests/iotesting/LahnH/conditions/init_1996_01_04_00_00_00&#39;</span>
+</pre></div>
+</div>
+<p>The date based construction of directory names requires a <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a>
+object available in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>    
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">inputpath</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">While trying to determine the currently relevant input path for loading conditions file, the following error occurred: Attribute timegrids of module `pub` is not defined at the moment.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>    
+<span class="gp">... </span>    <span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">outputpath</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">While trying to determine the currently relevant output path for saving conditions file, the following error occurred: Attribute timegrids of module `pub` is not defined at the moment.</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.ConditionManager.BASEDIR">
+<code class="sig-name descname"><span class="pre">BASEDIR</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'conditions'</span></em><a class="headerlink" href="#hydpy.core.filetools.ConditionManager.BASEDIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.ConditionManager.DEFAULTDIR">
+<code class="sig-name descname"><span class="pre">DEFAULTDIR</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#hydpy.core.filetools.ConditionManager.DEFAULTDIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.ConditionManager.inputpath">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">inputpath</span></code><a class="headerlink" href="#hydpy.core.filetools.ConditionManager.inputpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>The directory path for loading initial conditions.</p>
+<p>See the main documentation on class <a class="reference internal" href="#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a> for further
+information.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.ConditionManager.outputpath">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">outputpath</span></code><a class="headerlink" href="#hydpy.core.filetools.ConditionManager.outputpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>The directory path actual for saving (final) conditions.</p>
+<p>See the main documentation on class <a class="reference internal" href="#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a> for further
+information.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="hydpy.core.filetools.SequenceManager">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">hydpy.core.filetools.</span></code><code class="sig-name descname"><span class="pre">SequenceManager</span></code><a class="reference internal" href="_modules/hydpy/core/filetools.html#SequenceManager"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.SequenceManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.filetools.FileManager" title="hydpy.core.filetools.FileManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">hydpy.core.filetools.FileManager</span></code></a></p>
+<p>Manager for sequence files.</p>
+<p>Usually, there is only one <a class="reference internal" href="#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a> used within each <em>HydPy</em>
+project, stored in module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.  This object is responsible for the
+actual I/O tasks related to <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence" title="hydpy.core.sequencetools.IOSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOSequence</span></code></a> objects.</p>
+<p>Working with a complete <em>HydPy</em> project, one often does not use the
+<a class="reference internal" href="#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a>  directly, except one wishes to load data from
+or store data to directories that differ from the default settings.
+In the following examples, we show the essential features of class
+<a class="reference internal" href="#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a> based on the example project configuration defined
+by function <a class="reference internal" href="examples.html#hydpy.examples.prepare_io_example_1" title="hydpy.examples.prepare_io_example_1"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_io_example_1()</span></code></a>.</p>
+<p>We prepare the project and select one 0-dimensional sequence of type
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sim" title="hydpy.core.sequencetools.Sim"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sim</span></code></a> and one 1-dimensional sequence of type <a class="reference internal" href="lland.html#hydpy.models.lland.lland_fluxes.NKor" title="hydpy.models.lland.lland_fluxes.NKor"><code class="xref py py-class docutils literal notranslate"><span class="pre">NKor</span></code></a> for the
+following examples:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.examples</span> <span class="kn">import</span> <span class="n">prepare_io_example_1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="p">,</span> <span class="n">elements</span> <span class="o">=</span> <span class="n">prepare_io_example_1</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span> <span class="o">=</span> <span class="n">nodes</span><span class="o">.</span><span class="n">node2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkor</span> <span class="o">=</span> <span class="n">elements</span><span class="o">.</span><span class="n">element2</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">nkor</span>
+</pre></div>
+</div>
+<p>We store the time series data of both sequences in ASCII files
+(Methods <a class="reference internal" href="#hydpy.core.filetools.SequenceManager.save_file" title="hydpy.core.filetools.SequenceManager.save_file"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_file()</span></code></a> and <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.save_ext" title="hydpy.core.sequencetools.IOSequence.save_ext"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_ext()</span></code></a> are
+interchangeable here.  The last one is only a convenience function
+for the first one):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">generalfiletype</span> <span class="o">=</span> <span class="s2">&quot;asc&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">TestIO</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">nkor</span><span class="o">.</span><span class="n">save_ext</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>To check that this was successful, we can load the file content from
+the output directory defined by <a class="reference internal" href="examples.html#hydpy.examples.prepare_io_example_1" title="hydpy.examples.prepare_io_example_1"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_io_example_1()</span></code></a> and print it:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">print_file</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>            <span class="n">lines</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">[:</span><span class="mi">3</span><span class="p">]),</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">3</span><span class="p">:]:</span>
+<span class="gp">... </span>        <span class="n">round_</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_file</span><span class="p">(</span><span class="s2">&quot;nodepath&quot;</span><span class="p">,</span> <span class="s2">&quot;node2_sim_t.asc&quot;</span><span class="p">)</span>
+<span class="go">Timegrid(&quot;2000-01-01 00:00:00+01:00&quot;,</span>
+<span class="go">         &quot;2000-01-05 00:00:00+01:00&quot;,</span>
+<span class="go">         &quot;1d&quot;)</span>
+<span class="go">64.0</span>
+<span class="go">65.0</span>
+<span class="go">66.0</span>
+<span class="go">67.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_file</span><span class="p">(</span><span class="s2">&quot;outputpath&quot;</span><span class="p">,</span> <span class="s2">&quot;element2_flux_nkor.asc&quot;</span><span class="p">)</span>
+<span class="go">Timegrid(&quot;2000-01-01 00:00:00+01:00&quot;,</span>
+<span class="go">         &quot;2000-01-05 00:00:00+01:00&quot;,</span>
+<span class="go">         &quot;1d&quot;)</span>
+<span class="go">16.0, 17.0</span>
+<span class="go">18.0, 19.0</span>
+<span class="go">20.0, 21.0</span>
+<span class="go">22.0, 23.0</span>
+</pre></div>
+</div>
+<p>To show that reloading the data works, we set the values of the
+time series of both objects to zero and recover the original values
+afterwards:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([ 0.,  0.,  0.,  0.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkor</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkor</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([[ 0.,  0.],</span>
+<span class="go">           [ 0.,  0.],</span>
+<span class="go">           [ 0.,  0.],</span>
+<span class="go">           [ 0.,  0.]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">nkor</span><span class="o">.</span><span class="n">load_ext</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([ 64.,  65.,  66.,  67.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkor</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([[ 16.,  17.],</span>
+<span class="go">           [ 18.,  19.],</span>
+<span class="go">           [ 20.,  21.],</span>
+<span class="go">           [ 22.,  23.]])</span>
+</pre></div>
+</div>
+<p>Wrongly formatted ASCII files and incomplete data should result in
+understandable error messages:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;nodepath&quot;</span><span class="p">,</span> <span class="s2">&quot;node2_sim_t.asc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">right</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">wrong</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Timegrid&quot;</span><span class="p">,</span> <span class="s2">&quot;timegrid&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">wrong</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">NameError</span>: <span class="n">While trying to load the external data of sequence `sim` of node `node2`, the following error occurred: name &#39;timegrid&#39; is not defined</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sim_series</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">lines</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">lines</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;nan&quot;</span>
+<span class="gp">... </span>    <span class="n">wrong</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">_</span> <span class="o">=</span> <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">wrong</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">load_file</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">While trying to load the external data of sequence `sim` of node `node2`, the following error occurred: The series array of sequence `sim` of node `node2` contains 1 nan value.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="n">sim_series</span>
+</pre></div>
+</div>
+<p>By default, overwriting existing time series files is disabled:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">sim</span><span class="o">.</span><span class="n">save_ext</span><span class="p">()</span>   
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">OSError</span>: <span class="n">While trying to save the external data of sequence `sim` of node `node2`, the following error occurred: Sequence `sim` of node `node2` is not allowed to overwrite the existing file `...`.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">generaloverwrite</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">sim</span><span class="o">.</span><span class="n">save_ext</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>When a sequence comes with a weighting parameter referenced by
+<a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable.refweights" title="hydpy.core.variabletools.Variable.refweights"><code class="xref py py-const docutils literal notranslate"><span class="pre">refweights</span></code></a>, one can save the averaged time
+series by using the method <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.save_mean" title="hydpy.core.sequencetools.IOSequence.save_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_mean()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">nkor</span><span class="o">.</span><span class="n">save_mean</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_file</span><span class="p">(</span><span class="s2">&quot;outputpath&quot;</span><span class="p">,</span> <span class="s2">&quot;element2_flux_nkor_mean.asc&quot;</span><span class="p">)</span>
+<span class="go">Timegrid(&quot;2000-01-01 00:00:00+01:00&quot;,</span>
+<span class="go">         &quot;2000-01-05 00:00:00+01:00&quot;,</span>
+<span class="go">         &quot;1d&quot;)</span>
+<span class="go">16.5</span>
+<span class="go">18.5</span>
+<span class="go">20.5</span>
+<span class="go">22.5</span>
+</pre></div>
+</div>
+<p>Method <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.save_mean" title="hydpy.core.sequencetools.IOSequence.save_mean"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_mean()</span></code></a> is strongly related with method
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.average_series" title="hydpy.core.sequencetools.IOSequence.average_series"><code class="xref py py-func docutils literal notranslate"><span class="pre">average_series()</span></code></a>, meaning one can pass the same arguments.
+We show this by changing the land use classes of <cite>element2</cite> (parameter
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.Lnk" title="hydpy.models.lland.lland_control.Lnk"><code class="xref py py-class docutils literal notranslate"><span class="pre">Lnk</span></code></a>) to field (<a class="reference internal" href="lland.html#hydpy.models.lland.lland_constants.ACKER" title="hydpy.models.lland.lland_constants.ACKER"><code class="xref py py-const docutils literal notranslate"><span class="pre">ACKER</span></code></a>) and water
+(<a class="reference internal" href="lland.html#hydpy.models.lland.lland_constants.WASSER" title="hydpy.models.lland.lland_constants.WASSER"><code class="xref py py-const docutils literal notranslate"><span class="pre">WASSER</span></code></a>), and averaging the values of sequence
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_fluxes.NKor" title="hydpy.models.lland.lland_fluxes.NKor"><code class="xref py py-class docutils literal notranslate"><span class="pre">NKor</span></code></a> for the single area of type field only:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.models.lland_v1</span> <span class="kn">import</span> <span class="n">ACKER</span><span class="p">,</span> <span class="n">WASSER</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkor</span><span class="o">.</span><span class="n">subseqs</span><span class="o">.</span><span class="n">seqs</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">lnk</span> <span class="o">=</span> <span class="n">ACKER</span><span class="p">,</span> <span class="n">WASSER</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">nkor</span><span class="o">.</span><span class="n">save_mean</span><span class="p">(</span><span class="s2">&quot;acker&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_file</span><span class="p">(</span><span class="s2">&quot;outputpath&quot;</span><span class="p">,</span> <span class="s2">&quot;element2_flux_nkor_mean.asc&quot;</span><span class="p">)</span>
+<span class="go">Timegrid(&quot;2000-01-01 00:00:00+01:00&quot;,</span>
+<span class="go">         &quot;2000-01-05 00:00:00+01:00&quot;,</span>
+<span class="go">         &quot;1d&quot;)</span>
+<span class="go">16.0</span>
+<span class="go">18.0</span>
+<span class="go">20.0</span>
+<span class="go">22.0</span>
+</pre></div>
+</div>
+<p>Another option is to store data using <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v1.20)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></a> binary files, which
+is a good option for saving computation times, but possibly a
+problematic option for sharing data with colleagues:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">generalfiletype</span> <span class="o">=</span> <span class="s2">&quot;npy&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">sim</span><span class="o">.</span><span class="n">save_ext</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">nkor</span><span class="o">.</span><span class="n">save_ext</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The time information (without time zone information) is available
+within the first thirteen entries:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;nodepath&quot;</span><span class="p">,</span> <span class="s2">&quot;node2_sim_t.npy&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">numpy</span><span class="p">,</span> <span class="n">print_values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">print_values</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+<span class="go">2000.0, 1.0, 1.0, 0.0, 0.0, 0.0, 2000.0, 1.0, 5.0, 0.0, 0.0, 0.0,</span>
+<span class="go">86400.0, 64.0, 65.0, 66.0, 67.0</span>
+</pre></div>
+</div>
+<p>Reloading the data works as expected:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkor</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">sim</span><span class="o">.</span><span class="n">load_ext</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="n">nkor</span><span class="o">.</span><span class="n">load_ext</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sim</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([ 64.,  65.,  66.,  67.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkor</span><span class="o">.</span><span class="n">series</span>
+<span class="go">InfoArray([[ 16.,  17.],</span>
+<span class="go">           [ 18.,  19.],</span>
+<span class="go">           [ 20.,  21.],</span>
+<span class="go">           [ 22.,  23.]])</span>
+</pre></div>
+</div>
+<p>Writing mean values into <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v1.20)"><code class="xref py py-mod docutils literal notranslate"><span class="pre">numpy</span></code></a> binary files is also supported:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">nkor</span><span class="o">.</span><span class="n">save_mean</span><span class="p">(</span><span class="s2">&quot;wasser&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">numpy</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;outputpath&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                            <span class="s2">&quot;element2_flux_nkor_mean.npy&quot;</span><span class="p">))[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span>
+<span class="go">array([ 17.,  19.,  21.,  23.])</span>
+</pre></div>
+</div>
+<p>Generally, trying to load data for “deactivated” sequences
+results in the following error message:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nkor</span><span class="o">.</span><span class="n">deactivate_ram</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">TestIO</span><span class="p">(</span><span class="n">clear_all</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">save_file</span><span class="p">(</span><span class="n">nkor</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">Sequence `nkor` of element `element2` is not requested to make any internal data available.</span>
+</pre></div>
+</div>
+<p>The third option is to store data in netCDF files, which is explained
+separately in the documentation on class <a class="reference internal" href="netcdftools.html#hydpy.core.netcdftools.NetCDFInterface" title="hydpy.core.netcdftools.NetCDFInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetCDFInterface</span></code></a>.</p>
+<p>In the examples above, we used some of the special configuration
+attributes of class <a class="reference internal" href="#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a>, which we now elaborate by
+taking the “overwrite” attributes as an example.</p>
+<p>All special attributes can be used to configure <a class="reference internal" href="#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a>
+different for different types of sequences:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">inputoverwrite</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">fluxoverwrite</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">stateoverwrite</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">nodeoverwrite</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">tempoverwrite</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>However, there is also a “general” attribute, covering all specific ones:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">generaloverwrite</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>We can delete those attributes (which resets them to their default
+state) or assign alternative values:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">inputoverwrite</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">fluxoverwrite</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">inputoverwrite</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">fluxoverwrite</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">generaloverwrite</span>
+<span class="go">(False, True)</span>
+</pre></div>
+</div>
+<p>Use the “general” attribute to change all special ones at once:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">generaloverwrite</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">inputoverwrite</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">fluxoverwrite</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">stateoverwrite</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">nodeoverwrite</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">tempoverwrite</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>All other special configuration attributes do not return and except
+booleans but strings instead:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">generalaggregation</span>
+<span class="go">&#39;none&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">fluxaggregation</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">generalaggregation</span>
+<span class="go">(&#39;mean&#39;, &#39;none&#39;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">fluxaggregation</span> <span class="o">=</span> <span class="s2">&quot;wrong&quot;</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The given mode `wrong` for aggregating time series is not available.  Select one of the following modes: none and mean.</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.SUPPORTED_MODES">
+<code class="sig-name descname"><span class="pre">SUPPORTED_MODES</span></code><em class="property"> <span class="pre">=</span> <span class="pre">('npy',</span> <span class="pre">'asc',</span> <span class="pre">'nc')</span></em><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.SUPPORTED_MODES" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.BASEDIR">
+<code class="sig-name descname"><span class="pre">BASEDIR</span></code><em class="property"><span class="pre">:</span> <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a></em><em class="property"> <span class="pre">=</span> <span class="pre">'series'</span></em><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.BASEDIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.DEFAULTDIR">
+<code class="sig-name descname"><span class="pre">DEFAULTDIR</span></code><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">=</span> <span class="pre">None</span></em><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.DEFAULTDIR" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.inputfiletype">
+<code class="sig-name descname"><span class="pre">inputfiletype</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.inputfiletype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently selected type of the input sequence files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.fluxfiletype">
+<code class="sig-name descname"><span class="pre">fluxfiletype</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.fluxfiletype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently selected type of the flux sequence files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.statefiletype">
+<code class="sig-name descname"><span class="pre">statefiletype</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.statefiletype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently selected type of the state sequence files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.nodefiletype">
+<code class="sig-name descname"><span class="pre">nodefiletype</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.nodefiletype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently selected type of the node sequence files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.tempfiletype">
+<code class="sig-name descname"><span class="pre">tempfiletype</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.tempfiletype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently selected type of the temporary sequence files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.generalfiletype">
+<code class="sig-name descname"><span class="pre">generalfiletype</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.generalfiletype" title="Permalink to this definition">¶</a></dt>
+<dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">SequenceManager</span><span class="p">,</span> <span class="n">_GeneralDescriptor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">SequenceManager</span><span class="o">.</span><span class="n">generaloverwrite</span><span class="p">,</span> <span class="n">_GeneralDescriptor</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.inputoverwrite">
+<code class="sig-name descname"><span class="pre">inputoverwrite</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.inputoverwrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently selected overwrite flag of the input sequence files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.fluxoverwrite">
+<code class="sig-name descname"><span class="pre">fluxoverwrite</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.fluxoverwrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently selected overwrite flag of the flux sequence files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.stateoverwrite">
+<code class="sig-name descname"><span class="pre">stateoverwrite</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.stateoverwrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently selected overwrite flag of the state sequence files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.nodeoverwrite">
+<code class="sig-name descname"><span class="pre">nodeoverwrite</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.nodeoverwrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently selected overwrite flag of the node sequence files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.tempoverwrite">
+<code class="sig-name descname"><span class="pre">tempoverwrite</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.tempoverwrite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Currently selected overwrite flag of the temporary sequence files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.generaloverwrite">
+<code class="sig-name descname"><span class="pre">generaloverwrite</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.generaloverwrite" title="Permalink to this definition">¶</a></dt>
+<dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">SequenceManager</span><span class="p">,</span> <span class="n">_GeneralDescriptor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">SequenceManager</span><span class="o">.</span><span class="n">generaloverwrite</span><span class="p">,</span> <span class="n">_GeneralDescriptor</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.inputdirpath">
+<code class="sig-name descname"><span class="pre">inputdirpath</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.inputdirpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of the input sequence directory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.fluxdirpath">
+<code class="sig-name descname"><span class="pre">fluxdirpath</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.fluxdirpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of the flux sequence directory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.statedirpath">
+<code class="sig-name descname"><span class="pre">statedirpath</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.statedirpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of the state sequence directory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.nodedirpath">
+<code class="sig-name descname"><span class="pre">nodedirpath</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.nodedirpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of the node sequence directory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.tempdirpath">
+<code class="sig-name descname"><span class="pre">tempdirpath</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.tempdirpath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path of the temporary sequence directory.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.generaldirpath">
+<code class="sig-name descname"><span class="pre">generaldirpath</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.generaldirpath" title="Permalink to this definition">¶</a></dt>
+<dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">SequenceManager</span><span class="p">,</span> <span class="n">_GeneralDescriptor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">SequenceManager</span><span class="o">.</span><span class="n">generaloverwrite</span><span class="p">,</span> <span class="n">_GeneralDescriptor</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.inputaggregation">
+<code class="sig-name descname"><span class="pre">inputaggregation</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.inputaggregation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mode of aggregation for writing input time series data to files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.fluxaggregation">
+<code class="sig-name descname"><span class="pre">fluxaggregation</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.fluxaggregation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mode of aggregation for writing flux time series data to files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.stateaggregation">
+<code class="sig-name descname"><span class="pre">stateaggregation</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.stateaggregation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mode of aggregation for writing state time series data to files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.nodeaggregation">
+<code class="sig-name descname"><span class="pre">nodeaggregation</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.nodeaggregation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mode of aggregation for writing node time series data to files.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="hydpy.core.filetools.SequenceManager.generalaggregation">
+<code class="sig-name descname"><span class="pre">generalaggregation</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.generalaggregation" title="Permalink to this definition">¶</a></dt>
+<dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">SequenceManager</span><span class="p">,</span> <span class="n">_GeneralDescriptor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">SequenceManager</span><span class="o">.</span><span class="n">generaloverwrite</span><span class="p">,</span> <span class="n">_GeneralDescriptor</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.SequenceManager.load_file">
+<code class="sig-name descname"><span class="pre">load_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">sequencetools.IOSequence</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#SequenceManager.load_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.load_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load data from an “external” data file and pass it to
+the given <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence" title="hydpy.core.sequencetools.IOSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOSequence</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.SequenceManager.save_file">
+<code class="sig-name descname"><span class="pre">save_file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequence</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">sequencetools.IOSequence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><span class="pre">numpy.ndarray</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#SequenceManager.save_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.save_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the data stored in the <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.series" title="hydpy.core.sequencetools.IOSequence.series"><code class="xref py py-const docutils literal notranslate"><span class="pre">series</span></code></a> property of
+the given <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence" title="hydpy.core.sequencetools.IOSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOSequence</span></code></a> into an “external” data file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.SequenceManager.netcdfreader">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">netcdfreader</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.netcdfreader" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference internal" href="netcdftools.html#hydpy.core.netcdftools.NetCDFInterface" title="hydpy.core.netcdftools.NetCDFInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetCDFInterface</span></code></a> object prepared by method
+<a class="reference internal" href="#hydpy.core.filetools.SequenceManager.open_netcdfreader" title="hydpy.core.filetools.SequenceManager.open_netcdfreader"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_netcdfreader()</span></code></a> and to be finalised
+by method <a class="reference internal" href="#hydpy.core.filetools.SequenceManager.close_netcdfreader" title="hydpy.core.filetools.SequenceManager.close_netcdfreader"><code class="xref py py-func docutils literal notranslate"><span class="pre">close_netcdfreader()</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">SequenceManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span> <span class="o">=</span> <span class="n">SequenceManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span><span class="o">.</span><span class="n">netcdfreader</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The sequence file manager does currently handle no NetCDF reader object.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span><span class="o">.</span><span class="n">open_netcdfreader</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">classname</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">classname</span><span class="p">(</span><span class="n">sm</span><span class="o">.</span><span class="n">netcdfreader</span><span class="p">)</span>
+<span class="go">&#39;NetCDFInterface&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span><span class="o">.</span><span class="n">close_netcdfreader</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span><span class="o">.</span><span class="n">netcdfreader</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The sequence file manager does currently handle no NetCDF reader object.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.SequenceManager.open_netcdfreader">
+<code class="sig-name descname"><span class="pre">open_netcdfreader</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isolate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeaxis</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#SequenceManager.open_netcdfreader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.open_netcdfreader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare a new <a class="reference internal" href="netcdftools.html#hydpy.core.netcdftools.NetCDFInterface" title="hydpy.core.netcdftools.NetCDFInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetCDFInterface</span></code></a> object for reading data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.SequenceManager.close_netcdfreader">
+<code class="sig-name descname"><span class="pre">close_netcdfreader</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#SequenceManager.close_netcdfreader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.close_netcdfreader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read data with a prepared <a class="reference internal" href="netcdftools.html#hydpy.core.netcdftools.NetCDFInterface" title="hydpy.core.netcdftools.NetCDFInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetCDFInterface</span></code></a> object and delete it
+afterwards.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.SequenceManager.netcdfwriter">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">netcdfwriter</span></code><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.netcdfwriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <a class="reference internal" href="netcdftools.html#hydpy.core.netcdftools.NetCDFInterface" title="hydpy.core.netcdftools.NetCDFInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetCDFInterface</span></code></a> object prepared by method
+<a class="reference internal" href="#hydpy.core.filetools.SequenceManager.open_netcdfwriter" title="hydpy.core.filetools.SequenceManager.open_netcdfwriter"><code class="xref py py-func docutils literal notranslate"><span class="pre">open_netcdfwriter()</span></code></a> and to be finalised
+by method <a class="reference internal" href="#hydpy.core.filetools.SequenceManager.close_netcdfwriter" title="hydpy.core.filetools.SequenceManager.close_netcdfwriter"><code class="xref py py-func docutils literal notranslate"><span class="pre">close_netcdfwriter()</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy.core.filetools</span> <span class="kn">import</span> <span class="n">SequenceManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span> <span class="o">=</span> <span class="n">SequenceManager</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span><span class="o">.</span><span class="n">netcdfwriter</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The sequence file manager does currently handle no NetCDF writer object.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span><span class="o">.</span><span class="n">open_netcdfwriter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">classname</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">classname</span><span class="p">(</span><span class="n">sm</span><span class="o">.</span><span class="n">netcdfwriter</span><span class="p">)</span>
+<span class="go">&#39;NetCDFInterface&#39;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span><span class="o">.</span><span class="n">close_netcdfwriter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span><span class="o">.</span><span class="n">netcdfwriter</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The sequence file manager does currently handle no NetCDF writer object.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.SequenceManager.open_netcdfwriter">
+<code class="sig-name descname"><span class="pre">open_netcdfwriter</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isolate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><span class="pre">bool</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeaxis</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#SequenceManager.open_netcdfwriter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.open_netcdfwriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare a new <a class="reference internal" href="netcdftools.html#hydpy.core.netcdftools.NetCDFInterface" title="hydpy.core.netcdftools.NetCDFInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetCDFInterface</span></code></a> object for writing data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hydpy.core.filetools.SequenceManager.close_netcdfwriter">
+<code class="sig-name descname"><span class="pre">close_netcdfwriter</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.9)"><span class="pre">None</span></a><a class="reference internal" href="_modules/hydpy/core/filetools.html#SequenceManager.close_netcdfwriter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.filetools.SequenceManager.close_netcdfwriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write data with a prepared <a class="reference internal" href="netcdftools.html#hydpy.core.netcdftools.NetCDFInterface" title="hydpy.core.netcdftools.NetCDFInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetCDFInterface</span></code></a> object and delete
+it afterwards.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">filetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="propertytools.html">propertytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="exceptiontools.html"
+                        title="previous chapter">exceptiontools</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="hydpytools.html"
+                        title="next chapter">hydpytools</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/filetools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="hydpytools.html" title="hydpytools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="exceptiontools.html" title="exceptiontools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">filetools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

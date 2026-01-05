@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.musk.musk_model &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.musk.musk_model</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.musk.musk_model</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.cythons</span><span class="w"> </span><span class="kn">import</span> <span class="n">modelutils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs</span><span class="w"> </span><span class="kn">import</span> <span class="n">roottools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.interfaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">routinginterfaces</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk</span><span class="w"> </span><span class="kn">import</span> <span class="n">musk_control</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk</span><span class="w"> </span><span class="kn">import</span> <span class="n">musk_derived</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk</span><span class="w"> </span><span class="kn">import</span> <span class="n">musk_solver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk</span><span class="w"> </span><span class="kn">import</span> <span class="n">musk_fluxes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk</span><span class="w"> </span><span class="kn">import</span> <span class="n">musk_factors</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk</span><span class="w"> </span><span class="kn">import</span> <span class="n">musk_states</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk</span><span class="w"> </span><span class="kn">import</span> <span class="n">musk_inlets</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk</span><span class="w"> </span><span class="kn">import</span> <span class="n">musk_outlets</span>
+
+
+<div class="viewcode-block" id="Pick_Inflow_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Pick_Inflow_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Pick_Inflow_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Assign the actual value of the inlet sequence to the inflow sequence.&quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_inlets</span><span class="o">.</span><span class="n">Q</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_fluxes</span><span class="o">.</span><span class="n">Inflow</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inl</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">inl</span><span class="o">.</span><span class="n">len_q</span><span class="p">):</span>
+            <span class="n">flu</span><span class="o">.</span><span class="n">inflow</span> <span class="o">+=</span> <span class="n">inl</span><span class="o">.</span><span class="n">q</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Adjust_Inflow_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Adjust_Inflow_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Adjust_Inflow_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Protect against negative inflow.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        Models like |musk_mct| cannot handle negative inflow.  Hence,</span>
+<span class="sd">        |Adjust_Inflow_V1| sets all such values to zero:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inflow = -0.1</span>
+<span class="sd">        &gt;&gt;&gt; model.adjust_inflow_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inflow</span>
+<span class="sd">        inflow(0.0)</span>
+
+<span class="sd">        This behaviour serves well in situations where numerical issues like rounding</span>
+<span class="sd">        errors cause slightly negative inflow values but bears the risk of severely</span>
+<span class="sd">        violating the water balance in case the upstream models produce strong negative</span>
+<span class="sd">        inflow values on purpose.  You can modify the solver parameter</span>
+<span class="sd">        |ToleranceNegativeInflow|, below which negative inflows are set to |numpy.nan|</span>
+<span class="sd">        instead of zero, to ensure such problems get noticed:</span>
+
+<span class="sd">        &gt;&gt;&gt; fluxes.inflow = -0.1</span>
+<span class="sd">        &gt;&gt;&gt; solver.tolerancenegativeinflow(-0.01)</span>
+<span class="sd">        &gt;&gt;&gt; model.adjust_inflow_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inflow</span>
+<span class="sd">        inflow(nan)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SOLVERPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_solver</span><span class="o">.</span><span class="n">ToleranceNegativeInflow</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_fluxes</span><span class="o">.</span><span class="n">Inflow</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">inflow</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">inflow</span> <span class="o">&lt;</span> <span class="n">sol</span><span class="o">.</span><span class="n">tolerancenegativeinflow</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">nan</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">flu</span><span class="o">.</span><span class="n">inflow</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="Update_Discharge_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Update_Discharge_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Update_Discharge_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Assign the inflow to the start point of the first channel segment.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(3)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.inflow = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; model.update_discharge_v1()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(2.0, nan, nan, nan)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_fluxes</span><span class="o">.</span><span class="n">Inflow</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_states</span><span class="o">.</span><span class="n">Discharge</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">inflow</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Discharge_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_Discharge_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Discharge_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Apply the routing equation with fixed coefficients.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Q_{space+1,time+1} =</span>
+<span class="sd">      Coefficients_0 \cdot Discharge_{space,time+1} +</span>
+<span class="sd">      Coefficients_1 \cdot Discharge_{space,time} +</span>
+<span class="sd">      Coefficients_2 \cdot Discharge_{space+1,time}`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        First, define a channel divided into four segments:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(4)</span>
+
+<span class="sd">        The following coefficients correspond to pure translation without diffusion:</span>
+
+<span class="sd">        &gt;&gt;&gt; coefficients(0.0, 1.0, 0.0)</span>
+
+<span class="sd">        The initial flow is 2 m³/s:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge.new = 2.0</span>
+
+<span class="sd">        Successive invocations of method |Calc_Discharge_V1| shift the given inflows to</span>
+<span class="sd">        the next lower endpoints at each time step:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v1)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(5.0, 2.0, 2.0, 2.0, 2.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 8.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v1)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(8.0, 5.0, 2.0, 2.0, 2.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 6.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v1)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(6.0, 8.0, 5.0, 2.0, 2.0)</span>
+
+<span class="sd">        We repeat the example with strong wave diffusion:</span>
+
+<span class="sd">        &gt;&gt;&gt; coefficients(0.5, 0.0, 0.5)</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge.new = 2.0</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v1)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(5.0, 3.5, 2.75, 2.375, 2.1875)</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 8.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v1)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(8.0, 5.75, 4.25, 3.3125, 2.75)</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 6.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v1)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(6.0, 5.875, 5.0625, 4.1875, 3.46875)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_control</span><span class="o">.</span><span class="n">Coefficients</span><span class="p">,)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_states</span><span class="o">.</span><span class="n">Discharge</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_segment</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">con</span><span class="o">.</span><span class="n">coefficients</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">coefficients</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">old</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">con</span><span class="o">.</span><span class="n">coefficients</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">old</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_ReferenceDischarge_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_ReferenceDischarge_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_ReferenceDischarge_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Estimate the reference discharge according to :cite:t:`ref-Todini2007`.</span>
+
+<span class="sd">    Basic equations (equations 45 and 46):</span>
+<span class="sd">      :math:`ReferenceDischarge_{next, new} =</span>
+<span class="sd">      \frac{Discharge_{last, new} + Discharge^*_{next, new}}{2}`</span>
+
+<span class="sd">      :math:`Discharge^*_{next, new} = Discharge_{next, old} +</span>
+<span class="sd">      (Discharge_{last, new} - Discharge_{last, old})`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        The Muskingum-Cunge-Todini method requires an initial guess for the new</span>
+<span class="sd">        discharge value at the segment endpoint, which other methods have to improve</span>
+<span class="sd">        later.  However, the final discharge value will still depend on the initial</span>
+<span class="sd">        estimate.  Hence, :cite:t:`ref-Todini2007` suggests an iterative refinement by</span>
+<span class="sd">        repeating all relevant methods.  Method |Calc_ReferenceDischarge_V1| plays a</span>
+<span class="sd">        significant role in controlling this refinement.  It calculates the initial</span>
+<span class="sd">        estimate as defined in the basic equationsDuring the first run (when the index</span>
+<span class="sd">        property |Idx_Run| is zero):</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(1)</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge.old = 3.0, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge.new = 4.0, 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.idx_run = 0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_referencedischarge_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referencedischarge</span>
+<span class="sd">        referencedischarge(3.5)</span>
+
+<span class="sd">        However, subsequent runs use the already available estimate calculated in the</span>
+<span class="sd">        last iteration.:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_run = 1</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_referencedischarge_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referencedischarge</span>
+<span class="sd">        referencedischarge(4.5)</span>
+
+<span class="sd">        The given basic equation can result in negative reference discharge estimates</span>
+<span class="sd">        during severe low-flow conditions.  |Calc_ReferenceDischarge_V1| resets those</span>
+<span class="sd">        to zero:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.idx_run = 0</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge.old = 0.6, 0.1</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge.new = 0.2, nan</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_referencedischarge_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referencedischarge</span>
+<span class="sd">        referencedischarge(0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_states</span><span class="o">.</span><span class="n">Discharge</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_fluxes</span><span class="o">.</span><span class="n">ReferenceDischarge</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_segment</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_run</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">est</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">old</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">est</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">referencedischarge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">est</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Return_Discharge_CrossSectionModel_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Return_Discharge_CrossSectionModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Return_Discharge_CrossSectionModel_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Let a submodel that follows the |CrossSectionModel_V1| submodel interface</span>
+<span class="sd">    calculate the discharge for the given water depth and return it.</span>
+
+<span class="sd">    See the documentation on method |Return_ReferenceDischargeError_V1| for an example.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">,</span>
+        <span class="n">wqmodel</span><span class="p">:</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">CrossSectionModel_V1</span><span class="p">,</span>
+        <span class="n">waterdepth</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">wqmodel</span><span class="o">.</span><span class="n">use_waterdepth</span><span class="p">(</span><span class="n">waterdepth</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">wqmodel</span><span class="o">.</span><span class="n">get_discharge</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Return_ReferenceDischargeError_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Return_ReferenceDischargeError_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Return_ReferenceDischargeError_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the difference between the discharge corresponding to the given water</span>
+<span class="sd">    depth and the reference discharge.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Return\_Discharge\_V1(waterdepth) - ReferenceDischarge`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        We use the submodel |wq_trapeze_strickler| as an example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk_mct import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(1)</span>
+<span class="sd">        &gt;&gt;&gt; bottomslope(0.01)</span>
+<span class="sd">        &gt;&gt;&gt; with model.add_wqmodel_v1(&quot;wq_trapeze_strickler&quot;):</span>
+<span class="sd">        ...     nmbtrapezes(1)</span>
+<span class="sd">        ...     bottomlevels(0.0)</span>
+<span class="sd">        ...     bottomwidths(2.0)</span>
+<span class="sd">        ...     sideslopes(2.0)</span>
+<span class="sd">        ...     stricklercoefficients(20.0)</span>
+<span class="sd">        ...     calibrationfactors(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referencedischarge = 50.0</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(model.return_referencedischargeerror_v1(3.0))</span>
+<span class="sd">        14.475285</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Return_Discharge_CrossSectionModel_V1</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_fluxes</span><span class="o">.</span><span class="n">ReferenceDischarge</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">,</span> <span class="n">waterdepth</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_segment</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">return_discharge_crosssectionmodel_v1</span><span class="p">(</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">routinginterfaces</span><span class="o">.</span><span class="n">CrossSectionModel_V1</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">wqmodel</span><span class="p">),</span> <span class="n">waterdepth</span>
+            <span class="p">)</span>
+            <span class="o">-</span> <span class="n">flu</span><span class="o">.</span><span class="n">referencedischarge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_ReferenceWaterDepth_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_ReferenceWaterDepth_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_ReferenceWaterDepth_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Find the reference water depth via |Pegasus| iteration.</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        The following test calculation extends the example of the documentation on</span>
+<span class="sd">        method |Return_ReferenceDischargeError_V1|.  The first and the last channel</span>
+<span class="sd">        segments demonstrate that method |Calc_ReferenceWaterDepth_V1| restricts the</span>
+<span class="sd">        Pegasus search to the lowest water depth of 0 m and the highest water depth of</span>
+<span class="sd">        1000 m:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk_mct import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; catchmentarea(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(5)</span>
+<span class="sd">        &gt;&gt;&gt; bottomslope(0.01)</span>
+<span class="sd">        &gt;&gt;&gt; with model.add_wqmodel_v1(&quot;wq_trapeze_strickler&quot;):</span>
+<span class="sd">        ...     nmbtrapezes(1)</span>
+<span class="sd">        ...     bottomlevels(0.0)</span>
+<span class="sd">        ...     bottomwidths(2.0)</span>
+<span class="sd">        ...     sideslopes(2.0)</span>
+<span class="sd">        ...     stricklercoefficients(20.0)</span>
+<span class="sd">        ...     calibrationfactors(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; solver.tolerancewaterdepth.update()</span>
+<span class="sd">        &gt;&gt;&gt; solver.tolerancedischarge.update()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referencedischarge = -10.0, 0.0, 64.475285, 1000.0, 1000000000.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_referencewaterdepth_v1)</span>
+<span class="sd">        &gt;&gt;&gt; factors.referencewaterdepth</span>
+<span class="sd">        referencewaterdepth(0.0, 0.0, 3.0, 9.199035, 1000.0)</span>
+
+<span class="sd">        Repeated applications of |Calc_ReferenceWaterDepth_V1| should always yield the</span>
+<span class="sd">        same results but are often more efficient than the initial calculation because</span>
+<span class="sd">        they use old reference water depth estimates to gain more precise initial</span>
+<span class="sd">        search intervals:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_referencewaterdepth_v1)</span>
+<span class="sd">        &gt;&gt;&gt; factors.referencewaterdepth</span>
+<span class="sd">        referencewaterdepth(0.0, 0.0, 3.0, 9.199035, 1000.0)</span>
+
+<span class="sd">        The Pegasus algorithm stops when the search interval is smaller than the</span>
+<span class="sd">        tolerance value defined by the |ToleranceWaterDepth| parameter or if the</span>
+<span class="sd">        difference to the target discharge is less than the tolerance value defined by</span>
+<span class="sd">        the |ToleranceDischarge| parameter.  By default, the water depth-related</span>
+<span class="sd">        tolerance is zero; hence, the discharge-related tolerance must stop the</span>
+<span class="sd">        iteration:</span>
+
+<span class="sd">        &gt;&gt;&gt; solver.tolerancewaterdepth</span>
+<span class="sd">        tolerancewaterdepth(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; solver.tolerancedischarge</span>
+<span class="sd">        tolerancedischarge(0.0001)</span>
+
+<span class="sd">        Increase at least one parameter to reduce computation time:</span>
+
+<span class="sd">        &gt;&gt;&gt; solver.tolerancewaterdepth(0.1)</span>
+<span class="sd">        &gt;&gt;&gt; factors.referencewaterdepth = nan</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_referencewaterdepth_v1)</span>
+<span class="sd">        &gt;&gt;&gt; factors.referencewaterdepth</span>
+<span class="sd">        referencewaterdepth(0.0, 0.0, 3.000295, 9.196508, 1000.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Return_ReferenceDischargeError_V1</span><span class="p">,)</span>
+    <span class="n">SOLVERPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_solver</span><span class="o">.</span><span class="n">ToleranceWaterDepth</span><span class="p">,</span> <span class="n">musk_solver</span><span class="o">.</span><span class="n">ToleranceDischarge</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_fluxes</span><span class="o">.</span><span class="n">ReferenceDischarge</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_factors</span><span class="o">.</span><span class="n">ReferenceWaterDepth</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sol</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_segment</span>
+        <span class="n">wl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">fac</span><span class="o">.</span><span class="n">referencewaterdepth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">wl</span><span class="p">)</span> <span class="ow">or</span> <span class="n">modelutils</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">wl</span><span class="p">):</span>
+            <span class="n">mn</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">mx</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
+        <span class="k">elif</span> <span class="n">wl</span> <span class="o">&lt;=</span> <span class="mf">0.001</span><span class="p">:</span>
+            <span class="n">mn</span><span class="p">,</span> <span class="n">mx</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.01</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mn</span><span class="p">,</span> <span class="n">mx</span> <span class="o">=</span> <span class="mf">0.9</span> <span class="o">*</span> <span class="n">wl</span><span class="p">,</span> <span class="mf">1.1</span> <span class="o">*</span> <span class="n">wl</span>
+        <span class="n">tol_q</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">sol</span><span class="o">.</span><span class="n">tolerancedischarge</span><span class="p">,</span> <span class="n">flu</span><span class="o">.</span><span class="n">referencedischarge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">)</span>
+        <span class="n">fac</span><span class="o">.</span><span class="n">referencewaterdepth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">pegasusreferencewaterdepth</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+            <span class="n">mn</span><span class="p">,</span> <span class="n">mx</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1000.0</span><span class="p">,</span> <span class="n">sol</span><span class="o">.</span><span class="n">tolerancewaterdepth</span><span class="p">,</span> <span class="n">tol_q</span><span class="p">,</span> <span class="mi">100</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_WettedArea_SurfaceWidth_Celerity_CrossSectionModel_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_WettedArea_SurfaceWidth_Celerity_CrossSectionModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_WettedArea_SurfaceWidth_Celerity_CrossSectionModel_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Let a submodel that follows the |CrossSectionModel_V1| interface calculate all</span>
+<span class="sd">    its properties based on the current reference water level and query the wetted</span>
+<span class="sd">    area, the surface width, and the celerity.&quot;&quot;&quot;</span>
+
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_factors</span><span class="o">.</span><span class="n">ReferenceWaterDepth</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">WettedArea</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">SurfaceWidth</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Celerity</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">,</span> <span class="n">wqmodel</span><span class="p">:</span> <span class="n">routinginterfaces</span><span class="o">.</span><span class="n">CrossSectionModel_V1</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_segment</span>
+        <span class="n">wqmodel</span><span class="o">.</span><span class="n">use_waterdepth</span><span class="p">(</span><span class="n">fac</span><span class="o">.</span><span class="n">referencewaterdepth</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">fac</span><span class="o">.</span><span class="n">wettedarea</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">wqmodel</span><span class="o">.</span><span class="n">get_wettedarea</span><span class="p">()</span>
+        <span class="n">fac</span><span class="o">.</span><span class="n">surfacewidth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">wqmodel</span><span class="o">.</span><span class="n">get_surfacewidth</span><span class="p">()</span>
+        <span class="n">fac</span><span class="o">.</span><span class="n">celerity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">wqmodel</span><span class="o">.</span><span class="n">get_celerity</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_WettedArea_SurfaceWidth_Celerity_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_WettedArea_SurfaceWidth_Celerity_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_WettedArea_SurfaceWidth_Celerity_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Let a submodel that follows the |CrossSectionModel_V1| interface calculate all</span>
+<span class="sd">    its properties based on the current reference water level and query the wetted</span>
+<span class="sd">    area, the surface width, and the celerity.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        We use the submodel |wq_trapeze_strickler| as an example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk_mct import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(3)</span>
+<span class="sd">        &gt;&gt;&gt; bottomslope(0.01)</span>
+<span class="sd">        &gt;&gt;&gt; with model.add_wqmodel_v1(&quot;wq_trapeze_strickler&quot;):</span>
+<span class="sd">        ...     nmbtrapezes(1)</span>
+<span class="sd">        ...     bottomlevels(0.0)</span>
+<span class="sd">        ...     bottomwidths(2.0)</span>
+<span class="sd">        ...     sideslopes(0.0)</span>
+<span class="sd">        ...     stricklercoefficients(20.0)</span>
+<span class="sd">        ...     calibrationfactors(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; factors.referencewaterdepth = 1.0, 2.0, 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_wettedarea_surfacewidth_celerity_v1)</span>
+<span class="sd">        &gt;&gt;&gt; factors.wettedarea</span>
+<span class="sd">        wettedarea(2.0, 4.0, 6.0)</span>
+<span class="sd">        &gt;&gt;&gt; factors.surfacewidth</span>
+<span class="sd">        surfacewidth(2.0, 2.0, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; factors.celerity</span>
+<span class="sd">        celerity(1.679895, 1.86546, 1.926124)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SUBMETHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Calc_WettedArea_SurfaceWidth_Celerity_CrossSectionModel_V1</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_factors</span><span class="o">.</span><span class="n">ReferenceWaterDepth</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">WettedArea</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">SurfaceWidth</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Celerity</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">wqmodel_typeid</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">calc_wettedarea_surfacewidth_celerity_crosssectionmodel_v1</span><span class="p">(</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">routinginterfaces</span><span class="o">.</span><span class="n">CrossSectionModel_V1</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">wqmodel</span><span class="p">)</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_CorrectingFactor_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_CorrectingFactor_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_CorrectingFactor_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the correcting factor according to :cite:t:`ref-Todini2007`.</span>
+
+<span class="sd">    Basic equation (equation 49):</span>
+<span class="sd">      :math:`CorrectingFactor = \frac{Celerity \cdot WettedArea}{ReferenceDischarge}`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The last segment shows that |Calc_CorrectingFactor_V1| prevents zero divisions</span>
+<span class="sd">        by setting the correcting factor to one when necessary:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(3)</span>
+<span class="sd">        &gt;&gt;&gt; factors.celerity = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.wettedarea = 2.0, 2.0, 2.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referencedischarge = 4.0, 2.0, 0.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_correctingfactor_v1)</span>
+<span class="sd">        &gt;&gt;&gt; factors.correctingfactor</span>
+<span class="sd">        correctingfactor(0.5, 1.0, 1.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Celerity</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">WettedArea</span><span class="p">,</span>
+        <span class="n">musk_fluxes</span><span class="o">.</span><span class="n">ReferenceDischarge</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_factors</span><span class="o">.</span><span class="n">CorrectingFactor</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_segment</span>
+        <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">referencedischarge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">fac</span><span class="o">.</span><span class="n">correctingfactor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fac</span><span class="o">.</span><span class="n">correctingfactor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">fac</span><span class="o">.</span><span class="n">celerity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">fac</span><span class="o">.</span><span class="n">wettedarea</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">flu</span><span class="o">.</span><span class="n">referencedischarge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_CourantNumber_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_CourantNumber_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_CourantNumber_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the Courant number according to :cite:t:`ref-Todini2007`.</span>
+
+<span class="sd">    Basic equation (equation 50):</span>
+<span class="sd">      :math:`CourantNumber =</span>
+<span class="sd">      \frac{Celerity \cdot Seconds}{CorrectingFactor \cdot 1000 \cdot SegmentLength}`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The last segment shows that |Calc_CourantNumber_V1| prevents zero divisions by</span>
+<span class="sd">        setting the courant number to zero when necessary:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds(1000.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.segmentlength(4.0)</span>
+<span class="sd">        &gt;&gt;&gt; factors.celerity = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.correctingfactor = 0.0, 0.5, 1.0, 2.0, inf</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referencedischarge = 0.0, 1.0, 1.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_courantnumber_v1)</span>
+<span class="sd">        &gt;&gt;&gt; states.courantnumber</span>
+<span class="sd">        courantnumber(0.0, 1.0, 0.5, 0.25, 0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_derived</span><span class="o">.</span><span class="n">Seconds</span><span class="p">,</span> <span class="n">musk_derived</span><span class="o">.</span><span class="n">SegmentLength</span><span class="p">)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Celerity</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">CorrectingFactor</span><span class="p">,</span>
+        <span class="n">musk_fluxes</span><span class="o">.</span><span class="n">ReferenceDischarge</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_states</span><span class="o">.</span><span class="n">CourantNumber</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_segment</span>
+        <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">referencedischarge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">courantnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">courantnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">fac</span><span class="o">.</span><span class="n">celerity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">fac</span><span class="o">.</span><span class="n">correctingfactor</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">der</span><span class="o">.</span><span class="n">seconds</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1000.0</span> <span class="o">*</span> <span class="n">der</span><span class="o">.</span><span class="n">segmentlength</span><span class="p">)</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_ReynoldsNumber_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_ReynoldsNumber_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_ReynoldsNumber_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the cell Reynolds number according to :cite:t:`ref-Todini2007`.</span>
+
+<span class="sd">    Basic equation (equation 51):</span>
+<span class="sd">      :math:`ReynoldsNumber = \frac{ReferenceDischarge}{CorrectingFactor \cdot</span>
+<span class="sd">      SurfaceWidth \cdot BottomSlope \cdot Celerity \cdot 1000 \cdot SegmentLength}`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        The last segment shows that |Calc_ReynoldsNumber_V1| prevents zero divisions by</span>
+<span class="sd">        setting the cell reynolds number to zero when necessary:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(5)</span>
+<span class="sd">        &gt;&gt;&gt; bottomslope(0.01)</span>
+<span class="sd">        &gt;&gt;&gt; derived.segmentlength(4.0)</span>
+<span class="sd">        &gt;&gt;&gt; factors.surfacewidth = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.celerity = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.correctingfactor = 0.0, 0.5, 1.0, 2.0, inf</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referencedischarge = 0.0, 10.0, 10.0, 10.0, 10.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_reynoldsnumber_v1)</span>
+<span class="sd">        &gt;&gt;&gt; states.reynoldsnumber</span>
+<span class="sd">        reynoldsnumber(0.0, 0.05, 0.025, 0.0125, 0.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_control</span><span class="o">.</span><span class="n">BottomSlope</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_derived</span><span class="o">.</span><span class="n">SegmentLength</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">musk_fluxes</span><span class="o">.</span><span class="n">ReferenceDischarge</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">CorrectingFactor</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">SurfaceWidth</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Celerity</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_states</span><span class="o">.</span><span class="n">ReynoldsNumber</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">der</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_segment</span>
+        <span class="k">if</span> <span class="n">flu</span><span class="o">.</span><span class="n">referencedischarge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">reynoldsnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sta</span><span class="o">.</span><span class="n">reynoldsnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">referencedischarge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="n">fac</span><span class="o">.</span><span class="n">correctingfactor</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="o">*</span> <span class="n">fac</span><span class="o">.</span><span class="n">surfacewidth</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="o">*</span> <span class="n">con</span><span class="o">.</span><span class="n">bottomslope</span>
+                <span class="o">*</span> <span class="n">fac</span><span class="o">.</span><span class="n">celerity</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="o">*</span> <span class="p">(</span><span class="mf">1000.0</span> <span class="o">*</span> <span class="n">der</span><span class="o">.</span><span class="n">segmentlength</span><span class="p">)</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Coefficient1_Coefficient2_Coefficient3_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_Coefficient1_Coefficient2_Coefficient3_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Coefficient1_Coefficient2_Coefficient3_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the coefficients of the Muskingum working formula according to</span>
+<span class="sd">    :cite:t:`ref-Todini2007`.</span>
+
+<span class="sd">    Basic equations (equation 52, corrigendum):</span>
+<span class="sd">      :math:`Coefficient1 = \frac</span>
+<span class="sd">      {-1 + CourantNumber_{new} + ReynoldsNumber_{new}}</span>
+<span class="sd">      {1 + CourantNumber_{new} + ReynoldsNumber_{new}}`</span>
+
+<span class="sd">      :math:`Coefficient2 = \frac</span>
+<span class="sd">      {1 + CourantNumber_{old} - ReynoldsNumber_{old}}</span>
+<span class="sd">      {1 + CourantNumber_{new} + ReynoldsNumber_{new}}</span>
+<span class="sd">      \cdot \frac{CourantNumber_{new}}{CourantNumber_{old}}`</span>
+
+<span class="sd">      :math:`Coefficient3 = \frac</span>
+<span class="sd">      {1 - CourantNumber_{old} + ReynoldsNumber_{old}}</span>
+<span class="sd">      {1 + CourantNumber_{new} + ReynoldsNumber_{new}}</span>
+<span class="sd">      \cdot \frac{CourantNumber_{new}}{CourantNumber_{old}}`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        We make some effort to calculate consistent &quot;old&quot; and &quot;new&quot; Courant and</span>
+<span class="sd">        Reynolds numbers:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(4)</span>
+<span class="sd">        &gt;&gt;&gt; bottomslope(0.01)</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds(1000.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.segmentlength(4.0)</span>
+<span class="sd">        &gt;&gt;&gt; factors.celerity = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.surfacewidth = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.correctingfactor = 0.5, 1.0, 2.0, inf</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referencedischarge = 10.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_courantnumber_v1)</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_reynoldsnumber_v1)</span>
+<span class="sd">        &gt;&gt;&gt; states.courantnumber.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.reynoldsnumber.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.referencedischarge = 11.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_courantnumber_v1)</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_reynoldsnumber_v1)</span>
+
+<span class="sd">        Due to the consistency of its input data,</span>
+<span class="sd">        |Calc_Coefficient1_Coefficient2_Coefficient3_V1| calculates the three working</span>
+<span class="sd">        coefficients so that their sum is one:</span>
+
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_coefficient1_coefficient2_coefficient3_v1)</span>
+<span class="sd">        &gt;&gt;&gt; factors.coefficient1</span>
+<span class="sd">        coefficient1(0.026764, -0.309329, -0.582591, -1.0)</span>
+<span class="sd">        &gt;&gt;&gt; factors.coefficient2</span>
+<span class="sd">        coefficient2(0.948905, 0.96563, 0.979228, 1.0)</span>
+<span class="sd">        &gt;&gt;&gt; factors.coefficient3</span>
+<span class="sd">        coefficient3(0.024331, 0.343699, 0.603363, 1.0)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_vector</span>
+<span class="sd">        &gt;&gt;&gt; print_vector(</span>
+<span class="sd">        ...     factors.coefficient1 + factors.coefficient2 + factors.coefficient3)</span>
+<span class="sd">        1.0, 1.0, 1.0, 1.0</span>
+
+<span class="sd">        Note that the &quot;old&quot; Courant numbers of the last segment are zero.</span>
+
+<span class="sd">        &gt;&gt;&gt; print_vector(states.courantnumber.old)</span>
+<span class="sd">        1.0, 0.5, 0.25, 0.0</span>
+
+<span class="sd">        To prevent zero divisions, |Calc_Coefficient1_Coefficient2_Coefficient3_V1|</span>
+<span class="sd">        assumes the ratio between the new and the old Courant number to be one in such</span>
+<span class="sd">        cases.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_states</span><span class="o">.</span><span class="n">CourantNumber</span><span class="p">,</span> <span class="n">musk_states</span><span class="o">.</span><span class="n">ReynoldsNumber</span><span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Coefficient1</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Coefficient2</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Coefficient3</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_segment</span>
+        <span class="n">f</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">new</span><span class="o">.</span><span class="n">courantnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">new</span><span class="o">.</span><span class="n">reynoldsnumber</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">fac</span><span class="o">.</span><span class="n">coefficient1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">courantnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">new</span><span class="o">.</span><span class="n">reynoldsnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">f</span>
+        <span class="k">if</span> <span class="n">old</span><span class="o">.</span><span class="n">courantnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">*=</span> <span class="n">new</span><span class="o">.</span><span class="n">courantnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">old</span><span class="o">.</span><span class="n">courantnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">fac</span><span class="o">.</span><span class="n">coefficient2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">old</span><span class="o">.</span><span class="n">courantnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">old</span><span class="o">.</span><span class="n">reynoldsnumber</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">*</span> <span class="n">f</span>
+        <span class="n">fac</span><span class="o">.</span><span class="n">coefficient3</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">old</span><span class="o">.</span><span class="n">courantnumber</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">old</span><span class="o">.</span><span class="n">reynoldsnumber</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">*</span> <span class="n">f</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Discharge_V2">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_Discharge_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Discharge_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Apply the routing equation with discharge-dependent coefficients.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Discharge_{next, new} =</span>
+<span class="sd">      Coefficient0 \cdot Discharge_{last, new} +</span>
+<span class="sd">      Coefficient1 \cdot Discharge_{last, old} +</span>
+<span class="sd">      Coefficient2 \cdot Discharge_{next, old}`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        First, we define a channel divided into four segments:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(4)</span>
+
+<span class="sd">        The following coefficients correspond to pure translation without diffusion:</span>
+
+<span class="sd">        &gt;&gt;&gt; factors.coefficient1 = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.coefficient2 = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.coefficient3 = 0.0</span>
+
+<span class="sd">        The initial flow is 2 m³/s:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge.new = 2.0</span>
+
+<span class="sd">        Successive invocations of method |Calc_Discharge_V2| shift the given inflows to</span>
+<span class="sd">        the next lower endpoints at each time step:</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v2)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(5.0, 2.0, 2.0, 2.0, 2.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 8.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v2)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(8.0, 5.0, 2.0, 2.0, 2.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 6.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v2)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(6.0, 8.0, 5.0, 2.0, 2.0)</span>
+
+<span class="sd">        We repeat the example with strong wave diffusion:</span>
+
+<span class="sd">        &gt;&gt;&gt; factors.coefficient1 = 0.5</span>
+<span class="sd">        &gt;&gt;&gt; factors.coefficient2 = 0.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.coefficient3 = 0.5</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge.old = 2.0</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge.new = 2.0</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v2)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(5.0, 3.5, 2.75, 2.375, 2.1875)</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 8.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v2)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(8.0, 5.75, 4.25, 3.3125, 2.75)</span>
+
+<span class="sd">        &gt;&gt;&gt; states.discharge[0] = 6.0</span>
+<span class="sd">        &gt;&gt;&gt; model.run_segments(model.calc_discharge_v2)</span>
+<span class="sd">        &gt;&gt;&gt; model.new2old()</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge</span>
+<span class="sd">        discharge(6.0, 5.875, 5.0625, 4.1875, 3.46875)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Coefficient1</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Coefficient2</span><span class="p">,</span>
+        <span class="n">musk_factors</span><span class="o">.</span><span class="n">Coefficient3</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">UPDATEDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_states</span><span class="o">.</span><span class="n">Discharge</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fac</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">factors</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_old</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">idx_segment</span>
+        <span class="k">if</span> <span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">old</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">old</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">fac</span><span class="o">.</span><span class="n">coefficient1</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="o">+</span> <span class="n">fac</span><span class="o">.</span><span class="n">coefficient2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">old</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="o">+</span> <span class="n">fac</span><span class="o">.</span><span class="n">coefficient3</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">old</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Calc_Outflow_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Calc_Outflow_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Calc_Outflow_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Take the discharge at the last segment endpoint as the channel&#39;s outflow.</span>
+
+<span class="sd">    Basic equation:</span>
+<span class="sd">      :math:`Outflow =  Discharge_{NmbSegments}`</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.musk import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(2)</span>
+<span class="sd">        &gt;&gt;&gt; states.discharge.new = 1.0, 2.0, 3.0</span>
+<span class="sd">        &gt;&gt;&gt; model.calc_outflow_v1()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.outflow</span>
+<span class="sd">        outflow(3.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_control</span><span class="o">.</span><span class="n">NmbSegments</span><span class="p">,)</span>
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_states</span><span class="o">.</span><span class="n">Discharge</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_fluxes</span><span class="o">.</span><span class="n">Outflow</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">sta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">fastaccess_new</span>
+        <span class="n">flu</span><span class="o">.</span><span class="n">outflow</span> <span class="o">=</span> <span class="n">sta</span><span class="o">.</span><span class="n">discharge</span><span class="p">[</span><span class="n">con</span><span class="o">.</span><span class="n">nmbsegments</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Pass_Outflow_V1">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Pass_Outflow_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Pass_Outflow_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Method</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pass the channel&#39;s outflow to the outlet sequence.&quot;&quot;&quot;</span>
+
+    <span class="n">REQUIREDSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_fluxes</span><span class="o">.</span><span class="n">Outflow</span><span class="p">,)</span>
+    <span class="n">RESULTSEQUENCES</span> <span class="o">=</span> <span class="p">(</span><span class="n">musk_outlets</span><span class="o">.</span><span class="n">Q</span><span class="p">,)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">flu</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">fastaccess</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">flu</span><span class="o">.</span><span class="n">outflow</span></div>
+
+
+
+<div class="viewcode-block" id="PegasusReferenceWaterDepth">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.PegasusReferenceWaterDepth">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PegasusReferenceWaterDepth</span><span class="p">(</span><span class="n">roottools</span><span class="o">.</span><span class="n">Pegasus</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pegasus iterator for finding the correct reference water depth.&quot;&quot;&quot;</span>
+
+    <span class="n">METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Return_ReferenceDischargeError_V1</span><span class="p">,)</span></div>
+
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../../musk.html#hydpy.models.musk.musk_model.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">SegmentModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|musk.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s2">&quot;Musk&quot;</span><span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">SOLVERPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">musk_solver</span><span class="o">.</span><span class="n">NmbRuns</span><span class="p">,</span>
+        <span class="n">musk_solver</span><span class="o">.</span><span class="n">ToleranceWaterDepth</span><span class="p">,</span>
+        <span class="n">musk_solver</span><span class="o">.</span><span class="n">ToleranceDischarge</span><span class="p">,</span>
+        <span class="n">musk_solver</span><span class="o">.</span><span class="n">ToleranceNegativeInflow</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Pick_Inflow_V1</span><span class="p">,</span> <span class="n">Adjust_Inflow_V1</span><span class="p">,</span> <span class="n">Update_Discharge_V1</span><span class="p">)</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Calc_Discharge_V1</span><span class="p">,</span>
+        <span class="n">Calc_ReferenceDischarge_V1</span><span class="p">,</span>
+        <span class="n">Calc_ReferenceWaterDepth_V1</span><span class="p">,</span>
+        <span class="n">Calc_WettedArea_SurfaceWidth_Celerity_V1</span><span class="p">,</span>
+        <span class="n">Calc_CorrectingFactor_V1</span><span class="p">,</span>
+        <span class="n">Calc_CourantNumber_V1</span><span class="p">,</span>
+        <span class="n">Calc_ReynoldsNumber_V1</span><span class="p">,</span>
+        <span class="n">Calc_Coefficient1_Coefficient2_Coefficient3_V1</span><span class="p">,</span>
+        <span class="n">Calc_Discharge_V2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">Return_Discharge_CrossSectionModel_V1</span><span class="p">,</span>
+        <span class="n">Return_ReferenceDischargeError_V1</span><span class="p">,</span>
+        <span class="n">Calc_WettedArea_SurfaceWidth_Celerity_CrossSectionModel_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">Calc_Outflow_V1</span><span class="p">,</span> <span class="n">Pass_Outflow_V1</span><span class="p">)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">(</span><span class="n">PegasusReferenceWaterDepth</span><span class="p">,)</span>
+
+    <span class="n">wqmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">(</span><span class="n">routinginterfaces</span><span class="o">.</span><span class="n">CrossSectionModel_V1</span><span class="p">)</span>
+    <span class="n">wqmodel_is_mainmodel</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelIsMainmodelProperty</span><span class="p">()</span>
+    <span class="n">wqmodel_typeid</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelTypeIDProperty</span><span class="p">()</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.musk.musk_model</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

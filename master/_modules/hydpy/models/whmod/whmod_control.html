@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.whmod.whmod_control &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.whmod.whmod_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod.whmod_constants</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod</span><span class="w"> </span><span class="kn">import</span> <span class="n">whmod_constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod</span><span class="w"> </span><span class="kn">import</span> <span class="n">whmod_masks</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod</span><span class="w"> </span><span class="kn">import</span> <span class="n">whmod_parameters</span>
+
+
+<div class="viewcode-block" id="Area">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.Area">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Area</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Total area [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">1e-10</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NmbZones">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.NmbZones">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbZones</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of zones (hydrological response units) in a subbasin [-].</span>
+
+<span class="sd">    |NmbZones| determines the length of most 1-dimensional parameters and sequences.</span>
+<span class="sd">    Usually, you should first prepare |NmbZones| and define the values of all</span>
+<span class="sd">    1-dimensional parameters and sequences afterwards:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(5)</span>
+<span class="sd">    &gt;&gt;&gt; availablefieldcapacity.shape</span>
+<span class="sd">    (5,)</span>
+<span class="sd">    &gt;&gt;&gt; states.soilmoisture.shape</span>
+<span class="sd">    (5,)</span>
+
+<span class="sd">    Changing the value of |NmbZones| later reshapes the affected parameters and</span>
+<span class="sd">    sequences and makes it necessary to reset their values:</span>
+
+<span class="sd">    &gt;&gt;&gt; availablefieldcapacity(2.0)</span>
+<span class="sd">    &gt;&gt;&gt; availablefieldcapacity</span>
+<span class="sd">    availablefieldcapacity(2.0)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">    &gt;&gt;&gt; availablefieldcapacity</span>
+<span class="sd">    availablefieldcapacity(?)</span>
+
+<span class="sd">    Re-defining the same value does not delete the already available data:</span>
+
+<span class="sd">    &gt;&gt;&gt; availablefieldcapacity(2.0)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">    &gt;&gt;&gt; availablefieldcapacity</span>
+<span class="sd">    availablefieldcapacity(2.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">old</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="n">new</span> <span class="o">!=</span> <span class="n">old</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span>
+            <span class="k">for</span> <span class="n">subvars</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">subvars</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">var</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">new</span></div>
+
+
+
+<div class="viewcode-block" id="ZoneArea">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.ZoneArea">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ZoneArea</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">LandTypeCompleteParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Zone area [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LandType">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.LandType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LandType</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">NameParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Land cover type [-].&quot;&quot;&quot;</span>
+
+    <span class="n">constants</span> <span class="o">=</span> <span class="n">whmod_constants</span><span class="o">.</span><span class="n">LANDTYPE_CONSTANTS</span></div>
+
+
+
+<div class="viewcode-block" id="SoilType">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.SoilType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilType</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">NameParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Soil type [-].</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">    &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CORN, CONIFER, SPRINGWHEAT, WINTERWHEAT, SUGARBEETS,</span>
+<span class="sd">    ...          SEALED, WATER)</span>
+<span class="sd">    &gt;&gt;&gt; soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, SAND, NONE, NONE)</span>
+<span class="sd">    &gt;&gt;&gt; soiltype</span>
+<span class="sd">    soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, SAND, NONE, NONE)</span>
+<span class="sd">    &gt;&gt;&gt; soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE, NONE, NONE)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the values of parameter `soiltype` of element `?`, \</span>
+<span class="sd">the following error occurred: The soil type of land type(s) SUGARBEETS must not be NONE.</span>
+
+<span class="sd">    &gt;&gt;&gt; soiltype</span>
+<span class="sd">    soiltype(?)</span>
+
+
+<span class="sd">    &gt;&gt;&gt; soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, SAND, SAND, SAND)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to set the values of parameter `soiltype` of element `?`, \</span>
+<span class="sd">the following error occurred: The soil type of land type(s) SEALED and WATER must be \</span>
+<span class="sd">NONE.</span>
+
+<span class="sd">    &gt;&gt;&gt; soiltype</span>
+<span class="sd">    soiltype(?)</span>
+
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">constants</span> <span class="o">=</span> <span class="n">whmod_constants</span><span class="o">.</span><span class="n">SOILTYPE_CONSTANTS</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeSoil</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">_make_names</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">value2name</span> <span class="o">=</span> <span class="n">whmod_constants</span><span class="o">.</span><span class="n">LANDTYPE_CONSTANTS</span><span class="o">.</span><span class="n">value2name</span>
+            <span class="k">return</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">([</span><span class="n">value2name</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">landtype</span><span class="p">[</span><span class="n">jdxs</span><span class="p">]])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">landtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">landtype</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">should_be_soil</span> <span class="o">=</span> <span class="p">(</span><span class="n">landtype</span> <span class="o">!=</span> <span class="n">SEALED</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">landtype</span> <span class="o">!=</span> <span class="n">WATER</span><span class="p">)</span>
+            <span class="n">is_soil</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">!=</span> <span class="n">NONE</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">jdxs</span> <span class="o">:=</span> <span class="n">should_be_soil</span> <span class="o">*</span> <span class="o">~</span><span class="n">is_soil</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_valueready</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The soil type of land type(s) </span><span class="si">{</span><span class="n">_make_names</span><span class="p">()</span><span class="si">}</span><span class="s2"> must not be NONE.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">jdxs</span> <span class="o">:=</span> <span class="o">~</span><span class="n">should_be_soil</span> <span class="o">*</span> <span class="n">is_soil</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_valueready</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The soil type of land type(s) </span><span class="si">{</span><span class="n">_make_names</span><span class="p">()</span><span class="si">}</span><span class="s2"> must be NONE.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="s2">&quot;While trying to set the values of parameter &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CisternSource">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.CisternSource">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CisternSource</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">LandTypeNonWaterParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A flag that indicates whether a zone&#39;s excess water (surface runoff or</span>
+<span class="sd">    percolation) is channelled into the cistern [-]..&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CisternCapacity">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.CisternCapacity">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CisternCapacity</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum water amount that can be collected in the cistern [m³].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InterceptionCapacity">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.InterceptionCapacity">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InterceptionCapacity</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordParameter2D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum interception storage [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">columnnames</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="o">.</span><span class="n">entrynames</span>
+    <span class="n">rownames</span> <span class="o">=</span> <span class="n">whmod_constants</span><span class="o">.</span><span class="n">LANDTYPE_CONSTANTS</span><span class="o">.</span><span class="n">get_sortednames</span><span class="p">(</span>
+        <span class="n">relevant</span><span class="o">=</span><span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeNonWater</span><span class="o">.</span><span class="n">relevant</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="DegreeDayFactor">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.DegreeDayFactor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DegreeDayFactor</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">LandTypeNonWaterParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Degree day factor for snow melting [mm/T/K].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AvailableFieldCapacity">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.AvailableFieldCapacity">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AvailableFieldCapacity</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">SoilTypeParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum relative soil moisture content [mm/m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RootingDepth">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.RootingDepth">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RootingDepth</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">LandTypeSoilParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum rooting depth [m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="GroundwaterDepth">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.GroundwaterDepth">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GroundwaterDepth</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">SoilTypeParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average groundwater depth [m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="WithCapillaryRise">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.WithCapillaryRise">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WithCapillaryRise</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flag to turn on/off capillary rise [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="CapillaryThreshold">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.CapillaryThreshold">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CapillaryThreshold</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">SoilTypeParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative soil moisture where the capillary rise starts [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CapillaryLimit">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.CapillaryLimit">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CapillaryLimit</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">SoilTypeParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative soil moisture where the capillary rise reaches its maximum [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="IrrigationTrigger">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.IrrigationTrigger">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IrrigationTrigger</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordParameter2D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative soil moisture below which irrigation starts [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">columnnames</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="o">.</span><span class="n">entrynames</span>
+    <span class="n">rownames</span> <span class="o">=</span> <span class="n">whmod_constants</span><span class="o">.</span><span class="n">LANDTYPE_CONSTANTS</span><span class="o">.</span><span class="n">get_sortednames</span><span class="p">(</span>
+        <span class="n">relevant</span><span class="o">=</span><span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeSoil</span><span class="o">.</span><span class="n">relevant</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="IrrigationTrigger.trim">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.IrrigationTrigger.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim |IrrigationTrigger| following</span>
+<span class="sd">        :math:`0 \leq IrrigationTrigger \leq IrrigationTarget \leq 1`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; trigger = irrigationtrigger</span>
+
+<span class="sd">        &gt;&gt;&gt; trigger(</span>
+<span class="sd">        ...     grass=0.0,</span>
+<span class="sd">        ...     deciduous=0.0,</span>
+<span class="sd">        ...     corn=[0.0, 0.0, 0.0, 0.0, 0.0, 0.7, 1.0, 1.3, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">        ...     conifer=0.0,</span>
+<span class="sd">        ...     springwheat=0.0,</span>
+<span class="sd">        ...     winterwheat=0.0,</span>
+<span class="sd">        ...     sugarbeets=0.0,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; trigger.corn_jun, trigger.corn_jul, trigger.corn_aug</span>
+<span class="sd">        (0.7, 1.0, 1.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; irrigationtarget.corn_jun = 0.7</span>
+<span class="sd">        &gt;&gt;&gt; irrigationtarget.corn_jul = 0.7</span>
+<span class="sd">        &gt;&gt;&gt; trigger(</span>
+<span class="sd">        ...     grass=0.0,</span>
+<span class="sd">        ...     deciduous=0.0,</span>
+<span class="sd">        ...     corn=[0.0, 0.0, 0.0, 0.0, 0.0, 0.7, 1.0, 1.3, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">        ...     conifer=0.0,</span>
+<span class="sd">        ...     springwheat=0.0,</span>
+<span class="sd">        ...     winterwheat=0.0,</span>
+<span class="sd">        ...     sugarbeets=0.0,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; trigger = irrigationtrigger</span>
+<span class="sd">        &gt;&gt;&gt; trigger.corn_jun, trigger.corn_jul, trigger.corn_aug</span>
+<span class="sd">        (0.7, 0.7, 1.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">irrigationtarget</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">upper</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">upper</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IrrigationTarget">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.IrrigationTarget">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IrrigationTarget</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordParameter2D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative soil moisture content at which irrigation ends [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">columnnames</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">MonthParameter</span><span class="o">.</span><span class="n">entrynames</span>
+    <span class="n">rownames</span> <span class="o">=</span> <span class="n">whmod_constants</span><span class="o">.</span><span class="n">LANDTYPE_CONSTANTS</span><span class="o">.</span><span class="n">get_sortednames</span><span class="p">(</span>
+        <span class="n">relevant</span><span class="o">=</span><span class="n">whmod_masks</span><span class="o">.</span><span class="n">LandTypeSoil</span><span class="o">.</span><span class="n">relevant</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="IrrigationTarget.trim">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.IrrigationTarget.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim |IrrigationTarget| following</span>
+<span class="sd">        :math:`0 \leq IrrigationTrigger \leq IrrigationTarget \leq 1`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; target = irrigationtarget</span>
+
+<span class="sd">        &gt;&gt;&gt; target(</span>
+<span class="sd">        ...     grass=0.0,</span>
+<span class="sd">        ...     deciduous=0.0,</span>
+<span class="sd">        ...     corn=[0.0, 0.0, 0.0, 0.0, 0.0, 0.7, 0.3, -0.1, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">        ...     conifer=0.0,</span>
+<span class="sd">        ...     springwheat=0.0,</span>
+<span class="sd">        ...     winterwheat=0.0,</span>
+<span class="sd">        ...     sugarbeets=0.0,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; target.corn_jun, target.corn_jul, target.corn_aug</span>
+<span class="sd">        (0.7, 0.3, 0.0)</span>
+
+<span class="sd">        &gt;&gt;&gt; irrigationtrigger.corn_jun = 0.7</span>
+<span class="sd">        &gt;&gt;&gt; irrigationtrigger.corn_jul = 0.7</span>
+<span class="sd">        &gt;&gt;&gt; target(</span>
+<span class="sd">        ...     grass=0.0,</span>
+<span class="sd">        ...     deciduous=0.0,</span>
+<span class="sd">        ...     corn=[0.0, 0.0, 0.0, 0.0, 0.0, 0.7, 0.3, -0.1, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">        ...     conifer=0.0,</span>
+<span class="sd">        ...     springwheat=0.0,</span>
+<span class="sd">        ...     winterwheat=0.0,</span>
+<span class="sd">        ...     sugarbeets=0.0,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; target = irrigationtarget</span>
+<span class="sd">        &gt;&gt;&gt; target.corn_jun, target.corn_jul, target.corn_aug</span>
+<span class="sd">        (0.7, 0.7, 0.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lower</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">irrigationtrigger</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">lower</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">lower</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="WithExternalIrrigation">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.WithExternalIrrigation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WithExternalIrrigation</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flag to turn on/off external irrigation [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="BaseflowIndex">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.BaseflowIndex">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BaseflowIndex</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">LandTypeGroundwaterParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Baseflow index [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RechargeDelay">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_control.RechargeDelay">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RechargeDelay</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Delay between soil percolation and groundwater recharge [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

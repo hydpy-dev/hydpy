@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>musk_classic &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="musk_mct" href="musk_mct.html" />
+    <link rel="prev" title="musk" href="musk.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="musk_mct.html" title="musk_mct"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="musk.html" title="musk"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Musk.html" accesskey="U">HydPy-Musk (Muskingum)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">musk_classic</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="musk.html">musk</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">musk_classic</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-tests">Integration tests</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#zero-lag-time">Zero lag time</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#translation">Translation</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#diffusion">Diffusion</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.musk_classic.NmbRuns"><code class="docutils literal notranslate"><span class="pre">NmbRuns</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.musk_classic.NmbRuns.INIT"><code class="docutils literal notranslate"><span class="pre">NmbRuns.INIT</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.musk_classic.NmbRuns.SPAN"><code class="docutils literal notranslate"><span class="pre">NmbRuns.SPAN</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.musk_classic.NmbRuns.name"><code class="docutils literal notranslate"><span class="pre">NmbRuns.name</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.musk_classic.NmbRuns.unit"><code class="docutils literal notranslate"><span class="pre">NmbRuns.unit</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.musk_classic.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.musk_classic.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.musk_classic.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.musk_classic.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.musk_classic.Masks"><code class="docutils literal notranslate"><span class="pre">Masks</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.musk_classic.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.musk_classic.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.musk_classic.InletSequences"><code class="docutils literal notranslate"><span class="pre">InletSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.musk_classic.OutletSequences"><code class="docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.musk_classic.SolverParameters"><code class="docutils literal notranslate"><span class="pre">SolverParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.musk_classic.StateSequences"><code class="docutils literal notranslate"><span class="pre">StateSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="musk_mct.html">musk_mct</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="musk.html"
+                          title="previous chapter">musk</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="musk_mct.html"
+                          title="next chapter">musk_mct</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/musk_classic.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="musk-classic">
+<span id="id1"></span><h1>HydPy-Musk-Classic (classic Muskingum routing, compatible with SMHI-IHMS-HBV96)<a class="headerlink" href="#musk-classic" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.musk_classic">The HydPy-Musk family member <a class="reference internal" href="#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a> realises the well-known Muskingum
+routing method <span id="id2">(<a class="reference internal" href="zbibliography.html#id28" title="G. T. McCarthy. Flood Control. The Engineer School, Fort Belvoir, Virginia, 1940.">McCarthy, 1940</a>)</span>.  The Muskingum method is a simple
+“hydrological” routing approach that applies a finite difference approximation of the
+continuity equation with fixed coefficients.  Users are free to define these
+coefficients manually or let <a class="reference internal" href="#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a> calculate them based on the travel time <cite>k</cite>
+and the weighting coefficient <cite>x</cite> (see the documentation on parameter <a class="reference internal" href="musk.html#hydpy.models.musk.musk_control.Coefficients" title="hydpy.models.musk.musk_control.Coefficients"><code class="xref py py-class docutils literal notranslate"><span class="pre">Coefficients</span></code></a>
+for further information).  Either way, one should note these coefficients apply to each
+channel segment.  Hence, when increasing the number of segments (via parameter
+<a class="reference internal" href="musk.html#hydpy.models.musk.musk_control.NmbSegments" title="hydpy.models.musk.musk_control.NmbSegments"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbSegments</span></code></a>), the net travel time through the whole channel increases, too.</p>
+<p><a class="reference internal" href="#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a> also supports a simplified version of the Muskingum method that is part
+of HBV96 <span id="id3">(<a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em>, 1997</a>)</span> and relies on the parameters <cite>lag</cite>,
+describing lag time, and <cite>damp</cite>, describing the damping of the hydrograph along the
+channel.  See the documentation on the parameters <a class="reference internal" href="musk.html#hydpy.models.musk.musk_control.NmbSegments" title="hydpy.models.musk.musk_control.NmbSegments"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbSegments</span></code></a> and <a class="reference internal" href="musk.html#hydpy.models.musk.musk_control.Coefficients" title="hydpy.models.musk.musk_control.Coefficients"><code class="xref py py-class docutils literal notranslate"><span class="pre">Coefficients</span></code></a> on
+how to use this information to calculate the coefficients of the Muskingum working
+equation.</p>
+<section id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to_read_the_reference_manual.html#integration-tests"><span class="std std-ref">Integration Tests</span></a> first.</p>
+</div>
+<p>We perform the following examples over a simulation period of 20 hours:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">,</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;01.01.2000 00:00&quot;</span><span class="p">,</span> <span class="s2">&quot;01.01.2000 20:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1h&quot;</span>
+</pre></div>
+</div>
+<p>We also set the time step size of the parameter values defined below to one hour:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk_classic</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a> model, handled by <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> <cite>stream</cite>, queries its inflow from two
+<a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> objects (<cite>input1</cite> and <cite>input2</cite>) and passes its outflow to a single <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> object
+(<cite>output</cite>):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;input1&quot;</span><span class="p">,</span> <span class="s2">&quot;input2&quot;</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;stream&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;input1&quot;</span><span class="p">,</span> <span class="s2">&quot;input2&quot;</span><span class="p">],</span> <span class="n">outlets</span><span class="o">=</span><span class="s2">&quot;output&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>The test function object sets the initial flow into all segment endpoints
+(<a class="reference internal" href="musk.html#hydpy.models.musk.musk_states.Discharge" title="hydpy.models.musk.musk_states.Discharge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Discharge</span></code></a>) to zero before each simulation run:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">inits</span><span class="o">=</span><span class="p">((</span><span class="n">states</span><span class="o">.</span><span class="n">discharge</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;%H:%M&quot;</span>
+</pre></div>
+</div>
+<p>We define two flood events, one for each inflow node:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Because of its good clarity, we use the <em>HBV96</em> style to configure the coefficients of
+the working equation in all integration tests.</p>
+<section id="zero-lag-time">
+<h3>Zero lag time<a class="headerlink" href="#zero-lag-time" title="Link to this heading">¶</a></h3>
+<p>With zero lag time, there are no river segments.   Hence, there is only one segment
+endpoint, which lies both at the whole channel’s start and end.  Accordingly, the
+outflow is always equal to the inflow, regardless of the values chosen for the
+Muskingum coefficients:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsegments</span><span class="p">(</span><span class="n">lag</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coefficients</span><span class="p">(</span><span class="n">damp</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;musk_classic_zero_lag_time&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_275__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_275__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date | inflow | outflow | discharge | input1 | input2 | output |</span>
+<span class="go">-------------------------------------------------------------------</span>
+<span class="go">| 00:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 01:00 |    1.0 |     1.0 |       1.0 |    0.0 |    1.0 |    1.0 |</span>
+<span class="go">| 02:00 |    6.0 |     6.0 |       6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="go">| 03:00 |   12.0 |    12.0 |      12.0 |    3.0 |    9.0 |   12.0 |</span>
+<span class="go">| 04:00 |   10.0 |    10.0 |      10.0 |    2.0 |    8.0 |   10.0 |</span>
+<span class="go">| 05:00 |    6.0 |     6.0 |       6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="go">| 06:00 |    3.0 |     3.0 |       3.0 |    0.0 |    3.0 |    3.0 |</span>
+<span class="go">| 07:00 |    2.0 |     2.0 |       2.0 |    0.0 |    2.0 |    2.0 |</span>
+<span class="go">| 08:00 |    1.0 |     1.0 |       1.0 |    0.0 |    1.0 |    1.0 |</span>
+<span class="go">| 09:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 10:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 11:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 12:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 13:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 14:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 15:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 16:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 17:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 18:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 19:00 |    0.0 |     0.0 |       0.0 |    0.0 |    0.0 |    0.0 |</span>
+</pre></div></div></div><a href="musk_classic_zero_lag_time.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+<section id="translation">
+<h3>Translation<a class="headerlink" href="#translation" title="Link to this heading">¶</a></h3>
+<p>With a lag time of three hours and zero damping, <a class="reference internal" href="#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a> simply passes the flow
+values from one segment to the next within each simulation time step.  A number of
+three segments gives an overall time shift of three hours:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsegments</span><span class="p">(</span><span class="n">lag</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coefficients</span><span class="p">(</span><span class="n">damp</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;musk_classic_no_translation&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_276__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_276__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date | inflow | outflow |                   discharge | input1 | input2 | output |</span>
+<span class="go">-------------------------------------------------------------------------------------</span>
+<span class="go">| 00:00 |    0.0 |     0.0 |  0.0   0.0   0.0        0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 01:00 |    1.0 |     0.0 |  1.0   0.0   0.0        0.0 |    0.0 |    1.0 |    0.0 |</span>
+<span class="go">| 02:00 |    6.0 |     0.0 |  6.0   1.0   0.0        0.0 |    1.0 |    5.0 |    0.0 |</span>
+<span class="go">| 03:00 |   12.0 |     0.0 | 12.0   6.0   1.0        0.0 |    3.0 |    9.0 |    0.0 |</span>
+<span class="go">| 04:00 |   10.0 |     1.0 | 10.0  12.0   6.0        1.0 |    2.0 |    8.0 |    1.0 |</span>
+<span class="go">| 05:00 |    6.0 |     6.0 |  6.0  10.0  12.0        6.0 |    1.0 |    5.0 |    6.0 |</span>
+<span class="go">| 06:00 |    3.0 |    12.0 |  3.0   6.0  10.0       12.0 |    0.0 |    3.0 |   12.0 |</span>
+<span class="go">| 07:00 |    2.0 |    10.0 |  2.0   3.0   6.0       10.0 |    0.0 |    2.0 |   10.0 |</span>
+<span class="go">| 08:00 |    1.0 |     6.0 |  1.0   2.0   3.0        6.0 |    0.0 |    1.0 |    6.0 |</span>
+<span class="go">| 09:00 |    0.0 |     3.0 |  0.0   1.0   2.0        3.0 |    0.0 |    0.0 |    3.0 |</span>
+<span class="go">| 10:00 |    0.0 |     2.0 |  0.0   0.0   1.0        2.0 |    0.0 |    0.0 |    2.0 |</span>
+<span class="go">| 11:00 |    0.0 |     1.0 |  0.0   0.0   0.0        1.0 |    0.0 |    0.0 |    1.0 |</span>
+<span class="go">| 12:00 |    0.0 |     0.0 |  0.0   0.0   0.0        0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 13:00 |    0.0 |     0.0 |  0.0   0.0   0.0        0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 14:00 |    0.0 |     0.0 |  0.0   0.0   0.0        0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 15:00 |    0.0 |     0.0 |  0.0   0.0   0.0        0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 16:00 |    0.0 |     0.0 |  0.0   0.0   0.0        0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 17:00 |    0.0 |     0.0 |  0.0   0.0   0.0        0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 18:00 |    0.0 |     0.0 |  0.0   0.0   0.0        0.0 |    0.0 |    0.0 |    0.0 |</span>
+<span class="go">| 19:00 |    0.0 |     0.0 |  0.0   0.0   0.0        0.0 |    0.0 |    0.0 |    0.0 |</span>
+</pre></div></div></div><a href="musk_classic_no_translation.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+<section id="diffusion">
+<h3>Diffusion<a class="headerlink" href="#diffusion" title="Link to this heading">¶</a></h3>
+<p>Parameter <a class="reference internal" href="musk.html#hydpy.models.musk.musk_control.Coefficients" title="hydpy.models.musk.musk_control.Coefficients"><code class="xref py py-class docutils literal notranslate"><span class="pre">Coefficients</span></code></a> controls the diffusion (or damping) of flood waves within each
+river segment.  We demonstrate its functioning by keeping the <cite>lag</cite> value of three
+hours but setting <cite>damp</cite> to one:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsegments</span><span class="p">(</span><span class="n">lag</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coefficients</span><span class="p">(</span><span class="n">damp</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;musk_classic_diffusion&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_277__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_277__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date | inflow |  outflow |                           discharge | input1 | input2 |   output |</span>
+<span class="go">------------------------------------------------------------------------------------------------</span>
+<span class="go">| 00:00 |    0.0 |      0.0 |  0.0       0.0       0.0        0.0 |    0.0 |    0.0 |      0.0 |</span>
+<span class="go">| 01:00 |    1.0 |    0.125 |  1.0       0.5      0.25      0.125 |    0.0 |    1.0 |    0.125 |</span>
+<span class="go">| 02:00 |    6.0 |   0.9375 |  6.0      3.25      1.75     0.9375 |    1.0 |    5.0 |   0.9375 |</span>
+<span class="go">| 03:00 |   12.0 |   2.8125 | 12.0     7.625    4.6875     2.8125 |    3.0 |    9.0 |   2.8125 |</span>
+<span class="go">| 04:00 |   10.0 |  4.78125 | 10.0    8.8125      6.75    4.78125 |    2.0 |    8.0 |  4.78125 |</span>
+<span class="go">| 05:00 |    6.0 | 5.929688 |  6.0   7.40625  7.078125   5.929688 |    1.0 |    5.0 | 5.929688 |</span>
+<span class="go">| 06:00 |    3.0 | 6.035156 |  3.0  5.203125  6.140625   6.035156 |    0.0 |    3.0 | 6.035156 |</span>
+<span class="go">| 07:00 |    2.0 | 5.453125 |  2.0  3.601562  4.871094   5.453125 |    0.0 |    2.0 | 5.453125 |</span>
+<span class="go">| 08:00 |    1.0 | 4.519531 |  1.0  2.300781  3.585938   4.519531 |    0.0 |    1.0 | 4.519531 |</span>
+<span class="go">| 09:00 |    0.0 | 3.443848 |  0.0  1.150391  2.368164   3.443848 |    0.0 |    0.0 | 3.443848 |</span>
+<span class="go">| 10:00 |    0.0 | 2.457764 |  0.0  0.575195   1.47168   2.457764 |    0.0 |    0.0 | 2.457764 |</span>
+<span class="go">| 11:00 |    0.0 | 1.668701 |  0.0  0.287598  0.879639   1.668701 |    0.0 |    0.0 | 1.668701 |</span>
+<span class="go">| 12:00 |    0.0 |  1.09021 |  0.0  0.143799  0.511719    1.09021 |    0.0 |    0.0 |  1.09021 |</span>
+<span class="go">| 13:00 |    0.0 |  0.69101 |  0.0  0.071899  0.291809    0.69101 |    0.0 |    0.0 |  0.69101 |</span>
+<span class="go">| 14:00 |    0.0 | 0.427444 |  0.0   0.03595  0.163879   0.427444 |    0.0 |    0.0 | 0.427444 |</span>
+<span class="go">| 15:00 |    0.0 | 0.259186 |  0.0  0.017975  0.090927   0.259186 |    0.0 |    0.0 | 0.259186 |</span>
+<span class="go">| 16:00 |    0.0 | 0.154572 |  0.0  0.008987  0.049957   0.154572 |    0.0 |    0.0 | 0.154572 |</span>
+<span class="go">| 17:00 |    0.0 | 0.090899 |  0.0  0.004494  0.027225   0.090899 |    0.0 |    0.0 | 0.090899 |</span>
+<span class="go">| 18:00 |    0.0 | 0.052817 |  0.0  0.002247  0.014736   0.052817 |    0.0 |    0.0 | 0.052817 |</span>
+<span class="go">| 19:00 |    0.0 | 0.030374 |  0.0  0.001123   0.00793   0.030374 |    0.0 |    0.0 | 0.030374 |</span>
+</pre></div></div></div><a href="musk_classic_diffusion.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.NmbRuns">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.musk_classic.</span></span><span class="sig-name descname"><span class="pre">NmbRuns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subvars</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/models/musk_classic.html#NmbRuns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.musk_classic.NmbRuns" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="musk.html#hydpy.models.musk.musk_solver.NmbRuns" title="hydpy.models.musk.musk_solver.NmbRuns"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbRuns</span></code></a></p>
+<p>The number of runs of the <code class="xref py py-attr docutils literal notranslate"><span class="pre">RUN_METHODS</span></code> of the <a class="reference internal" href="#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a> model per
+simulation step [-].</p>
+<p>As opposed to other members of the HydPy-Musk model family, repeating the
+“run methods” of <a class="reference internal" href="#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a> does not improve the accuracy of the simulated
+results.  Hence, we restrict the highest value of parameter <a class="reference internal" href="#hydpy.models.musk_classic.NmbRuns" title="hydpy.models.musk_classic.NmbRuns"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbRuns</span></code></a>
+to one:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk_classic</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">solver</span><span class="o">.</span><span class="n">nmbruns</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The value `2` of parameter `nmbruns` of element `?` is not valid.</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.NmbRuns.INIT">
+<span class="sig-name descname"><span class="pre">INIT</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.models.musk_classic.NmbRuns.INIT" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.NmbRuns.SPAN">
+<span class="sig-name descname"><span class="pre">SPAN</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(1,</span> <span class="pre">1)</span></span><a class="headerlink" href="#hydpy.models.musk_classic.NmbRuns.SPAN" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.NmbRuns.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'nmbruns'</span></span><a class="headerlink" href="#hydpy.models.musk_classic.NmbRuns.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the variable in lowercase letters.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.NmbRuns.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'-'</span></span><a class="headerlink" href="#hydpy.models.musk_classic.NmbRuns.unit" title="Link to this definition">¶</a></dt>
+<dd><p>Unit of the variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.musk_classic.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/musk_classic.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.musk_classic.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SegmentModel" title="hydpy.core.modeltools.SegmentModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">SegmentModel</span></code></a></p>
+<p>HydPy-Musk-Classic (classic Muskingum routing, compatible with SMHI-IHMS-HBV96).</p>
+<dl class="simple">
+<dt>The following “inlet update methods” are called in the given sequence at the beginning of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_model.Pick_Inflow_V1" title="hydpy.models.musk.musk_model.Pick_Inflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Inflow_V1</span></code></a> Assign the actual value of the inlet sequence to the inflow sequence.</p></li>
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_model.Update_Discharge_V1" title="hydpy.models.musk.musk_model.Update_Discharge_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_Discharge_V1</span></code></a> Assign the inflow to the start point of the first channel segment.</p></li>
+</ul>
+</dd>
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_model.Calc_Discharge_V1" title="hydpy.models.musk.musk_model.Calc_Discharge_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Discharge_V1</span></code></a> Apply the routing equation with fixed coefficients.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_model.Calc_Outflow_V1" title="hydpy.models.musk.musk_model.Calc_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Outflow_V1</span></code></a> Take the discharge at the last segment endpoint as the channel’s outflow.</p></li>
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_model.Pass_Outflow_V1" title="hydpy.models.musk.musk_model.Pass_Outflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Outflow_V1</span></code></a> Pass the channel’s outflow to the outlet sequence.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Musk-Classic',</span> <span class="pre">'classic</span> <span class="pre">Muskingum</span> <span class="pre">routing,</span> <span class="pre">compatible</span> <span class="pre">with</span> <span class="pre">SMHI-IHMS-HBV96')</span></span><a class="headerlink" href="#hydpy.models.musk_classic.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.musk_classic.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.musk_classic.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.Masks">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.musk_classic.</span></span><span class="sig-name descname"><span class="pre">Masks</span></span><a class="reference internal" href="_modules/hydpy/models/musk_classic.html#Masks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.musk_classic.Masks" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="masktools.html#hydpy.core.masktools.Masks" title="hydpy.core.masktools.Masks"><code class="xref py py-class docutils literal notranslate"><span class="pre">Masks</span></code></a></p>
+<p>Masks applicable to <a class="reference internal" href="#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a>.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_masks.Complete" title="hydpy.models.musk.musk_masks.Complete"><code class="xref py py-func docutils literal notranslate"><span class="pre">Complete()</span></code></a> Mask including all channel segments.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.musk_classic.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.musk_classic.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model musk_classic.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_control.NmbSegments" title="hydpy.models.musk.musk_control.NmbSegments"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbSegments()</span></code></a> Number of channel segments [-].</p></li>
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_control.Coefficients" title="hydpy.models.musk.musk_control.Coefficients"><code class="xref py py-func docutils literal notranslate"><span class="pre">Coefficients()</span></code></a> Coefficients of the Muskingum working formula [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.musk_classic.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.musk_classic.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model musk_classic.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_fluxes.Inflow" title="hydpy.models.musk.musk_fluxes.Inflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Inflow()</span></code></a> Inflow [m³/s].</p></li>
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_fluxes.Outflow" title="hydpy.models.musk.musk_fluxes.Outflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Outflow()</span></code></a> Outflow [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.InletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.musk_classic.</span></span><span class="sig-name descname"><span class="pre">InletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.musk_classic.InletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequences" title="hydpy.core.sequencetools.InletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequences</span></code></a></p>
+<p>Inlet sequences of model musk_classic.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_inlets.Q" title="hydpy.models.musk.musk_inlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Runoff [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.OutletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.musk_classic.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.musk_classic.OutletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model musk_classic.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_outlets.Q" title="hydpy.models.musk.musk_outlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Runoff [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.SolverParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.musk_classic.</span></span><span class="sig-name descname"><span class="pre">SolverParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.musk_classic.SolverParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Solver parameters of model musk_classic.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.models.musk_classic.NmbRuns" title="hydpy.models.musk_classic.NmbRuns"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbRuns()</span></code></a> The number of runs of the <code class="xref py py-attr docutils literal notranslate"><span class="pre">RUN_METHODS</span></code> of the <a class="reference internal" href="#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a> model per simulation step [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.musk_classic.StateSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.musk_classic.</span></span><span class="sig-name descname"><span class="pre">StateSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.musk_classic.StateSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequences</span></code></a></p>
+<p>State sequences of model musk_classic.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="musk.html#hydpy.models.musk.musk_states.Discharge" title="hydpy.models.musk.musk_states.Discharge"><code class="xref py py-func docutils literal notranslate"><span class="pre">Discharge()</span></code></a> Current discharge at the segment endpoints [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="musk_mct.html" title="musk_mct"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="musk.html" title="musk"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Musk.html" >HydPy-Musk (Muskingum)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">musk_classic</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.snow.snow_control &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.snow.snow_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.snow.snow_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+
+<span class="c1"># ...from snow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.snow</span><span class="w"> </span><span class="kn">import</span> <span class="n">snow_parameters</span>
+
+
+<div class="viewcode-block" id="NLayers">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.NLayers">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NLayers</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of snow layers  [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ZLayers">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.ZLayers">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ZLayers</span><span class="p">(</span><span class="n">snow_parameters</span><span class="o">.</span><span class="n">Parameter1DLayers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Height of each snow layer [m].</span>
+
+<span class="sd">    You can use method |snow_model.BaseModel.prepare_layers| to determine the values of</span>
+<span class="sd">    |ZLayers| based on the catchment&#39;s elevation distribution.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LayerArea">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.LayerArea">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LayerArea</span><span class="p">(</span><span class="n">snow_parameters</span><span class="o">.</span><span class="n">Parameter1DLayers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Area of snow layer as a percentage of total area [-].</span>
+
+<span class="sd">    Calling method |snow_model.BaseModel.prepare_layers| to determine the values of</span>
+<span class="sd">    parameter |ZLayers| also sets all entries of parameter |LayerArea| to the same</span>
+<span class="sd">    average value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="GradP">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.GradP">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GradP</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Altitude gradient of precipitation [1/m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.00041</span></div>
+
+
+
+<div class="viewcode-block" id="GradTMean">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.GradTMean">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GradTMean</span><span class="p">(</span><span class="n">snow_parameters</span><span class="o">.</span><span class="n">Parameter1D366</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Altitude gradient of daily mean air temperature for each day of the year</span>
+<span class="sd">    [°C/100m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="GradTMin">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.GradTMin">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GradTMin</span><span class="p">(</span><span class="n">snow_parameters</span><span class="o">.</span><span class="n">Parameter1D366</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Altitude gradient of daily minimum air temperature for each day of the year</span>
+<span class="sd">    [°C/100m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="GradTMax">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.GradTMax">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GradTMax</span><span class="p">(</span><span class="n">snow_parameters</span><span class="o">.</span><span class="n">Parameter1D366</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Altitude gradient of daily maximum air temperature for each day of the year</span>
+<span class="sd">    [°C/100m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MeanAnSolidPrecip">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.MeanAnSolidPrecip">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MeanAnSolidPrecip</span><span class="p">(</span><span class="n">snow_parameters</span><span class="o">.</span><span class="n">Parameter1DLayers</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean annual solid precipitation [mm/a].&quot;&quot;&quot;</span>
+
+    <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CN1">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.CN1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CN1</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Temporal weighting coefficient for the snow pack&#39;s thermal state [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CN2">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.CN2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CN2</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Degree-day melt coefficient [mm/°C/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CN3">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.CN3">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CN3</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Accumulation threshold [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CN4">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.CN4">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CN4</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fraction of annual snowfall defining the melt threshold [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Hysteresis">
+<a class="viewcode-back" href="../../../../snow.html#hydpy.models.snow.snow_control.Hysteresis">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Hysteresis</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flag that indicates whether hysteresis of build-up and melting of the snow cover</span>
+<span class="sd">    should be considered [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.snow.snow_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

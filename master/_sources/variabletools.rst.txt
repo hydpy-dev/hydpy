@@ -1,0 +1,67 @@
+.. |DefaultMask| replace:: :class:`~hydpy.core.masktools.DefaultMask`
+.. |False| replace:: :const:`False`
+.. |InputSequence| replace:: :class:`~hydpy.core.sequencetools.InputSequence`
+.. |Masks| replace:: :class:`~hydpy.core.masktools.Masks`
+.. |MixinFixedShape| replace:: :class:`~hydpy.core.variabletools.MixinFixedShape`
+.. |ModelSequence| replace:: :class:`~hydpy.core.sequencetools.ModelSequence`
+.. |Model| replace:: :class:`~hydpy.core.modeltools.Model`
+.. |NodeSequence| replace:: :class:`~hydpy.core.sequencetools.NodeSequence`
+.. |None| replace:: :const:`None`
+.. |Options.trimvariables| replace:: :const:`~hydpy.core.optiontools.Options.trimvariables`
+.. |Parameters| replace:: :class:`~hydpy.core.parametertools.Parameters`
+.. |Parameter| replace:: :class:`~hydpy.core.parametertools.Parameter`
+.. |RuntimeError| replace:: :class:`RuntimeError`
+.. |Sequence_| replace:: :class:`~hydpy.core.sequencetools.Sequence_`
+.. |Sequences| replace:: :class:`~hydpy.core.sequencetools.Sequences`
+.. |SubParameters| replace:: :class:`~hydpy.core.parametertools.SubParameters`
+.. |SubSequences| replace:: :class:`~hydpy.core.sequencetools.SubSequences`
+.. |SubVariables| replace:: :class:`~hydpy.core.variabletools.SubVariables`
+.. |Variable.INIT| replace:: :attr:`~hydpy.core.variabletools.Variable.INIT`
+.. |Variable.availablemasks| replace:: :const:`~hydpy.core.variabletools.Variable.availablemasks`
+.. |Variable.average_values| replace:: :func:`~hydpy.core.variabletools.Variable.average_values`
+.. |Variable.initinfo| replace:: :const:`~hydpy.core.variabletools.Variable.initinfo`
+.. |Variable.mask| replace:: :func:`~hydpy.core.variabletools.Variable.mask`
+.. |Variable.numberofvalues| replace:: :const:`~hydpy.core.variabletools.Variable.numberofvalues`
+.. |Variable.refweights| replace:: :const:`~hydpy.core.variabletools.Variable.refweights`
+.. |Variable.shape| replace:: :const:`~hydpy.core.variabletools.Variable.shape`
+.. |Variable.values| replace:: :const:`~hydpy.core.variabletools.Variable.values`
+.. |Variable.valuevector| replace:: :const:`~hydpy.core.variabletools.Variable.valuevector`
+.. |Variable.value| replace:: :const:`~hydpy.core.variabletools.Variable.value`
+.. |Variable.verify| replace:: :func:`~hydpy.core.variabletools.Variable.verify`
+.. |Variable| replace:: :class:`~hydpy.core.variabletools.Variable`
+.. |bool| replace:: :class:`bool`
+.. |dict| replace:: :class:`dict`
+.. |exch| replace:: :mod:`~hydpy.models.exch`
+.. |float| replace:: :class:`float`
+.. |get_tolerance| replace:: :func:`~hydpy.core.variabletools.get_tolerance`
+.. |hland| replace:: :mod:`~hydpy.models.hland`
+.. |id| replace:: :func:`id`
+.. |int| replace:: :class:`int`
+.. |kinw| replace:: :mod:`~hydpy.models.kinw`
+.. |len| replace:: :func:`len`
+.. |numpy| replace:: :mod:`~numpy`
+.. |parametertools| replace:: :mod:`~hydpy.core.parametertools`
+.. |sequencetools| replace:: :mod:`~hydpy.core.sequencetools`
+.. |set| replace:: :class:`set`
+.. |sort_variables| replace:: :func:`~hydpy.core.variabletools.sort_variables`
+.. |to_repr| replace:: :func:`~hydpy.core.variabletools.to_repr`
+.. |trim| replace:: :func:`~hydpy.core.variabletools.trim`
+.. |tuple| replace:: :class:`tuple`
+.. |exch_factors.WaterLevels| replace:: :class:`~hydpy.models.exch.exch_factors.WaterLevels`
+.. |hland_sequences.State2DSequence.valuevector| replace:: :const:`~hydpy.models.hland.hland_sequences.State2DSequence.valuevector`
+.. |hland_states.SP| replace:: :class:`~hydpy.models.hland.hland_states.SP`
+.. |kinw_control.BV| replace:: :class:`~hydpy.models.kinw.kinw_control.BV`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |sequencetools.InputSequences| replace:: :class:`~hydpy.core.sequencetools.InputSequences`
+.. |sw1d_control.BottomLowWaterThreshold.trim| replace:: :func:`~hydpy.models.sw1d.sw1d_control.BottomLowWaterThreshold.trim`
+.. |sw1d_control.BottomLowWaterThreshold| replace:: :class:`~hydpy.models.sw1d.sw1d_control.BottomLowWaterThreshold`
+
+.. _variabletools:
+
+variabletools
+=============
+
+.. automodule:: hydpy.core.variabletools
+    :members:
+    :show-inheritance:
+    :exclude-members: deprecated, MutableSequence, KeysView, SENDER_METHODS, Set, Mapping, TextIO, Container, Tuple, Optional, ValuesView, no_type_check, clear_overloads, TypeForm, LiteralString, subvars, get_original_bases, seqs, REQUIREDSEQUENCES, ADD_METHODS, SOLVERSEQUENCES, overload, type_repr, Sentinel, SUBMETHODS, SupportsBytes, NoReturn, UPDATEDSEQUENCES, SupportsIndex, Generic, Protocol, MutableSet, disjoint_base, Coroutine, fastaccess_new, DERIVEDPARAMETERS, SUBMODELINTERFACES, NoExtraItems, Format, CLASSES, Required, final, Unpack, Text, INLET_METHODS, fastaccess_old, ClassVar, ContextManager, Final, cast, Annotated, Callable, override, ParamSpecKwargs, Sized, List, Generator, SupportsAbs, Concatenate, fastaccess, TypeAlias, FULL_ODE_METHODS, FIXEDPARAMETERS, Reader, RECEIVER_METHODS, TypeVarTuple, CapsuleType, SupportsRound, Collection, SUBMODELS, DefaultDict, ParamSpec, Deque, NewType, SupportsFloat, Writer, PART_ODE_METHODS, TypeVar, Sequence, Awaitable, runtime_checkable, TypeGuard, assert_never, MappingView, RESULTSEQUENCES, runtime, get_annotations, pars, BinaryIO, OUTLET_METHODS, NoDefault, Literal, ItemsView, dataclass_transform, AnyStr, INTERFACE_METHODS, evaluate_forward_ref, OrderedDict, AsyncIterable, Doc, get_args, get_type_hints, NotRequired, Iterator, SupportsComplex, RUN_METHODS, Counter, ByteString, SupportsInt, Buffer, TypeAliasType, Union, Pattern, Never, Self, AbstractSet, CONTROLPARAMETERS, get_protocol_members, AsyncIterator, ForwardRef, Dict, TypeIs, FrozenSet, get_origin, IntVar, NamedTuple, get_overloads, subpars, AsyncContextManager, ReadOnly, Iterable, Hashable, SOLVERPARAMETERS, TypedDict, Type, Reversible, subseqs, Match, AsyncGenerator, IO, TYPE_CHECKING, is_protocol, MutableMapping, assert_type, ChainMap, Any, is_typeddict, no_type_check_decorator, reveal_type, ParamSpecArgs

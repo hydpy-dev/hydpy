@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.hland.hland_sequences &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hland.hland_sequences</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.hland.hland_sequences</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">sequencetools</span>
+
+
+<div class="viewcode-block" id="Factor1DSequence">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_sequences.Factor1DSequence">[docs]</a>
+<span class="k">class</span> <span class="nc">Factor1DSequence</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional factor subclasses that support aggregation with</span>
+<span class="sd">    respect to |ZoneArea|.</span>
+
+<span class="sd">    All |Factor1DSequence| subclasses must implement fitting mask objects individually.</span>
+
+<span class="sd">    The following example shows how the subclass |TC| works:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(5)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea.values = 10.0, 20.0, 30.0, 35.0, 5.0</span>
+<span class="sd">    &gt;&gt;&gt; factors.tc(5.0, 2.0, 4.0, 1.0, 6.0)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(factors.tc.average_values())</span>
+<span class="sd">    2.75</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for the associated instance of |ZoneArea| for calculating areal</span>
+<span class="sd">        values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subseqs</span><span class="o">.</span><span class="n">seqs</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">zonearea</span></div>
+
+
+
+<div class="viewcode-block" id="Factor2DSequence">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_sequences.Factor2DSequence">[docs]</a>
+<span class="k">class</span> <span class="nc">Factor2DSequence</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FactorSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 2-dimensional factor subclasses that support aggregation with</span>
+<span class="sd">    respect to |ZoneArea|.</span>
+
+<span class="sd">    All |Factor2DSequence| subclasses must implement fitting mask objects individually.</span>
+
+<span class="sd">    The following example shows how subclass |SWE| works, which implements mask |Land|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(5)</span>
+<span class="sd">    &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea.values = 10.0, 20.0, 30.0, 40.0, 60.0</span>
+<span class="sd">    &gt;&gt;&gt; factors.swe = [[40.0, 10.0, 30.0, nan, 0.0],</span>
+<span class="sd">    ...                [60.0, 30.0, 50.0, nan, 20.0]]</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(factors.swe.average_values())</span>
+<span class="sd">    22.5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for the associated instance of |ZoneArea| for calculating areal</span>
+<span class="sd">        values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subseqs</span><span class="o">.</span><span class="n">seqs</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">zonearea</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">valuevector</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Values of the individual zones; each entry is the average of the values of</span>
+<span class="sd">        all snow classes of a specific zone.</span>
+
+<span class="sd">        We take subclass |SWE| as an example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">        &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea.values = 1.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.swe = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">        &gt;&gt;&gt; print_values(factors.swe.valuevector)</span>
+<span class="sd">        2.5, 3.5, 4.5</span>
+
+<span class="sd">        The definition of |Factor2DSequence.valuevector| of |Factor2DSequence| allows</span>
+<span class="sd">        applying method |Variable.average_values| like for the 1-dimensional</span>
+<span class="sd">        zone-related sequences of |hland|:</span>
+
+<span class="sd">        &gt;&gt;&gt; print_values([factors.swe.average_values()])</span>
+<span class="sd">        3.5</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">seriesmatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Time series of the values of the individual zones; each entry is the average</span>
+<span class="sd">        of the values of all snow classes of a specific zone.</span>
+
+<span class="sd">        We take subclass |Melt| as an example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-01-05&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">        &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea.values = 1.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; factors.swe.prepare_series()</span>
+<span class="sd">        &gt;&gt;&gt; factors.swe.series = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],</span>
+<span class="sd">        ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],</span>
+<span class="sd">        ...                     [[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]],</span>
+<span class="sd">        ...                     [[4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]]</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">        &gt;&gt;&gt; for values in factors.swe.seriesmatrix:</span>
+<span class="sd">        ...     print_values(values)</span>
+<span class="sd">        2.5, 3.5, 4.5</span>
+<span class="sd">        3.5, 4.5, 5.5</span>
+<span class="sd">        4.5, 5.5, 6.5</span>
+<span class="sd">        5.5, 6.5, 7.5</span>
+
+<span class="sd">        The definition of |Factor2DSequence.seriesmatrix| of |Factor2DSequence| allows</span>
+<span class="sd">        applying method |IOSequence.average_series| like for the 1-dimensional</span>
+<span class="sd">        zone-related sequences of |hland|:</span>
+
+<span class="sd">        &gt;&gt;&gt; print_values(factors.swe.average_series())</span>
+<span class="sd">        3.5, 4.5, 5.5, 6.5</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Flux1DSequence">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_sequences.Flux1DSequence">[docs]</a>
+<span class="k">class</span> <span class="nc">Flux1DSequence</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional flux subclasses that support aggregation with</span>
+<span class="sd">    respect to |ZoneArea|.</span>
+
+<span class="sd">    All |Flux1DSequence| subclasses must implement fitting mask objects individually.</span>
+
+<span class="sd">    The following example shows how the subclass |PC| works:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(5)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea.values = 10.0, 20.0, 30.0, 35.0, 5.0</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.pc(5.0, 2.0, 4.0, 1.0, 6.0)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(fluxes.pc.average_values())</span>
+<span class="sd">    2.75</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for the associated instance of |ZoneArea| for calculating areal</span>
+<span class="sd">        values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subseqs</span><span class="o">.</span><span class="n">seqs</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">zonearea</span></div>
+
+
+
+<div class="viewcode-block" id="Flux2DSequence">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_sequences.Flux2DSequence">[docs]</a>
+<span class="k">class</span> <span class="nc">Flux2DSequence</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 2-dimensional flux subclasses that support aggregation with</span>
+<span class="sd">    respect to |ZoneArea|.</span>
+
+<span class="sd">    All |Flux2DSequence| subclasses must implement fitting mask objects individually.</span>
+
+<span class="sd">    The following example shows how subclass |Melt| works, which implements mask |Snow|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(5)</span>
+<span class="sd">    &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea.values = 10.0, 20.0, 30.0, 40.0, 60.0</span>
+<span class="sd">    &gt;&gt;&gt; fluxes.melt = [[40.0, 10.0, 30.0, nan, 0.0],</span>
+<span class="sd">    ...                [60.0, 30.0, 50.0, nan, 20.0]]</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(fluxes.melt.average_values())</span>
+<span class="sd">    22.5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for the associated instance of |ZoneArea| for calculating areal</span>
+<span class="sd">        values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subseqs</span><span class="o">.</span><span class="n">seqs</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">zonearea</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">valuevector</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Values of the individual zones; each entry is the average of the values of</span>
+<span class="sd">        all snow classes of a specific zone.</span>
+
+<span class="sd">        We take subclass |Melt| as an example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">        &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea.values = 1.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.melt = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">        &gt;&gt;&gt; print_values(fluxes.melt.valuevector)</span>
+<span class="sd">        2.5, 3.5, 4.5</span>
+
+<span class="sd">        The definition of |Flux2DSequence.valuevector| of |Flux2DSequence| allows</span>
+<span class="sd">        applying method |Variable.average_values| like for the 1-dimensional</span>
+<span class="sd">        zone-related sequences of |hland|:</span>
+
+<span class="sd">        &gt;&gt;&gt; print_values([fluxes.melt.average_values()])</span>
+<span class="sd">        3.5</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">seriesmatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Time series of the values of the individual zones; each entry is the average</span>
+<span class="sd">        of the values of all snow classes of a specific zone.</span>
+
+<span class="sd">        We take subclass |Melt| as an example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-01-05&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">        &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea.values = 1.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.melt.prepare_series()</span>
+<span class="sd">        &gt;&gt;&gt; fluxes.melt.series = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],</span>
+<span class="sd">        ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],</span>
+<span class="sd">        ...                     [[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]],</span>
+<span class="sd">        ...                     [[4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]]</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">        &gt;&gt;&gt; for values in fluxes.melt.seriesmatrix:</span>
+<span class="sd">        ...     print_values(values)</span>
+<span class="sd">        2.5, 3.5, 4.5</span>
+<span class="sd">        3.5, 4.5, 5.5</span>
+<span class="sd">        4.5, 5.5, 6.5</span>
+<span class="sd">        5.5, 6.5, 7.5</span>
+
+<span class="sd">        The definition of |Flux2DSequence.seriesmatrix| of |Flux2DSequence| allows</span>
+<span class="sd">        applying method |IOSequence.average_series| like for the 1-dimensional</span>
+<span class="sd">        zone-related sequences of |hland|:</span>
+
+<span class="sd">        &gt;&gt;&gt; print_values(fluxes.melt.average_series())</span>
+<span class="sd">        3.5, 4.5, 5.5, 6.5</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="State1DSequence">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_sequences.State1DSequence">[docs]</a>
+<span class="k">class</span> <span class="nc">State1DSequence</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">StateSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 1-dimensional state subclasses that support aggregation with</span>
+<span class="sd">    respect to |ZoneArea|.</span>
+
+<span class="sd">    All |State1DSequence| subclasses must implement fitting mask objects individually.</span>
+
+<span class="sd">    The following example shows how subclass |SM| works, which implements mask |Soil|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(5)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea.values = 10.0, 20.0, 30.0, 40.0, 50.0</span>
+<span class="sd">    &gt;&gt;&gt; fc(100.0)</span>
+<span class="sd">    &gt;&gt;&gt; states.sm = 50.0, 20.0, 40.0, 10.0, nan</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(states.sm.average_values())</span>
+<span class="sd">    30.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for the associated instance of |ZoneArea| for calculating</span>
+<span class="sd">        areal values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subseqs</span><span class="o">.</span><span class="n">seqs</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">zonearea</span></div>
+
+
+
+<div class="viewcode-block" id="State2DSequence">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_sequences.State2DSequence">[docs]</a>
+<span class="k">class</span> <span class="nc">State2DSequence</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">StateSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for 2-dimensional state subclasses that support aggregation with</span>
+<span class="sd">    respect to |ZoneArea|.</span>
+
+<span class="sd">    All |State2DSequence| subclasses must implement fitting mask objects individually.</span>
+
+<span class="sd">    The following example shows how subclass |SP| works, which implements mask |Snow|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(5)</span>
+<span class="sd">    &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea.values = 10.0, 20.0, 30.0, 40.0, 60.0</span>
+<span class="sd">    &gt;&gt;&gt; states.sp = [[40.0, 10.0, 30.0, nan, 0.0],</span>
+<span class="sd">    ...              [60.0, 30.0, 50.0, nan, 20.0]]</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(states.sp.average_values())</span>
+<span class="sd">    22.5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refweights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alias for the associated instance of |ZoneArea| for calculating areal</span>
+<span class="sd">        values.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">subseqs</span><span class="o">.</span><span class="n">seqs</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">zonearea</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">valuevector</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Values of the individual zones; each entry is the average of the values of</span>
+<span class="sd">        all snow classes of a specific zone.</span>
+
+<span class="sd">        We take subclass |SP| as an example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">        &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea.values = 1.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; states.sp = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">        &gt;&gt;&gt; print_values(states.sp.valuevector)</span>
+<span class="sd">        2.5, 3.5, 4.5</span>
+
+<span class="sd">        The definition of |State2DSequence.valuevector| of |State2DSequence| allows</span>
+<span class="sd">        applying method |Variable.average_values| like for the 1-dimensional</span>
+<span class="sd">        zone-related sequences of |hland|:</span>
+
+<span class="sd">        &gt;&gt;&gt; print_values([states.sp.average_values()])</span>
+<span class="sd">        3.5</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">seriesmatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Matrix</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Time series of the values of the individual zones; each entry is the average</span>
+<span class="sd">        of the values of all snow classes of a specific zone.</span>
+
+<span class="sd">        We take subclass |SP| as an example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-01-05&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">        &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea.values = 1.0, 1.0, 1.0</span>
+<span class="sd">        &gt;&gt;&gt; states.sp.prepare_series()</span>
+<span class="sd">        &gt;&gt;&gt; states.sp.series = [[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],</span>
+<span class="sd">        ...                     [[2.0, 3.0, 4.0], [5.0, 6.0, 7.0]],</span>
+<span class="sd">        ...                     [[3.0, 4.0, 5.0], [6.0, 7.0, 8.0]],</span>
+<span class="sd">        ...                     [[4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]]</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_values</span>
+<span class="sd">        &gt;&gt;&gt; for values in states.sp.seriesmatrix:</span>
+<span class="sd">        ...     print_values(values)</span>
+<span class="sd">        2.5, 3.5, 4.5</span>
+<span class="sd">        3.5, 4.5, 5.5</span>
+<span class="sd">        4.5, 5.5, 6.5</span>
+<span class="sd">        5.5, 6.5, 7.5</span>
+
+<span class="sd">        The definition of |State2DSequence.seriesmatrix| of |State2DSequence| allows</span>
+<span class="sd">        applying method |IOSequence.average_series| like for the 1-dimensional</span>
+<span class="sd">        zone-related sequences of |hland|:</span>
+
+<span class="sd">        &gt;&gt;&gt; print_values(states.sp.average_series())</span>
+<span class="sd">        3.5, 4.5, 5.5, 6.5</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">series</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hland.hland_sequences</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

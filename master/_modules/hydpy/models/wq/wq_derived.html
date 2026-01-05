@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.wq.wq_derived &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.wq.wq_derived</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.wq.wq_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+
+<span class="c1"># ...from standard library</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs</span><span class="w"> </span><span class="kn">import</span> <span class="n">smoothtools</span>
+
+<span class="c1"># ...from wq</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.wq</span><span class="w"> </span><span class="kn">import</span> <span class="n">wq_control</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.wq</span><span class="w"> </span><span class="kn">import</span> <span class="n">wq_variables</span>
+
+
+<div class="viewcode-block" id="BottomDepths">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.BottomDepths">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BottomDepths</span><span class="p">(</span><span class="n">wq_variables</span><span class="o">.</span><span class="n">MixinTrapezes</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The cumulated depth of a trapeze and its lower neighbours [m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_control</span><span class="o">.</span><span class="n">BottomLevels</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="BottomDepths.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.BottomDepths.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the depth values based on</span>
+<span class="sd">        :math:`BottomDepths_i = BottomLevels_i - BottomLevels_0`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbtrapezes(3)</span>
+<span class="sd">        &gt;&gt;&gt; bottomlevels(1.0, 4.0, 6.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.bottomdepths.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.bottomdepths</span>
+<span class="sd">        bottomdepths(0.0, 3.0, 5.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bottomlevels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">bottomlevels</span><span class="o">.</span><span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">bottomlevels</span> <span class="o">-</span> <span class="n">bottomlevels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TrapezeHeights">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.TrapezeHeights">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TrapezeHeights</span><span class="p">(</span><span class="n">wq_variables</span><span class="o">.</span><span class="n">MixinTrapezes</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The individual height of each trapeze [m].</span>
+
+<span class="sd">    The highest trapeze has no upper neighbour and is thus infinitely high.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_control</span><span class="o">.</span><span class="n">BottomLevels</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="TrapezeHeights.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.TrapezeHeights.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the height values based on</span>
+<span class="sd">        :math:`TrapezeHeights_i = BottomLevels_{i+1} - BottomLevels_i`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbtrapezes(3)</span>
+<span class="sd">        &gt;&gt;&gt; bottomlevels(1.0, 4.0, 6.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.trapezeheights.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.trapezeheights</span>
+<span class="sd">        trapezeheights(3.0, 2.0, inf)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">bottomlevels</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SlopeWidths">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SlopeWidths">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SlopeWidths</span><span class="p">(</span><span class="n">wq_variables</span><span class="o">.</span><span class="n">MixinTrapezes</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The total width of both side slopes of each trapeze.</span>
+
+<span class="sd">    The highest trapeze has no upper neighbour and is thus infinitely high and</span>
+<span class="sd">    potentially infinitely wide.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_control</span><span class="o">.</span><span class="n">SideSlopes</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">TrapezeHeights</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="SlopeWidths.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SlopeWidths.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the slope width values based on</span>
+<span class="sd">        :math:`SlopeWidths = 2 \cdot SideSlopes \cdot TrapezeHeights`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbtrapezes(3)</span>
+<span class="sd">        &gt;&gt;&gt; sideslopes(0.0, 2.0, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.trapezeheights(2.0, 3.0, inf)</span>
+<span class="sd">        &gt;&gt;&gt; derived.slopewidths.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.slopewidths</span>
+<span class="sd">        slopewidths(0.0, 12.0, inf)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sideslopes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">sideslopes</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">trapezeheights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">trapezeheights</span><span class="o">.</span><span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">sideslopes</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">trapezeheights</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="TrapezeAreas">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.TrapezeAreas">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TrapezeAreas</span><span class="p">(</span><span class="n">wq_variables</span><span class="o">.</span><span class="n">MixinTrapezes</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The individual area of each trapeze [m].</span>
+
+<span class="sd">    The highest trapeze has no upper neighbour and is thus infinitely large.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_control</span><span class="o">.</span><span class="n">BottomWidths</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">TrapezeHeights</span><span class="p">,</span> <span class="n">SlopeWidths</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TrapezeAreas.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.TrapezeAreas.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the perimeter derivatives based on</span>
+<span class="sd">        :math:`(BottomWidths + SlopeWidths / 2) \cdot TrapezeHeights`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbtrapezes(4)</span>
+<span class="sd">        &gt;&gt;&gt; bottomlevels(1.0, 3.0, 4.0, 5.0)</span>
+<span class="sd">        &gt;&gt;&gt; bottomwidths(2.0, 0.0, 2.0, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; sideslopes(0.0, 2.0, 2.0, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.trapezeheights.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.slopewidths.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.trapezeareas.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.trapezeareas</span>
+<span class="sd">        trapezeareas(4.0, 4.0, 10.0, inf)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">wb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">bottomwidths</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">ht</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">trapezeheights</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">ws</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">slopewidths</span><span class="o">.</span><span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="n">wb</span> <span class="o">+</span> <span class="n">ws</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">ht</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">wb</span> <span class="o">+</span> <span class="n">ws</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+=</span> <span class="n">w</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">ht</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PerimeterDerivatives">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.PerimeterDerivatives">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PerimeterDerivatives</span><span class="p">(</span><span class="n">wq_variables</span><span class="o">.</span><span class="n">MixinTrapezes</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Change of the perimeter of each trapeze relative to a water level increase</span>
+<span class="sd">    within the trapeze&#39;s range [-].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_control</span><span class="o">.</span><span class="n">SideSlopes</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="PerimeterDerivatives.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.PerimeterDerivatives.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the perimeter derivatives based on</span>
+<span class="sd">        :math:`2 \cdot \sqrt{1 + SideSlopes^2}`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbtrapezes(2)</span>
+<span class="sd">        &gt;&gt;&gt; sideslopes(0.0, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.perimeterderivatives.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.perimeterderivatives</span>
+<span class="sd">        perimeterderivatives(2.0, 4.472136)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sideslopes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">sideslopes</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">sideslopes</span><span class="o">**</span><span class="mf">2.0</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span></div>
+</div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_SectorWidths</span><span class="p">(</span><span class="n">wq_variables</span><span class="o">.</span><span class="n">MixinSectorsAndWidths</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widths</span><span class="p">:</span> <span class="n">wq_control</span><span class="o">.</span><span class="n">FlowWidths</span> <span class="o">|</span> <span class="n">wq_control</span><span class="o">.</span><span class="n">TotalWidths</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">nmbsectors</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">transitions</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">widths</span><span class="o">.</span><span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">w0</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">w</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span>
+            <span class="n">w1</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">n</span> <span class="k">else</span> <span class="n">w</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+            <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="n">w0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">w1</span> <span class="o">-</span> <span class="n">w0</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SectorFlowWidths">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorFlowWidths">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectorFlowWidths</span><span class="p">(</span><span class="n">_SectorWidths</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The sector-specific widths of those subareas of the cross section involved in</span>
+<span class="sd">    water routing [m].&quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">wq_control</span><span class="o">.</span><span class="n">NmbSectors</span><span class="p">,</span>
+        <span class="n">wq_control</span><span class="o">.</span><span class="n">Transitions</span><span class="p">,</span>
+        <span class="n">wq_control</span><span class="o">.</span><span class="n">Heights</span><span class="p">,</span>
+        <span class="n">wq_control</span><span class="o">.</span><span class="n">FlowWidths</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="SectorFlowWidths.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorFlowWidths.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Allocate the |wq_control.FlowWidths| parts to the respective cross-section</span>
+<span class="sd">        sectors.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbwidths(9)</span>
+<span class="sd">        &gt;&gt;&gt; nmbsectors(4)</span>
+<span class="sd">        &gt;&gt;&gt; heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)</span>
+<span class="sd">        &gt;&gt;&gt; flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)</span>
+<span class="sd">        &gt;&gt;&gt; transitions(2, 3, 5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowwidths.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowwidths</span>
+<span class="sd">        sectorflowwidths([[2.0, 4.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0],</span>
+<span class="sd">                          [0.0, 0.0, 0.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0],</span>
+<span class="sd">                          [0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0],</span>
+<span class="sd">                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">flowwidths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">flowwidths</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flowwidths</span><span class="p">,</span> <span class="n">wq_control</span><span class="o">.</span><span class="n">FlowWidths</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span><span class="n">flowwidths</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SectorTotalWidths">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorTotalWidths">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectorTotalWidths</span><span class="p">(</span><span class="n">_SectorWidths</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The sector-specific widths of the total cross section [m].&quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">wq_control</span><span class="o">.</span><span class="n">NmbSectors</span><span class="p">,</span>
+        <span class="n">wq_control</span><span class="o">.</span><span class="n">Transitions</span><span class="p">,</span>
+        <span class="n">wq_control</span><span class="o">.</span><span class="n">Heights</span><span class="p">,</span>
+        <span class="n">wq_control</span><span class="o">.</span><span class="n">TotalWidths</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="SectorTotalWidths.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorTotalWidths.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Allocate the |wq_control.TotalWidths| parts to the respective cross-section</span>
+<span class="sd">        sectors.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbwidths(9)</span>
+<span class="sd">        &gt;&gt;&gt; nmbsectors(4)</span>
+<span class="sd">        &gt;&gt;&gt; heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)</span>
+<span class="sd">        &gt;&gt;&gt; totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)</span>
+<span class="sd">        &gt;&gt;&gt; transitions(2, 3, 5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectortotalwidths.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectortotalwidths</span>
+<span class="sd">        sectortotalwidths([[2.0, 4.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0],</span>
+<span class="sd">                           [0.0, 0.0, 0.0, 8.0, 8.0, 8.0, 8.0, 8.0, 8.0],</span>
+<span class="sd">                           [0.0, 0.0, 0.0, 0.0, 4.0, 4.0, 4.0, 4.0, 4.0],</span>
+<span class="sd">                           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">totalwidths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">totalwidths</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">totalwidths</span><span class="p">,</span> <span class="n">wq_control</span><span class="o">.</span><span class="n">TotalWidths</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span><span class="n">totalwidths</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_SectorAreas</span><span class="p">(</span><span class="n">wq_variables</span><span class="o">.</span><span class="n">MixinSectorsAndWidths</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widths</span><span class="p">:</span> <span class="n">SectorFlowWidths</span> <span class="o">|</span> <span class="n">SectorTotalWidths</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">heights</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">widths</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">h_diff</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="n">w_mean</span> <span class="o">=</span> <span class="p">(</span><span class="n">w</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">w</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:])</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">h_diff</span> <span class="o">*</span> <span class="n">w_mean</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SectorFlowAreas">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorFlowAreas">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectorFlowAreas</span><span class="p">(</span><span class="n">_SectorAreas</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The sector-specific wetted areas of those subareas of the cross section</span>
+<span class="sd">    involved in water routing [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_control</span><span class="o">.</span><span class="n">Heights</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">SectorFlowWidths</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="SectorFlowAreas.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorFlowAreas.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the cumulative sum of the individual trapeze areas defined by the</span>
+<span class="sd">        height-width pairs of the individual sectors.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbwidths(9)</span>
+<span class="sd">        &gt;&gt;&gt; nmbsectors(4)</span>
+<span class="sd">        &gt;&gt;&gt; heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)</span>
+<span class="sd">        &gt;&gt;&gt; flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)</span>
+<span class="sd">        &gt;&gt;&gt; transitions(2, 3, 5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowwidths.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowareas.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowareas</span>
+<span class="sd">        sectorflowareas([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0, 29.0, 35.0],</span>
+<span class="sd">                         [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0, 32.0],</span>
+<span class="sd">                         [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0, 16.0],</span>
+<span class="sd">                         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sectorflowwidths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">sectorflowwidths</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sectorflowwidths</span><span class="p">,</span> <span class="n">SectorFlowWidths</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span><span class="n">sectorflowwidths</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SectorTotalAreas">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorTotalAreas">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectorTotalAreas</span><span class="p">(</span><span class="n">_SectorAreas</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The sector-specific wetted areas of the total cross section [m²].&quot;&quot;&quot;</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_control</span><span class="o">.</span><span class="n">Heights</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">SectorTotalWidths</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="SectorTotalAreas.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorTotalAreas.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the cumulative sum of the individual trapeze areas defined by the</span>
+<span class="sd">        height-width pairs of the individual sectors.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbwidths(9)</span>
+<span class="sd">        &gt;&gt;&gt; nmbsectors(4)</span>
+<span class="sd">        &gt;&gt;&gt; heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)</span>
+<span class="sd">        &gt;&gt;&gt; totalwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)</span>
+<span class="sd">        &gt;&gt;&gt; transitions(2, 3, 5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectortotalwidths.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectortotalareas.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectortotalareas</span>
+<span class="sd">        sectortotalareas([[0.0, 6.0, 11.0, 11.0, 11.0, 17.0, 23.0, 29.0, 35.0],</span>
+<span class="sd">                          [0.0, 0.0, 0.0, 0.0, 0.0, 8.0, 16.0, 24.0, 32.0],</span>
+<span class="sd">                          [0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 8.0, 12.0, 16.0],</span>
+<span class="sd">                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sectortotalwidths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">sectortotalwidths</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sectortotalwidths</span><span class="p">,</span> <span class="n">SectorTotalWidths</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update</span><span class="p">(</span><span class="n">sectortotalwidths</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SectorFlowPerimeters">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorFlowPerimeters">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectorFlowPerimeters</span><span class="p">(</span>
+    <span class="n">wq_variables</span><span class="o">.</span><span class="n">MixinSectorsAndWidths</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The sector-specific wetted perimeters of those subareas of the cross section</span>
+<span class="sd">    involved in water routing [m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_control</span><span class="o">.</span><span class="n">Heights</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">SectorFlowWidths</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="SectorFlowPerimeters.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorFlowPerimeters.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the cumulative sum of the individual trapeze perimeters defined by</span>
+<span class="sd">        the height-width pairs of the individual sectors.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbwidths(9)</span>
+<span class="sd">        &gt;&gt;&gt; nmbsectors(4)</span>
+<span class="sd">        &gt;&gt;&gt; heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)</span>
+<span class="sd">        &gt;&gt;&gt; flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)</span>
+<span class="sd">        &gt;&gt;&gt; transitions(2, 3, 5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowwidths.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowperimeters.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowperimeters</span>
+<span class="sd">        sectorflowperimeters([[2.0, 6.472136, 9.300563, 9.300563, 9.300563,</span>
+<span class="sd">                               11.300563, 13.300563, 15.300563, 17.300563],</span>
+<span class="sd">                              [0.0, 0.0, 0.0, 8.0, 8.0, 10.0, 12.0, 14.0, 16.0],</span>
+<span class="sd">                              [0.0, 0.0, 0.0, 0.0, 4.0, 6.0, 8.0, 10.0, 12.0],</span>
+<span class="sd">                              [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.324555,</span>
+<span class="sd">                               10.796691, 13.625118]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">heights</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">sectorflowwidths</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">dh</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+        <span class="n">dw</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">dh</span><span class="p">)</span> <span class="o">+</span> <span class="n">numpy</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">dw</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">control</span><span class="o">.</span><span class="n">transitions</span><span class="o">.</span><span class="n">values</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">:]</span> <span class="o">=</span> <span class="n">w</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">+=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">t</span><span class="p">:])</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SectorFlowPerimeterDerivatives">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorFlowPerimeterDerivatives">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectorFlowPerimeterDerivatives</span><span class="p">(</span>
+    <span class="n">wq_variables</span><span class="o">.</span><span class="n">MixinSectorsAndWidths</span><span class="p">,</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The sector-specific changes in the wetted perimeters of those subareas of the</span>
+<span class="sd">    cross section involved in water routing with respect to water level increases</span>
+<span class="sd">    [m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_control</span><span class="o">.</span><span class="n">Heights</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">SectorFlowWidths</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="SectorFlowPerimeterDerivatives.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.SectorFlowPerimeterDerivatives.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the flow perimeter derivatives based on</span>
+<span class="sd">        :math:`2 \cdot \sqrt{1 + (dw/dh/2)^2}`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbwidths(9)</span>
+<span class="sd">        &gt;&gt;&gt; nmbsectors(4)</span>
+<span class="sd">        &gt;&gt;&gt; heights(1.0, 3.0, 4.0, 4.0, 4.0, 5.0, 6.0, 7.0, 8.0)</span>
+<span class="sd">        &gt;&gt;&gt; flowwidths(2.0, 4.0, 6.0, 14.0, 18.0, 18.0, 24.0, 28.0, 30.0)</span>
+<span class="sd">        &gt;&gt;&gt; transitions(2, 3, 5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowwidths.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowperimeterderivatives.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.sectorflowperimeterderivatives</span>
+<span class="sd">        sectorflowperimeterderivatives([[2.236068, 2.828427, 2.0, 2.0, 2.0, 2.0,</span>
+<span class="sd">                                         2.0, 2.0, 2.0],</span>
+<span class="sd">                                        [nan, nan, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0,</span>
+<span class="sd">                                         2.0],</span>
+<span class="sd">                                        [nan, nan, nan, 2.0, 2.0, 2.0, 2.0, 2.0,</span>
+<span class="sd">                                         2.0],</span>
+<span class="sd">                                        [nan, nan, nan, nan, nan, 6.324555,</span>
+<span class="sd">                                         4.472136, 2.828427, 2.0]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">nmbwidths</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">dh</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">heights</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">dw</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">sectorflowwidths</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">v</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">control</span><span class="o">.</span><span class="n">transitions</span><span class="o">.</span><span class="n">values</span><span class="p">)):</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="mf">2.0</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">t</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">dh</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">dw</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">/</span> <span class="n">dh</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+                <span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CrestHeightRegularisation">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.CrestHeightRegularisation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CrestHeightRegularisation</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Regularisation parameter related to the difference between the water depth and</span>
+<span class="sd">    the crest height [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">wq_control</span><span class="o">.</span><span class="n">CrestHeightTolerance</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="CrestHeightRegularisation.update">
+<a class="viewcode-back" href="../../../../wq.html#hydpy.models.wq.wq_derived.CrestHeightRegularisation.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the smoothing parameter value.</span>
+
+<span class="sd">        The documentation on module |smoothtools| explains the following example in</span>
+<span class="sd">        some detail:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.wq import *</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.cythons.smoothutils import smooth_logistic2</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; crestheighttolerance(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.crestheightregularisation.update()</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_logistic2(0.0, derived.crestheightregularisation))</span>
+<span class="sd">        0.0</span>
+<span class="sd">        &gt;&gt;&gt; crestheighttolerance(0.0025)</span>
+<span class="sd">        &gt;&gt;&gt; derived.crestheightregularisation.update()</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_logistic2(0.0025, derived.crestheightregularisation))</span>
+<span class="sd">        0.00251</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metapar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">crestheighttolerance</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">smoothtools</span><span class="o">.</span><span class="n">calc_smoothpar_logistic2</span><span class="p">(</span><span class="mf">1000.0</span> <span class="o">*</span> <span class="n">metapar</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1000.0</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.wq.wq_derived</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

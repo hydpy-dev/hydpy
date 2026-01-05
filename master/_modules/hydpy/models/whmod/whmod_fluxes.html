@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.whmod.whmod_fluxes &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_fluxes</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.whmod.whmod_fluxes</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequencetools</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod</span><span class="w"> </span><span class="kn">import</span> <span class="n">whmod_sequences</span>
+
+
+<div class="viewcode-block" id="InterceptionEvaporation">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.InterceptionEvaporation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InterceptionEvaporation</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DNonWaterSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaporation from the interception storage [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Throughfall">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.Throughfall">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Throughfall</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DNonWaterSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Precipitation, passing the interception storage [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="PotentialSnowmelt">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.PotentialSnowmelt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PotentialSnowmelt</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DNonWaterSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potential snowmelt [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Snowmelt">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.Snowmelt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Snowmelt</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DNonWaterSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual snowmelt [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Ponding">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.Ponding">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Ponding</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DNonWaterSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ponding on land surfaces [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="SurfaceRunoff">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.SurfaceRunoff">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceRunoff</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DNonWaterSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Surface runoff [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Percolation">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.Percolation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Percolation</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DSoilSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Percolation out of the soil storage [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="SoilEvapotranspiration">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.SoilEvapotranspiration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilEvapotranspiration</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DSoilSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Evapotranspiration from the soil storage [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="LakeEvaporation">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.LakeEvaporation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LakeEvaporation</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">FluxSequence1DWaterSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Evaporation from water areas [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="TotalEvapotranspiration">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.TotalEvapotranspiration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TotalEvapotranspiration</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DCompleteSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Total evapotranspiration [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="CapillaryRise">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.CapillaryRise">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CapillaryRise</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DSoilSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Capillary rise [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="RequiredIrrigation">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.RequiredIrrigation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RequiredIrrigation</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DSoilSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Required irrigation [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="CisternInflow">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.CisternInflow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CisternInflow</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Inflow into the cistern [m³/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="CisternOverflow">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.CisternOverflow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CisternOverflow</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Overflow of the cistern due to limited storage capacity [m³/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="CisternDemand">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.CisternDemand">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CisternDemand</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Irrigation water damanded from the cistern [m³/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="CisternExtraction">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.CisternExtraction">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CisternExtraction</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual irrigation extraction from the cistern [m³/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="InternalIrrigation">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.InternalIrrigation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InternalIrrigation</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DSoilSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual internal irrigation from the cistern [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ExternalIrrigation">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.ExternalIrrigation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExternalIrrigation</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DSoilSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual irrigation from external sources [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="PotentialRecharge">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.PotentialRecharge">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PotentialRecharge</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DGroundwaterSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potential recharge [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Baseflow">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.Baseflow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Baseflow</span><span class="p">(</span><span class="n">whmod_sequences</span><span class="o">.</span><span class="n">Flux1DGroundwaterSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Baseflow [mm/T].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ActualRecharge">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.ActualRecharge">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActualRecharge</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual recharge [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DelayedRecharge">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_fluxes.DelayedRecharge">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DelayedRecharge</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Delayed recharge [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_fluxes</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

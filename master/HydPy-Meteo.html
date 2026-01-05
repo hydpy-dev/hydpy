@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>HydPy-Meteo &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="meteo" href="meteo.html" />
+    <link rel="prev" title="lland_knauf_ic" href="lland_knauf_ic.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="meteo.html" title="meteo"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="lland_knauf_ic.html" title="lland_knauf_ic"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" accesskey="U">Model Families</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">HydPy-Meteo</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">HydPy-Meteo</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="meteo.html">meteo</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_glob_io.html">meteo_glob_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_clear_glob_io.html">meteo_clear_glob_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_psun_sun_glob_io.html">meteo_psun_sun_glob_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_temp_io.html">meteo_temp_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_precip_io.html">meteo_precip_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_glob_fao56.html">meteo_glob_fao56</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_glob_morsim.html">meteo_glob_morsim</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_sun_fao56.html">meteo_sun_fao56</a></li>
+<li class="toctree-l4"><a class="reference internal" href="meteo_sun_morsim.html">meteo_sun_morsim</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="lland_knauf_ic.html"
+                          title="previous chapter">lland_knauf_ic</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="meteo.html"
+                          title="next chapter">meteo</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/HydPy-Meteo.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="hydpy-meteo">
+<span id="id1"></span><h1>HydPy-Meteo<a class="headerlink" href="#hydpy-meteo" title="Link to this heading">¶</a></h1>
+<p>The <cite>HydPy-Meteo</cite> model family provides models that calculate meteorological factors.
+One example is <a class="reference internal" href="meteo_glob_fao56.html#module-hydpy.models.meteo_glob_fao56" title="hydpy.models.meteo_glob_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_glob_fao56</span></code></a>, which calculates global and clear sky solar
+radiation.  Application models of other model families, for example, <a class="reference internal" href="evap_ret_fao56.html#module-hydpy.models.evap_ret_fao56" title="hydpy.models.evap_ret_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_fao56</span></code></a>,
+require such factors as input.  Users can either prepare the complete time series of
+these factors during preprocessing and let <a class="reference internal" href="evap_ret_fao56.html#module-hydpy.models.evap_ret_fao56" title="hydpy.models.evap_ret_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_fao56</span></code></a> read them from files before
+or during a simulation or couple <a class="reference internal" href="meteo_glob_fao56.html#module-hydpy.models.meteo_glob_fao56" title="hydpy.models.meteo_glob_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_glob_fao56</span></code></a> and <a class="reference internal" href="evap_ret_fao56.html#module-hydpy.models.evap_ret_fao56" title="hydpy.models.evap_ret_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_fao56</span></code></a> to calculate
+global and clear sky radiation “on the fly”.</p>
+<p>Available models:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="meteo.html">meteo &raquo; HydPy-Meteo (base model)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteo_glob_io.html">meteo_glob_io &raquo; HydPy-Meteo-Glob-IO (external global radiation data)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteo_clear_glob_io.html">meteo_clear_glob_io &raquo; HydPy-Meteo-Clear-Glob-IO (external clear sky and global radiation data)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteo_psun_sun_glob_io.html">meteo_psun_sun_glob_io &raquo; HydPy-Meteo-PSun-Sun-Glob-IO (external possible and actual sunshine duration and global radiation data)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteo_temp_io.html">meteo_temp_io &raquo; HydPy-Meteo-Temp-IO (external temperature data)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteo_precip_io.html">meteo_precip_io &raquo; HydPy-Meteo-Precip-IO (external precipitation  data)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteo_glob_fao56.html">meteo_glob_fao56 &raquo; HydPy-Meteo-Glob-FAO56 (global radiation estimation adopted from FAO56)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteo_glob_morsim.html">meteo_glob_morsim &raquo; HydPy-Meteo-Glob-MORSIM (global radiation estimation adopted from MORECS/LARSIM)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteo_sun_fao56.html">meteo_sun_fao56 &raquo; HydPy-Meteo-Sun-FAO56 (sunshine duration estimation adopted from FAO56)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteo_sun_morsim.html">meteo_sun_morsim &raquo; HydPy-Meteo-Sun-MORSIM (sunshine duration estimation adopted from MORECS/LARSIM)</a></li>
+</ul>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="meteo.html" title="meteo"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="lland_knauf_ic.html" title="lland_knauf_ic"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">HydPy-Meteo</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

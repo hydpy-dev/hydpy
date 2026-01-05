@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Options &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Simulation" href="simulation.html" />
+    <link rel="prev" title="Project structure" href="project_structure.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="simulation.html" title="Simulation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="project_structure.html" title="Project structure"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" accesskey="U">User Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Options</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="user_guide.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_read_the_reference_manual.html">How to read the Reference Manual</a></li>
+<li class="toctree-l2"><a class="reference internal" href="definitions.html">Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="project_structure.html">Project structure</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simulation.html">Simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="project_structure.html"
+                          title="previous chapter">Project structure</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="simulation.html"
+                          title="next chapter">Simulation</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/options.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="options">
+<span id="id1"></span><h1>Options<a class="headerlink" href="#options" title="Link to this heading">¶</a></h1>
+<p>HydPy offers infinite configuration possibilities for those familiar with Python.  But
+even without programming skills, one has a lot of options, and this section lists the
+most relevant ones, explains how to set them, and points to the places of the
+<a class="reference internal" href="reference_manual.html#reference-manual"><span class="std std-ref">reference manual</span></a> containing further information.</p>
+<p>All options discussed here work for the framework in general or apply to all (or at
+least many) models and are accessible from both Python scripts and XML files.  Refer to
+the reference manuals’ <a class="reference internal" href="model_families.html#model-families"><span class="std std-ref">model documentation</span></a> for more
+model-specific questions like: What options do I have to set the capillary rise when
+using <a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a>?).</p>
+<p>Class <a class="reference internal" href="optiontools.html#hydpy.core.optiontools.Options" title="hydpy.core.optiontools.Options"><code class="xref py py-class docutils literal notranslate"><span class="pre">Options</span></code></a> provides many of the most general options.  Note that the default
+values of some of its options are suitable for real projects but less for testing
+purposes.  Hence, the various code examples of this documentation rely on settings that
+deviate from these defaults, and you need to adjust these options to be able to
+reproduce all examples exactly.</p>
+<p>The documentation of the individual <a class="reference internal" href="optiontools.html#hydpy.core.optiontools.Options" title="hydpy.core.optiontools.Options"><code class="xref py py-class docutils literal notranslate"><span class="pre">Options</span></code></a> members explains their purposes and
+mentions possible deviations of default and testing values.  All these options are
+configurable when working with XML files, and any changes apply to the entire XML-based
+workflow.  In contrast, when defining workflows with Python scripts, you can change all
+options multiple times.</p>
+<p>Take the <a class="reference internal" href="optiontools.html#hydpy.core.optiontools.Options.reprdigits" title="hydpy.core.optiontools.Options.reprdigits"><code class="xref py py-const docutils literal notranslate"><span class="pre">reprdigits</span></code></a> option as an example, which determines the maximum number
+of digits of floating point numbers shown in HydPy’s string representations.   Its
+default is -1, which means printing in the highest available precision.  However, HydPy
+sets it to 6 during testing, compromising preciseness and readability.</p>
+<p>You can access and modify this and the other mentioned options via the singleton
+instance of class <a class="reference internal" href="optiontools.html#hydpy.core.optiontools.Options" title="hydpy.core.optiontools.Options"><code class="xref py py-class docutils literal notranslate"><span class="pre">Options</span></code></a> available in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> module, which stores this and other
+public project data:</p>
+<p>You can access and modify this and the other mentioned options via the singleton
+instance of class <a class="reference internal" href="optiontools.html#hydpy.core.optiontools.Options" title="hydpy.core.optiontools.Options"><code class="xref py py-class docutils literal notranslate"><span class="pre">Options</span></code></a> available in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> module (<code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> stores this and other
+public configuration data):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span>
+<span class="go">6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span>
+<span class="go">0.333333</span>
+</pre></div>
+</div>
+<p>Use a simple assignment statement to change the printed precision permanently:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span>
+<span class="go">0.3333</span>
+</pre></div>
+</div>
+<p>For temporary changes, we encourage using the <cite>with</cite> syntax.  Then, the modification
+only applies inside the <cite>with</cite> block (even when an error occurs):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">reprdigits</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">round_</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span>
+<span class="go">0.33</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">)</span>
+<span class="go">0.3333</span>
+</pre></div>
+</div>
+<p>Many options are “bool-like” but not actually of type <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>.  Hence, you cannot rely
+on identity checks via <cite>is</cite> when writing Python scripts:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">timestampleft</span>
+<span class="go">TRUE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">timestampleft</span>  <span class="c1"># fine</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">timestampleft</span> <span class="o">==</span> <span class="kc">True</span>  <span class="c1"># fine</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">timestampleft</span> <span class="ow">is</span> <span class="kc">True</span>  <span class="c1"># buggy</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<p>The second group of options worth mentioning here is provided by multiple “file
+managers”, which also are singleton objects and members of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> module.
+<a class="reference internal" href="filetools.html#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a>, <a class="reference internal" href="filetools.html#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a>, <a class="reference internal" href="filetools.html#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a>, and <a class="reference internal" href="filetools.html#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a> manage,
+as their names suggest, reading and writing <a class="reference internal" href="project_structure.html#network-files"><span class="std std-ref">network</span></a>,
+<a class="reference internal" href="project_structure.html#control-files"><span class="std std-ref">control</span></a>, <a class="reference internal" href="project_structure.html#condition-files"><span class="std std-ref">condition</span></a>, and <a class="reference internal" href="project_structure.html#series-files"><span class="std std-ref">time
+series</span></a> files.  The instances are named after their classes but, as
+usual, in lower-case letters.  They become available after starting a HydPy project via
+initialising class <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">HydPy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span> <span class="o">=</span> <span class="n">HydPy</span><span class="p">(</span><span class="s2">&quot;my_project&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pub</span><span class="p">,</span> <span class="s2">&quot;networkmanager&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All these file managers offer the <a class="reference internal" href="filetools.html#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a> property (which so far does
+not support the <cite>with</cite> syntax) to change the directory selected for reading or writing
+data.  By default, the <a class="reference internal" href="filetools.html#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a> is within the base directory defined by
+the respective file manager:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">networkmanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">==</span> <span class="s2">&quot;network&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">controlmanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">==</span> <span class="s2">&quot;control&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">==</span> <span class="s2">&quot;conditions&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">BASEDIR</span> <span class="o">==</span> <span class="s2">&quot;series&quot;</span>
+</pre></div>
+</div>
+<p>The only file managers providing other user-relevant options (which do support the
+<cite>with</cite> syntax) are <a class="reference internal" href="filetools.html#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a> and <a class="reference internal" href="filetools.html#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a>.  One example is option
+<a class="reference internal" href="filetools.html#hydpy.core.filetools.SequenceManager.filetype" title="hydpy.core.filetools.SequenceManager.filetype"><code class="xref py py-const docutils literal notranslate"><span class="pre">filetype</span></code></a> for choosing between the ASCII, NetCDF, and Numpy file
+formats.</p>
+<p>When working with XML files, HydPy offers more flexibility for the file managers’
+options than for those of class <a class="reference internal" href="optiontools.html#hydpy.core.optiontools.Options" title="hydpy.core.optiontools.Options"><code class="xref py py-class docutils literal notranslate"><span class="pre">Options</span></code></a>.  When setting each option once and for all,
+one could not, for example, read meteorological input data from NetCDF files of one
+directory and write discharge data to ASCII files in another directory. Therefore,
+HydPy’s XML support offers two exceptions, which are both illustrated, for example, by
+the <cite>single_run.xml</cite> file supplied with the <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> example project.
+First, the XML element <cite>conditions_io</cite> allows for specifying separate directories for
+reading and writing condition files.  Second, the XML element <cite>serios_io</cite> can contain
+multiple <cite>readers</cite> and <cite>writers</cite>, and one can specify individual option values for
+each.</p>
+<p>The option <cite>mode</cite> is specific to XML files. It allows reading and writing time series
+data “just in time” during simulation runs (in contrast to handling the complete time
+series data in RAM).  When working with Python scripts, the counterpart to <cite>mode</cite> is
+the function argument <cite>jit</cite> (provided, for example, by method
+<a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.prepare_allseries" title="hydpy.core.hydpytools.HydPy.prepare_allseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_allseries()</span></code></a>).  The documentation on class <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> explains its usage in
+detail.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="simulation.html" title="Simulation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="project_structure.html" title="Project structure"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" >User Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Options</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

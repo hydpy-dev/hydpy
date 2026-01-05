@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.exch_branch_hbv96 &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch_branch_hbv96</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.exch_branch_hbv96</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">|exch_branch_hbv96| allows branching the summed input from some inlet nodes to an</span>
+<span class="sd">arbitrary number of outlet nodes. The original HBV96 implementation is supposed to</span>
+<span class="sd">split inflowing discharge, but |exch_branch_hbv96| is suitable for splitting arbitrary</span>
+<span class="sd">variables. Calculations are performed for each branch individually by linear</span>
+<span class="sd">interpolation (or extrapolation) following tabulated supporting points.  Additionally,</span>
+<span class="sd">|exch_branch_hbv96| allows adjusting the input data with differences that can vary</span>
+<span class="sd">monthly.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We perform the following examples over a simulation period of 11 hours:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import pub, Nodes, Element</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;01.01.2000 00:00&quot;, &quot;01.01.2000 11:00&quot;, &quot;1h&quot;</span>
+
+<span class="sd">|exch_branch_hbv96| has no parameter with values depending on the simulation step size,</span>
+<span class="sd">which is why we can pass anything (or nothing) to function |parameterstep| without</span>
+<span class="sd">changing the following results:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.exch_branch_hbv96 import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep()</span>
+
+<span class="sd">|exch_branch_hbv96| queries inflow from two inlet |Node| objects and passes the</span>
+<span class="sd">branched outflow to three outlet |Node| objects.  Thus, In contrast to most other</span>
+<span class="sd">application models, we need to define the parameter values before connecting the</span>
+<span class="sd">model to its |Element| object, called `branch`:</span>
+
+<span class="sd">&gt;&gt;&gt; nodes = Nodes(&quot;input1&quot;, &quot;input2&quot;, &quot;output1&quot;, &quot;output2&quot;, &quot;output3&quot;)</span>
+<span class="sd">&gt;&gt;&gt; branch = Element(&quot;branch&quot;,</span>
+<span class="sd">...                  inlets=[&quot;input1&quot;, &quot;input2&quot;],</span>
+<span class="sd">...                  outlets=[&quot;output1&quot;, &quot;output2&quot;, &quot;output3&quot;])</span>
+<span class="sd">&gt;&gt;&gt; delta(-1.0)</span>
+<span class="sd">&gt;&gt;&gt; minimum(-1.0)</span>
+<span class="sd">&gt;&gt;&gt; xpoints(0.0, 2.0, 4.0, 6.0)</span>
+<span class="sd">&gt;&gt;&gt; ypoints(output1=[0.0, 1.0, 2.0, 3.0],</span>
+<span class="sd">...         output2=[0.0, 1.0, 0.0, 0.0],</span>
+<span class="sd">...         output3=[0.0, 0.0, 2.0, 6.0])</span>
+<span class="sd">&gt;&gt;&gt; branch.model = model</span>
+
+<span class="sd">We do not have to define any initial values in the test settings because the</span>
+<span class="sd">|exch_branch_hbv96| has no memory:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(branch)</span>
+<span class="sd">&gt;&gt;&gt; test.dateformat = &quot;%H:%M&quot;</span>
+
+<span class="sd">The (identical) values of the inlet nodes `input1` and `input2` define no realistic</span>
+<span class="sd">inflow series.  Instead, they serve to show the behaviour of |exch_branch_hbv96| within</span>
+<span class="sd">and outside the current range defined by parameter |XPoints|:</span>
+
+<span class="sd">&gt;&gt;&gt; import numpy</span>
+<span class="sd">&gt;&gt;&gt; nodes.input1.sequences.sim.series = numpy.arange(-1.0, 10.0)/2</span>
+<span class="sd">&gt;&gt;&gt; nodes.input2.sequences.sim.series = numpy.arange(-1.0, 10.0)/2</span>
+
+<span class="sd">`output1` shows linear continuations below and above the current range of parameter</span>
+<span class="sd">|XPoints|. `output2` points out that inverse relationships are allowed. `output3` shows</span>
+<span class="sd">that |exch_branch_hbv96| does not enforce equality between the total sum of input and</span>
+<span class="sd">output values:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;exch_branch_hbv96_ex1&quot;)</span>
+<span class="sd">    |  date | originalinput | adjustedinput |             outputs | input1 | input2 | output1 | output2 | output3 |</span>
+<span class="sd">    ---------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 00:00 |          -1.0 |          -1.0 | -0.5  -0.5      0.0 |   -0.5 |   -0.5 |    -0.5 |    -0.5 |     0.0 |</span>
+<span class="sd">    | 01:00 |           0.0 |          -1.0 | -0.5  -0.5      0.0 |    0.0 |    0.0 |    -0.5 |    -0.5 |     0.0 |</span>
+<span class="sd">    | 02:00 |           1.0 |           0.0 |  0.0   0.0      0.0 |    0.5 |    0.5 |     0.0 |     0.0 |     0.0 |</span>
+<span class="sd">    | 03:00 |           2.0 |           1.0 |  0.5   0.5      0.0 |    1.0 |    1.0 |     0.5 |     0.5 |     0.0 |</span>
+<span class="sd">    | 04:00 |           3.0 |           2.0 |  1.0   1.0      0.0 |    1.5 |    1.5 |     1.0 |     1.0 |     0.0 |</span>
+<span class="sd">    | 05:00 |           4.0 |           3.0 |  1.5   0.5      1.0 |    2.0 |    2.0 |     1.5 |     0.5 |     1.0 |</span>
+<span class="sd">    | 06:00 |           5.0 |           4.0 |  2.0   0.0      2.0 |    2.5 |    2.5 |     2.0 |     0.0 |     2.0 |</span>
+<span class="sd">    | 07:00 |           6.0 |           5.0 |  2.5   0.0      4.0 |    3.0 |    3.0 |     2.5 |     0.0 |     4.0 |</span>
+<span class="sd">    | 08:00 |           7.0 |           6.0 |  3.0   0.0      6.0 |    3.5 |    3.5 |     3.0 |     0.0 |     6.0 |</span>
+<span class="sd">    | 09:00 |           8.0 |           7.0 |  3.5   0.0      8.0 |    4.0 |    4.0 |     3.5 |     0.0 |     8.0 |</span>
+<span class="sd">    | 10:00 |           9.0 |           8.0 |  4.0   0.0     10.0 |    4.5 |    4.5 |     4.0 |     0.0 |    10.0 |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from exch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.exch</span><span class="w"> </span><span class="kn">import</span> <span class="n">exch_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../exch_branch_hbv96.html#hydpy.models.exch_branch_hbv96.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|exch_branch_hbv96.DOCNAME.complete|.&quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;Exch-Branch-HBV96&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;branch model adopted from IHMS-HBV96&quot;</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_model</span><span class="o">.</span><span class="n">Pick_OriginalInput_V1</span><span class="p">,)</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_model</span><span class="o">.</span><span class="n">Calc_AdjustedInput_V1</span><span class="p">,</span> <span class="n">exch_model</span><span class="o">.</span><span class="n">Calc_Outputs_V1</span><span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">exch_model</span><span class="o">.</span><span class="n">Pass_Outputs_V1</span><span class="p">,)</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="n">nodenames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Names of the output nodes.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodenames</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Model.connect">
+<a class="viewcode-back" href="../../../exch_branch_hbv96.html#hydpy.models.exch_branch_hbv96.Model.connect">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connect the |LinkSequence| instances handled by the actual model to the</span>
+<span class="sd">        |NodeSequence| instances handled by one inlet node and multiple outlet nodes.</span>
+
+<span class="sd">        |exch_branch_hbv96| passes multiple output values to different outlet nodes,</span>
+<span class="sd">        which requires additional information regarding the &quot;direction&quot; of each output</span>
+<span class="sd">        value.  Therefore, it uses node names as keywords.  Assume the discharge values</span>
+<span class="sd">        of both nodes `inflow1` and `inflow2`  shall be  branched to nodes `outflow1`</span>
+<span class="sd">        and `outflow2` via element `branch`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Element, pub</span>
+<span class="sd">        &gt;&gt;&gt; branch = Element(&quot;mybranch&quot;,</span>
+<span class="sd">        ...                  inlets=[&quot;inflow1&quot;, &quot;inflow2&quot;],</span>
+<span class="sd">        ...                  outlets=[&quot;outflow1&quot;, &quot;outflow2&quot;])</span>
+
+<span class="sd">        Then, parameter |YPoints| relates different supporting points via keyword</span>
+<span class="sd">        arguments to the respective nodes:</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-01-02&quot;, &quot;1d&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.exch_branch_hbv96 import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; delta(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; xpoints(0.0, 3.0)</span>
+<span class="sd">        &gt;&gt;&gt; ypoints(outflow1=[0.0, 1.0], outflow2=[0.0, 2.0])</span>
+<span class="sd">        &gt;&gt;&gt; parameters.update()</span>
+
+<span class="sd">        After connecting the model with its element, the total discharge value of nodes</span>
+<span class="sd">        `inflow1` and `inflow2` can be adequately divided:</span>
+
+<span class="sd">        &gt;&gt;&gt; branch.model = model</span>
+<span class="sd">        &gt;&gt;&gt; branch.inlets.inflow1.sequences.sim = 1.0</span>
+<span class="sd">        &gt;&gt;&gt; branch.inlets.inflow2.sequences.sim = 5.0</span>
+<span class="sd">        &gt;&gt;&gt; model.simulate(0)</span>
+<span class="sd">        &gt;&gt;&gt; branch.outlets.outflow1.sequences.sim</span>
+<span class="sd">        sim(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; branch.outlets.outflow2.sequences.sim</span>
+<span class="sd">        sim(4.0)</span>
+
+<span class="sd">        The following error is raised in case of missing (or misspelt) outlet nodes:</span>
+
+<span class="sd">        &gt;&gt;&gt; branch.outlets.remove_device(branch.outlets.outflow1, force=True)</span>
+<span class="sd">        &gt;&gt;&gt; parameters.update()</span>
+<span class="sd">        &gt;&gt;&gt; model.connect()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: Model `exch_branch_hbv96` of element `mybranch` tried to \</span>
+<span class="sd">connect to an outlet node named `outflow1`, which is not an available outlet node of \</span>
+<span class="sd">element `mybranch`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">inlets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">inlets</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">total</span>
+        <span class="k">if</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">inlets</span><span class="p">),):</span>
+            <span class="n">total</span><span class="o">.</span><span class="n">node2idx</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">total</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inlets</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inlets</span><span class="p">):</span>
+            <span class="n">double</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">get_double</span><span class="p">(</span><span class="s2">&quot;inlets&quot;</span><span class="p">)</span>
+            <span class="n">total</span><span class="o">.</span><span class="n">set_pointer</span><span class="p">(</span><span class="n">double</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+            <span class="n">total</span><span class="o">.</span><span class="n">node2idx</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span>
+
+        <span class="n">branched</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">branched</span>
+        <span class="n">branched</span><span class="o">.</span><span class="n">node2idx</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodenames</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">outlet</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">outlets</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> tried to connect to an &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;outlet node named `</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">`, which is not an available outlet &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;node of element `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+            <span class="n">double</span> <span class="o">=</span> <span class="n">outlet</span><span class="o">.</span><span class="n">get_double</span><span class="p">(</span><span class="s2">&quot;outlets&quot;</span><span class="p">)</span>
+            <span class="n">branched</span><span class="o">.</span><span class="n">set_pointer</span><span class="p">(</span><span class="n">double</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+            <span class="n">branched</span><span class="o">.</span><span class="n">node2idx</span><span class="p">[</span><span class="n">outlet</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span></div>
+</div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.exch_branch_hbv96</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

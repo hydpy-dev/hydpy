@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.hland.hland_control &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hland.hland_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.hland.hland_control</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. _`issue 67`: https://github.com/hydpy-dev/hydpy/issues/67</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="c1"># from site-packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from hland</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.hland</span><span class="w"> </span><span class="kn">import</span> <span class="n">hland_constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.hland</span><span class="w"> </span><span class="kn">import</span> <span class="n">hland_fixed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.hland</span><span class="w"> </span><span class="kn">import</span> <span class="n">hland_parameters</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.hland.hland_constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">ILAKE</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">integrate</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">integrate</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">OptionalImport</span><span class="p">(</span><span class="s2">&quot;scipy&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;scipy.integrate&quot;</span><span class="p">],</span> <span class="nb">locals</span><span class="p">())</span>
+    <span class="n">stats</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">OptionalImport</span><span class="p">(</span><span class="s2">&quot;stats&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;scipy.stats&quot;</span><span class="p">],</span> <span class="nb">locals</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="Area">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.Area">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Area</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subbasin area [km²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">1e-10</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="NmbZones">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.NmbZones">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbZones</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of zones (hydrological response units) in a subbasin [-].</span>
+
+<span class="sd">    |NmbZones| determines the length of most 1-dimensional parameters and sequences.</span>
+<span class="sd">    Usually, you should first prepare |NmbZones| and define the values of all</span>
+<span class="sd">    1-dimensional parameters and sequences afterwards:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(5)</span>
+<span class="sd">    &gt;&gt;&gt; icmax.shape</span>
+<span class="sd">    (5,)</span>
+<span class="sd">    &gt;&gt;&gt; states.ic.shape</span>
+<span class="sd">    (5,)</span>
+
+<span class="sd">    Changing the value of |NmbZones| later reshapes the affected parameters and</span>
+<span class="sd">    sequences and makes it necessary the reset their values:</span>
+
+<span class="sd">    &gt;&gt;&gt; icmax(2.0)</span>
+<span class="sd">    &gt;&gt;&gt; icmax</span>
+<span class="sd">    icmax(2.0)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">    &gt;&gt;&gt; icmax</span>
+<span class="sd">    icmax(?)</span>
+
+<span class="sd">    Re-defining the same value does not delete the already available data:</span>
+
+<span class="sd">    &gt;&gt;&gt; icmax(2.0)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">    &gt;&gt;&gt; icmax</span>
+<span class="sd">    icmax(2.0)</span>
+
+<span class="sd">    The length of both axes of the 2-dimensional sequence |SRed| agree with |NmbZones|:</span>
+
+<span class="sd">    &gt;&gt;&gt; sred.shape</span>
+<span class="sd">    (3, 3)</span>
+
+<span class="sd">    Some 2-dimensional sequences reflect differences in snow accumulation within each</span>
+<span class="sd">    zone. |NmbZones| prepares their shapes also, but therefore requires parameter</span>
+<span class="sd">    |SClass| to provide the number of snow classes within each zone:</span>
+
+<span class="sd">    &gt;&gt;&gt; states.sp</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable `sp` \</span>
+<span class="sd">can only be retrieved after it has been defined.</span>
+
+<span class="sd">    &gt;&gt;&gt; sclass.value = 2</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(4)</span>
+<span class="sd">    &gt;&gt;&gt; states.sp.shape</span>
+<span class="sd">    (2, 4)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">old_value</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">new_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="n">new_value</span> <span class="o">!=</span> <span class="n">old_value</span><span class="p">:</span>
+            <span class="n">sclass</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">sclass</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">subpars</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">subpars</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;uh&quot;</span><span class="p">,</span> <span class="s2">&quot;sfdist&quot;</span><span class="p">)):</span>
+                        <span class="n">par</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">new_value</span>
+                    <span class="k">if</span> <span class="n">par</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">par</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">new_value</span><span class="p">,</span> <span class="n">new_value</span>
+            <span class="k">for</span> <span class="n">subseqs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">subseqs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;quh&quot;</span><span class="p">,</span> <span class="s2">&quot;sc&quot;</span><span class="p">)):</span>
+                        <span class="n">seq</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">new_value</span>
+                    <span class="k">elif</span> <span class="n">seq</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">sclass</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">seq</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">sclass</span><span class="p">,</span> <span class="n">new_value</span></div>
+
+
+
+<div class="viewcode-block" id="SClass">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SClass">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SClass</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of snow classes in each zone [-].</span>
+
+<span class="sd">    |SClass| determines the length of the first axis of those 2-dimensional sequences</span>
+<span class="sd">    reflecting differences in snow accumulation within each zone.  Therefore, it</span>
+<span class="sd">    requires parameter |NmbZones| to provide the number of zones within the subbasin:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; sclass(1)</span>
+<span class="sd">    &gt;&gt;&gt; states.sp</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    hydpy.core.exceptiontools.AttributeNotReady: Shape information for variable `sp` \</span>
+<span class="sd">can only be retrieved after it has been defined.</span>
+
+<span class="sd">    &gt;&gt;&gt; nmbzones.value = 2</span>
+<span class="sd">    &gt;&gt;&gt; sclass(3)</span>
+<span class="sd">    &gt;&gt;&gt; states.sp.shape</span>
+<span class="sd">    (3, 2)</span>
+
+<span class="sd">    Changing the value of |SClass| later reshapes the affected sequences and makes it</span>
+<span class="sd">    necessary to reset their values:</span>
+
+<span class="sd">    &gt;&gt;&gt; states.sp = 2.0</span>
+<span class="sd">    &gt;&gt;&gt; states.sp</span>
+<span class="sd">    sp([[2.0, 2.0],</span>
+<span class="sd">        [2.0, 2.0],</span>
+<span class="sd">        [2.0, 2.0]])</span>
+<span class="sd">    &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">    &gt;&gt;&gt; states.sp</span>
+<span class="sd">    sp([[nan, nan],</span>
+<span class="sd">        [nan, nan]])</span>
+
+<span class="sd">    Re-defining the same value does not delete the already available data:</span>
+
+<span class="sd">    &gt;&gt;&gt; states.sp = 2.0</span>
+<span class="sd">    &gt;&gt;&gt; sclass(2)</span>
+<span class="sd">    &gt;&gt;&gt; states.sp</span>
+<span class="sd">    sp([[2.0, 2.0],</span>
+<span class="sd">        [2.0, 2.0]])</span>
+
+<span class="sd">    Additionally, |SClass| determines the shape of the control parameter |SFDist|:</span>
+
+<span class="sd">    &gt;&gt;&gt; sfdist.shape</span>
+<span class="sd">    (2,)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">old_value</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">new_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">if</span> <span class="n">new_value</span> <span class="o">!=</span> <span class="n">old_value</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">sfdist</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">new_value</span>
+            <span class="n">nmbzones</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">nmbzones</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">subseqs</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">subseqs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">seq</span><span class="o">.</span><span class="n">NDIM</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">nmbzones</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">seq</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">new_value</span><span class="p">,</span> <span class="n">nmbzones</span></div>
+
+
+
+<div class="viewcode-block" id="ZoneType">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.ZoneType">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ZoneType</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">NameParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type of each zone [-].</span>
+
+<span class="sd">    Parameter |ZoneType| relies on the integer constants defined in module</span>
+<span class="sd">    |hland_constants| for representing zone types:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(6)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_vector</span>
+<span class="sd">    &gt;&gt;&gt; print_vector(zonetype.values)</span>
+<span class="sd">    1, 2, 3, 4, 4, 1</span>
+<span class="sd">    &gt;&gt;&gt; zonetype</span>
+<span class="sd">    zonetype(FIELD, FOREST, GLACIER, ILAKE, ILAKE, FIELD)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">constants</span> <span class="o">=</span> <span class="n">hland_constants</span><span class="o">.</span><span class="n">CONSTANTS</span></div>
+
+
+
+<div class="viewcode-block" id="ZoneArea">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.ZoneArea">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ZoneArea</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Zone area [km²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ZoneArea.trim">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.ZoneArea.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim |ZoneArea| so that :math:`\Sigma ZoneArea = Area` holds and each zone</span>
+<span class="sd">        area is non-negative.</span>
+
+<span class="sd">        Our example basin is 6 km² large and consists of three zones:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; area(6.0)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+
+<span class="sd">        First, an example with correct data:</span>
+
+<span class="sd">        &gt;&gt;&gt; zonearea(1.0, 2.0, 3.0)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea</span>
+<span class="sd">        zonearea(1.0, 2.0, 3.0)</span>
+
+<span class="sd">        Second, an example with a single zone with a negative area:</span>
+
+<span class="sd">        &gt;&gt;&gt; zonearea(-1.0, 2.0, 4.0)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea</span>
+<span class="sd">        zonearea(0.0, 2.0, 4.0)</span>
+
+<span class="sd">        Third, an example with too low zone areas:</span>
+
+<span class="sd">        &gt;&gt;&gt; zonearea(0.5, 1.0, 1.5)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea</span>
+<span class="sd">        zonearea(1.0, 2.0, 3.0)</span>
+
+<span class="sd">        Fourth, an example with too high zone areas:</span>
+
+<span class="sd">        &gt;&gt;&gt; zonearea(2.0, 4.0, 6.0)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea</span>
+<span class="sd">        zonearea(1.0, 2.0, 3.0)</span>
+
+<span class="sd">        Fifth, a combined example:</span>
+
+<span class="sd">        &gt;&gt;&gt; zonearea(-1.0, 1.0, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea</span>
+<span class="sd">        zonearea(0.0, 2.0, 4.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">area</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">area</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">areas</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="n">areas</span> <span class="o">*=</span> <span class="n">area</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">areas</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lower</span> <span class="o">=</span> <span class="n">areas</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="n">areas</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Psi">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.Psi">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Psi</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fraction of the actual sealing of zones classified as |SEALED| [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="ZoneZ">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.ZoneZ">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ZoneZ</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Zone elevation [100m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="PCorr">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.PCorr">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PCorr</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;General precipitation correction factor [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="PCAlt">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.PCAlt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PCAlt</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Elevation correction factor for precipitation [1/100m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.1</span></div>
+
+
+
+<div class="viewcode-block" id="RfCF">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.RfCF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RfCF</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rainfall correction factor [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="SfCF">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SfCF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SfCF</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Snowfall correction factor [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="TCorr">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.TCorr">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TCorr</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterNoGlacier</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;General temperature correction addend [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="TCAlt">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.TCAlt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TCAlt</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Elevation correction factor for temperature [-1°C/100m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.6</span></div>
+
+
+
+<div class="viewcode-block" id="IcMax">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.IcMax">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IcMax</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterInterception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum interception storage [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SFDist">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SFDist">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SFDist</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Distribution of snowfall [-].</span>
+
+<span class="sd">    Parameter |SFDist| handles multiple adjustment factors for snowfall, one for each</span>
+<span class="sd">    snow class, to introduce spatial heterogeneity to the snow depth within each zone.</span>
+<span class="sd">    If we, for example, define three snow classes per zone but assign the neutral value</span>
+<span class="sd">    1.0 to |SFDist|, all snow classes will receive the same amount of liquid and frozen</span>
+<span class="sd">    snowfall (everything else will also be identical, so defining three snow classes</span>
+<span class="sd">    instead of one is just a waste of computation time):</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; sclass(3)</span>
+<span class="sd">    &gt;&gt;&gt; sfdist(1.0)</span>
+<span class="sd">    &gt;&gt;&gt; sfdist</span>
+<span class="sd">    sfdist(1.0)</span>
+
+<span class="sd">    |SFDist| norms the given values. If we assign 0.1, 0.2, and 0.3, the snow classes</span>
+<span class="sd">    receive 50 %, 100 %, and 150 % of the average snowfall of their respective zone:</span>
+
+<span class="sd">    &gt;&gt;&gt; sfdist(0.1, 0.2, 0.3)</span>
+<span class="sd">    &gt;&gt;&gt; sfdist</span>
+<span class="sd">    sfdist(0.5, 1.0, 1.5)</span>
+
+<span class="sd">    |SFDist| provides two convenient alternatives for defining multiple factors with</span>
+<span class="sd">    single keyword arguments.  To illustrate how they work, we first define a test</span>
+<span class="sd">    function that accepts a keyword argument, passes it to a |SFDist| instance for the</span>
+<span class="sd">    cases of one to five snow classes, and prints the respective snow class-specific</span>
+<span class="sd">    factors:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import print_vector</span>
+<span class="sd">    &gt;&gt;&gt; def test(**kwargs):</span>
+<span class="sd">    ...     for nmb in range(1, 6):</span>
+<span class="sd">    ...         sclass(nmb)</span>
+<span class="sd">    ...         sfdist(**kwargs)</span>
+<span class="sd">    ...         print_vector(sfdist.values)</span>
+
+<span class="sd">    The first available keyword is `linear`.  Using it, |SFDist| calculates its factors</span>
+<span class="sd">    in agreement with the original *HBV96* implementation.  For the lowest possible</span>
+<span class="sd">    value, 0.0, all adjustment factors are one:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(linear=0.0)</span>
+<span class="sd">    1.0</span>
+<span class="sd">    1.0, 1.0</span>
+<span class="sd">    1.0, 1.0, 1.0</span>
+<span class="sd">    1.0, 1.0, 1.0, 1.0</span>
+<span class="sd">    1.0, 1.0, 1.0, 1.0, 1.0</span>
+
+<span class="sd">    For the highest possible value, 1.0, the first snow class receives no snowfall,</span>
+<span class="sd">    while the last snow receives twice the zone&#39;s average snowfall.  |SFDist|</span>
+<span class="sd">    interpolates the factors of the other snow classes linearly:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(linear=1.0)</span>
+<span class="sd">    1.0</span>
+<span class="sd">    0.0, 2.0</span>
+<span class="sd">    0.0, 1.0, 2.0</span>
+<span class="sd">    0.0, 0.666667, 1.333333, 2.0</span>
+<span class="sd">    0.0, 0.5, 1.0, 1.5, 2.0</span>
+
+<span class="sd">    For a value of 0.5, the first and the last snow class receive 50 % and 150 % of the</span>
+<span class="sd">    zone&#39;s average snowfall:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(linear=0.5)</span>
+<span class="sd">    1.0</span>
+<span class="sd">    0.5, 1.5</span>
+<span class="sd">    0.5, 1.0, 1.5</span>
+<span class="sd">    0.5, 0.833333, 1.166667, 1.5</span>
+<span class="sd">    0.5, 0.75, 1.0, 1.25, 1.5</span>
+
+<span class="sd">    The first available keyword is `lognormal`.  Here, |SFDist| calculates factors</span>
+<span class="sd">    resulting in a lognormal distribution of snowfall, similarly as implemented in</span>
+<span class="sd">    the COSERO model :cite:p:`ref-Frey2015CoseroSnow`.   Again, the lowest possible</span>
+<span class="sd">    value,</span>
+<span class="sd">    0.0, results in uniform snow distributions:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(lognormal=0.0)</span>
+<span class="sd">    1.0</span>
+<span class="sd">    1.0, 1.0</span>
+<span class="sd">    1.0, 1.0, 1.0</span>
+<span class="sd">    1.0, 1.0, 1.0, 1.0</span>
+<span class="sd">    1.0, 1.0, 1.0, 1.0, 1.0</span>
+
+<span class="sd">    In the following examples, we increase the scale factor from 0.01 to 0.1 to 1.0.</span>
+<span class="sd">    The higher the scale factor, the more snow concentrates in the last snow class:</span>
+
+<span class="sd">    &gt;&gt;&gt; test(lognormal=0.01)</span>
+<span class="sd">    1.0</span>
+<span class="sd">    0.992021, 1.007979</span>
+<span class="sd">    0.989116, 0.999953, 1.010931</span>
+<span class="sd">    0.987332, 0.996711, 1.003204, 1.012754</span>
+<span class="sd">    0.986061, 0.994647, 0.999951, 1.005284, 1.014057</span>
+
+<span class="sd">    &gt;&gt;&gt; test(lognormal=0.1)</span>
+<span class="sd">    1.0</span>
+<span class="sd">    0.920344, 1.079656</span>
+<span class="sd">    0.893412, 0.995313, 1.111276</span>
+<span class="sd">    0.877282, 0.963406, 1.028038, 1.131273</span>
+<span class="sd">    0.865966, 0.943604, 0.995118, 1.049519, 1.145792</span>
+
+<span class="sd">    &gt;&gt;&gt; test(lognormal=1.0)</span>
+<span class="sd">    1.0</span>
+<span class="sd">    0.317311, 1.682689</span>
+<span class="sd">    0.228763, 0.624994, 2.146243</span>
+<span class="sd">    0.188069, 0.446552, 0.854969, 2.51041</span>
+<span class="sd">    0.163826, 0.361372, 0.612984, 1.047213, 2.814604</span>
+
+<span class="sd">    Theoretically, higher scale factors are allowed. However, 1.0 results in highly</span>
+<span class="sd">    heterogeneous snow distributions already.</span>
+
+<span class="sd">    Wrong usage results in the usual error messages:</span>
+
+<span class="sd">    &gt;&gt;&gt; sfdist(normal=1.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    NotImplementedError: The value(s) of parameter `sfdist` of element `?` could not \</span>
+<span class="sd">be set based on the given keyword arguments.</span>
+
+<span class="sd">    &gt;&gt;&gt; sfdist(linear=1.0, lognormal=1.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    NotImplementedError: The value(s) of parameter `sfdist` of element `?` could not \</span>
+<span class="sd">be set based on the given keyword arguments.</span>
+
+<span class="sd">    &gt;&gt;&gt; sfdist(1.0, lognormal=1.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: For parameter `sfdist` of element `?` both positional and keyword \</span>
+<span class="sd">arguments are given, which is ambiguous.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sclass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_kwargscombination</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="p">({</span><span class="s2">&quot;linear&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;lognormal&quot;</span><span class="p">}))</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_linear</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;linear&quot;</span><span class="p">],</span> <span class="n">sclass</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lognormal</span><span class="p">(</span><span class="n">sclass</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;lognormal&quot;</span><span class="p">]))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">/=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">/</span> <span class="n">sclass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_linear</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="n">sclass</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sclass</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">factor</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">sclass</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">sclass</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">factor</span><span class="p">)</span>
+            <span class="p">)</span> <span class="o">/</span> <span class="n">sclass</span>
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_lognormal</span><span class="p">(</span><span class="n">sclass</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VectorFloat</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">sclass</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">NP_FLOAT</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">scale</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sclass</span><span class="p">):</span>
+                <span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">stats</span><span class="o">.</span><span class="n">lognorm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span>
+                    <span class="n">idx</span> <span class="o">/</span> <span class="n">sclass</span><span class="p">,</span>
+                    <span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">sclass</span><span class="p">,</span>
+                <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">values</span></div>
+
+
+
+<div class="viewcode-block" id="SMax">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SMax">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SMax</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterLand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum snow water equivalent [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span></div>
+
+
+
+<div class="viewcode-block" id="SRed">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SRed">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SRed</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Snow redistribution paths [-].</span>
+
+<span class="sd">    |SRed| is a 2-dimensional parameter that handles weighting factors for all possible</span>
+<span class="sd">    zone connections.  The source zones vary on the rows and the target zones on the</span>
+<span class="sd">    columns.  In the following example, zone one sends all snow available for</span>
+<span class="sd">    redistribution to zone three.  Zone two sends 50 % to zone four and 50 % to zone</span>
+<span class="sd">    five.  Zone six sends 40 % to zone two, 40 % to zone three, and 20 % to zone four:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmbzones(6)</span>
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">    &gt;&gt;&gt; sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.5, 0.5, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])</span>
+
+<span class="sd">    A zone can either redistribute no snow at all (we then call it a &quot;dead end&quot;) or</span>
+<span class="sd">    needs to send 100 % of the snow available for redistribution.  Hence, the sums of</span>
+<span class="sd">    the individual rows must be either 0.0 or 1.0.  Method |SRed.verify| checks for</span>
+<span class="sd">    possible violations of this requirement (by calling method |SRed.verify_sums|):</span>
+
+<span class="sd">    &gt;&gt;&gt; sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.4, 0.5],</span>
+<span class="sd">    ...       [0.0, 0.1, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])</span>
+<span class="sd">    &gt;&gt;&gt; sred.verify()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: The sum(s) of the following row(s) of parameter `sred` of element \</span>
+<span class="sd">`?` are neither 0.0 nor 1.0: 3 and 4.</span>
+
+<span class="sd">    Zones of type |ILAKE| possess no snow module.  Hence, they never release any snow</span>
+<span class="sd">    for redistribution and method |SRed.verify| checks for possible unused weighting</span>
+<span class="sd">    factors in the relevant rows (by calling method |SRed.verify_lakes|):</span>
+
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FIELD, FIELD, ILAKE, FIELD, ILAKE)</span>
+<span class="sd">    &gt;&gt;&gt; sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])</span>
+<span class="sd">    &gt;&gt;&gt; sred.verify()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: Internal lake zones cannot be involved in snow redistribution, so \</span>
+<span class="sd">the sums of all rows of parameter `sred` of element `?` corresponding to internal lake \</span>
+<span class="sd">zones must be zero, which is not the case for the row(s): 3.</span>
+
+<span class="sd">    For the same reason, internal lakes cannot receive and accumulate any redistributed</span>
+<span class="sd">    snow.  Therefore, method |SRed.verify| additionally checks for possible problematic</span>
+<span class="sd">    weighting factors in the relevant columns (by calling method |SRed.verify_lakes|):</span>
+
+<span class="sd">    &gt;&gt;&gt; sred([[0.0, 0.5, 0.0, 0.0, 0.0, 0.5],</span>
+<span class="sd">    ...       [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])</span>
+<span class="sd">    &gt;&gt;&gt; sred.verify()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: Internal lake zones cannot be involved in snow redistribution, so \</span>
+<span class="sd">the sums of all columns of parameter `sred` of element `?` corresponding to internal \</span>
+<span class="sd">lake zones must be zero, which is not the case for the column(s): 3 and 5.</span>
+
+<span class="sd">    The snow redistribution routine of |hland| does not allow for any cycles.  Method</span>
+<span class="sd">    |SRed.verify| checks for possible cycles by calling method |SRed.verify_order|:</span>
+
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">    &gt;&gt;&gt; sred([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.5, 0.5],</span>
+<span class="sd">    ...       [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">    ...       [0.0, 0.4, 0.4, 0.2, 0.0, 0.0]])</span>
+<span class="sd">    &gt;&gt;&gt; sred.verify()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: The weighting factors of parameter `sred` of element `?` define at \</span>
+<span class="sd">least one cycle: (1, 5) and (5, 1).</span>
+
+<span class="sd">    Note that method |SRed.verify_order| relies on the |SRedOrder.update| method of</span>
+<span class="sd">    parameter |SRedOrder| but resets its values afterwards:</span>
+
+<span class="sd">    &gt;&gt;&gt; derived.sredorder.shape = (1, 2)</span>
+<span class="sd">    &gt;&gt;&gt; derived.sredorder.values = [[0, 1]]</span>
+<span class="sd">    &gt;&gt;&gt; old_values = derived.sredorder.values.copy()</span>
+<span class="sd">    &gt;&gt;&gt; sred.values[1, -2:] = 1.0, 0.0</span>
+<span class="sd">    &gt;&gt;&gt; sred.verify_order()</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: The weighting factors of parameter `sred` of element `?` define at \</span>
+<span class="sd">least one cycle: (3, 5) and (5, 3).</span>
+<span class="sd">    &gt;&gt;&gt; derived.sredorder</span>
+<span class="sd">    sredorder(0, 1)</span>
+
+<span class="sd">    Parameter |SRed| provides two options to define the weighting factors with little</span>
+<span class="sd">    effort.  The first option works by specifying the number of target zones.  If we</span>
+<span class="sd">    set the number of target zones to one, |SRed| determines the next lower target for</span>
+<span class="sd">    each zone that is not a dead-end:</span>
+
+<span class="sd">    &gt;&gt;&gt; zonetype(GLACIER, FIELD, FOREST, SEALED, ILAKE, FOREST)</span>
+<span class="sd">    &gt;&gt;&gt; zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)</span>
+<span class="sd">    &gt;&gt;&gt; zonearea.values = 1.0</span>
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=1)</span>
+
+<span class="sd">    For brevity, parameter |SRed| returns string representations based on these options</span>
+<span class="sd">    when possible:</span>
+
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred(n_zones=1)</span>
+
+<span class="sd">    Clear the contents of the |KeywordArguments| object returned by property</span>
+<span class="sd">    |SRed.keywordarguments| to see the actual parameter values:</span>
+
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    For two target zones (and identical zone areas), the weights of the next two lower</span>
+<span class="sd">    zones are 0.5:</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=2)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.5, 0.5, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    You can specify an arbitrarily high numbes of target zones.  Parameter |SRed|</span>
+<span class="sd">    adjusts the given value to the number of actually available target zones:</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=999)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.25, 0.25, 0.25, 0.0, 0.25],</span>
+<span class="sd">          [0.0, 0.0, 0.333333, 0.333333, 0.0, 0.333333],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    After defining the same elevation for the second and the third zone, the first zone</span>
+<span class="sd">    redistributes the same snow amount to both of them.  Additionally, both zones</span>
+<span class="sd">    redistribute their own snow to the fourth zone:</span>
+
+<span class="sd">    &gt;&gt;&gt; zonez(6.0, 5.0, 5.0, 3.0, 2.0, 1.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=1)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=2)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.5, 0.5, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=999)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.25, 0.25, 0.25, 0.0, 0.25],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.5, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    For all zones lying on the same elevation, no redistribution occurs:</span>
+
+<span class="sd">    &gt;&gt;&gt; zonez(1.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=1)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred(0.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=2)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred(0.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=999)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred(0.0)</span>
+
+<span class="sd">    The following examples demonstrate that the weights&#39; calculation works well for</span>
+<span class="sd">    unsorted elevations:</span>
+
+<span class="sd">    &gt;&gt;&gt; zonetype(FIELD, FOREST, FOREST, ILAKE, GLACIER, SEALED)</span>
+<span class="sd">    &gt;&gt;&gt; zonez(5.0, 4.0, 1.0, 2.0, 6.0, 3.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=1)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=2)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.5, 0.0, 0.0, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 0.5, 0.0, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.5, 0.5, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=999)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.333333, 0.333333, 0.0, 0.0, 0.333333],</span>
+<span class="sd">          [0.0, 0.0, 0.5, 0.0, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.25, 0.25, 0.25, 0.0, 0.0, 0.25],</span>
+<span class="sd">          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    For unequal zone areas, the calculated weights reflect the relations between the</span>
+<span class="sd">    respective source and target zones.  The idea is that larger target zones have</span>
+<span class="sd">    larger contact surfaces with their source zones than smaller ones.  This approach</span>
+<span class="sd">    prevents building extreme snow towers in small target zones:</span>
+
+<span class="sd">    &gt;&gt;&gt; zonearea.values = 1.0, 2.0, 3.0, 4.0, 5.0, 6.0</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=1)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 1.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [1.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=2)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.25, 0.0, 0.0, 0.0, 0.75],</span>
+<span class="sd">          [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=999)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.181818, 0.272727, 0.0, 0.0, 0.545455],</span>
+<span class="sd">          [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.083333, 0.166667, 0.25, 0.0, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    Instead of supplying the number of target zones directly, on can define the maximum</span>
+<span class="sd">    height of redistribution.  For a source zone at an elevation `x`, parameter |SRed|</span>
+<span class="sd">    searches for zones that lie within the interval :math:`[x - d\\_height, x)`.  If it</span>
+<span class="sd">    does not find one, it selects at least the next lower target zone(s), if existing:</span>
+
+<span class="sd">    &gt;&gt;&gt; zonez(5.0, 5.0, 1.0, 2.0, 6.0, 3.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(d_height=0.0)</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred(d_height=0.0)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(d_height=2.0)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.333333, 0.666667, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(d_height=10.0)</span>
+<span class="sd">    &gt;&gt;&gt; sred.keywordarguments.clear()</span>
+<span class="sd">    &gt;&gt;&gt; sred</span>
+<span class="sd">    sred([[0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],</span>
+<span class="sd">          [0.0, 0.0, 0.333333, 0.0, 0.0, 0.666667],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],</span>
+<span class="sd">          [0.083333, 0.166667, 0.25, 0.0, 0.0, 0.5],</span>
+<span class="sd">          [0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])</span>
+
+<span class="sd">    Passing multiple keyword arguments or a positional and a keyword argument at once</span>
+<span class="sd">    results in the following error messages:</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(n_zones=1, d_height=0.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: Parameter `sred` of element `?` accepts at most a single keyword \</span>
+<span class="sd">argument but 2 are given.</span>
+
+<span class="sd">    &gt;&gt;&gt; sred(0.0, d_height=0.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: For parameter `sred` of element `?` both positional and keyword \</span>
+<span class="sd">arguments are given, which is ambiguous.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="n">_keywordarguments</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subvars</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">subvars</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span> <span class="o">=</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;n_zones&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;d_height&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
+                <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> accepts at most a &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;single keyword argument but </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span><span class="si">}</span><span class="s2"> are given.&quot;</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;n_zones&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prepare_nzones</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;n_zones&quot;</span><span class="p">)),)</span>
+            <span class="k">elif</span> <span class="s2">&quot;d_height&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prepare_dheight</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;d_height&quot;</span><span class="p">)),)</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">exc</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_nzones</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nzones</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MatrixFloat</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">nmbzones</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="p">(</span><span class="n">nzones</span><span class="p">,))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare_dheight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dheight</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MatrixFloat</span><span class="p">:</span>
+        <span class="n">zonez</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">zonez</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">nzones</span> <span class="o">=</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">z</span> <span class="o">&gt;</span> <span class="n">zonez</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">zonez</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">z</span> <span class="o">-</span> <span class="n">dheight</span><span class="p">)))</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">zonez</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nzones</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nzones</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">MatrixFloat</span><span class="p">:</span>
+        <span class="n">nmbzones</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">nmbzones</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">zonearea</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">zonearea</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">types_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">zonetype</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">zonez</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">zonez</span><span class="o">.</span><span class="n">value</span>
+        <span class="n">zonez_sorted</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">zonez</span><span class="p">))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nmbzones</span><span class="p">,</span> <span class="n">nmbzones</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">NP_FLOAT</span><span class="p">)</span>
+        <span class="n">zonez_min</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">zonez</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">z_upper</span><span class="p">,</span> <span class="n">type_</span><span class="p">,</span> <span class="n">nzone</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">zonez</span><span class="p">,</span> <span class="n">types_</span><span class="p">,</span> <span class="n">nzones</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">type_</span> <span class="o">!=</span> <span class="n">ILAKE</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">z_upper</span> <span class="o">&gt;</span> <span class="n">zonez_min</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">z_lower</span> <span class="ow">in</span> <span class="n">zonez_sorted</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">z_upper</span> <span class="o">&gt;</span> <span class="n">z_lower</span><span class="p">:</span>
+                        <span class="n">sel</span> <span class="o">=</span> <span class="p">(</span><span class="n">types_</span> <span class="o">!=</span> <span class="n">ILAKE</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">z_upper</span> <span class="o">&gt;</span> <span class="n">zonez</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">zonez</span> <span class="o">&gt;=</span> <span class="n">z_lower</span><span class="p">)</span>
+                        <span class="n">jdxs</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sel</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">jdxs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">nzone</span><span class="p">:</span>
+                            <span class="k">break</span>
+                <span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="n">jdxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">zonearea</span><span class="p">[</span><span class="n">jdxs</span><span class="p">]</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">zonearea</span><span class="p">[</span><span class="n">jdxs</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">values</span>
+
+<div class="viewcode-block" id="SRed.verify">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SRed.verify">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform the usual parameter value verifications (implemented in method</span>
+<span class="sd">        |Variable.verify|) and call methods |SRed.verify_sums|, |SRed.verify_lakes|,</span>
+<span class="sd">        and |SRed.verify_order| for additional checks.</span>
+
+<span class="sd">        See the main documentation on class |SRed| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">verify</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verify_sums</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verify_lakes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verify_order</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SRed.verify_sums">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SRed.verify_sums">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify_sums</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the sums of all rows are either 0.0 (for dead-end zones) or 1.0</span>
+<span class="sd">        (for redistributing zones).</span>
+
+<span class="sd">        See the main documentation on class |SRed| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">sums</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="mi">12</span><span class="p">)</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="o">~</span><span class="n">numpy</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">sums</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">errors</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The sum(s) of the following row(s) of parameter &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> are neither 0.0 nor 1.0: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">errors</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SRed.verify_order">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SRed.verify_order">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify_order</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the weighting factors define any cycles.</span>
+
+<span class="sd">        See the main documentation on class |SRed| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sredorder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">sredorder</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="n">sredorder</span><span class="p">,</span> <span class="s2">&quot;values&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sredorder</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sredorder</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">shape</span>
+                <span class="n">sredorder</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">values</span></div>
+
+
+<div class="viewcode-block" id="SRed.verify_lakes">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SRed.verify_lakes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verify_lakes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if any internal lake seems to be involved in snow redistribution.</span>
+
+<span class="sd">        See the main documentation on class |SRed| for further information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">is_lake</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">zonetype</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="n">ILAKE</span>
+        <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">string</span> <span class="ow">in</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;row&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;column&quot;</span><span class="p">)):</span>
+            <span class="n">errors</span> <span class="o">=</span> <span class="n">is_lake</span> <span class="o">*</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">errors</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Internal lake zones cannot be involved in snow &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;redistribution, so the sums of all </span><span class="si">{</span><span class="n">string</span><span class="si">}</span><span class="s2">s of parameter &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> corresponding to internal &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;lake zones must be zero, which is not the case for the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">string</span><span class="si">}</span><span class="s2">(s): </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">errors</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">keywordarguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">KeywordArguments</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A |KeywordArguments| object, providing the currently valid keyword argument.</span>
+
+<span class="sd">        We reuse one of the example configurations of the main documentation on class</span>
+<span class="sd">        |SRed|:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(6)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(GLACIER, FIELD, FOREST, SEALED, ILAKE, FOREST)</span>
+<span class="sd">        &gt;&gt;&gt; zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea.values = 1.0</span>
+
+<span class="sd">        After defining the values of parameter |SRed| via option `n_zones` or</span>
+<span class="sd">        `d_height`, the returned |KeywordArguments| object contains the given</span>
+<span class="sd">        name-value pair and indicates its validity by its |True|</span>
+<span class="sd">        |KeywordArguments.valid| attribute:</span>
+
+<span class="sd">        &gt;&gt;&gt; sred(n_zones=1)</span>
+<span class="sd">        &gt;&gt;&gt; sred.keywordarguments</span>
+<span class="sd">        KeywordArguments(n_zones=1)</span>
+<span class="sd">        &gt;&gt;&gt; sred.keywordarguments.valid</span>
+<span class="sd">        True</span>
+
+<span class="sd">        Property |SRed.keywordarguments| checks if the last passed option still results</span>
+<span class="sd">        in the currently defined parameter values and sets the |KeywordArguments.valid|</span>
+<span class="sd">        flag to |False| if this is not the case.  We show this by modifying the zone</span>
+<span class="sd">        heights specified by parameter |ZoneZ|:</span>
+
+<span class="sd">        &gt;&gt;&gt; zonez(4.0, 5.0, 4.0, 3.0, 2.0, 1.0)</span>
+<span class="sd">        &gt;&gt;&gt; sred.keywordarguments</span>
+<span class="sd">        KeywordArguments(n_zones=1)</span>
+<span class="sd">        &gt;&gt;&gt; sred.keywordarguments.valid</span>
+<span class="sd">        False</span>
+
+<span class="sd">        After resetting the original values of |ZoneZ|, the |KeywordArguments.valid|</span>
+<span class="sd">        flag of the returned |KeywordArguments| object is |True| again:</span>
+
+<span class="sd">        &gt;&gt;&gt; zonez(6.0, 5.0, 4.0, 3.0, 2.0, 1.0)</span>
+<span class="sd">        &gt;&gt;&gt; sred.keywordarguments</span>
+<span class="sd">        KeywordArguments(n_zones=1)</span>
+<span class="sd">        &gt;&gt;&gt; sred.keywordarguments.valid</span>
+<span class="sd">        True</span>
+
+<span class="sd">        After defining the parameter values directly, the |KeywordArguments| object is</span>
+<span class="sd">        always empty and invalid:</span>
+
+<span class="sd">        &gt;&gt;&gt; sred(sred.values)</span>
+<span class="sd">        &gt;&gt;&gt; sred.keywordarguments</span>
+<span class="sd">        KeywordArguments()</span>
+<span class="sd">        &gt;&gt;&gt; sred.keywordarguments.valid</span>
+<span class="sd">        False</span>
+
+<span class="sd">        The same holds for erroneous keyword arguments:</span>
+
+<span class="sd">        &gt;&gt;&gt; sred(n_zones=None)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        TypeError: &#39;&gt;=&#39; not supported between instances of &#39;int&#39; and &#39;NoneType&#39;</span>
+<span class="sd">        &gt;&gt;&gt; sred.keywordarguments</span>
+<span class="sd">        KeywordArguments()</span>
+<span class="sd">        &gt;&gt;&gt; sred.keywordarguments.valid</span>
+<span class="sd">        False</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">kwa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keywordarguments</span>
+        <span class="n">kwa</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwa</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">kwa</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwa</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;n_zones&quot;</span><span class="p">:</span>
+                    <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_nzones</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_dheight</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span> <span class="o">!=</span> <span class="n">values</span><span class="p">:</span>
+                <span class="n">kwa</span><span class="o">.</span><span class="n">valid</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">kwa</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">keywordarguments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywordarguments</span>
+        <span class="k">if</span> <span class="n">keywordarguments</span><span class="o">.</span><span class="n">valid</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">keywordarguments</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="TT">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.TT">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TT</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Temperature threshold for snow/rain [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="TTInt">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.TTInt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TTInt</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterComplete</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Temperature interval with a mixture of snow and rain [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="DTTM">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.DTTM">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DTTM</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterLand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Difference between |TTM| and |TT| [°C].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="CFMax">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.CFMax">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CFMax</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterLand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average degree day factor for snow (on glaciers or not) [mm/°C/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">3.5</span></div>
+
+
+
+<div class="viewcode-block" id="CFVar">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.CFVar">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CFVar</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterLand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Annual variability of |CFMax| [mm/°C/T].</span>
+
+<span class="sd">    Use positive values for the northern and negative values for the southern</span>
+<span class="sd">    hemisphere.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="GMelt">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.GMelt">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GMelt</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterGlacier</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Degree day factor for glacial ice [mm/°C/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">3.5</span></div>
+
+
+
+<div class="viewcode-block" id="GVar">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.GVar">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GVar</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterGlacier</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Annual variability of |GMelt| [mm/°C/T].</span>
+
+<span class="sd">    Use positive values for the northern and negative values for the southern</span>
+<span class="sd">    hemisphere.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
+<div class="viewcode-block" id="CFR">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.CFR">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CFR</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterLand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Refreezing factor for water stored within the snow layer [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.05</span></div>
+
+
+
+<div class="viewcode-block" id="WHC">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.WHC">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WHC</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterLand</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative water holding capacity of the snow layer [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.1</span></div>
+
+
+
+<div class="viewcode-block" id="FC">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.FC">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FC</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterSoil</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum soil moisture content (field capacity) [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mi">200</span></div>
+
+
+
+<div class="viewcode-block" id="Beta">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.Beta">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Beta</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterSoil</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Nonlinearity parameter of the soil routine [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">2.0</span></div>
+
+
+
+<div class="viewcode-block" id="PercMax">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.PercMax">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PercMax</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum percolation rate [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="CFlux">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.CFlux">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CFlux</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterSoil</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Capacity (maximum) of the capillary return flux [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="RespArea">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.RespArea">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RespArea</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flag to enable the contributing area approach [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="RecStep">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.RecStep">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RecStep</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of internal computation steps per simulation time step [-].</span>
+
+<span class="sd">    The default value of 1440 internal computation steps per day corresponds to 1</span>
+<span class="sd">    computation step per minute.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; recstep(4.2)</span>
+<span class="sd">    &gt;&gt;&gt; recstep</span>
+<span class="sd">    recstep(4.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mi">1440</span></div>
+
+
+
+<div class="viewcode-block" id="Alpha">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.Alpha">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Alpha</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Nonlinearity parameter of the upper zone layer [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+
+
+
+<div class="viewcode-block" id="K">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.K">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">K</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recession coefficient of the upper zone layer [1/T/mm^alpha].</span>
+
+<span class="sd">    In addition to the |Parameter| call method, it is possible to</span>
+<span class="sd">    set the value of parameter |K| in accordance to the keyword arguments</span>
+<span class="sd">    `khq`, `hq` and (optionally) `alpha`:</span>
+
+<span class="sd">    Parameter |K| allows defining its value via the keyword arguments `khq`, `hq` and</span>
+<span class="sd">    (optionally) `alpha`:</span>
+
+<span class="sd">        :math:`K = \\frac{HQ}{(HQ/KHQ)^{1+Alpha}}`</span>
+
+<span class="sd">    Examples:</span>
+
+<span class="sd">        When directly setting the value of parameter |K|, one should be be aware of</span>
+<span class="sd">        its time dependence:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;12h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; k(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; k</span>
+<span class="sd">        k(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; k.value</span>
+<span class="sd">        1.0</span>
+
+<span class="sd">        Alternatively, one can specify the mentioned three keyword arguments:</span>
+
+<span class="sd">        &gt;&gt;&gt; k(hq=10.0, khq=2.0, alpha=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; k</span>
+<span class="sd">        k(0.4)</span>
+<span class="sd">        &gt;&gt;&gt; k.value</span>
+<span class="sd">        0.2</span>
+
+<span class="sd">        If a value for keyword argument `alpha` is missing, parameter |K| tries to</span>
+<span class="sd">        query it from parameter |Alpha|.</span>
+
+<span class="sd">        &gt;&gt;&gt; alpha(2.0)</span>
+<span class="sd">        &gt;&gt;&gt; k(hq=10.0, khq=2.0)</span>
+<span class="sd">        &gt;&gt;&gt; k</span>
+<span class="sd">        k(0.08)</span>
+<span class="sd">        &gt;&gt;&gt; k.value</span>
+<span class="sd">        0.04</span>
+
+<span class="sd">        The following exceptions occur for wrong combinations of keyword arguments or</span>
+<span class="sd">        when |Alpha| is not ready (still has the value |numpy.nan|):</span>
+
+<span class="sd">        &gt;&gt;&gt; k(wrong=1)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        ValueError: For parameter `k` of element `?` a value can be set directly or \</span>
+<span class="sd">indirectly by using the keyword arguments `khq` and `hq`.</span>
+
+<span class="sd">        &gt;&gt;&gt; k(hq=10.0)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        ValueError: For the alternative calculation of parameter `k` of element `?`, \</span>
+<span class="sd">at least the keywords arguments `khq` and `hq` must be given.</span>
+
+<span class="sd">        &gt;&gt;&gt; import numpy</span>
+<span class="sd">        &gt;&gt;&gt; alpha(numpy.nan)</span>
+<span class="sd">        &gt;&gt;&gt; k(hq=10.0, khq=2.0)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: For the alternative calculation of parameter `k` of element `?`, \</span>
+<span class="sd">either the keyword argument `alpha` must be given or the value of parameter `alpha` \</span>
+<span class="sd">must be defined beforehand.</span>
+
+<span class="sd">        The default value for k of 0.009633 results from the default</span>
+<span class="sd">        values for `alpha`, `hq` and `khq` given in HBV96:</span>
+
+<span class="sd">        &gt;&gt;&gt; k(hq=3.0, khq=0.17, alpha=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; k</span>
+<span class="sd">        k(0.009633)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.009633</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">NotImplementedError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;khq&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;hq&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;For parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> a &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;value can be set directly or indirectly by using &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;the keyword arguments `khq` and `hq`.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+            <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;For the alternative calculation of parameter &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">, at least the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;keywords arguments `khq` and `hq` must be given.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+            <span class="n">alpha</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="s2">&quot;alpha&quot;</span><span class="p">,</span>
+                    <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span><span class="p">),</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">alpha</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;For the alternative calculation of parameter &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">, either the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;keyword argument `alpha` must be given or the value &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;of parameter `alpha` must be defined beforehand.&quot;</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">exc</span>
+            <span class="n">khq</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;khq&quot;</span><span class="p">])</span>
+            <span class="n">hq</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;hq&quot;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="p">(</span><span class="n">hq</span> <span class="o">/</span> <span class="p">((</span><span class="n">hq</span> <span class="o">/</span> <span class="n">khq</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="SGR">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SGR">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SGR</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Threshold content of |SUZ| for the generation of surface runoff [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="K0">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.K0">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">K0</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Storage time for surface runoff [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># defined at the bottom of the file:</span>
+    <span class="n">CONTROLPARAMETERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="n">K1</span><span class="p">]]</span>
+
+<div class="viewcode-block" id="K0.trim">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.K0.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim |K0| following :math:`K^* \leq K0 \leq K1` with</span>
+<span class="sd">        :math:`K^* = -1/ln \left( 1 - e^{-1 / k1} \right)`.</span>
+
+<span class="sd">        The additional restriction :math:`K^*` serves to prevent the storage |SUZ|</span>
+<span class="sd">        from taking on negative values (see `issue 67`_).</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(5)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">        &gt;&gt;&gt; k1(48.0, 48.0, 48.0, 48.0, nan)</span>
+<span class="sd">        &gt;&gt;&gt; k0(24.0, 36.0, 48.0, 72.0, 72.0)</span>
+<span class="sd">        &gt;&gt;&gt; k0</span>
+<span class="sd">        k0(25.730308, 36.0, 48.0, 48.0, 72.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">k1</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">except</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">k1</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="H1">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.H1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">H1</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Outlet level of the reservoir for simulating surface flow [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TAb1">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.TAb1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TAb1</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recession coefficient for simulating surface flow [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TVs1">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.TVs1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TVs1</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recession coefficient for simulating percolation from the surface flow module</span>
+<span class="sd">    [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="K1">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.K1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">K1</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Storage time for interflow [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># defined at the bottom of the file:</span>
+    <span class="n">CONTROLPARAMETERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="n">K0</span><span class="p">],</span> <span class="nb">type</span><span class="p">[</span><span class="n">K2</span><span class="p">]]</span>
+    <span class="n">FIXEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hland_fixed</span><span class="o">.</span><span class="n">K1L</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="K1.trim">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.K1.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim |K1| following :math:`max (K0, K^*) \leq K1 \leq K2` with</span>
+<span class="sd">        :math:`K^* = max \left( -1/ln \left( 1 - e^{-1 / k0} \right), K1L \right)`.</span>
+
+<span class="sd">        The additional restriction :math:`K^*` serves to prevent the storage |SUZ|</span>
+<span class="sd">        from taking on negative values (see `issue 67`_).</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(9)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">        &gt;&gt;&gt; k1(24.0, 24.0, 72.0, 120.0, 24.0, 24.0, 120.0, nan, nan)</span>
+<span class="sd">        &gt;&gt;&gt; k1</span>
+<span class="sd">        k1(34.624681, 34.624681, 72.0, 120.0, 34.624681, 34.624681, 120.0, nan,</span>
+<span class="sd">           nan)</span>
+<span class="sd">        &gt;&gt;&gt; k1.values = nan</span>
+<span class="sd">        &gt;&gt;&gt; k0(48.0, 24.0, 24.0, 24.0, nan, 24.0, nan, 24.0, nan)</span>
+<span class="sd">        &gt;&gt;&gt; k2(96.0, 96.0, 96.0, 96.0, nan, nan, 96.0, 96.0, nan)</span>
+<span class="sd">        &gt;&gt;&gt; k1(24.0, 24.0, 72.0, 120.0, 24.0, 24.0, 120.0, nan, nan)</span>
+<span class="sd">        &gt;&gt;&gt; k1</span>
+<span class="sd">        k1(48.0, 52.324614, 72.0, 96.0, 34.624681, 52.324614, 96.0, nan, nan)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">k1l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">fixed</span><span class="o">.</span><span class="n">k1l</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">k0</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">except</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">k1l</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span>
+                    <span class="n">lower</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">lower</span><span class="p">)),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span>
+                <span class="p">)</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">k1l</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+                <span class="n">lower</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">lower</span><span class="p">)]</span> <span class="o">=</span> <span class="n">k1l</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">k2</span><span class="p">,</span> <span class="s2">&quot;values&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SG1Max">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.SG1Max">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SG1Max</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum content of the fast response groundwater reservoir |SG1| [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="H2">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.H2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">H2</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Outlet level of the reservoir for simulating interflow [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TAb2">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.TAb2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TAb2</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recession coefficient for simulating interflow [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TVs2">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.TVs2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TVs2</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recession coefficient for simulating percolation from the interflow module</span>
+<span class="sd">    [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="K4">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.K4">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">K4</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Recession coefficient of the lower zone layer [1/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">INIT</span> <span class="o">=</span> <span class="mf">0.01</span></div>
+
+
+
+<div class="viewcode-block" id="K2">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.K2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">K2</span><span class="p">(</span><span class="n">hland_parameters</span><span class="o">.</span><span class="n">ParameterUpperZone</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Storage time for quick response baseflow [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># defined at the bottom of the file:</span>
+    <span class="n">CONTROLPARAMETERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="n">K1</span><span class="p">],</span> <span class="nb">type</span><span class="p">[</span><span class="n">K3</span><span class="p">]]</span>
+    <span class="n">FIXEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hland_fixed</span><span class="o">.</span><span class="n">K1L</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="K2.trim">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.K2.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim |K2| following :math:`max(K1, K1L) \leq K2 \leq K3`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(6)</span>
+<span class="sd">        &gt;&gt;&gt; zonetype(FIELD)</span>
+<span class="sd">        &gt;&gt;&gt; k2(12.0, 12.0, 12.0, nan, 96.0, 120.0)</span>
+<span class="sd">        &gt;&gt;&gt; k2</span>
+<span class="sd">        k2(34.624681, 34.624681, 34.624681, nan, 96.0, 120.0)</span>
+<span class="sd">        &gt;&gt;&gt; k2.values = nan</span>
+<span class="sd">        &gt;&gt;&gt; k1(24.0, 72.0, nan, nan, nan, 72.0)</span>
+<span class="sd">        &gt;&gt;&gt; k3(96.0)</span>
+<span class="sd">        &gt;&gt;&gt; k2(12.0, 12.0, 12.0, nan, 96.0, 120.0)</span>
+<span class="sd">        &gt;&gt;&gt; k2</span>
+<span class="sd">        k2(34.624681, 72.0, 34.624681, nan, 96.0, 96.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">k1l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">fixed</span><span class="o">.</span><span class="n">k1l</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">k1</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">except</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">:</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">k1l</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">lower</span><span class="p">)]</span> <span class="o">=</span> <span class="n">k1l</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">k1l</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">upper</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">upper</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">k3</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="K3">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.K3">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">K3</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Storage time for delayed baseflow [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">K2</span><span class="p">,)</span>
+    <span class="n">FIXEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">hland_fixed</span><span class="o">.</span><span class="n">K1L</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="K3.trim">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.K3.trim">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trim</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Trim |K3| in accordance with :math:`max(K2, K1L) \leq K3`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.hland import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">        &gt;&gt;&gt; k3(12.0)</span>
+<span class="sd">        &gt;&gt;&gt; k3</span>
+<span class="sd">        k3(34.624681)</span>
+<span class="sd">        &gt;&gt;&gt; k3.values = nan</span>
+<span class="sd">        &gt;&gt;&gt; k2(36.0, 36.0, nan)</span>
+<span class="sd">        &gt;&gt;&gt; k2.value[0] /= 3.0</span>
+<span class="sd">        &gt;&gt;&gt; k3(12.0)</span>
+<span class="sd">        &gt;&gt;&gt; k3</span>
+<span class="sd">        k3(36.0)</span>
+<span class="sd">        &gt;&gt;&gt; k2.values[1] /= 3.0</span>
+<span class="sd">        &gt;&gt;&gt; k3(12.0)</span>
+<span class="sd">        &gt;&gt;&gt; k3</span>
+<span class="sd">        k3(34.624681)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">lower</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">k1l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">fixed</span><span class="o">.</span><span class="n">k1l</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;error&quot;</span><span class="p">)</span>
+                    <span class="n">lower</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">k2</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">exceptiontools</span><span class="o">.</span><span class="n">AttributeNotReady</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">):</span>
+                <span class="n">lower</span> <span class="o">=</span> <span class="n">k1l</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">k1l</span> <span class="o">&lt;</span> <span class="n">lower</span><span class="p">:</span>
+                    <span class="n">lower</span> <span class="o">=</span> <span class="n">k1l</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span><span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Gamma">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.Gamma">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Gamma</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Nonlinearity parameter of the lower zone layer [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MaxBaz">
+<a class="viewcode-back" href="../../../../hland.html#hydpy.models.hland.hland_control.MaxBaz">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaxBaz</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base length of the triangle unit hydrograph [T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<span class="n">K0</span><span class="o">.</span><span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">K1</span><span class="p">,)</span>
+<span class="n">K1</span><span class="o">.</span><span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">K0</span><span class="p">,</span> <span class="n">K2</span><span class="p">)</span>
+<span class="n">K2</span><span class="o">.</span><span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">K1</span><span class="p">,</span> <span class="n">K3</span><span class="p">)</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.hland.hland_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

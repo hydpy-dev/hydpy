@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>configutils &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="interfaceutils" href="interfaceutils.html" />
+    <link rel="prev" title="annutils" href="annutils.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="interfaceutils.html" title="interfaceutils"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="annutils.html" title="annutils"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="cythons.html" accesskey="U">Cython Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">configutils</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="cythons.html">Cython Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="annutils.html">annutils</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">configutils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="interfaceutils.html">interfaceutils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="interputils.html">interputils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modelutils.html">modelutils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pointerutils.html">pointerutils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ppolyutils.html">ppolyutils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quadutils.html">quadutils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="rootutils.html">rootutils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequenceutils.html">sequenceutils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smoothutils.html">smoothutils</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="annutils.html"
+                          title="previous chapter">annutils</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="interfaceutils.html"
+                          title="next chapter">interfaceutils</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/configutils.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="configutils">
+<span id="id1"></span><h1>configutils<a class="headerlink" href="#configutils" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.cythons.configutils">This Cython module implements global configuration data for numerical
+tool, which must be available at Cython speed during simulations.</p>
+<p>All configuration data is available via attribute <cite>config</cite> of module <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>.</p>
+<p>Many numerical integration algorithms provide error estimates.  An
+integration result is only accepted, if the associated error estimate
+is lower than a given threshold value.</p>
+<p>The default value is:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.cythons.configutils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">abs_error_max</span><span class="p">)</span>
+<span class="go">0.01</span>
+</pre></div>
+</div>
+<p>You can pass larger value, but note that too large tolerances as the
+following would possible lead to poor simulation results:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">abs_error_max</span> <span class="o">=</span> <span class="mf">1e3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">abs_error_max</span><span class="p">)</span>
+<span class="go">1000.0</span>
+</pre></div>
+</div>
+<p>Tolerances lower than zero or equal zero cannot be met and are thus
+forbidden:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">abs_error_max</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The numerical tolerance value `abs_error_max` must be larger than zero, but the value `0.0` was given.</span>
+</pre></div>
+</div>
+<p>Under some circumstances, numerical integration algorithms might not
+be able to achieve sufficient accuracy with reasonable effort.  To
+prevent model simulations from becoming too long, one can restrict
+the smallest time step, with which an outer time step is allowed to
+be solved…</p>
+<p>The default value is:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">rel_dt_min</span><span class="p">)</span>
+<span class="go">0.001</span>
+</pre></div>
+</div>
+<p>You can pass larger value, but note that too large step sizes as the
+following would possible result in poor simulation results:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">rel_dt_min</span> <span class="o">=</span> <span class="mf">1.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">rel_dt_min</span><span class="p">)</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<p>On the other hand, too small step sizes might result in too long
+simulation times:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">rel_dt_min</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">rel_dt_min</span><span class="p">)</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>Tolerances lower than zero or larger than one do not make sense and
+are thus forbidden:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">rel_dt_min</span> <span class="o">=</span> <span class="mf">1.1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">The smallest integration time step `_rel_dt_min` must not be smaller than zero or larger than one, but the value `1.1` was given.</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="interfaceutils.html" title="interfaceutils"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="annutils.html" title="annutils"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="cythons.html" >Cython Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">configutils</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

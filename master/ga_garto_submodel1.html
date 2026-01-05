@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>ga_garto_submodel1 &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="HydPy-H (HBV)" href="HydPy-H.html" />
+    <link rel="prev" title="ga_garto" href="ga_garto.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HydPy-H.html" title="HydPy-H (HBV)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ga_garto.html" title="ga_garto"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-GA.html" accesskey="U">HydPy-GA (Green-Ampt)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ga_garto_submodel1</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="ga.html">ga</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ga_garto.html">ga_garto</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">ga_garto_submodel1</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.ga_garto_submodel1.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.ga_garto_submodel1.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.ga_garto_submodel1.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.ga_garto_submodel1.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.ga_garto_submodel1.AideSequences"><code class="docutils literal notranslate"><span class="pre">AideSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.ga_garto_submodel1.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.ga_garto_submodel1.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.ga_garto_submodel1.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.ga_garto_submodel1.LogSequences"><code class="docutils literal notranslate"><span class="pre">LogSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.ga_garto_submodel1.StateSequences"><code class="docutils literal notranslate"><span class="pre">StateSequences</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="ga_garto.html"
+                          title="previous chapter">ga_garto</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="HydPy-H.html"
+                          title="next chapter">HydPy-H (HBV)</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/ga_garto_submodel1.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="ga-garto-submodel1">
+<span id="id1"></span><h1>HydPy-GA-GARTO-Sub1 (submodel for calculating the Green-Ampt / Talbot-Ogden infiltration with redistribution)<a class="headerlink" href="#ga-garto-submodel1" title="Link to this heading">¶</a></h1>
+<p><a class="reference internal" href="#module-hydpy.models.ga_garto_submodel1" title="hydpy.models.ga_garto_submodel1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ga_garto_submodel1</span></code></a> satisfies the <a class="reference internal" href="soilinterfaces.html#hydpy.interfaces.soilinterfaces.SoilModel_V1" title="hydpy.interfaces.soilinterfaces.SoilModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoilModel_V1</span></code></a> interface and works like the
+stand-alone model <a class="reference internal" href="ga_garto.html#module-hydpy.models.ga_garto" title="hydpy.models.ga_garto"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ga_garto</span></code></a>, although slight deviations are possible depending on
+how the main model calls the different interface methods.  <a class="reference internal" href="#module-hydpy.models.ga_garto_submodel1" title="hydpy.models.ga_garto_submodel1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ga_garto_submodel1</span></code></a> is the
+first submodel implemented into the <em>HydPy</em> framework.  Hence, we discussed its
+development extensively in <cite>issue 91</cite>.  For concrete application examples and further
+information, see the documentation of method <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Calc_BoWa_SoilModel_V1" title="hydpy.models.lland.lland_model.Calc_BoWa_SoilModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_BoWa_SoilModel_V1</span></code></a> and
+the integration tests <a class="reference internal" href="lland_dd.html#lland-dd-acker-garto"><span class="std std-ref">acre (GARTO)</span></a> of application model <a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a> and
+<a class="reference internal" href="lland_knauf.html#lland-knauf-acker-heavy-garto-daily"><span class="std std-ref">acre (GARTO)</span></a> of application model <a class="reference internal" href="lland_knauf.html#module-hydpy.models.lland_knauf" title="hydpy.models.lland_knauf"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_knauf</span></code></a>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.ga_garto_submodel1.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.ga_garto_submodel1.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/ga_garto_submodel1.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.ga_garto_submodel1.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Base_SoilModel_V1" title="hydpy.models.ga.ga_model.Base_SoilModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base_SoilModel_V1</span></code></a></p>
+<p>HydPy-GA-GARTO-Sub1 (submodel for calculating the Green-Ampt / Talbot-Ogden infiltration with redistribution).</p>
+<dl class="simple">
+<dt>The following interface methods are available to main models using the defined model as a submodel:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Set_InitialSurfaceWater_V1" title="hydpy.models.ga.ga_model.Set_InitialSurfaceWater_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set_InitialSurfaceWater_V1</span></code></a> Set the given initial surface water depth for the selected soil compartment.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Set_ActualSurfaceWater_V1" title="hydpy.models.ga.ga_model.Set_ActualSurfaceWater_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set_ActualSurfaceWater_V1</span></code></a> Set the given actual surface water depth for the selected soil compartment.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Set_SoilWaterSupply_V1" title="hydpy.models.ga.ga_model.Set_SoilWaterSupply_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set_SoilWaterSupply_V1</span></code></a> Set the (potential) water supply to the soil’s body.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Set_SoilWaterDemand_V1" title="hydpy.models.ga.ga_model.Set_SoilWaterDemand_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set_SoilWaterDemand_V1</span></code></a> Set the (potential) water withdrawal from the soil’s surface and body.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Execute_Infiltration_V1" title="hydpy.models.ga.ga_model.Execute_Infiltration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Execute_Infiltration_V1</span></code></a> Calculate infiltration (and percolation).</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Add_SoilWater_V1" title="hydpy.models.ga.ga_model.Add_SoilWater_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Add_SoilWater_V1</span></code></a> Add the (direct) soil water supply to the soil’s body.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Remove_SoilWater_V1" title="hydpy.models.ga.ga_model.Remove_SoilWater_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Remove_SoilWater_V1</span></code></a> Remove the water demand from the soil’s body and eventually from the soil’s surface.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Get_Percolation_V1" title="hydpy.models.ga.ga_model.Get_Percolation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_Percolation_V1</span></code></a> Get the current percolation from the selected soil compartment.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Get_Infiltration_V1" title="hydpy.models.ga.ga_model.Get_Infiltration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_Infiltration_V1</span></code></a> Get the current infiltration to the selected soil compartment.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Get_SoilWaterAddition_V1" title="hydpy.models.ga.ga_model.Get_SoilWaterAddition_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_SoilWaterAddition_V1</span></code></a> Get the current soil water addition to the selected soil compartment.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Get_SoilWaterRemoval_V1" title="hydpy.models.ga.ga_model.Get_SoilWaterRemoval_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_SoilWaterRemoval_V1</span></code></a> Get the current soil (and surface water) withdrawal from the selected soil compartment.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Get_SoilWaterContent_V1" title="hydpy.models.ga.ga_model.Get_SoilWaterContent_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_SoilWaterContent_V1</span></code></a> Get the current soil water content of the selected soil compartment.</p></li>
+</ul>
+</dd>
+<dt>The following “additional methods” might be called by one or more of the other methods or are meant to be directly called by the user:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Return_RelativeMoisture_V1" title="hydpy.models.ga.ga_model.Return_RelativeMoisture_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_RelativeMoisture_V1</span></code></a> Calculate and return the relative soil water content for the given bin-soil combination.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Return_Conductivity_V1" title="hydpy.models.ga.ga_model.Return_Conductivity_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_Conductivity_V1</span></code></a> Based on the Brooks-Corey soil moisture characteristic model <span id="id2">(<a class="reference internal" href="zbibliography.html#id36" title="R. H. Brooks and A. T. Corey. Properties of porous media affecting fluid flow. Journal of the Irrigation and Drainage Division, pages 61-90, 1966. doi:10.1061/JRCEA4.0000425.">Brooks and Corey, 1966</a>)</span>, calculate and return the conductivity for the given bin-soil combination.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Return_CapillaryDrive_V1" title="hydpy.models.ga.ga_model.Return_CapillaryDrive_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_CapillaryDrive_V1</span></code></a> Based on the Brooks-Corey soil moisture characteristic model <span id="id3">(<a class="reference internal" href="zbibliography.html#id36" title="R. H. Brooks and A. T. Corey. Properties of porous media affecting fluid flow. Journal of the Irrigation and Drainage Division, pages 61-90, 1966. doi:10.1061/JRCEA4.0000425.">Brooks and Corey, 1966</a>)</span>, calculate and return the capillary drive between the water contents of the given bins for the defined soil.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Return_DryDepth_V1" title="hydpy.models.ga.ga_model.Return_DryDepth_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_DryDepth_V1</span></code></a> Calculate and return the “dry depth”.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Return_LastActiveBin_V1" title="hydpy.models.ga.ga_model.Return_LastActiveBin_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_LastActiveBin_V1</span></code></a> Find the index of the last active bin (that either contains a wetting front or uniform moisture over the complete soil depth).</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Active_Bin_V1" title="hydpy.models.ga.ga_model.Active_Bin_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Active_Bin_V1</span></code></a> Activate a bin to the right of the bin with the given index.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Percolate_FilledBin_V1" title="hydpy.models.ga.ga_model.Percolate_FilledBin_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Percolate_FilledBin_V1</span></code></a> Calculate the percolation of water through the filled first bin due to gravitational forcing.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Shift_Front_V1" title="hydpy.models.ga.ga_model.Shift_Front_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Shift_Front_V1</span></code></a> Increase the selected bin’s wetting front depth without modifying its relative moisture following a variation of the Talbot-Ogden equation <span id="id4">(<a class="reference internal" href="zbibliography.html#id35" title="Cary A. Talbot and Fred L. Ogden. A method for computing infiltration and redistribution in a discretized moisture content domain. Water Resources Research, 2008. doi:10.1029/2008WR006815.">Talbot and Ogden, 2008</a>)</span>.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Redistribute_Front_V1" title="hydpy.models.ga.ga_model.Redistribute_Front_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Redistribute_Front_V1</span></code></a> Modify the selected bin’s wetting front depth and relative moisture content based on a Green &amp; Ampt redistribution equation.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Infiltrate_WettingFrontBins_V1" title="hydpy.models.ga.ga_model.Infiltrate_WettingFrontBins_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Infiltrate_WettingFrontBins_V1</span></code></a> Process infiltration into the wetting front bins.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Merge_FrontDepthOvershootings_V1" title="hydpy.models.ga.ga_model.Merge_FrontDepthOvershootings_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Merge_FrontDepthOvershootings_V1</span></code></a> Merge those neighbour bins where the wetting front’s depth of the right neighbour exceeds the wetting front’s depth of the left neighbour.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Merge_SoilDepthOvershootings_V1" title="hydpy.models.ga.ga_model.Merge_SoilDepthOvershootings_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Merge_SoilDepthOvershootings_V1</span></code></a> Merge bins with wetting front depth larger than soil depth with their left neighbour bins and add their water excess to percolation.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Water_AllBins_V1" title="hydpy.models.ga.ga_model.Water_AllBins_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Water_AllBins_V1</span></code></a> Water the soil’s body by (potentially) adding water to all active bins.</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_model.Withdraw_AllBins_V1" title="hydpy.models.ga.ga_model.Withdraw_AllBins_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Withdraw_AllBins_V1</span></code></a> Take withdrawal from the available surface water and (potentially) from all active bins.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.ga_garto_submodel1.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('GA-GARTO-Sub1',</span> <span class="pre">'submodel</span> <span class="pre">for</span> <span class="pre">calculating</span> <span class="pre">the</span> <span class="pre">Green-Ampt</span> <span class="pre">/</span> <span class="pre">Talbot-Ogden</span> <span class="pre">infiltration</span> <span class="pre">with</span> <span class="pre">redistribution')</span></span><a class="headerlink" href="#hydpy.models.ga_garto_submodel1.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.ga_garto_submodel1.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.ga_garto_submodel1.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.ga_garto_submodel1.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.ga_garto_submodel1.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.ga_garto_submodel1.AideSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.ga_garto_submodel1.</span></span><span class="sig-name descname"><span class="pre">AideSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.ga_garto_submodel1.AideSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.AideSequences" title="hydpy.core.sequencetools.AideSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">AideSequences</span></code></a></p>
+<p>Aide sequences of model ga_garto_submodel1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_aides.InitialSurfaceWater" title="hydpy.models.ga.ga_aides.InitialSurfaceWater"><code class="xref py py-func docutils literal notranslate"><span class="pre">InitialSurfaceWater()</span></code></a> The initial surface water depth at the beginning of a numerical substep [mm].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_aides.ActualSurfaceWater" title="hydpy.models.ga.ga_aides.ActualSurfaceWater"><code class="xref py py-func docutils literal notranslate"><span class="pre">ActualSurfaceWater()</span></code></a> The actual surface water depth [mm].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.ga_garto_submodel1.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.ga_garto_submodel1.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.ga_garto_submodel1.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model ga_garto_submodel1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_control.NmbSoils" title="hydpy.models.ga.ga_control.NmbSoils"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbSoils()</span></code></a> The number of separately modelled soil compartments in the subbasin [-].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_control.NmbBins" title="hydpy.models.ga.ga_control.NmbBins"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbBins()</span></code></a> The number of available bins for each soil compartment [-].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_control.DT" title="hydpy.models.ga.ga_control.DT"><code class="xref py py-func docutils literal notranslate"><span class="pre">DT()</span></code></a> The length of the numerical substeps [T].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_control.Sealed" title="hydpy.models.ga.ga_control.Sealed"><code class="xref py py-func docutils literal notranslate"><span class="pre">Sealed()</span></code></a> Flag indicating if a (soil) compartment is sealed for infiltration [-].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_control.SoilDepth" title="hydpy.models.ga.ga_control.SoilDepth"><code class="xref py py-func docutils literal notranslate"><span class="pre">SoilDepth()</span></code></a> Depth of the considered soil domains [mm].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_control.ResidualMoisture" title="hydpy.models.ga.ga_control.ResidualMoisture"><code class="xref py py-func docutils literal notranslate"><span class="pre">ResidualMoisture()</span></code></a> Relative residual water content [-].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_control.SaturationMoisture" title="hydpy.models.ga.ga_control.SaturationMoisture"><code class="xref py py-func docutils literal notranslate"><span class="pre">SaturationMoisture()</span></code></a> Relative saturation water content [-].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_control.SaturatedConductivity" title="hydpy.models.ga.ga_control.SaturatedConductivity"><code class="xref py py-func docutils literal notranslate"><span class="pre">SaturatedConductivity()</span></code></a> Saturated hydraulic conductivity [mm/T].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_control.PoreSizeDistribution" title="hydpy.models.ga.ga_control.PoreSizeDistribution"><code class="xref py py-func docutils literal notranslate"><span class="pre">PoreSizeDistribution()</span></code></a> Pore-size distribution parameter [-].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_control.AirEntryPotential" title="hydpy.models.ga.ga_control.AirEntryPotential"><code class="xref py py-func docutils literal notranslate"><span class="pre">AirEntryPotential()</span></code></a> Air entry potential [mm].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.ga_garto_submodel1.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.ga_garto_submodel1.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.ga_garto_submodel1.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model ga_garto_submodel1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_derived.NmbSubsteps" title="hydpy.models.ga.ga_derived.NmbSubsteps"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbSubsteps()</span></code></a> The number of numerical substeps in each simulation step [-].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_derived.EffectiveCapillarySuction" title="hydpy.models.ga.ga_derived.EffectiveCapillarySuction"><code class="xref py py-func docutils literal notranslate"><span class="pre">EffectiveCapillarySuction()</span></code></a> The effective capillary suction according to the Brooks-Corey soil moisture characteristic model <span id="id5">(<a class="reference internal" href="zbibliography.html#id36" title="R. H. Brooks and A. T. Corey. Properties of porous media affecting fluid flow. Journal of the Irrigation and Drainage Division, pages 61-90, 1966. doi:10.1061/JRCEA4.0000425.">Brooks and Corey, 1966</a>)</span> [mm].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.ga_garto_submodel1.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.ga_garto_submodel1.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.ga_garto_submodel1.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model ga_garto_submodel1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_fluxes.SoilWaterSupply" title="hydpy.models.ga.ga_fluxes.SoilWaterSupply"><code class="xref py py-func docutils literal notranslate"><span class="pre">SoilWaterSupply()</span></code></a> Water supply to the soil’s body (e.g., capillary rise) [mm/T].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_fluxes.Demand" title="hydpy.models.ga.ga_fluxes.Demand"><code class="xref py py-func docutils literal notranslate"><span class="pre">Demand()</span></code></a> (Potential) water withdrawal from the soil’s surface and body [mm/T].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_fluxes.Infiltration" title="hydpy.models.ga.ga_fluxes.Infiltration"><code class="xref py py-func docutils literal notranslate"><span class="pre">Infiltration()</span></code></a> Infiltration through the soil’s surface [mm/T].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_fluxes.Percolation" title="hydpy.models.ga.ga_fluxes.Percolation"><code class="xref py py-func docutils literal notranslate"><span class="pre">Percolation()</span></code></a> Percolation through the soil’s bottom [mm/T].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_fluxes.SoilWaterAddition" title="hydpy.models.ga.ga_fluxes.SoilWaterAddition"><code class="xref py py-func docutils literal notranslate"><span class="pre">SoilWaterAddition()</span></code></a> Actual addition of soil water due to processes like capillary rise [mm/T].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_fluxes.Withdrawal" title="hydpy.models.ga.ga_fluxes.Withdrawal"><code class="xref py py-func docutils literal notranslate"><span class="pre">Withdrawal()</span></code></a> Withdrawal from the soil’s surface or body (e.g. due to evaporation) [mm/T].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_fluxes.SurfaceRunoff" title="hydpy.models.ga.ga_fluxes.SurfaceRunoff"><code class="xref py py-func docutils literal notranslate"><span class="pre">SurfaceRunoff()</span></code></a> Surface runoff [mm/T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.ga_garto_submodel1.LogSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.ga_garto_submodel1.</span></span><span class="sig-name descname"><span class="pre">LogSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.ga_garto_submodel1.LogSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequences" title="hydpy.core.sequencetools.LogSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequences</span></code></a></p>
+<p>Log sequences of model ga_garto_submodel1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_logs.MoistureChange" title="hydpy.models.ga.ga_logs.MoistureChange"><code class="xref py py-func docutils literal notranslate"><span class="pre">MoistureChange()</span></code></a> The (last) change in soil moisture of each bin [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.ga_garto_submodel1.StateSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.ga_garto_submodel1.</span></span><span class="sig-name descname"><span class="pre">StateSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.ga_garto_submodel1.StateSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequences</span></code></a></p>
+<p>State sequences of model ga_garto_submodel1.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_states.Moisture" title="hydpy.models.ga.ga_states.Moisture"><code class="xref py py-func docutils literal notranslate"><span class="pre">Moisture()</span></code></a> The relative soil moisture of each bin (within the wetting front) [-].</p></li>
+<li><p><a class="reference internal" href="ga.html#hydpy.models.ga.ga_states.FrontDepth" title="hydpy.models.ga.ga_states.FrontDepth"><code class="xref py py-func docutils literal notranslate"><span class="pre">FrontDepth()</span></code></a> The depth of the wetting front in each bin [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HydPy-H.html" title="HydPy-H (HBV)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ga_garto.html" title="ga_garto"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-GA.html" >HydPy-GA (Green-Ampt)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">ga_garto_submodel1</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

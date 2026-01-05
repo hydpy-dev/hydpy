@@ -1,0 +1,63 @@
+.. |ConditionManager.inputpath| replace:: :const:`~hydpy.core.filetools.ConditionManager.inputpath`
+.. |ConditionManager.outputpath| replace:: :const:`~hydpy.core.filetools.ConditionManager.outputpath`
+.. |ConditionManager| replace:: :class:`~hydpy.core.filetools.ConditionManager`
+.. |ControlManager.clear_registry| replace:: :func:`~hydpy.core.filetools.ControlManager.clear_registry`
+.. |ControlManager.load_file| replace:: :func:`~hydpy.core.filetools.ControlManager.load_file`
+.. |ControlManager| replace:: :class:`~hydpy.core.filetools.ControlManager`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |FileManager.availabledirs| replace:: :const:`~hydpy.core.filetools.FileManager.availabledirs`
+.. |FileManager.basepath| replace:: :const:`~hydpy.core.filetools.FileManager.basepath`
+.. |FileManager.currentdir| replace:: :const:`~hydpy.core.filetools.FileManager.currentdir`
+.. |FileManager.filenames| replace:: :const:`~hydpy.core.filetools.FileManager.filenames`
+.. |FileManager.projectdir| replace:: :const:`~hydpy.core.filetools.FileManager.projectdir`
+.. |FileManager.zip_currentdir| replace:: :func:`~hydpy.core.filetools.FileManager.zip_currentdir`
+.. |FileManager| replace:: :class:`~hydpy.core.filetools.FileManager`
+.. |Folder2Path| replace:: :class:`~hydpy.core.filetools.Folder2Path`
+.. |HydPy.prepare_models| replace:: :func:`~hydpy.core.hydpytools.HydPy.prepare_models`
+.. |HydPy| replace:: :class:`~hydpy.core.hydpytools.HydPy`
+.. |IOSequence.average_series| replace:: :func:`~hydpy.core.sequencetools.IOSequence.average_series`
+.. |IOSequence.save_ext| replace:: :func:`~hydpy.core.sequencetools.IOSequence.save_ext`
+.. |IOSequence.save_mean| replace:: :func:`~hydpy.core.sequencetools.IOSequence.save_mean`
+.. |IOSequence.series| replace:: :const:`~hydpy.core.sequencetools.IOSequence.series`
+.. |IOSequence| replace:: :class:`~hydpy.core.sequencetools.IOSequence`
+.. |NetCDFInterface| replace:: :class:`~hydpy.core.netcdftools.NetCDFInterface`
+.. |NetworkManager.delete_files| replace:: :func:`~hydpy.core.filetools.NetworkManager.delete_files`
+.. |NetworkManager.load_files| replace:: :func:`~hydpy.core.filetools.NetworkManager.load_files`
+.. |NetworkManager.save_files| replace:: :func:`~hydpy.core.filetools.NetworkManager.save_files`
+.. |NetworkManager| replace:: :class:`~hydpy.core.filetools.NetworkManager`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |None| replace:: :const:`None`
+.. |Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+.. |Selection| replace:: :class:`~hydpy.core.selectiontools.Selection`
+.. |SequenceManager.close_netcdfreader| replace:: :func:`~hydpy.core.filetools.SequenceManager.close_netcdfreader`
+.. |SequenceManager.close_netcdfwriter| replace:: :func:`~hydpy.core.filetools.SequenceManager.close_netcdfwriter`
+.. |SequenceManager.open_netcdfreader| replace:: :func:`~hydpy.core.filetools.SequenceManager.open_netcdfreader`
+.. |SequenceManager.open_netcdfwriter| replace:: :func:`~hydpy.core.filetools.SequenceManager.open_netcdfwriter`
+.. |SequenceManager.save_file| replace:: :func:`~hydpy.core.filetools.SequenceManager.save_file`
+.. |SequenceManager| replace:: :class:`~hydpy.core.filetools.SequenceManager`
+.. |Sim| replace:: :class:`~hydpy.core.sequencetools.Sim`
+.. |Timegrids| replace:: :class:`~hydpy.core.timetools.Timegrids`
+.. |Variable.refweights| replace:: :const:`~hydpy.core.variabletools.Variable.refweights`
+.. |dict| replace:: :class:`dict`
+.. |list| replace:: :class:`list`
+.. |numpy| replace:: :mod:`~numpy`
+.. |prepare_full_example_1| replace:: :func:`~hydpy.examples.prepare_full_example_1`
+.. |prepare_io_example_1| replace:: :func:`~hydpy.examples.prepare_io_example_1`
+.. |property| replace:: :class:`property`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |str| replace:: :class:`str`
+.. |lland_constants.ACKER| replace:: :const:`~hydpy.models.lland.lland_constants.ACKER`
+.. |lland_constants.WASSER| replace:: :const:`~hydpy.models.lland.lland_constants.WASSER`
+.. |lland_control.Lnk| replace:: :class:`~hydpy.models.lland.lland_control.Lnk`
+.. |lland_fluxes.NKor| replace:: :class:`~hydpy.models.lland.lland_fluxes.NKor`
+.. |selectiontools.Selections| replace:: :class:`~hydpy.core.selectiontools.Selections`
+
+.. _filetools:
+
+filetools
+=========
+
+.. automodule:: hydpy.core.filetools
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs

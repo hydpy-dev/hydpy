@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.kinw.kinw_derived &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.kinw.kinw_derived</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.kinw.kinw_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs</span><span class="w"> </span><span class="kn">import</span> <span class="n">smoothtools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.kinw</span><span class="w"> </span><span class="kn">import</span> <span class="n">kinw_control</span>
+
+
+<div class="viewcode-block" id="Sek">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.Sek">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Sek</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SecondsParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sekunden im Simulationszeitschritt (Number of seconds of the selected</span>
+<span class="sd">    simulation time step) [s].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="Seconds">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.Seconds">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Seconds</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SecondsParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The length of the actual simulation step size in seconds [s].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="HV">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.HV">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HV</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">LeftRightParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Höhe Vorländer (height of both forelands) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">kinw_control</span><span class="o">.</span><span class="n">BBV</span><span class="p">,</span> <span class="n">kinw_control</span><span class="o">.</span><span class="n">BNV</span><span class="p">)</span>
+
+<div class="viewcode-block" id="HV.update">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.HV.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update based on :math:`HV=BBV/BNV`.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; from hydpy.models.kinw import *</span>
+<span class="sd">            &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; bbv(left=10., right=40.)</span>
+<span class="sd">            &gt;&gt;&gt; bnv(left=10., right=20.)</span>
+<span class="sd">            &gt;&gt;&gt; derived.hv.update()</span>
+<span class="sd">            &gt;&gt;&gt; derived.hv</span>
+<span class="sd">            hv(left=1.0, right=2.0)</span>
+<span class="sd">            &gt;&gt;&gt; bbv(left=10., right=0.)</span>
+<span class="sd">            &gt;&gt;&gt; bnv(left=0., right=20.)</span>
+<span class="sd">            &gt;&gt;&gt; derived.hv.update()</span>
+<span class="sd">            &gt;&gt;&gt; derived.hv</span>
+<span class="sd">            hv(0.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bbv</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">bnv</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">bbv</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">/</span> <span class="n">con</span><span class="o">.</span><span class="n">bnv</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MFM">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.MFM">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MFM</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Produkt der zeitkonstanten Terme der Manning-Strickler-Formel für das</span>
+<span class="sd">    Hauptgerinne (product of the time-constant terms of the Manning-Strickler</span>
+<span class="sd">    equation, calculated for the main channel) [m^(1/3)/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">kinw_control</span><span class="o">.</span><span class="n">EKM</span><span class="p">,</span> <span class="n">kinw_control</span><span class="o">.</span><span class="n">SKM</span><span class="p">,</span> <span class="n">kinw_control</span><span class="o">.</span><span class="n">Gef</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MFM.update">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.MFM.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update based on :math:`MFM=EKM \\cdot SKM \\cdot \\sqrt{Gef}`.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; from hydpy.models.kinw import *</span>
+<span class="sd">            &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; ekm(2.0)</span>
+<span class="sd">            &gt;&gt;&gt; skm(50.0)</span>
+<span class="sd">            &gt;&gt;&gt; gef(0.01)</span>
+<span class="sd">            &gt;&gt;&gt; derived.mfm.update()</span>
+<span class="sd">            &gt;&gt;&gt; derived.mfm</span>
+<span class="sd">            mfm(10.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">ekm</span> <span class="o">*</span> <span class="n">con</span><span class="o">.</span><span class="n">skm</span> <span class="o">*</span> <span class="n">con</span><span class="o">.</span><span class="n">gef</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MFV">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.MFV">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MFV</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">LeftRightParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Produkt der zeitkonstanten Terme der Manning-Strickler-Formel für</span>
+<span class="sd">    beide Vorländer (product of the time-constant terms of the Manning-Strickler</span>
+<span class="sd">    equation, calculated for both forelands) [m^(1/3)/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">kinw_control</span><span class="o">.</span><span class="n">EKV</span><span class="p">,</span> <span class="n">kinw_control</span><span class="o">.</span><span class="n">SKV</span><span class="p">,</span> <span class="n">kinw_control</span><span class="o">.</span><span class="n">Gef</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MFV.update">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.MFV.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update based on :math:`MFV=EKV \\cdot SKV \\cdot \\sqrt{Gef}`.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; from hydpy.models.kinw import *</span>
+<span class="sd">            &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; ekv(left=2.0, right=4.0)</span>
+<span class="sd">            &gt;&gt;&gt; skv(left=25.0, right=50)</span>
+<span class="sd">            &gt;&gt;&gt; gef(0.01)</span>
+<span class="sd">            &gt;&gt;&gt; derived.mfv.update()</span>
+<span class="sd">            &gt;&gt;&gt; derived.mfv</span>
+<span class="sd">            mfv(left=5.0, right=20.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">ekv</span> <span class="o">*</span> <span class="n">con</span><span class="o">.</span><span class="n">skv</span> <span class="o">*</span> <span class="n">con</span><span class="o">.</span><span class="n">gef</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BNMF">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.BNMF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BNMF</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hilfsterm zur Berechnung des benetzten Böschungsumfangs im</span>
+<span class="sd">    Hauptgerinne (auxiliary term for the calculation of the wetted</span>
+<span class="sd">    perimeter of the slope of the main channel) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">kinw_control</span><span class="o">.</span><span class="n">BNM</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="BNMF.update">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.BNMF.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update based on :math:`BNMF= \\sqrt{1+BNM^2}`.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; from hydpy.models.kinw import *</span>
+<span class="sd">            &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; bnm(2.0)</span>
+<span class="sd">            &gt;&gt;&gt; derived.bnmf.update()</span>
+<span class="sd">            &gt;&gt;&gt; derived.bnmf</span>
+<span class="sd">            bnmf(2.236068)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">bnm</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BNVF">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.BNVF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BNVF</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">LeftRightParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hilfsterm zur Berechnung des benetzten Böschungsumfangs der Vorländer</span>
+<span class="sd">    (auxiliary term for the calculation of the wetted perimeter of the slope</span>
+<span class="sd">    of both forelands) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">kinw_control</span><span class="o">.</span><span class="n">BNV</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="BNVF.update">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.BNVF.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update based on :math:`BNVF= \\sqrt{1+BNV^2}`.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; from hydpy.models.kinw import *</span>
+<span class="sd">            &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; bnv(left=2.0, right=3.0)</span>
+<span class="sd">            &gt;&gt;&gt; derived.bnvf.update()</span>
+<span class="sd">            &gt;&gt;&gt; derived.bnvf</span>
+<span class="sd">            bnvf(left=2.236068, right=3.162278)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">bnv</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="BNVRF">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.BNVRF">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BNVRF</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">LeftRightParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Hilfsterm zur Berechnung des benetzten Böschungsumfangs der</span>
+<span class="sd">    Vorlandränder (auxiliary term for the calculation of the wetted</span>
+<span class="sd">    perimeter of the slope of both outer embankments) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">kinw_control</span><span class="o">.</span><span class="n">BNVR</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="BNVRF.update">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.BNVRF.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update based on :math:`BNVRF= \\sqrt(1+BNVR^2)`.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            &gt;&gt;&gt; from hydpy.models.kinw import *</span>
+<span class="sd">            &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; bnvr(left=2.0, right=3.0)</span>
+<span class="sd">            &gt;&gt;&gt; derived.bnvrf.update()</span>
+<span class="sd">            &gt;&gt;&gt; derived.bnvrf</span>
+<span class="sd">            bnvrf(left=2.236068, right=3.162278)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">bnvr</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="HRP">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.HRP">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HRP</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Wasserstand-Regularisierungs-Parameter zur Verwendung in Verbindung</span>
+<span class="sd">    mit Regularisierungsfunktion |smooth_logistic2| (regularisation parameter</span>
+<span class="sd">    for water stage to be used when applying regularisation function</span>
+<span class="sd">    |smooth_logistic2|) [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">kinw_control</span><span class="o">.</span><span class="n">HR</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="HRP.update">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.HRP.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the smoothing parameter value.</span>
+
+<span class="sd">        The documentation on module |smoothtools| explains the following</span>
+<span class="sd">        example in some detail:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.kinw import *</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.cythons.smoothutils import smooth_logistic2</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; hr(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.hrp.update()</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_logistic2(0.0, derived.hrp))</span>
+<span class="sd">        0.0</span>
+<span class="sd">        &gt;&gt;&gt; hr(2.5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.hrp.update()</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_logistic2(2.5, derived.hrp))</span>
+<span class="sd">        2.51</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metapar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">hr</span><span class="o">.</span><span class="n">value</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">smoothtools</span><span class="o">.</span><span class="n">calc_smoothpar_logistic2</span><span class="p">(</span><span class="n">metapar</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NmbDiscontinuities">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.NmbDiscontinuities">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NmbDiscontinuities</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of points of discontinuity in the rating curve [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="NmbDiscontinuities.update">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.NmbDiscontinuities.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Take the number of discontinuities from the available cross-section</span>
+<span class="sd">        submodel.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.kinw_impl_euler import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; with model.add_wqmodel_v1(&quot;wq_trapeze_strickler&quot;):</span>
+<span class="sd">        ...     nmbtrapezes(2)</span>
+<span class="sd">        ...     bottomlevels(1.0, 3.0)</span>
+<span class="sd">        ...     bottomslope(0.01)</span>
+<span class="sd">        ...     sideslopes(2.0, 4.0)</span>
+<span class="sd">        ...     calibrationfactors(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbdiscontinuities.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbdiscontinuities</span>
+<span class="sd">        nmbdiscontinuities(1)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="o">:=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">__HYDPY_ROOTMODEL__</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">wqmodel</span><span class="o">.</span><span class="n">get_depths_of_discontinuity</span><span class="p">()))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FinalDepth2InitialVolume">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.FinalDepth2InitialVolume">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FinalDepth2InitialVolume</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A pair of the final water depth and the corresponding initial water volume</span>
+<span class="sd">    according to the implicit Euler method for each point of discontinuity in the</span>
+<span class="sd">    rating curve [m and million m³].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FinalDepth2InitialVolume.update">
+<a class="viewcode-back" href="../../../../kinw.html#hydpy.models.kinw.kinw_derived.FinalDepth2InitialVolume.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Use the methods |CrossSectionModel_V1.get_depths_of_discontinuity| and</span>
+<span class="sd">        |Return_InitialWaterVolume_V1| to determine the final water depths and the</span>
+<span class="sd">        corresponding initial water volumes.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.kinw_impl_euler import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; length(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; nmbsegments(10)</span>
+<span class="sd">        &gt;&gt;&gt; derived.seconds(60 * 60 * 24)</span>
+<span class="sd">        &gt;&gt;&gt; with model.add_wqmodel_v1(&quot;wq_trapeze_strickler&quot;):</span>
+<span class="sd">        ...     nmbtrapezes(3)</span>
+<span class="sd">        ...     bottomlevels(1.0, 3.0, 5.0)</span>
+<span class="sd">        ...     bottomwidths(20.0)</span>
+<span class="sd">        ...     sideslopes(0.0, 0.0, 0.0)</span>
+<span class="sd">        ...     bottomslope(0.001)</span>
+<span class="sd">        ...     stricklercoefficients(30.0)</span>
+<span class="sd">        ...     calibrationfactors(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.nmbdiscontinuities.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.finaldepth2initialvolume.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.finaldepth2initialvolume</span>
+<span class="sd">        finaldepth2initialvolume([[2.0, 5.008867],</span>
+<span class="sd">                                  [4.0, 19.01208]])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">model</span> <span class="o">:=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">__HYDPY_ROOTMODEL__</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">nmbdiscontinuities</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">wqmodel</span><span class="o">.</span><span class="n">get_depths_of_discontinuity</span><span class="p">()):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">d</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">return_initialwatervolume</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.kinw.kinw_derived</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

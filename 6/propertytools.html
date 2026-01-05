@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>propertytools &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pubtools" href="pubtools.html" />
+    <link rel="prev" title="printtools" href="printtools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pubtools.html" title="pubtools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="printtools.html" title="printtools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="core.html" accesskey="U">Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">propertytools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="core.html">Core Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="aliastools.html">aliastools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autodoctools.html">autodoctools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="auxfiletools.html">auxfiletools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="devicetools.html">devicetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="exceptiontools.html">exceptiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="filetools.html">filetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hydpytools.html">hydpytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="importtools.html">importtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="indextools.html">indextools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="itemtools.html">itemtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="masktools.html">masktools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="modeltools.html">modeltools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="netcdftools.html">netcdftools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="objecttools.html">objecttools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="optiontools.html">optiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="parametertools.html">parametertools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="printtools.html">printtools</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">propertytools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.BaseDescriptor"><code class="docutils literal notranslate"><span class="pre">BaseDescriptor</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.BaseDescriptor.objtype"><code class="docutils literal notranslate"><span class="pre">BaseDescriptor.objtype</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.BaseDescriptor.module"><code class="docutils literal notranslate"><span class="pre">BaseDescriptor.module</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.BaseDescriptor.name"><code class="docutils literal notranslate"><span class="pre">BaseDescriptor.name</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.BaseDescriptor.set_doc"><code class="docutils literal notranslate"><span class="pre">BaseDescriptor.set_doc()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.FGet"><code class="docutils literal notranslate"><span class="pre">FGet</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.FSet"><code class="docutils literal notranslate"><span class="pre">FSet</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.FDel"><code class="docutils literal notranslate"><span class="pre">FDel</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.BaseProperty"><code class="docutils literal notranslate"><span class="pre">BaseProperty</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.BaseProperty.fget"><code class="docutils literal notranslate"><span class="pre">BaseProperty.fget</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.BaseProperty.fset"><code class="docutils literal notranslate"><span class="pre">BaseProperty.fset</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.BaseProperty.fdel"><code class="docutils literal notranslate"><span class="pre">BaseProperty.fdel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.BaseProperty.call_fget"><code class="docutils literal notranslate"><span class="pre">BaseProperty.call_fget()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.BaseProperty.call_fset"><code class="docutils literal notranslate"><span class="pre">BaseProperty.call_fset()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.BaseProperty.call_fdel"><code class="docutils literal notranslate"><span class="pre">BaseProperty.call_fdel()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.Property"><code class="docutils literal notranslate"><span class="pre">Property</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.Property.call_fget"><code class="docutils literal notranslate"><span class="pre">Property.call_fget()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.Property.call_fset"><code class="docutils literal notranslate"><span class="pre">Property.call_fset()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.Property.call_fdel"><code class="docutils literal notranslate"><span class="pre">Property.call_fdel()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.Property.getter"><code class="docutils literal notranslate"><span class="pre">Property.getter()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.Property.setter"><code class="docutils literal notranslate"><span class="pre">Property.setter()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.Property.deleter"><code class="docutils literal notranslate"><span class="pre">Property.deleter()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty"><code class="docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty.call_fget"><code class="docutils literal notranslate"><span class="pre">ProtectedProperty.call_fget()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty.call_fset"><code class="docutils literal notranslate"><span class="pre">ProtectedProperty.call_fset()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty.call_fdel"><code class="docutils literal notranslate"><span class="pre">ProtectedProperty.call_fdel()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty.isready"><code class="docutils literal notranslate"><span class="pre">ProtectedProperty.isready()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty.getter"><code class="docutils literal notranslate"><span class="pre">ProtectedProperty.getter()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty.setter"><code class="docutils literal notranslate"><span class="pre">ProtectedProperty.setter()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty.deleter"><code class="docutils literal notranslate"><span class="pre">ProtectedProperty.deleter()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedPropertyStr"><code class="docutils literal notranslate"><span class="pre">ProtectedPropertyStr</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperties"><code class="docutils literal notranslate"><span class="pre">ProtectedProperties</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperties.allready"><code class="docutils literal notranslate"><span class="pre">ProtectedProperties.allready()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty"><code class="docutils literal notranslate"><span class="pre">DependentProperty</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty.protected"><code class="docutils literal notranslate"><span class="pre">DependentProperty.protected</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty.call_fget"><code class="docutils literal notranslate"><span class="pre">DependentProperty.call_fget()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty.call_fset"><code class="docutils literal notranslate"><span class="pre">DependentProperty.call_fset()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty.call_fdel"><code class="docutils literal notranslate"><span class="pre">DependentProperty.call_fdel()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty.getter"><code class="docutils literal notranslate"><span class="pre">DependentProperty.getter()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty.setter"><code class="docutils literal notranslate"><span class="pre">DependentProperty.setter()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty.deleter"><code class="docutils literal notranslate"><span class="pre">DependentProperty.deleter()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty"><code class="docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty.call_fget"><code class="docutils literal notranslate"><span class="pre">DefaultProperty.call_fget()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty.call_fset"><code class="docutils literal notranslate"><span class="pre">DefaultProperty.call_fset()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty.call_fdel"><code class="docutils literal notranslate"><span class="pre">DefaultProperty.call_fdel()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.DefaultPropertyBool"><code class="docutils literal notranslate"><span class="pre">DefaultPropertyBool</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.DefaultPropertyStr"><code class="docutils literal notranslate"><span class="pre">DefaultPropertyStr</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.DefaultPropertySeriesFileType"><code class="docutils literal notranslate"><span class="pre">DefaultPropertySeriesFileType</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.core.propertytools.DefaultPropertySeriesAggregationType"><code class="docutils literal notranslate"><span class="pre">DefaultPropertySeriesAggregationType</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="pubtools.html">pubtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="selectiontools.html">selectiontools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sequencetools.html">sequencetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="seriestools.html">seriestools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="testtools.html">testtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="threadingtools.html">threadingtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="timetools.html">timetools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="typingtools.html">typingtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="variabletools.html">variabletools</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="printtools.html"
+                          title="previous chapter">printtools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="pubtools.html"
+                          title="next chapter">pubtools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/propertytools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="propertytools">
+<span id="id1"></span><h1>propertytools<a class="headerlink" href="#propertytools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.core.propertytools">This module implements <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> like classes with similar or additional
+behaviour.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.core.propertytools" title="hydpy.core.propertytools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">propertytools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.DefaultPropertyBool" title="hydpy.core.propertytools.DefaultPropertyBool"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DefaultPropertyBool</span></code></a> no description available</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.DefaultPropertySeriesAggregationType" title="hydpy.core.propertytools.DefaultPropertySeriesAggregationType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DefaultPropertySeriesAggregationType</span></code></a> no description available</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.DefaultPropertySeriesFileType" title="hydpy.core.propertytools.DefaultPropertySeriesFileType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DefaultPropertySeriesFileType</span></code></a> no description available</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.DefaultPropertyStr" title="hydpy.core.propertytools.DefaultPropertyStr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DefaultPropertyStr</span></code></a> no description available</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.ProtectedPropertyStr" title="hydpy.core.propertytools.ProtectedPropertyStr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProtectedPropertyStr</span></code></a> no description available</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.BaseDescriptor" title="hydpy.core.propertytools.BaseDescriptor"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDescriptor</span></code></a> Base class for defining descriptors.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.FGet" title="hydpy.core.propertytools.FGet"><code class="xref py py-class docutils literal notranslate"><span class="pre">FGet</span></code></a> Callback protocol for getter functions.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.FSet" title="hydpy.core.propertytools.FSet"><code class="xref py py-class docutils literal notranslate"><span class="pre">FSet</span></code></a> Callback protocol for setter functions.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.FDel" title="hydpy.core.propertytools.FDel"><code class="xref py py-class docutils literal notranslate"><span class="pre">FDel</span></code></a> Callback protocol for deleter functions.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProperty</span></code></a> Abstract base class for deriving classes similar to <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.Property" title="hydpy.core.propertytools.Property"><code class="xref py py-class docutils literal notranslate"><span class="pre">Property</span></code></a> Class <a class="reference internal" href="#hydpy.core.propertytools.Property" title="hydpy.core.propertytools.Property"><code class="xref py py-class docutils literal notranslate"><span class="pre">Property</span></code></a> mimics the behaviour of the built-in function <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a> A <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>-like class which prevents getting an attribute before setting it.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperties" title="hydpy.core.propertytools.ProtectedProperties"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperties</span></code></a> Iterable for <a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a> objects.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty" title="hydpy.core.propertytools.DependentProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DependentProperty</span></code></a> <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>-like class which prevents accessing a dependent attribute before preparing certain other attributes.</p></li>
+<li><p><a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a> <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>-like class which uses the getter function to return a default value unless a custom value is available.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseDescriptor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">BaseDescriptor</span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#BaseDescriptor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.BaseDescriptor" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for defining descriptors.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseDescriptor.objtype">
+<span class="sig-name descname"><span class="pre">objtype</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.core.propertytools.BaseDescriptor.objtype" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseDescriptor.module">
+<span class="sig-name descname"><span class="pre">module</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/types.html#types.ModuleType" title="(in Python v3.14)"><span class="pre">ModuleType</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#hydpy.core.propertytools.BaseDescriptor.module" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseDescriptor.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#hydpy.core.propertytools.BaseDescriptor.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseDescriptor.set_doc">
+<span class="sig-name descname"><span class="pre">set_doc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#BaseDescriptor.set_doc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.BaseDescriptor.set_doc" title="Link to this definition">¶</a></dt>
+<dd><p>Assign the given docstring to the property instance and, if possible,
+to the <cite>__test__</cite> dictionary of the module of its owner class.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.FGet">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">FGet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#FGet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.FGet" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T_co</span></code>]</p>
+<p>Callback protocol for getter functions.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.FSet">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">FSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#FSet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.FSet" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T_contra</span></code>]</p>
+<p>Callback protocol for setter functions.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.FDel">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">FDel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#FDel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.FDel" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Callback protocol for deleter functions.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseProperty">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">BaseProperty</span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#BaseProperty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.BaseProperty" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Generic" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T_contra</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">T_co</span></code>], <a class="reference internal" href="#hydpy.core.propertytools.BaseDescriptor" title="hydpy.core.propertytools.BaseDescriptor"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseDescriptor</span></code></a></p>
+<p>Abstract base class for deriving classes similar to <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>.</p>
+<p><a class="reference internal" href="#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProperty</span></code></a> provides the abstract methods <a class="reference internal" href="#hydpy.core.propertytools.BaseProperty.call_fget" title="hydpy.core.propertytools.BaseProperty.call_fget"><code class="xref py py-func docutils literal notranslate"><span class="pre">call_fget()</span></code></a>,
+<a class="reference internal" href="#hydpy.core.propertytools.BaseProperty.call_fset" title="hydpy.core.propertytools.BaseProperty.call_fset"><code class="xref py py-func docutils literal notranslate"><span class="pre">call_fset()</span></code></a>, and <a class="reference internal" href="#hydpy.core.propertytools.BaseProperty.call_fdel" title="hydpy.core.propertytools.BaseProperty.call_fdel"><code class="xref py py-func docutils literal notranslate"><span class="pre">call_fdel()</span></code></a>, which are the
+appropriate places to add custom functionalities (e.g. caching).  See
+subclass <a class="reference internal" href="#hydpy.core.propertytools.Property" title="hydpy.core.propertytools.Property"><code class="xref py py-class docutils literal notranslate"><span class="pre">Property</span></code></a> for an example, which mimics the behaviour of the
+built-in <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> function.</p>
+<p><a class="reference internal" href="#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProperty</span></code></a> property uses dummy getter, setter and deleter functions
+to indicate than at an actual getter, setter or deleter function is missing.
+In case they are called due to the wrong implementation of a <a class="reference internal" href="#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProperty</span></code></a>
+subclass, they raise a <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.propertytools</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseProperty</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fgetdummy</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fsetdummy</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">BaseProperty</span><span class="o">.</span><span class="n">_fdeldummy</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseProperty.fget">
+<span class="sig-name descname"><span class="pre">fget</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.core.propertytools.FGet" title="hydpy.core.propertytools.FGet"><span class="pre">FGet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.core.propertytools.BaseProperty.fget" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseProperty.fset">
+<span class="sig-name descname"><span class="pre">fset</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.core.propertytools.FSet" title="hydpy.core.propertytools.FSet"><span class="pre">FSet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.core.propertytools.BaseProperty.fset" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseProperty.fdel">
+<span class="sig-name descname"><span class="pre">fdel</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.core.propertytools.FDel" title="hydpy.core.propertytools.FDel"><span class="pre">FDel</span></a></span><a class="headerlink" href="#hydpy.core.propertytools.BaseProperty.fdel" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseProperty.call_fget">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">call_fget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T_co</span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#BaseProperty.call_fget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.BaseProperty.call_fget" title="Link to this definition">¶</a></dt>
+<dd><p>Method for implementing unique getter functionalities.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseProperty.call_fset">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">call_fset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T_contra</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#BaseProperty.call_fset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.BaseProperty.call_fset" title="Link to this definition">¶</a></dt>
+<dd><p>Method for implementing unique setter functionalities.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.BaseProperty.call_fdel">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">call_fdel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#BaseProperty.call_fdel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.BaseProperty.call_fdel" title="Link to this definition">¶</a></dt>
+<dd><p>Method for implementing unique deleter functionalities.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.Property">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">Property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FGet" title="hydpy.core.propertytools.FGet"><span class="pre">FGet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">BaseProperty._fgetdummy&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FSet" title="hydpy.core.propertytools.FSet"><span class="pre">FSet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">BaseProperty._fsetdummy&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FDel" title="hydpy.core.propertytools.FDel"><span class="pre">FDel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">BaseProperty._fdeldummy&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#Property"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.Property" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProperty</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T_contra</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">T_co</span></code>]</p>
+<p>Class <a class="reference internal" href="#hydpy.core.propertytools.Property" title="hydpy.core.propertytools.Property"><code class="xref py py-class docutils literal notranslate"><span class="pre">Property</span></code></a> mimics the behaviour of the built-in function <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>.</p>
+<p>The only advantage of <a class="reference internal" href="#hydpy.core.propertytools.Property" title="hydpy.core.propertytools.Property"><code class="xref py py-class docutils literal notranslate"><span class="pre">Property</span></code></a> over <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> is that it allows defining
+different input and output types statically.  If the input and output types
+are identical, prefer <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>, which is probably faster.</p>
+<p>The following test class implements its attribute <cite>x</cite> by defining
+all three “property methods” (<cite>getter</cite>/<cite>fget</cite>, <cite>setter</cite>/<cite>fset</cite>,
+<cite>deleter</cite>/<cite>fdel</cite>), but its attribute <cite>y</cite> by defining none of them:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.propertytools</span><span class="w"> </span><span class="kn">import</span> <span class="n">Property</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Test</span><span class="p">:</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="nd">@Property</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span>
+<span class="gp">... </span>    <span class="nd">@x</span><span class="o">.</span><span class="n">setter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">value</span>
+<span class="gp">... </span>    <span class="nd">@x</span><span class="o">.</span><span class="n">deleter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="n">y</span> <span class="o">=</span> <span class="n">Property</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>After initialising a test object, you can use its attribute <cite>x</cite> as expected:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span>
+</pre></div>
+</div>
+<p>When trying to invoke attribute <cite>y</cite>, you get the following error messages:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">y</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">Attribute `y` of object `test` is not gettable.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">Attribute `y` of object `test` is not settable.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">test</span><span class="o">.</span><span class="n">y</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">AttributeError</span>: <span class="n">Attribute `y` of object `test` is not deletable.</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.Property.call_fget">
+<span class="sig-name descname"><span class="pre">call_fget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T_co</span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#Property.call_fget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.Property.call_fget" title="Link to this definition">¶</a></dt>
+<dd><p>Call <cite>fget</cite> without additional functionalities.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.Property.call_fset">
+<span class="sig-name descname"><span class="pre">call_fset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T_contra</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#Property.call_fset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.Property.call_fset" title="Link to this definition">¶</a></dt>
+<dd><p>Call <cite>fset</cite> without additional functionalities.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.Property.call_fdel">
+<span class="sig-name descname"><span class="pre">call_fdel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#Property.call_fdel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.Property.call_fdel" title="Link to this definition">¶</a></dt>
+<dd><p>Call <cite>fdel</cite> without additional functionalities.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.Property.getter">
+<span class="sig-name descname"><span class="pre">getter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FGet" title="hydpy.core.propertytools.FGet"><span class="pre">FGet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.core.propertytools.Property" title="hydpy.core.propertytools.Property"><span class="pre">Property</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#Property.getter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.Property.getter" title="Link to this definition">¶</a></dt>
+<dd><p>Add the given getter function and its docstring to the property and
+return it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.Property.setter">
+<span class="sig-name descname"><span class="pre">setter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FSet" title="hydpy.core.propertytools.FSet"><span class="pre">FSet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.core.propertytools.Property" title="hydpy.core.propertytools.Property"><span class="pre">Property</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#Property.setter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.Property.setter" title="Link to this definition">¶</a></dt>
+<dd><p>Add the given setter function to the property and return it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.Property.deleter">
+<span class="sig-name descname"><span class="pre">deleter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fdel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FDel" title="hydpy.core.propertytools.FDel"><span class="pre">FDel</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.core.propertytools.Property" title="hydpy.core.propertytools.Property"><span class="pre">Property</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#Property.deleter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.Property.deleter" title="Link to this definition">¶</a></dt>
+<dd><p>Add the given deleter function to the property and return it.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedProperty">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">ProtectedProperty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FGet" title="hydpy.core.propertytools.FGet"><span class="pre">FGet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">BaseProperty._fgetdummy&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FSet" title="hydpy.core.propertytools.FSet"><span class="pre">FSet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">BaseProperty._fsetdummy&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FDel" title="hydpy.core.propertytools.FDel"><span class="pre">FDel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">BaseProperty._fdeldummy&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#ProtectedProperty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.ProtectedProperty" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProperty</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T_contra</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">T_co</span></code>]</p>
+<p>A <a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>-like class which prevents getting an attribute before setting it.</p>
+<p>Some attributes need preparations before being accessible.  Consider the case
+where a property of a Python class (being part of the API) links to an attribute
+of a Cython extension class (not part of the API).  If the Cython attribute is,
+for example, a vector requiring memory allocation, trying to query this vector
+before it has been initialised results in a program crash.  Using
+<a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a> is a means to prevent such problems.</p>
+<p>The following class <cite>Test</cite> defines most simple getter, setter, and deleter
+functions for its only property <cite>x</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.propertytools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProtectedProperty</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Test</span><span class="p">:</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="n">x</span> <span class="o">=</span> <span class="n">ProtectedProperty</span><span class="p">()</span>
+<span class="gp">... </span>    <span class="nd">@x</span><span class="o">.</span><span class="n">getter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="s2">&quot;Test&quot;</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span>
+<span class="gp">... </span>    <span class="nd">@x</span><span class="o">.</span><span class="n">setter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">value</span>
+<span class="gp">... </span>    <span class="nd">@x</span><span class="o">.</span><span class="n">deleter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Trying to query <cite>x</cite> directly after initialising a <cite>Test</cite> object results in an
+<a class="reference internal" href="exceptiontools.html#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `x` of object `test` has not been prepared so far.</span>
+</pre></div>
+</div>
+<p>After setting a value, you can query this value as expected:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p>After deleting the value, the protection mechanism applies again:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `x` of object `test` has not been prepared so far.</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedProperty.call_fget">
+<span class="sig-name descname"><span class="pre">call_fget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T_co</span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#ProtectedProperty.call_fget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.ProtectedProperty.call_fget" title="Link to this definition">¶</a></dt>
+<dd><p>When ready, call <cite>fget</cite>; otherwise, raise an <a class="reference internal" href="exceptiontools.html#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a>
+exception.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedProperty.call_fset">
+<span class="sig-name descname"><span class="pre">call_fset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T_contra</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#ProtectedProperty.call_fset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.ProtectedProperty.call_fset" title="Link to this definition">¶</a></dt>
+<dd><p>Call <cite>fset</cite> and mark the attribute as ready.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedProperty.call_fdel">
+<span class="sig-name descname"><span class="pre">call_fdel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#ProtectedProperty.call_fdel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.ProtectedProperty.call_fdel" title="Link to this definition">¶</a></dt>
+<dd><p>Call <cite>fdel</cite> and mark the attribute as not ready.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedProperty.isready">
+<span class="sig-name descname"><span class="pre">isready</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#ProtectedProperty.isready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.ProtectedProperty.isready" title="Link to this definition">¶</a></dt>
+<dd><p>Return <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> or <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code> to indicate if the protected
+property is ready for the given object.  If the object is
+unknown, <a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty.isready" title="hydpy.core.propertytools.ProtectedProperty.isready"><code class="xref py py-func docutils literal notranslate"><span class="pre">isready()</span></code></a> returns <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedProperty.getter">
+<span class="sig-name descname"><span class="pre">getter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FGet" title="hydpy.core.propertytools.FGet"><span class="pre">FGet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><span class="pre">ProtectedProperty</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#ProtectedProperty.getter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.ProtectedProperty.getter" title="Link to this definition">¶</a></dt>
+<dd><p>Add the given getter function and its docstring to the property
+and return it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedProperty.setter">
+<span class="sig-name descname"><span class="pre">setter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FSet" title="hydpy.core.propertytools.FSet"><span class="pre">FSet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><span class="pre">ProtectedProperty</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#ProtectedProperty.setter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.ProtectedProperty.setter" title="Link to this definition">¶</a></dt>
+<dd><p>Add the given setter function to the property and return it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedProperty.deleter">
+<span class="sig-name descname"><span class="pre">deleter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fdel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FDel" title="hydpy.core.propertytools.FDel"><span class="pre">FDel</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><span class="pre">ProtectedProperty</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#ProtectedProperty.deleter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.ProtectedProperty.deleter" title="Link to this definition">¶</a></dt>
+<dd><p>Add the given deleter function to the property and return it.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedPropertyStr">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">ProtectedPropertyStr</span></span><a class="headerlink" href="#hydpy.core.propertytools.ProtectedPropertyStr" title="Link to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a> for handling <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> objects.</p>
+<p>alias of <a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedProperties">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">ProtectedProperties</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><span class="pre">ProtectedProperty</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#ProtectedProperties"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.ProtectedProperties" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Iterable for <a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a> objects.</p>
+<p>You can collect an arbitrary number of <a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a> objects within a
+<a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperties" title="hydpy.core.propertytools.ProtectedProperties"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperties</span></code></a> object.  Its <a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperties.allready" title="hydpy.core.propertytools.ProtectedProperties.allready"><code class="xref py py-func docutils literal notranslate"><span class="pre">allready()</span></code></a> method
+allows checking the status of all properties at ones:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">propertytools</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Test</span><span class="p">:</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="nd">@pt</span><span class="o">.</span><span class="n">ProtectedProperty</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="s2">&quot;this is x&quot;</span>
+<span class="gp">... </span>    <span class="nd">@x</span><span class="o">.</span><span class="n">setter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="nd">@pt</span><span class="o">.</span><span class="n">ProtectedProperty</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">z</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="s2">&quot;this is z&quot;</span>
+<span class="gp">... </span>    <span class="nd">@z</span><span class="o">.</span><span class="n">setter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">z</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">pass</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="n">protectedproperties</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">ProtectedProperties</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test1</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test1</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test2</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test2</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test2</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Test</span><span class="o">.</span><span class="n">protectedproperties</span><span class="o">.</span><span class="n">allready</span><span class="p">(</span><span class="n">test1</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Test</span><span class="o">.</span><span class="n">protectedproperties</span><span class="o">.</span><span class="n">allready</span><span class="p">(</span><span class="n">test2</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.ProtectedProperties.allready">
+<span class="sig-name descname"><span class="pre">allready</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#ProtectedProperties.allready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.ProtectedProperties.allready" title="Link to this definition">¶</a></dt>
+<dd><p>Return <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> or <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code> to indicate whether all protected
+properties are ready or not.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DependentProperty">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">DependentProperty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protected</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperties" title="hydpy.core.propertytools.ProtectedProperties"><span class="pre">ProtectedProperties</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FGet" title="hydpy.core.propertytools.FGet"><span class="pre">FGet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">BaseProperty._fgetdummy&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FSet" title="hydpy.core.propertytools.FSet"><span class="pre">FSet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">BaseProperty._fsetdummy&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fdel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FDel" title="hydpy.core.propertytools.FDel"><span class="pre">FDel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">BaseProperty._fdeldummy&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DependentProperty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DependentProperty" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProperty</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T_contra</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">T_co</span></code>]</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>-like class which prevents accessing a dependent attribute
+before preparing certain other attributes.</p>
+<p>Please read the documentation on class <a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a>, from which we
+take the following example.  <cite>x</cite> is a simple <a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperty" title="hydpy.core.propertytools.ProtectedProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtectedProperty</span></code></a> again,
+but time we add the <a class="reference internal" href="#hydpy.core.propertytools.DependentProperty" title="hydpy.core.propertytools.DependentProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DependentProperty</span></code></a> <cite>y</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">propertytools</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Test</span><span class="p">:</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="nd">@pt</span><span class="o">.</span><span class="n">ProtectedProperty</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span>
+<span class="gp">... </span>    <span class="nd">@x</span><span class="o">.</span><span class="n">setter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">value</span>
+<span class="gp">... </span>    <span class="nd">@x</span><span class="o">.</span><span class="n">deleter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="n">y</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">DependentProperty</span><span class="p">(</span><span class="n">protected</span><span class="o">=</span><span class="p">(</span><span class="n">x</span><span class="p">,))</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="nd">@y</span><span class="o">.</span><span class="n">getter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span>
+<span class="gp">... </span>    <span class="nd">@y</span><span class="o">.</span><span class="n">setter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="n">value</span>
+<span class="gp">... </span>    <span class="nd">@y</span><span class="o">.</span><span class="n">deleter</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">y</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<p>Initially, due to <cite>x</cite> not being prepared, there is no way to get, set, or
+delete attribute <cite>y</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">y</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `y` of object `test` is not usable so far.  At least, you have to prepare attribute `x` first.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `y` of object `test` is not usable so far.  At least, you have to prepare attribute `x` first.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">test</span><span class="o">.</span><span class="n">y</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Attribute `y` of object `test` is not usable so far.  At least, you have to prepare attribute `x` first.</span>
+</pre></div>
+</div>
+<p>After assigning a value to <cite>x</cite>, <cite>y</cite> behaves like a common property:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;anything&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">y</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">test</span><span class="o">.</span><span class="n">y</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">y</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DependentProperty.protected">
+<span class="sig-name descname"><span class="pre">protected</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#hydpy.core.propertytools.ProtectedProperties" title="hydpy.core.propertytools.ProtectedProperties"><span class="pre">ProtectedProperties</span></a></span><a class="headerlink" href="#hydpy.core.propertytools.DependentProperty.protected" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DependentProperty.call_fget">
+<span class="sig-name descname"><span class="pre">call_fget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T_co</span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DependentProperty.call_fget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DependentProperty.call_fget" title="Link to this definition">¶</a></dt>
+<dd><p>Call <cite>fget</cite> when all required attributes are ready; otherwise, raise
+an <a class="reference internal" href="exceptiontools.html#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> error.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DependentProperty.call_fset">
+<span class="sig-name descname"><span class="pre">call_fset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T_contra</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DependentProperty.call_fset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DependentProperty.call_fset" title="Link to this definition">¶</a></dt>
+<dd><p>Call <cite>fset</cite> when all required attributes are ready; otherwise, raise
+an <a class="reference internal" href="exceptiontools.html#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> error.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DependentProperty.call_fdel">
+<span class="sig-name descname"><span class="pre">call_fdel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DependentProperty.call_fdel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DependentProperty.call_fdel" title="Link to this definition">¶</a></dt>
+<dd><p>Call <cite>fdel</cite> when all required attributes are ready; otherwise, raise
+an <a class="reference internal" href="exceptiontools.html#hydpy.core.exceptiontools.AttributeNotReady" title="hydpy.core.exceptiontools.AttributeNotReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeNotReady</span></code></a> error.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DependentProperty.getter">
+<span class="sig-name descname"><span class="pre">getter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FGet" title="hydpy.core.propertytools.FGet"><span class="pre">FGet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty" title="hydpy.core.propertytools.DependentProperty"><span class="pre">DependentProperty</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DependentProperty.getter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DependentProperty.getter" title="Link to this definition">¶</a></dt>
+<dd><p>Add the given getter function and its docstring to the property and
+return it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DependentProperty.setter">
+<span class="sig-name descname"><span class="pre">setter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FSet" title="hydpy.core.propertytools.FSet"><span class="pre">FSet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty" title="hydpy.core.propertytools.DependentProperty"><span class="pre">DependentProperty</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DependentProperty.setter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DependentProperty.setter" title="Link to this definition">¶</a></dt>
+<dd><p>Add the given setter function to the property and return it.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DependentProperty.deleter">
+<span class="sig-name descname"><span class="pre">deleter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fdel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FDel" title="hydpy.core.propertytools.FDel"><span class="pre">FDel</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#hydpy.core.propertytools.DependentProperty" title="hydpy.core.propertytools.DependentProperty"><span class="pre">DependentProperty</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_contra</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DependentProperty.deleter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DependentProperty.deleter" title="Link to this definition">¶</a></dt>
+<dd><p>Add the given deleter function to the property and return it.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DefaultProperty">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">DefaultProperty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fget</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.core.propertytools.FGet" title="hydpy.core.propertytools.FGet"><span class="pre">FGet</span></a><span class="p"><span class="pre">[</span></span><span class="pre">T_co</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">BaseProperty._fgetdummy&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DefaultProperty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DefaultProperty" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.core.propertytools.BaseProperty" title="hydpy.core.propertytools.BaseProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseProperty</span></code></a>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">T_contra</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">T_co</span></code>]</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a>-like class which uses the getter function to return a default
+value unless a custom value is available.</p>
+<p>In the following example, the default value of property <cite>x</cite> is one:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.propertytools</span><span class="w"> </span><span class="kn">import</span> <span class="n">DefaultProperty</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Test</span><span class="p">:</span>
+<span class="gp">...</span>
+<span class="gp">... </span>    <span class="nd">@DefaultProperty</span>
+<span class="gp">... </span>    <span class="k">def</span><span class="w"> </span><span class="nf">x</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="s2">&quot;Default property x.&quot;</span>
+<span class="gp">... </span>        <span class="k">return</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>Initially, property <cite>x</cite> returns the default value defined by its getter function:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">Test</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p>Assigned custom values override such default values:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+<p>After removing the custom value, it is again up to the getter function to return
+the default value:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">x</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p>Trying to delete a not existing custom value does not harm:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">test</span><span class="o">.</span><span class="n">x</span>
+</pre></div>
+</div>
+<p>The documentation string of the getter functions serves as the documentation
+string of the default property:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Test</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="vm">__doc__</span>
+<span class="go">&#39;Default property x.&#39;</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DefaultProperty.call_fget">
+<span class="sig-name descname"><span class="pre">call_fget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">T_co</span></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DefaultProperty.call_fget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DefaultProperty.call_fget" title="Link to this definition">¶</a></dt>
+<dd><p>If available, return the predefined custom value; otherwise, return
+the value defined by the getter function.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DefaultProperty.call_fset">
+<span class="sig-name descname"><span class="pre">call_fset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T_contra</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DefaultProperty.call_fset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DefaultProperty.call_fset" title="Link to this definition">¶</a></dt>
+<dd><p>Store the given custom value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DefaultProperty.call_fdel">
+<span class="sig-name descname"><span class="pre">call_fdel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/core/propertytools.html#DefaultProperty.call_fdel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.core.propertytools.DefaultProperty.call_fdel" title="Link to this definition">¶</a></dt>
+<dd><p>Remove the predefined custom value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DefaultPropertyBool">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">DefaultPropertyBool</span></span><a class="headerlink" href="#hydpy.core.propertytools.DefaultPropertyBool" title="Link to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a> for handling <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a> objects.</p>
+<p>alias of <a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DefaultPropertyStr">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">DefaultPropertyStr</span></span><a class="headerlink" href="#hydpy.core.propertytools.DefaultPropertyStr" title="Link to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a> for handling <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> objects.</p>
+<p>alias of <a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DefaultPropertySeriesFileType">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">DefaultPropertySeriesFileType</span></span><a class="headerlink" href="#hydpy.core.propertytools.DefaultPropertySeriesFileType" title="Link to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a> for handling <code class="xref py py-const docutils literal notranslate"><span class="pre">SeriesFileType</span></code> literals.</p>
+<p>alias of <a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘npy’, ‘asc’, ‘nc’], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘npy’, ‘asc’, ‘nc’]]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="hydpy.core.propertytools.DefaultPropertySeriesAggregationType">
+<span class="sig-prename descclassname"><span class="pre">hydpy.core.propertytools.</span></span><span class="sig-name descname"><span class="pre">DefaultPropertySeriesAggregationType</span></span><a class="headerlink" href="#hydpy.core.propertytools.DefaultPropertySeriesAggregationType" title="Link to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a> for handling <code class="xref py py-const docutils literal notranslate"><span class="pre">SeriesAggregationType</span></code> literals.</p>
+<p>alias of <a class="reference internal" href="#hydpy.core.propertytools.DefaultProperty" title="hydpy.core.propertytools.DefaultProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefaultProperty</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘none’, ‘mean’], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘none’, ‘mean’]]</p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pubtools.html" title="pubtools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="printtools.html" title="printtools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="core.html" >Core Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">propertytools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+.. |C1| replace:: :class:`~hydpy.models.hstream.hstream_derived.C1`
+.. |C2| replace:: :class:`~hydpy.models.hstream.hstream_derived.C2`
+.. |C3| replace:: :class:`~hydpy.models.hstream.hstream_derived.C3`
+.. |Damp| replace:: :class:`~hydpy.models.hstream.hstream_control.Damp`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Lag| replace:: :class:`~hydpy.models.hstream.hstream_control.Lag`
+.. |NmbSegments| replace:: :class:`~hydpy.models.hstream.hstream_derived.NmbSegments`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |QJoints| replace:: :class:`~hydpy.models.hstream.hstream_states.QJoints`
+.. |hstream_v1| replace:: :mod:`~hydpy.models.hstream_v1`
+
+.. _hstream_v1:
+
+hstream_v1
+==========
+
+.. automodule:: hydpy.models.hstream_v1
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, ReceiverSequences, InputSequences, FluxSequences, LogSequences, AideSequences, SenderSequences

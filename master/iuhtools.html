@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>iuhtools &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"chtml": {"displayAlign": "left"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="networktools" href="networktools.html" />
+    <link rel="prev" title="interptools" href="interptools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="networktools.html" title="networktools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="interptools.html" title="interptools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" accesskey="U">Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">iuhtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="anntools.html">anntools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="armatools.html">armatools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="calibtools.html">calibtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="interptools.html">interptools</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">iuhtools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.iuhtools.ParameterIUH"><code class="docutils literal notranslate"><span class="pre">ParameterIUH</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.ParameterIUH.name"><code class="docutils literal notranslate"><span class="pre">ParameterIUH.name</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.ParameterIUH.type_"><code class="docutils literal notranslate"><span class="pre">ParameterIUH.type_</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.iuhtools.PrimaryParameterIUH"><code class="docutils literal notranslate"><span class="pre">PrimaryParameterIUH</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.iuhtools.SecondaryParameterIUH"><code class="docutils literal notranslate"><span class="pre">SecondaryParameterIUH</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.iuhtools.MetaIUH"><code class="docutils literal notranslate"><span class="pre">MetaIUH</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH"><code class="docutils literal notranslate"><span class="pre">IUH</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.dt_response"><code class="docutils literal notranslate"><span class="pre">IUH.dt_response</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.smallest_response"><code class="docutils literal notranslate"><span class="pre">IUH.smallest_response</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.ma"><code class="docutils literal notranslate"><span class="pre">IUH.ma</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.arma"><code class="docutils literal notranslate"><span class="pre">IUH.arma</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.set_primary_parameters"><code class="docutils literal notranslate"><span class="pre">IUH.set_primary_parameters()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.primary_parameters_complete"><code class="docutils literal notranslate"><span class="pre">IUH.primary_parameters_complete</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.calc_secondary_parameters"><code class="docutils literal notranslate"><span class="pre">IUH.calc_secondary_parameters()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.update"><code class="docutils literal notranslate"><span class="pre">IUH.update()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.delay_response_series"><code class="docutils literal notranslate"><span class="pre">IUH.delay_response_series</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.plot"><code class="docutils literal notranslate"><span class="pre">IUH.plot()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.moment1"><code class="docutils literal notranslate"><span class="pre">IUH.moment1</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.moment2"><code class="docutils literal notranslate"><span class="pre">IUH.moment2</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.moments"><code class="docutils literal notranslate"><span class="pre">IUH.moments</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation"><code class="docutils literal notranslate"><span class="pre">TranslationDiffusionEquation</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.u"><code class="docutils literal notranslate"><span class="pre">TranslationDiffusionEquation.u</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.d"><code class="docutils literal notranslate"><span class="pre">TranslationDiffusionEquation.d</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.x"><code class="docutils literal notranslate"><span class="pre">TranslationDiffusionEquation.x</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.a"><code class="docutils literal notranslate"><span class="pre">TranslationDiffusionEquation.a</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.b"><code class="docutils literal notranslate"><span class="pre">TranslationDiffusionEquation.b</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.calc_secondary_parameters"><code class="docutils literal notranslate"><span class="pre">TranslationDiffusionEquation.calc_secondary_parameters()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.moment1"><code class="docutils literal notranslate"><span class="pre">TranslationDiffusionEquation.moment1</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade"><code class="docutils literal notranslate"><span class="pre">LinearStorageCascade</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.n"><code class="docutils literal notranslate"><span class="pre">LinearStorageCascade.n</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.k"><code class="docutils literal notranslate"><span class="pre">LinearStorageCascade.k</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.c"><code class="docutils literal notranslate"><span class="pre">LinearStorageCascade.c</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.log_c"><code class="docutils literal notranslate"><span class="pre">LinearStorageCascade.log_c</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.log_k"><code class="docutils literal notranslate"><span class="pre">LinearStorageCascade.log_k</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.calc_secondary_parameters"><code class="docutils literal notranslate"><span class="pre">LinearStorageCascade.calc_secondary_parameters()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.moment1"><code class="docutils literal notranslate"><span class="pre">LinearStorageCascade.moment1</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="networktools.html">networktools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ppolytools.html">ppolytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quadtools.html">quadtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="roottools.html">roottools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smoothtools.html">smoothtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="statstools.html">statstools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="validtools.html">validtools</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="interptools.html"
+                          title="previous chapter">interptools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="networktools.html"
+                          title="next chapter">networktools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/iuhtools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="iuhtools">
+<span id="id1"></span><h1>iuhtools<a class="headerlink" href="#iuhtools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.auxs.iuhtools">This module supports modelling based on instantaneous unit hydrographs.</p>
+<p>This module implements some abstract descriptor classes, metaclasses and base classes.
+If you are just interested in applying a certain instantaneous unit hydrograph (iuh)
+function or if you want to implement an additional iuh, see the examples or the source
+code of class <a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation" title="hydpy.auxs.iuhtools.TranslationDiffusionEquation"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranslationDiffusionEquation</span></code></a>.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.iuhtools" title="hydpy.auxs.iuhtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">iuhtools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.auxs.iuhtools.ParameterIUH" title="hydpy.auxs.iuhtools.ParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterIUH</span></code></a> Descriptor base class for <a class="reference internal" href="#hydpy.auxs.iuhtools.PrimaryParameterIUH" title="hydpy.auxs.iuhtools.PrimaryParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrimaryParameterIUH</span></code></a> and <a class="reference internal" href="#hydpy.auxs.iuhtools.SecondaryParameterIUH" title="hydpy.auxs.iuhtools.SecondaryParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">SecondaryParameterIUH</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.iuhtools.PrimaryParameterIUH" title="hydpy.auxs.iuhtools.PrimaryParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrimaryParameterIUH</span></code></a> Descriptor base class for parameters of instantaneous unit hydrograph functions to be defined by the user.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.iuhtools.SecondaryParameterIUH" title="hydpy.auxs.iuhtools.SecondaryParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">SecondaryParameterIUH</span></code></a> Descriptor base class for parameters of instantaneous unit hydrograph functions which can be determined automatically.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.iuhtools.MetaIUH" title="hydpy.auxs.iuhtools.MetaIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">MetaIUH</span></code></a> Metaclass for class <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a> Base class for instantaneous unit hydrograph function objects.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation" title="hydpy.auxs.iuhtools.TranslationDiffusionEquation"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranslationDiffusionEquation</span></code></a> An instantaneous unit hydrograph based on the <cite>translation diffusion equation</cite>.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade" title="hydpy.auxs.iuhtools.LinearStorageCascade"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearStorageCascade</span></code></a> An instantaneous unit hydrograph based on the <cite>linear storage cascade</cite>.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.ParameterIUH">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.iuhtools.</span></span><span class="sig-name descname"><span class="pre">ParameterIUH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><span class="pre">object</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#ParameterIUH"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.ParameterIUH" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Descriptor base class for <a class="reference internal" href="#hydpy.auxs.iuhtools.PrimaryParameterIUH" title="hydpy.auxs.iuhtools.PrimaryParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrimaryParameterIUH</span></code></a> and <a class="reference internal" href="#hydpy.auxs.iuhtools.SecondaryParameterIUH" title="hydpy.auxs.iuhtools.SecondaryParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">SecondaryParameterIUH</span></code></a>.</p>
+<p>The first initialisation argument is the parameters name.  Optionally, an
+alternative type (the default type is <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>) and a documentation string can be
+passed.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.ParameterIUH.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#hydpy.auxs.iuhtools.ParameterIUH.name" title="Link to this definition">¶</a></dt>
+<dd><p>Name of the handled <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a> parameter.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.ParameterIUH.type_">
+<span class="sig-name descname"><span class="pre">type_</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.ParameterIUH.type_" title="Link to this definition">¶</a></dt>
+<dd><p>Type of the handled <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a> parameter.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.PrimaryParameterIUH">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.iuhtools.</span></span><span class="sig-name descname"><span class="pre">PrimaryParameterIUH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><span class="pre">object</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#PrimaryParameterIUH"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.PrimaryParameterIUH" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.auxs.iuhtools.ParameterIUH" title="hydpy.auxs.iuhtools.ParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterIUH</span></code></a></p>
+<p>Descriptor base class for parameters of instantaneous unit hydrograph functions
+to be defined by the user.</p>
+<p>When a primary parameter value is set or deleted, the master instance is instructed
+to <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH.update" title="hydpy.auxs.iuhtools.IUH.update"><code class="xref py py-func docutils literal notranslate"><span class="pre">update()</span></code></a> all secondary parameter values.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.SecondaryParameterIUH">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.iuhtools.</span></span><span class="sig-name descname"><span class="pre">SecondaryParameterIUH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><span class="pre">object</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#SecondaryParameterIUH"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.SecondaryParameterIUH" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.auxs.iuhtools.ParameterIUH" title="hydpy.auxs.iuhtools.ParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParameterIUH</span></code></a></p>
+<p>Descriptor base class for parameters of instantaneous unit hydrograph functions
+which can be determined automatically.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.MetaIUH">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.iuhtools.</span></span><span class="sig-name descname"><span class="pre">MetaIUH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#MetaIUH"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.MetaIUH" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code></a></p>
+<p>Metaclass for class <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a>.</p>
+<p>For storing <a class="reference internal" href="#hydpy.auxs.iuhtools.PrimaryParameterIUH" title="hydpy.auxs.iuhtools.PrimaryParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">PrimaryParameterIUH</span></code></a> and <a class="reference internal" href="#hydpy.auxs.iuhtools.SecondaryParameterIUH" title="hydpy.auxs.iuhtools.SecondaryParameterIUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">SecondaryParameterIUH</span></code></a> in separate
+dictionaries.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.iuhtools.</span></span><span class="sig-name descname"><span class="pre">IUH</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#IUH"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Base class for instantaneous unit hydrograph function objects.</p>
+<p>See class <a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation" title="hydpy.auxs.iuhtools.TranslationDiffusionEquation"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranslationDiffusionEquation</span></code></a> for explanations and application examples.</p>
+<p>For developers: The string representation does also work for parameter-free <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a>
+subclasses:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.iuhtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">IUH</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">class</span><span class="w"> </span><span class="nc">Test</span><span class="p">(</span><span class="n">IUH</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="fm">__call__</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">... </span>    <span class="n">calc_secondary_parameters</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Test</span><span class="p">()</span>
+<span class="go">Test()</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.dt_response">
+<span class="sig-name descname"><span class="pre">dt_response</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.01</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.dt_response" title="Link to this definition">¶</a></dt>
+<dd><p>Relative stepsize for plotting and analyzing iuh functions.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.smallest_response">
+<span class="sig-name descname"><span class="pre">smallest_response</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-09</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.smallest_response" title="Link to this definition">¶</a></dt>
+<dd><p>Smallest value taken into account for plotting and analyzing iuh functions.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.ma">
+<span class="sig-name descname"><span class="pre">ma</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="armatools.html#hydpy.auxs.armatools.MA" title="hydpy.auxs.armatools.MA"><span class="pre">MA</span></a></span><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.ma" title="Link to this definition">¶</a></dt>
+<dd><p>Moving Average model</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.arma">
+<span class="sig-name descname"><span class="pre">arma</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="armatools.html#hydpy.auxs.armatools.ARMA" title="hydpy.auxs.armatools.ARMA"><span class="pre">ARMA</span></a></span><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.arma" title="Link to this definition">¶</a></dt>
+<dd><p>Autoregressive-Moving Average model.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.set_primary_parameters">
+<span class="sig-name descname"><span class="pre">set_primary_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#IUH.set_primary_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.set_primary_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Set all primary parameters at once.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.primary_parameters_complete">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">primary_parameters_complete</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.primary_parameters_complete" title="Link to this definition">¶</a></dt>
+<dd><p>True/False flag that indicates whether the values of all primary parameters
+are defined or not.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.calc_secondary_parameters">
+<span class="property"><span class="k"><span class="pre">abstractmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">calc_secondary_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#IUH.calc_secondary_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.calc_secondary_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Must be implemented by the concrete <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a> subclass.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#IUH.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.update" title="Link to this definition">¶</a></dt>
+<dd><p>Delete the coefficients of the pure MA model and also all MA and AR
+coefficients of the ARMA model.  Also calculate or delete the values of all
+secondary iuh parameters, depending on the completeness of the values of the
+primary parameters.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.delay_response_series">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">delay_response_series</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.delay_response_series" title="Link to this definition">¶</a></dt>
+<dd><p>A tuple of two numpy arrays, which hold the time delays and the associated
+iuh values respectively.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#IUH.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the instanteneous unit hydrograph.</p>
+<p>The optional argument allows for defining a threshold of the cumulative sum of
+the hydrograph, used to adjust the largest value of the x-axis.  It must be a
+value between zero and one.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.moment1">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">moment1</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.moment1" title="Link to this definition">¶</a></dt>
+<dd><p>The first time delay weighted statistical moment of the instantaneous unit
+hydrograph.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.moment2">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">moment2</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.moment2" title="Link to this definition">¶</a></dt>
+<dd><p>The second time delay weighted statistical momens of the instantaneous unit
+hydrograph.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.IUH.moments">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">moments</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.IUH.moments" title="Link to this definition">¶</a></dt>
+<dd><p>The first two time delay weighted statistical moments of the instantaneous
+unit hydrograph.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.TranslationDiffusionEquation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.iuhtools.</span></span><span class="sig-name descname"><span class="pre">TranslationDiffusionEquation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#TranslationDiffusionEquation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a></p>
+<p>An instantaneous unit hydrograph based on the <cite>translation diffusion equation</cite>.</p>
+<p>The equation used is a linear approximation of the Saint-Venant
+equations for channel routing:</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(h(t) = \frac{a}{t \cdot \sqrt{\pi \cdot t}} \cdot
+e^{-t \cdot (a/t-b)^2}\)</span></p>
+</div></blockquote>
+<dl>
+<dt>with:</dt><dd><p><span class="math notranslate nohighlight">\(a = \frac{x}{2 \cdot \sqrt{d}}\)</span></p>
+<p><span class="math notranslate nohighlight">\(b = \frac{u}{2 \cdot \sqrt{d}}\)</span></p>
+</dd>
+</dl>
+<p>There are three primary parameters, <a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.u" title="hydpy.auxs.iuhtools.TranslationDiffusionEquation.u"><code class="xref py py-const docutils literal notranslate"><span class="pre">u</span></code></a>,
+<a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.d" title="hydpy.auxs.iuhtools.TranslationDiffusionEquation.d"><code class="xref py py-const docutils literal notranslate"><span class="pre">d</span></code></a>, and <a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.x" title="hydpy.auxs.iuhtools.TranslationDiffusionEquation.x"><code class="xref py py-const docutils literal notranslate"><span class="pre">x</span></code></a>,  whichs
+values need to be defined by the user:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">TranslationDiffusionEquation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span> <span class="o">=</span> <span class="n">TranslationDiffusionEquation</span><span class="p">(</span><span class="n">u</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">50.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span>
+<span class="go">TranslationDiffusionEquation(d=15.0, u=5.0, x=50.0)</span>
+</pre></div>
+</div>
+<p>The values of both secondary parameters are determined automatically:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">((</span><span class="n">tde</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">tde</span><span class="o">.</span><span class="n">b</span><span class="p">))</span>
+<span class="go">6.454972, 0.645497</span>
+</pre></div>
+</div>
+<p>The function can principally be evaluated for time delays larger zero, but not for
+zero time delay, which can cause trouble when applying numerical integration
+algorithms.  This is why we clip the given time delay to minimum value of 1e-10
+internally.  In most cases (like the following), the returned result should be
+workable for integration algorithms:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">tde</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">]))</span>
+<span class="go">0.0, 0.040559, 0.115165, 0.031303, 0.00507</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">([</span><span class="n">tde</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">]])</span>
+<span class="go">0.0, 0.040559, 0.115165, 0.031303, 0.00507</span>
+</pre></div>
+</div>
+<p>The first delay weighted central moment of the translation diffusion equation
+corresponds to the time lag (<cite>x</cite>/<cite>u</cite>), the second one to wave diffusion:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">tde</span><span class="o">.</span><span class="n">moments</span><span class="p">)</span>
+<span class="go">10.0, 3.464101</span>
+</pre></div>
+</div>
+<p>Class <a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation" title="hydpy.auxs.iuhtools.TranslationDiffusionEquation"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranslationDiffusionEquation</span></code></a> implements its own property <cite>moment1</cite> (used in
+the example above), which is computationally more efficient and robust than the one
+of its base class <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a>.  But both normally, both should return very similar values:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.iuhtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">IUH</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">IUH</span><span class="o">.</span><span class="n">moment1</span><span class="o">.</span><span class="n">fget</span><span class="p">(</span><span class="n">tde</span><span class="p">))</span>
+<span class="go">10.0</span>
+</pre></div>
+</div>
+<p>You can also plot the graph corresponding to the actual parameterization:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All instances of the subclasses of <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a> provide a pure Moving Average and an
+Autoregressive-Moving Average approximation to the dt standard impulse of the
+instantaneous unit hydrograph function.  In the given example, the MA approximation
+involves 57 coefficients, and the ARMA approximation invoves 17 coefficients:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">57</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span><span class="o">.</span><span class="n">arma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">(3, 14)</span>
+</pre></div>
+</div>
+<p>The diffusion of the MA model deviates from the iuh function due to aggregation.
+For the ARMA model, there is also a slight deviation in time delay, as the ARMA
+model itself is only a approximation of the MA model:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">tde</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">moments</span><span class="p">)</span>
+<span class="go">10.0, 3.488074</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">tde</span><span class="o">.</span><span class="n">arma</span><span class="o">.</span><span class="n">moments</span><span class="p">)</span>
+<span class="go">10.000091, 3.488377</span>
+</pre></div>
+</div>
+<p>For further information on using MA and ARMA models, read the documentation on
+module <a class="reference internal" href="armatools.html#module-hydpy.auxs.armatools" title="hydpy.auxs.armatools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">armatools</span></code></a>.</p>
+<p>Changing a primary parameter results in an updating of the secondary parameters as
+well as the MA and the ARMA model:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mf">5.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">((</span><span class="n">tde</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">tde</span><span class="o">.</span><span class="n">b</span><span class="p">))</span>
+<span class="go">0.645497, 0.645497</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">37</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span><span class="o">.</span><span class="n">arma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">(4, 5)</span>
+</pre></div>
+</div>
+<p>As long as the primary parameter values are incomplete, no secondary parameter
+values are available:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">tde</span><span class="o">.</span><span class="n">x</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">((</span><span class="n">tde</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">tde</span><span class="o">.</span><span class="n">b</span><span class="p">))</span>
+<span class="go">None, None</span>
+</pre></div>
+</div>
+<p>Suitable type conversions are performed when new parameter values are set:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;1.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span><span class="o">.</span><span class="n">x</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+<p>It a new value cannot be converted, an error is raised:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tde</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;a&quot;</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">TypeError</span>: <span class="n">The value `a` of type `str` could not be converted to type `float` of the instantaneous unit hydrograph parameter `x`.</span>
+</pre></div>
+</div>
+<p>When passing parameter values as initialization arguments or when using method
+<cite>set_primary_parameters</cite>, tests for completeness are performed:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">TranslationDiffusionEquation</span><span class="p">(</span><span class="n">u</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="mf">15.0</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">When passing primary parameter values as initialization arguments of the instantaneous unit hydrograph class `TranslationDiffusionEquation`, or when using method `set_primary_parameters`, one has to to define all values at once via keyword arguments.  But instead of the primary parameter names `d, u, and x` the following keywords were given: d and u.</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.TranslationDiffusionEquation.u">
+<span class="sig-name descname"><span class="pre">u</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.u" title="Link to this definition">¶</a></dt>
+<dd><p>Instantaneous unit hydrograph parameter: Wave velocity [L/T].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.TranslationDiffusionEquation.d">
+<span class="sig-name descname"><span class="pre">d</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.d" title="Link to this definition">¶</a></dt>
+<dd><p>Instantaneous unit hydrograph parameter: Diffusion coefficient [L²/T].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.TranslationDiffusionEquation.x">
+<span class="sig-name descname"><span class="pre">x</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.x" title="Link to this definition">¶</a></dt>
+<dd><p>Instantaneous unit hydrograph parameter: Routing distance [L].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.TranslationDiffusionEquation.a">
+<span class="sig-name descname"><span class="pre">a</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.a" title="Link to this definition">¶</a></dt>
+<dd><p>Instantaneous unit hydrograph parameter: Distance related coefficient.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.TranslationDiffusionEquation.b">
+<span class="sig-name descname"><span class="pre">b</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.b" title="Link to this definition">¶</a></dt>
+<dd><p>Instantaneous unit hydrograph parameter: Velocity related coefficient.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.TranslationDiffusionEquation.calc_secondary_parameters">
+<span class="sig-name descname"><span class="pre">calc_secondary_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#TranslationDiffusionEquation.calc_secondary_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.calc_secondary_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the values of the secondary parameters
+<a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.a" title="hydpy.auxs.iuhtools.TranslationDiffusionEquation.a"><code class="xref py py-const docutils literal notranslate"><span class="pre">a</span></code></a> and <a class="reference internal" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.b" title="hydpy.auxs.iuhtools.TranslationDiffusionEquation.b"><code class="xref py py-const docutils literal notranslate"><span class="pre">b</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.TranslationDiffusionEquation.moment1">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">moment1</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#hydpy.auxs.iuhtools.TranslationDiffusionEquation.moment1" title="Link to this definition">¶</a></dt>
+<dd><p>The first time delay weighted statistical moment of the translation
+diffusion equation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.LinearStorageCascade">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.iuhtools.</span></span><span class="sig-name descname"><span class="pre">LinearStorageCascade</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#LinearStorageCascade"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.LinearStorageCascade" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a></p>
+<p>An instantaneous unit hydrograph based on the <cite>linear storage cascade</cite>.</p>
+<p>The equation involves the gamma function, allowing for a fractional number of
+storages:</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(h(t) = c \cdot (t/k)^{n-1} \cdot e^{-t/k}\)</span></p>
+</div></blockquote>
+<dl class="simple">
+<dt>with:</dt><dd><p><span class="math notranslate nohighlight">\(c = \frac{1}{k \cdot \gamma(n)}\)</span></p>
+</dd>
+</dl>
+<p>After defining the values of the two primary parameters <a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.n" title="hydpy.auxs.iuhtools.LinearStorageCascade.n"><code class="xref py py-const docutils literal notranslate"><span class="pre">n</span></code></a>
+and <a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.k" title="hydpy.auxs.iuhtools.LinearStorageCascade.k"><code class="xref py py-const docutils literal notranslate"><span class="pre">k</span></code></a>, the function object can be applied:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearStorageCascade</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lsc</span> <span class="o">=</span> <span class="n">LinearStorageCascade</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">lsc</span><span class="o">.</span><span class="n">c</span><span class="p">)</span>
+<span class="go">0.376126</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">lsc</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">]))</span>
+<span class="go">0.0, 0.122042, 0.028335, 0.004273, 0.00054</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">([</span><span class="n">lsc</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">]])</span>
+<span class="go">0.0, 0.122042, 0.028335, 0.004273, 0.00054</span>
+</pre></div>
+</div>
+<p>Note that we do not use the above equation directly.  Instead, we apply a
+logarithmic transformation, which allows defining extremely high values for
+parameter <a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.n" title="hydpy.auxs.iuhtools.LinearStorageCascade.n"><code class="xref py py-const docutils literal notranslate"><span class="pre">n</span></code></a>, resulting in spiky response functions:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">LinearStorageCascade</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mf">1.0</span><span class="o">/</span><span class="mi">10</span><span class="p">)(</span><span class="mf">1.0</span><span class="p">))</span>
+<span class="go">1.2511</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">LinearStorageCascade</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mf">1.0</span><span class="o">/</span><span class="mi">10000</span><span class="p">)(</span><span class="mf">1.0</span><span class="p">))</span>
+<span class="go">39.893896</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">LinearStorageCascade</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mf">1.0</span><span class="o">/</span><span class="mi">10</span><span class="p">)([</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">]))</span>
+<span class="go">1.317556, 1.2511, 1.085255</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">LinearStorageCascade</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mf">1.0</span><span class="o">/</span><span class="mi">10000</span><span class="p">)([</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">]))</span>
+<span class="go">0.0, 39.893896, 0.0</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.LinearStorageCascade.n">
+<span class="sig-name descname"><span class="pre">n</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.LinearStorageCascade.n" title="Link to this definition">¶</a></dt>
+<dd><p>Instantaneous unit hydrograph parameter: Number of linear storages [-].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.LinearStorageCascade.k">
+<span class="sig-name descname"><span class="pre">k</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.LinearStorageCascade.k" title="Link to this definition">¶</a></dt>
+<dd><p>Instantaneous unit hydrograph parameter: Time of concentration of each individual storage [T].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.LinearStorageCascade.c">
+<span class="sig-name descname"><span class="pre">c</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.LinearStorageCascade.c" title="Link to this definition">¶</a></dt>
+<dd><p>Instantaneous unit hydrograph parameter: Proportionality factor.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.LinearStorageCascade.log_c">
+<span class="sig-name descname"><span class="pre">log_c</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.LinearStorageCascade.log_c" title="Link to this definition">¶</a></dt>
+<dd><p>Instantaneous unit hydrograph parameter: Logarithmic value of <cite>c</cite>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.LinearStorageCascade.log_k">
+<span class="sig-name descname"><span class="pre">log_k</span></span><a class="headerlink" href="#hydpy.auxs.iuhtools.LinearStorageCascade.log_k" title="Link to this definition">¶</a></dt>
+<dd><p>Instantaneous unit hydrograph parameter: Logarithmic value of <cite>k</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.LinearStorageCascade.calc_secondary_parameters">
+<span class="sig-name descname"><span class="pre">calc_secondary_parameters</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/iuhtools.html#LinearStorageCascade.calc_secondary_parameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.iuhtools.LinearStorageCascade.calc_secondary_parameters" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the values of the secondary parameters <a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.c" title="hydpy.auxs.iuhtools.LinearStorageCascade.c"><code class="xref py py-const docutils literal notranslate"><span class="pre">c</span></code></a>,
+<a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.log_c" title="hydpy.auxs.iuhtools.LinearStorageCascade.log_c"><code class="xref py py-const docutils literal notranslate"><span class="pre">log_c</span></code></a>, and <a class="reference internal" href="#hydpy.auxs.iuhtools.LinearStorageCascade.log_k" title="hydpy.auxs.iuhtools.LinearStorageCascade.log_k"><code class="xref py py-const docutils literal notranslate"><span class="pre">log_k</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.iuhtools.LinearStorageCascade.moment1">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">moment1</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#hydpy.auxs.iuhtools.LinearStorageCascade.moment1" title="Link to this definition">¶</a></dt>
+<dd><p>The first time delay weighted statistical moment of the linear storage
+cascade.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="networktools.html" title="networktools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="interptools.html" title="interptools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" >Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">iuhtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

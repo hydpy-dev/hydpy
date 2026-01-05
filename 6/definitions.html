@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Definitions &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Model overview" href="model_overview.html" />
+    <link rel="prev" title="How to read the Reference Manual" href="how_to_read_the_reference_manual.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="model_overview.html" title="Model overview"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="how_to_read_the_reference_manual.html" title="How to read the Reference Manual"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" accesskey="U">User Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Definitions</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="user_guide.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_read_the_reference_manual.html">How to read the Reference Manual</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Definitions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module">module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subpackage">subpackage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#class">class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subclass">subclass</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#instance">instance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model">model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#project">project</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-family">model family</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#base-model">base model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#application-model">application model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#main-model">main model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#submodel">submodel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#submodel-interface">submodel interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#submodel-port">submodel port</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stand-alone-model">stand-alone model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collective">collective</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#method">method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#network">network</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#element">element</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#node">node</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#device">device</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selection">selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#keyword">keyword</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter">parameter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sequence">sequence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#time-grid">time grid</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="project_structure.html">Project structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options.html">Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simulation.html">Simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="how_to_read_the_reference_manual.html"
+                          title="previous chapter">How to read the Reference Manual</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="model_overview.html"
+                          title="next chapter">Model overview</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/definitions.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="definitions">
+<span id="id1"></span><h1>Definitions<a class="headerlink" href="#definitions" title="Link to this heading">¶</a></h1>
+<p>HydPy is a Python library that follows the principles of object-oriented programming,
+so its key concepts are usually implemented via classes.  The <a class="reference internal" href="reference_manual.html#reference-manual"><span class="std std-ref">Reference Manual</span></a>
+describes these classes and all their functionalities in detail, which is too much
+information for HydPy beginners.  This section offers easier access to HydPy’s key
+concepts by listing the central terms and briefly explaining how we understand them.
+If you want to know more, follow the links to the <a class="reference internal" href="reference_manual.html#reference-manual"><span class="std std-ref">Reference Manual</span></a>.</p>
+<section id="module">
+<span id="id2"></span><h2>module<a class="headerlink" href="#module" title="Link to this heading">¶</a></h2>
+<p><cite>Module</cite> is the Python term for a single source code file.  HydPy’s documentation is
+highly in sync with its source code.  Hence, we often mention that a particular module
+provides certain features.   If you are interested, click on the link to the module or
+search for it in the quick search bar to be directed to a documentation page explaining
+this specific module and all its features.</p>
+</section>
+<section id="subpackage">
+<span id="id3"></span><h2>subpackage<a class="headerlink" href="#subpackage" title="Link to this heading">¶</a></h2>
+<p>Python libraries like HydPy are often called “packages”.  <cite>subpackage</cite> is a
+subdirectory of the complete HydPy package that combines multiple related <a class="reference internal" href="#module"><span class="std std-ref">modules</span></a>.  The “model” subpackage, for example, contains all <a class="reference internal" href="#base-model"><span class="std std-ref">base models</span></a> (defined in nested <cite>subpackages</cite> and <a class="reference internal" href="#application-model"><span class="std std-ref">application models</span></a> (defined in single modules).</p>
+</section>
+<section id="class">
+<span id="id4"></span><h2>class<a class="headerlink" href="#class" title="Link to this heading">¶</a></h2>
+<p><cite>Class</cite> (or “type”) is a core term in object-oriented programming. In this
+documentation, <cite>class</cite> usually refers to a Python class, with which we often represent
+a hydrological “thing” in general.  A general example is the type <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, which
+defines the general properties of floating-point numbers in Python.  A HydPy-specific
+example is the class <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.Area" title="hydpy.models.hland.hland_control.Area"><code class="xref py py-class docutils literal notranslate"><span class="pre">Area</span></code></a>, used by the model family <a class="reference internal" href="HydPy-H.html#hydpy-h"><span class="std std-ref">HydPy-H (HBV)</span></a> to
+represent a subbasin’s area.</p>
+</section>
+<section id="subclass">
+<span id="id5"></span><h2>subclass<a class="headerlink" href="#subclass" title="Link to this heading">¶</a></h2>
+<p>In object-oriented programming, a subclass (or child class) inherits the properties of
+its base classes.  One can understand this concept intuitively by considering
+<cite>Furniture</cite> as a base class and <cite>Chair</cite> and <cite>Table</cite> as its subclasses.  <cite>Chair</cite> and
+<cite>Table</cite> could share common properties such as <cite>colour</cite> defined by their common base
+class.  However, only class <cite>Chair</cite> would need a property like <cite>backrest</cite>.</p>
+<p>From the development perspective, the concept of subclassing prevents code
+duplications.  In the given example, one must add the property <cite>colour</cite> only to the
+single base class <cite>Furniture</cite>, not its two subclasses <cite>Chair</cite> and <cite>Table</cite>.  But
+remembering that HydPy relies heavily on subclassing also eases its understanding a
+lot.  For example, the mentioned class <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.Area" title="hydpy.models.hland.hland_control.Area"><code class="xref py py-class docutils literal notranslate"><span class="pre">Area</span></code></a> is a subclass of the base
+class <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> (noted in the first documentation line).  Hence, you can expect
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.Area" title="hydpy.models.hland.hland_control.Area"><code class="xref py py-class docutils literal notranslate"><span class="pre">Area</span></code></a> to work like all other <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> subclasses, but it might
+provide additional features.  One example of a shared property is the general class
+attribute <a class="reference internal" href="variabletools.html#hydpy.core.variabletools.Variable.TYPE" title="hydpy.core.variabletools.Variable.TYPE"><code class="xref py py-attr docutils literal notranslate"><span class="pre">TYPE</span></code></a>, which tells if a parameter handles, for example, integer or
+floating-point values.  As you can see in the documentation on <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.Area" title="hydpy.models.hland.hland_control.Area"><code class="xref py py-class docutils literal notranslate"><span class="pre">Area</span></code></a>,
+<a class="reference internal" href="HydPy-H.html#hydpy-h"><span class="std std-ref">HydPy-H (HBV)</span></a> (unsurprisingly) expects the subbasin area to be defined by
+floating-point values.</p>
+</section>
+<section id="instance">
+<span id="id6"></span><h2>instance<a class="headerlink" href="#instance" title="Link to this heading">¶</a></h2>
+<p>An <cite>instance</cite> (or “object”) is a concrete realisation of a <a class="reference internal" href="#class"><span class="std std-ref">class</span></a>.  <cite>1.5</cite>, for
+example, is an instance of <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> with concrete data that makes it usable.  You can
+add two <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a> instances with the value <cite>1.5</cite> to get the new float instance <cite>3.0</cite>.  In
+contrast, adding two classes does not make sense.  To give a HydPy example, class
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.Area" title="hydpy.models.hland.hland_control.Area"><code class="xref py py-class docutils literal notranslate"><span class="pre">Area</span></code></a> defines how we define the area of a subcatchment and how we can
+use it when working with members of the <a class="reference internal" href="HydPy-H.html#hydpy-h"><span class="std std-ref">HydPy-H (HBV)</span></a> model family. But when dealing
+with the concrete area of a specific subbasin, we work with a single instance of
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.Area" title="hydpy.models.hland.hland_control.Area"><code class="xref py py-class docutils literal notranslate"><span class="pre">Area</span></code></a>.</p>
+</section>
+<section id="model">
+<span id="id7"></span><h2>model<a class="headerlink" href="#model" title="Link to this heading">¶</a></h2>
+<p>In hydrology, the meaning of the term <cite>model</cite> is highly context-dependent.  Technically
+speaking, this documentation typically uses it to refer to a user-relevant subclass of
+the base class <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>.  Many such classes provide the features to represent the water
+cycle within a subcatchment (e.g. <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a>).  Others deal with related processes like
+flood routing (e.g. <a class="reference internal" href="musk_classic.html#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a>) or serve more technical purposes like interpolation
+of meteorological input data (e.g. <a class="reference internal" href="conv_idw.html#module-hydpy.models.conv_idw" title="hydpy.models.conv_idw"><code class="xref py py-mod docutils literal notranslate"><span class="pre">conv_idw</span></code></a>).  The following subsections describe the
+most relevant model-related terms used throughout this documentation.</p>
+</section>
+<section id="project">
+<span id="id8"></span><h2>project<a class="headerlink" href="#project" title="Link to this heading">¶</a></h2>
+<p>The term <cite>model</cite> in hydrology often refers to the complete input and configuration data
+necessary to simulate a catchment’s water cycle.  As explained in the <a class="reference internal" href="#model"><span class="std std-ref">model</span></a>
+section, we prefer to use it in the sense of “model type”.  Hence, when discussing
+“readily set-up models”, we use the term <cite>project</cite> instead.  See the
+<a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> project for an example.</p>
+</section>
+<section id="model-family">
+<span id="id9"></span><h2>model family<a class="headerlink" href="#model-family" title="Link to this heading">¶</a></h2>
+<p>Each <cite>model family</cite> targets certain hydrologcial processes or more technical purposes
+and consists of one <a class="reference internal" href="#base-model"><span class="std std-ref">base model</span></a> and several <a class="reference internal" href="#application-model"><span class="std std-ref">application models</span></a>.  Some model families are the only ones that fulfil a specific
+task, while others share their tasks but accomplish it with different means.  For
+example, <a class="reference internal" href="HydPy-Evap.html#hydpy-evap"><span class="std std-ref">HydPy-Evap</span></a> is the only model family with <a class="reference internal" href="#submodel"><span class="std std-ref">submodels</span></a>
+suitable for calculating evapotranspiration.  In contrast, <a class="reference internal" href="HydPy-Musk.html#hydpy-musk"><span class="std std-ref">HydPy-Musk (Muskingum)</span></a> and
+<a class="reference internal" href="HydPy-SW1D.html#hydpy-sw1d"><span class="std std-ref">HydPy-SW1D (Shallow Water 1D)</span></a> share the same target (flood routing) but achieve it with very
+different approaches (“hydrological” Muskingum routing vs “hydrodynamical”
+Saint-Vernaint routing).</p>
+</section>
+<section id="base-model">
+<span id="id10"></span><h2>base model<a class="headerlink" href="#base-model" title="Link to this heading">¶</a></h2>
+<p>A <cite>base model</cite> provides all <a class="reference internal" href="#method"><span class="std std-ref">methods</span></a> to be used by the <a class="reference internal" href="#application-model"><span class="std std-ref">application
+models</span></a> of the same <a class="reference internal" href="#model-family"><span class="std std-ref">model family</span></a>.  In practice, base models
+are merely important for model developers.  However, we use base modelsto explain and
+test individual methods, so one frequently encounters them when reading the
+documentation.  See, for example, the documentation on method <a class="reference internal" href="hland.html#hydpy.models.hland.hland_model.Calc_TC_V1" title="hydpy.models.hland.hland_model.Calc_TC_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_TC_V1</span></code></a>,
+which uses the base model <a class="reference internal" href="hland.html#module-hydpy.models.hland" title="hydpy.models.hland"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland</span></code></a> of the model family <a class="reference internal" href="HydPy-H.html#hydpy-h"><span class="std std-ref">HydPy-H (HBV)</span></a> to explain the
+adjustment of subbasin-wide average air temperature to hydrological response units with
+different elevations.  The explanations and tests apply to all submodels selecting this
+method (in this case, all application models of <a class="reference internal" href="HydPy-H.html#hydpy-h"><span class="std std-ref">HydPy-H (HBV)</span></a>).</p>
+<p>A base model’s name equals the name of the <a class="reference internal" href="#subpackage"><span class="std std-ref">subpackage</span></a> containing
+all <a class="reference internal" href="#module"><span class="std std-ref">modules</span></a> defining it.</p>
+</section>
+<section id="application-model">
+<span id="id11"></span><h2>application model<a class="headerlink" href="#application-model" title="Link to this heading">¶</a></h2>
+<p><cite>Application models</cite> are user-relevant model types.  They select suitable combinations
+of the <a class="reference internal" href="#method"><span class="std std-ref">methods</span></a> provided by the <a class="reference internal" href="#base-model"><span class="std std-ref">base model</span></a> of the same
+<a class="reference internal" href="#model-family"><span class="std std-ref">model family</span></a>.  (Hence, technically speaking, an <cite>application model</cite> is a
+composition of components provided by a base model, not its subclass.)  Two examples of
+the <a class="reference internal" href="HydPy-Evap.html#hydpy-evap"><span class="std std-ref">HydPy-Evap</span></a> model family are <a class="reference internal" href="evap_ret_fao56.html#module-hydpy.models.evap_ret_fao56" title="hydpy.models.evap_ret_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_fao56</span></code></a> and <a class="reference internal" href="evap_ret_tw2002.html#module-hydpy.models.evap_ret_tw2002" title="hydpy.models.evap_ret_tw2002"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_tw2002</span></code></a>, which
+calculate the reference evapotranspiration according <cite>ref-Allen1998</cite> and
+<span id="id12"><a class="reference internal" href="zbibliography.html#id4" title="ATV-DVWK. ATV-DVWK-M 504 - Verdunstung in Bezug zu Landnutzung, Bewuchs und Boden. Deutsche Vereinigung für Wasserwirtschaft, Abwasser und Abfall, 2002. URL: https://webshop.dwa.de/de/merkblatt-atv-dvwk-m-504-september-2002.html.">ATV-DVWK (2002)</a></span>, respectively.</p>
+<p>An application model’s name equals the name of the <a class="reference internal" href="#module"><span class="std std-ref">module</span></a> defining it.</p>
+</section>
+<section id="main-model">
+<span id="id13"></span><h2>main model<a class="headerlink" href="#main-model" title="Link to this heading">¶</a></h2>
+<p>Essentially, HydPy <a class="reference internal" href="#project"><span class="std std-ref">projects</span></a> are structured via <a class="reference internal" href="#element"><span class="std std-ref">elements</span></a> and <a class="reference internal" href="#node"><span class="std std-ref">nodes</span></a>.  Each element instance directly handles one <cite>main
+model</cite> instance (and indirectly, eventually, some <a class="reference internal" href="#submodel"><span class="std std-ref">submodel</span></a> instances).  The
+<cite>main model</cite> defines the general considered processes and executes them or delegates
+this task to its submodels.  For example, by selecting <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a> as the <cite>main model</cite>,
+one determines that a subbasin’s runoff generation and concentration processes are
+represented in the style of HBV96 <span id="id14">(<a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em>, 1997</a>)</span>.</p>
+</section>
+<section id="submodel">
+<span id="id15"></span><h2>submodel<a class="headerlink" href="#submodel" title="Link to this heading">¶</a></h2>
+<p><cite>Submodels</cite> are selectable (and sometimes optional) members of <a class="reference internal" href="#main-model"><span class="std std-ref">main models</span></a> that serve more specific tasks.  For example, <a class="reference internal" href="evap_pet_hbv96.html#module-hydpy.models.evap_pet_hbv96" title="hydpy.models.evap_pet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_hbv96</span></code></a> and
+<a class="reference internal" href="evap_aet_hbv96.html#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a> calculate potential and actual evapotranspiration following HBV96
+<span id="id16">(<a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em>, 1997</a>)</span>.  One can “plug them” to <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a> to get a
+consistent HBV96 model but also to other application models of <a class="reference internal" href="HydPy-H.html#hydpy-h"><span class="std std-ref">HydPy-H (HBV)</span></a> and
+different model families.</p>
+<p>Note that we sometimes use the term <cite>sub-submodel</cite> when submodels can themselves use
+submodels. For example, <a class="reference internal" href="evap_aet_hbv96.html#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a> can use <a class="reference internal" href="evap_pet_hbv96.html#module-hydpy.models.evap_pet_hbv96" title="hydpy.models.evap_pet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_hbv96</span></code></a> or a similar submodel
+to gain potential evapotranspiration estimates.</p>
+</section>
+<section id="submodel-interface">
+<span id="id17"></span><h2>submodel interface<a class="headerlink" href="#submodel-interface" title="Link to this heading">¶</a></h2>
+<p>In object-oriented programming, an <cite>interface</cite> is an abstract description of concrete
+<a class="reference internal" href="#class"><span class="std std-ref">classes</span></a>.  If, for example, a function is “programmed against” an
+<cite>interface</cite>, it can use all concrete classes that “implement” it (synonyms of
+“implement” are “follow” and “comply with”).</p>
+<p>HydPy’s design of the <a class="reference internal" href="#submodel"><span class="std std-ref">submodel</span></a> concept relies on this programming technique.
+The <a class="reference internal" href="#subpackage"><span class="std std-ref">subpackage</span></a> <cite>interfaces</cite> provides multiple abstract descriptions for
+submodels.  Users do not need to be aware of all details but should understand that if
+an <a class="reference internal" href="#application-model"><span class="std std-ref">application model</span></a> like <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a> claims it can consider additional runoff
+concentration processes by using a submodel that follows the <a class="reference internal" href="rconcinterfaces.html#hydpy.interfaces.rconcinterfaces.RConcModel_V1" title="hydpy.interfaces.rconcinterfaces.RConcModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RConcModel_V1</span></code></a> interface,
+they can use, for example, <a class="reference internal" href="rconc_uh.html#module-hydpy.models.rconc_uh" title="hydpy.models.rconc_uh"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rconc_uh</span></code></a> for this purpose, as it one of the submodels
+following the <a class="reference internal" href="rconcinterfaces.html#hydpy.interfaces.rconcinterfaces.RConcModel_V1" title="hydpy.interfaces.rconcinterfaces.RConcModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RConcModel_V1</span></code></a> interface.</p>
+</section>
+<section id="submodel-port">
+<span id="id18"></span><h2>submodel port<a class="headerlink" href="#submodel-port" title="Link to this heading">¶</a></h2>
+<p>A <a class="reference internal" href="#main-model"><span class="std std-ref">main model</span></a> instance requires connections to all its direct submodel instances
+(but not to its sub-submodel instances).  These attribute-like connections are named
+<cite>submodel port</cite> or just <cite>port</cite>.  To continue the above example, <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a> has the
+<cite>rconcmodel</cite> port to keep a <a class="reference internal" href="rconc_uh.html#module-hydpy.models.rconc_uh" title="hydpy.models.rconc_uh"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rconc_uh</span></code></a> submodel accessible.  Technically, such a <cite>port</cite>
+is implemented via an instance of the class <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelProperty" title="hydpy.core.modeltools.SubmodelProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelProperty</span></code></a> (for managing a single
+submodel instance as an attribute) or <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelsProperty" title="hydpy.core.modeltools.SubmodelsProperty"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelsProperty</span></code></a> (for managing a submodel
+vector as an attribute).</p>
+<p>Submodel graphs like the one shown in the <a class="reference internal" href="model_overview.html#model-overview"><span class="std std-ref">Model overview</span></a> section alternate
+between model and port names (main model <span class="raw-html">&rarr;</span> port <span class="raw-html">&rarr;</span>
+submodel <span class="raw-html">&rarr;</span> port <span class="raw-html">&rarr;</span> sub-submodel…).</p>
+</section>
+<section id="stand-alone-model">
+<span id="id19"></span><h2>stand-alone model<a class="headerlink" href="#stand-alone-model" title="Link to this heading">¶</a></h2>
+<p>Most <a class="reference internal" href="#submodel"><span class="std std-ref">submodels</span></a> work only as members of a <a class="reference internal" href="#main-model"><span class="std std-ref">main model</span></a> instance.
+However, there are some exceptions like <a class="reference internal" href="evap_ret_fao56.html#module-hydpy.models.evap_ret_fao56" title="hydpy.models.evap_ret_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_fao56</span></code></a>, which also work as
+<cite>stand-alone models</cite>.  Suppose you are, for example, just interested in calculating
+reference evapotranspiration for a subbasin.  In that case, do not need to set up a
+complete “land model” but can assign an <a class="reference internal" href="evap_ret_fao56.html#module-hydpy.models.evap_ret_fao56" title="hydpy.models.evap_ret_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_fao56</span></code></a> instance directly to an
+<a class="reference internal" href="#element"><span class="std std-ref">element</span></a> (or even use it without any “network overhead”).</p>
+</section>
+<section id="collective">
+<span id="id20"></span><h2>collective<a class="headerlink" href="#collective" title="Link to this heading">¶</a></h2>
+<p>In some cases, individual <a class="reference internal" href="#main-model"><span class="std std-ref">main models</span></a> (e.g. of type <a class="reference internal" href="sw1d_channel.html#module-hydpy.models.sw1d_channel" title="hydpy.models.sw1d_channel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_channel</span></code></a>)
+are defined by the user but are automatically converted to a combined model instance
+(e.g. of type <a class="reference internal" href="sw1d_network.html#module-hydpy.models.sw1d_network" title="hydpy.models.sw1d_network"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_network</span></code></a>) during simulation for numerical reasons. All models
+handled by <a class="reference internal" href="#element"><span class="std std-ref">elements</span></a> that belong to the same <a class="reference internal" href="#collective"><span class="std std-ref">collective</span></a> (defined
+by property <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element.collective" title="hydpy.core.devicetools.Element.collective"><code class="xref py py-attr docutils literal notranslate"><span class="pre">collective</span></code></a>) are combined into one new model instance.</p>
+</section>
+<section id="method">
+<span id="id21"></span><h2>method<a class="headerlink" href="#method" title="Link to this heading">¶</a></h2>
+<p>This documentation uses the term <cite>method</cite> in two ways.  First, following
+object-oriented programming terminology, it stands for (Python) functions directly
+related to a <a class="reference internal" href="#class"><span class="std std-ref">classes</span></a>.  Second, it stands for the “granular units” (often
+single equations) of (more or less) hydrological approaches implemented via subclasses
+of class <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Method" title="hydpy.core.modeltools.Method"><code class="xref py py-class docutils literal notranslate"><span class="pre">Method</span></code></a>.  One example is <a class="reference internal" href="hland.html#hydpy.models.hland.hland_model.Calc_TC_V1" title="hydpy.models.hland.hland_model.Calc_TC_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_TC_V1</span></code></a>, which adjusts the
+subbasin-wide average air temperature to hydrological response units with different
+elevations following HBV96 <span id="id22">(<a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em>, 1997</a>)</span>.  The <a class="reference internal" href="#base-model"><span class="std std-ref">base model</span></a>
+<a class="reference internal" href="hland.html#module-hydpy.models.hland" title="hydpy.models.hland"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland</span></code></a> defines this method, and <a class="reference internal" href="#application-model"><span class="std std-ref">application models</span></a> like
+<a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a> use it.</p>
+</section>
+<section id="network">
+<span id="id23"></span><h2>network<a class="headerlink" href="#network" title="Link to this heading">¶</a></h2>
+<p>The term <cite>network</cite> addresses the (spatial) connections necessary to model a catchment
+consisting of more than one subbasin.  A <cite>network</cite> combines consistently coupled
+<a class="reference internal" href="#element"><span class="std std-ref">element</span></a> and <a class="reference internal" href="#node"><span class="std std-ref">node</span></a> instances.</p>
+</section>
+<section id="element">
+<span id="id24"></span><h2>element<a class="headerlink" href="#element" title="Link to this heading">¶</a></h2>
+<p><cite>Element</cite> instances are the central components of each HydPy <a class="reference internal" href="#project"><span class="std std-ref">project’s</span></a>
+<a class="reference internal" href="#network"><span class="std std-ref">network</span></a>.  They usually represent places where something needs to be calculated,
+for example, the subbasin of a catchment (where we want to calculate runoff generation
+and concentration) or a river crossing a subbasin (where we want to calculate flood
+routing).</p>
+<p>Within a <a class="reference internal" href="#project"><span class="std std-ref">project</span></a>, each <cite>element</cite> instance has a unique, user-defined name that
+serves to identify it.</p>
+<p><cite>Elements</cite> cannot perform calculations by themselves but require <a class="reference internal" href="#application-model"><span class="std std-ref">application
+models</span></a>.  Each <cite>element</cite> instance handles a single
+<a class="reference internal" href="#main-model"><span class="std std-ref">main model</span></a> (which might have several <a class="reference internal" href="#submodel"><span class="std std-ref">submodels</span></a>).  The
+<cite>element’s</cite> task is mainly to connect its model to the network and enable data exchange
+with other models via <a class="reference internal" href="#node"><span class="std std-ref">nodes</span></a>.  A routing model, for example, gets its
+inflow through its <cite>element’s</cite> “inlet nodes” and passes it through its <cite>element’s</cite>
+“outlet nodes” to the next <cite>element</cite> downstream, which might handle another routing
+model of the same or a different type or, for example, a lake model.  Pure information
+like the current water level of a river reach required to control a dam’s water release
+is sent and queried via “sender nodes” and “observer nodes” or “receiver nodes”
+(“observer nodes” provide their information immediately but cannot lie downstream in
+the river network; “receiver nodes” can lie downstream and so allow for feedbacks but
+provide their information with a delay of one simulation time step).</p>
+<p>HydPy only provides a single <cite>element</cite> type (defined by class <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a>), which can
+handle all different model types.</p>
+</section>
+<section id="node">
+<span id="id25"></span><h2>node<a class="headerlink" href="#node" title="Link to this heading">¶</a></h2>
+<p><cite>Node</cite> instances are the second essential component of all <a class="reference internal" href="#network"><span class="std std-ref">networks</span></a>.
+They allow specifying which <a class="reference internal" href="#model"><span class="std std-ref">model</span></a> instance passes which type of information in
+which direction.  The “direction” follows from the given connections to <a class="reference internal" href="#element"><span class="std std-ref">element</span></a>
+instances (which handle the model instances).  The “type” can be set by the <cite>node’s</cite>
+“variable” (see attribute <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node.variable" title="hydpy.core.devicetools.Node.variable"><code class="xref py py-const docutils literal notranslate"><span class="pre">variable</span></code></a> of class <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a>).  Typical “places” for
+<cite>nodes</cite> are basin outlets, river mouths or streamflow gauges.</p>
+<p>Within a <a class="reference internal" href="#project"><span class="std std-ref">project</span></a>, each <cite>node</cite> instance has a unique, user-defined name that
+serves to identify it.</p>
+<p>In contrast to elements, <cite>nodes</cite> do not differentiate between “local material transfer”
+and “remote information transfer”.  They generally get it from their “entry elements”
+and pass all data to their “exit elements”.</p>
+<p>Besides passing data from one model to the other, <cite>nodes</cite> support provide features like
+injecting externally prepared time series or comparing simulated with observed
+data, which are especially important when a node represents a streamflow gauge.</p>
+</section>
+<section id="device">
+<span id="id26"></span><h2>device<a class="headerlink" href="#device" title="Link to this heading">¶</a></h2>
+<p>We use <cite>device</cite> as the umbrella term for <a class="reference internal" href="#element"><span class="std std-ref">element</span></a> and <a class="reference internal" href="#node"><span class="std std-ref">node</span></a>.  (This is due
+to the technical fact that the classes <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> and <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a> are subclasses of the base
+class <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Device" title="hydpy.core.devicetools.Device"><code class="xref py py-class docutils literal notranslate"><span class="pre">Device</span></code></a>.)</p>
+</section>
+<section id="selection">
+<span id="id27"></span><h2>selection<a class="headerlink" href="#selection" title="Link to this heading">¶</a></h2>
+<p>A <cite>selection</cite> combines multiple <a class="reference internal" href="#node"><span class="std std-ref">node</span></a> and <a class="reference internal" href="#element"><span class="std std-ref">element</span></a> instances.  Each HydPy
+<a class="reference internal" href="#project"><span class="std std-ref">project</span></a> automatically contains one named “complete” that covers the entire
+<a class="reference internal" href="#network"><span class="std std-ref">network</span></a>.  You can freely define additional <cite>selections</cite> and store them in
+individual network files (see the documentation on module <a class="reference internal" href="selectiontools.html#module-hydpy.core.selectiontools" title="hydpy.core.selectiontools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">selectiontools</span></code></a> on how to do
+this).</p>
+<p>Often, <cite>selections</cite> represent subareas of large river basins modelled by multiple
+“land” and “routing” models.  Still, you can choose any other criteria; the
+<a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> project, for example, uses selections to distinguish headwater from
+non-headwater catchments.</p>
+<p>Overlapping is allowed, meaning the same node or element instance can be a member of
+multiple <cite>selections</cite>.</p>
+</section>
+<section id="keyword">
+<span id="id28"></span><h2>keyword<a class="headerlink" href="#keyword" title="Link to this heading">¶</a></h2>
+<p>Throughout this documentation, the term <cite>keyword</cite> often means “short text attached to
+<a class="reference internal" href="#element"><span class="std std-ref">element</span></a> or <a class="reference internal" href="#node"><span class="std std-ref">node</span></a> instances”.  These <cite>keywords</cite> serve as simple metadata
+and help to query certain instances.  For example, one can add the string “gauge” to
+all node instances representing locations with runoff measurements, making it easy to
+calculate Nash-Sutcliffe coefficients wherever possible.</p>
+<p>Each element and node instance can hold multiple <cite>keywords</cite>.</p>
+</section>
+<section id="parameter">
+<span id="id29"></span><h2>parameter<a class="headerlink" href="#parameter" title="Link to this heading">¶</a></h2>
+<p>The programming and hydrological communities use the term <cite>parameter</cite> differently.  In
+Python, <cite>parameter</cite> means a variable of a function that receives its data when the
+function is called (in <cite>def f(x):</cite>, <cite>x</cite> is the variable).  To avoid confusion, we try
+to avoid the term <cite>parameter</cite> in this context and instead speak of (function)
+arguments.</p>
+<p>In hydrological modelling, <cite>parameters</cite> represent properties (described by numbers)
+that often depend on the spatial characteristics of a catchment but are not changed by
+the model equations.  In most cases, <cite>parameter</cite> values do not change at all during a
+simulation run (for example, a soil’s field capacity).  In other cases, the <cite>parameter</cite>
+values vary in a predefined, often daily or annual pattern (for example, a deciduous
+tree’s leaf area index).</p>
+<p>All implemented <cite>parameter</cite> types are subclasses of the base class <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameter" title="hydpy.core.parametertools.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>.  We
+differentiate them into the following groups.</p>
+<p>From the user’s perspective, the <cite>control parameters</cite> are most important.  One must set
+the values of these <cite>parameters</cite>, which is typically done within “control files”, to
+adjust the selected model to the processes of the considered catchment. One example is
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.FC" title="hydpy.models.hland.hland_control.FC"><code class="xref py py-class docutils literal notranslate"><span class="pre">FC</span></code></a>, the field capacity parameter of the <a class="reference internal" href="HydPy-H.html#hydpy-h"><span class="std std-ref">HydPy-H (HBV)</span></a> model family.
+Note that many <cite>control parameters</cite> offer individual functionalities that often serve
+to reduce configuration efforts.</p>
+<p>One often encounters <cite>derived parameters</cite> when reading the basic equations and
+explanations of individual <a class="reference internal" href="#method"><span class="std std-ref">methods</span></a>, but users must seldom configure
+them directly.  In applications, <cite>derived parameters</cite> usually query information from
+<cite>control parameters</cite> to calculate their values automatically.  If ever, users should
+modify these values for testing purposes.  One example is <a class="reference internal" href="hland.html#hydpy.models.hland.hland_derived.QFactor" title="hydpy.models.hland.hland_derived.QFactor"><code class="xref py py-class docutils literal notranslate"><span class="pre">QFactor</span></code></a>,
+which uses the user-defined subcatchment area (defined by <cite>control parameter</cite>
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.Area" title="hydpy.models.hland.hland_control.Area"><code class="xref py py-class docutils literal notranslate"><span class="pre">Area</span></code></a>) to determine the factor for converting the units of fluxes from
+mm/T to m³/s (with <cite>T</cite> being the simulation step size).</p>
+<p><cite>Fixed parameters</cite> represent mathematical or physical properties with unambiguous
+values.  Principally, users can modify them, but this is more a feature for testing
+than for practical applications.  One example (for a <cite>parameter</cite> with a definitely
+fixed value) is <a class="reference internal" href="hland.html#hydpy.models.hland.hland_fixed.Pi" title="hydpy.models.hland.hland_fixed.Pi"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pi</span></code></a>.</p>
+<p><cite>Solver parameters</cite> determine the numerical accuracy of <a class="reference internal" href="#application-model"><span class="std std-ref">application models</span></a> that rely on numerical integration methods.  All <cite>solver
+parameters</cite> come with default values.  These should be sensible in most cases, but
+experienced users always have the option to modify them for potential benefits in
+accuracy or simulation speed.  One example is <a class="reference internal" href="wland.html#hydpy.models.wland.wland_solver.AbsErrorMax" title="hydpy.models.wland.wland_solver.AbsErrorMax"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbsErrorMax</span></code></a>, which defines
+the local truncation error when working with the models of the <a class="reference internal" href="HydPy-W.html#hydpy-w"><span class="std std-ref">HydPy-W (WALRUS)</span></a> family.</p>
+</section>
+<section id="sequence">
+<span id="id30"></span><h2>sequence<a class="headerlink" href="#sequence" title="Link to this heading">¶</a></h2>
+<p>In HydPy, the term <cite>sequence’s</cite> meaning differs from the Python terminology, and
+one should be aware of a class conflict.</p>
+<p>In Python, <cite>sequence</cite> refers to any indexable, ordered data collection.  A <cite>string</cite>
+(<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>), for example, is a fixed collection of Unicode characters and a <cite>list</cite> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>)
+is an adjustable collection of arbitrary objects.  We avoid using the term <cite>sequence</cite>
+this way in the documentation texts.  Still, many type hints (which define, for
+example, which type of data a function accepts) rely on Python’s corresponding abstract
+collection type <cite>Sequence</cite>.  (To a function argument annotated with <cite>Sequence[str]</cite>,
+you can pass a string, a list of strings, or any other indexable, ordered collection
+that only contains strings.)</p>
+<p>In HydPy, we understand the term <cite>sequence</cite> similar to the term <a class="reference internal" href="#parameter"><span class="std std-ref">parameter</span></a>, with
+the difference that <cite>sequence</cite> addresses properties that change during a simulation
+run.   These properties can be external forcings like precipitation or calculation
+results like discharge.  To limit confusion and prevent class name clashes, we added an
+underscore to the general <cite>sequence</cite> base class <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequence_" title="hydpy.core.sequencetools.Sequence_"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sequence_</span></code></a>.</p>
+<p>The terms <cite>sequence</cite> and “time series” are closely related but not interchangable.  By
+default, <cite>sequence</cite> instances only handle the current value (or, in some cases, the
+recent values) of the properties they represent.  Yet, most <cite>sequences</cite> have the
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.series" title="hydpy.core.sequencetools.IOSequence.series"><code class="xref py py-const docutils literal notranslate"><span class="pre">series</span></code></a> attribute, allowing them to keep the time series of a complete
+simulation period.</p>
+<p>We differentiate all implemented <cite>sequence</cite> types into different groups.  All
+<cite>sequences</cite> of a group share a common base class that offers special functionalities.</p>
+<p><cite>Input sequences</cite> (derived from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequence" title="hydpy.core.sequencetools.InputSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequence</span></code></a>) provide the (mostly meteorological)
+input forcings required for hydrological simulations, usually by reading their data
+from time series files.</p>
+<p><cite>State and log sequences</cite> serve as a <a class="reference internal" href="#model"><span class="std std-ref">model’s</span></a> memory. We often subsume
+them as “condition sequences” or simply “conditions”.  <cite>State sequences</cite> (derived from
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequence" title="hydpy.core.sequencetools.StateSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequence</span></code></a>) represent current states like soil moisture.  <cite>Log sequences</cite> (derived
+from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequence" title="hydpy.core.sequencetools.LogSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequence</span></code></a>) log previous input data or calculation results required by
+approaches like the Unit Hydrograph method.  <cite>State and log sequences</cite> usually read
+their initial conditions from “condition files” and and become stepwise updated during
+simulation runs.</p>
+<p><cite>Factor and flux sequences</cite> contain pure simulation results.  They are technically
+identical but target different properties. <cite>Factor sequences</cite> (derived from
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequence" title="hydpy.core.sequencetools.FactorSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequence</span></code></a>) deal with factors like air temperature or water level, while flux
+sequences (derived from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequence" title="hydpy.core.sequencetools.FluxSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequence</span></code></a>) deal with fluxes like global radiation or
+discharge.</p>
+<p><cite>Link sequences</cite> (derived from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LinkSequence" title="hydpy.core.sequencetools.LinkSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinkSequence</span></code></a>) do not carry data of their own but point
+to the data handled by the <cite>node sequences</cite> (derived from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence" title="hydpy.core.sequencetools.NodeSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeSequence</span></code></a>) of node
+instances.   They enable models to query data from and manipulate the data of node
+instances, which is the standard way of data exchange between model instances over the
+network.</p>
+<p><cite>Inlet and outlet</cite> sequences are the two most relevant <cite>link sequence</cite> types.  They
+serve to pass fluxes downstream.  <cite>Inlet sequences</cite> (derived from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequence" title="hydpy.core.sequencetools.InletSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequence</span></code></a>)
+enable, for example, routing models to get inflow from upstream models, while <cite>outlet
+sequences</cite> (derived from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a> enable them to pass it in modified form to
+downstream models.</p>
+<p><cite>Observer, receiver and sender sequences</cite> are also <cite>link sequences</cite>. Their primary use
+lies in the distribution of information, possibly across large spatial distances.  The
+distinction between <cite>observer</cite> and <cite>receiver</cite> sequences is subtle but sometimes
+crucial.  Only the <cite>receiver</cite> mechanism allows for arbitrarily directed connections,
+even if they introduce cyclic network structures.  This flexibility comes with the cost
+of transferring information with a delay of one simulation step.  So, for example, a
+downstream routing model could use a <cite>sender sequence</cite> (derived from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.SenderSequence" title="hydpy.core.sequencetools.SenderSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">SenderSequence</span></code></a>)
+to pass its water level to a “remote node”, and an upstream pumping station model could
+query this information in the next simulation step from the “remote node” via a
+<cite>receiver sequence</cite> (derived from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ReceiverSequence" title="hydpy.core.sequencetools.ReceiverSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReceiverSequence</span></code></a>) to stop its pumping as soon the
+actual water level exceeds a critical threshold.  In contrast, a typical use case for
+the <cite>observer</cite> mechanism is to control a detention basin based on the currently
+simulated inflows of tributaries that route their water into a river that needs
+protection.  In this case, the detention basin model could query the inflow information
+directly via an <cite>observer sequence</cite> (derived from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ObserverSequence" title="hydpy.core.sequencetools.ObserverSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">ObserverSequence</span></code></a>) and so react a
+little faster.</p>
+<p><cite>Aide sequences</cite> (derived from <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.AideSequence" title="hydpy.core.sequencetools.AideSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">AideSequence</span></code></a>) only store temporary information and are
+of little importance to users.</p>
+<p>Note that <cite>state, factor, and flux sequences</cite> are sometimes called` output sequences`
+for two reasons.  First, they support writing simulation results to time series files.
+Second, HydPy allows connecting an <cite>output sequence</cite> of one model instance to an
+<cite>input sequence</cite> of another model instance.  (This feature is unhandy, so we added the
+submodel concept to HydPy 6.0.  Only a few cases are left where the input-output
+sequence mechanism is still required.)</p>
+</section>
+<section id="time-grid">
+<span id="id31"></span><h2>time grid<a class="headerlink" href="#time-grid" title="Link to this heading">¶</a></h2>
+<p>In HydPy, a <cite>time grid</cite> is a set of equally long time intervals defined by an instance
+of the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid" title="hydpy.core.timetools.Timegrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrid</span></code></a> class.  Due to the intervals’ equal length, a <cite>time grid</cite> instance is
+outright specified by the starting point of its first interval (<a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid.firstdate" title="hydpy.core.timetools.Timegrid.firstdate"><code class="xref py py-const docutils literal notranslate"><span class="pre">firstdate</span></code></a>),
+the endpoint of its last interval (<a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid.lastdate" title="hydpy.core.timetools.Timegrid.lastdate"><code class="xref py py-const docutils literal notranslate"><span class="pre">lastdate</span></code></a>), and the size of a single
+interval (<a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid.stepsize" title="hydpy.core.timetools.Timegrid.stepsize"><code class="xref py py-const docutils literal notranslate"><span class="pre">stepsize</span></code></a>).</p>
+<p>When working on a <a class="reference internal" href="#project"><span class="std std-ref">project</span></a>, one usually deals with three different <cite>time grids</cite>,
+which are handled by an instance of class <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids" title="hydpy.core.timetools.Timegrids"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrids</span></code></a>:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>The <cite>initialisation time grid</cite> (<a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.init" title="hydpy.core.timetools.Timegrids.init"><code class="xref py py-attr docutils literal notranslate"><span class="pre">init</span></code></a>) covers the relevant period
+completely.  For example, when HydPy prepares to read time series data from disk, it
+allocates just enough RAM as indicated by <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.init" title="hydpy.core.timetools.Timegrids.init"><code class="xref py py-attr docutils literal notranslate"><span class="pre">init</span></code></a>.</p></li>
+<li><p>The <cite>simulation time grid</cite> (<a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.sim" title="hydpy.core.timetools.Timegrids.sim"><code class="xref py py-attr docutils literal notranslate"><span class="pre">sim</span></code></a>) defines the period of the next
+simulation run.  By default, it equals <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.init" title="hydpy.core.timetools.Timegrids.init"><code class="xref py py-attr docutils literal notranslate"><span class="pre">init</span></code></a>), but one can truncate it to
+a subperiod of the initialisation period, which helps, for example, implementing
+data assimilation methods efficiently.</p></li>
+<li><p>The <cite>evaluation time grid</cite> (<a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.eval_" title="hydpy.core.timetools.Timegrids.eval_"><code class="xref py py-attr docutils literal notranslate"><span class="pre">eval_</span></code></a>) defines the period of the next
+statistical or graphical evaluation of simulation results.  Functions like <a class="reference internal" href="statstools.html#hydpy.auxs.statstools.nse" title="hydpy.auxs.statstools.nse"><code class="xref py py-func docutils literal notranslate"><span class="pre">nse()</span></code></a>
+respect <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrids.eval_" title="hydpy.core.timetools.Timegrids.eval_"><code class="xref py py-attr docutils literal notranslate"><span class="pre">eval_</span></code></a> automatically if not instructed otherwise.</p></li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="model_overview.html" title="Model overview"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="how_to_read_the_reference_manual.html" title="How to read the Reference Manual"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" >User Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Definitions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

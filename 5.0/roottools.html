@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>roottools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"chtml": {"displayAlign": "left"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="smoothtools" href="smoothtools.html" />
+    <link rel="prev" title="quadtools" href="quadtools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="smoothtools.html" title="smoothtools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="quadtools.html" title="quadtools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="auxiliaries.html" accesskey="U">Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">roottools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_to.html">How to…</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="framework.html">Framework Tools</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="anntools.html">anntools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="armatools.html">armatools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="calibtools.html">calibtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="interptools.html">interptools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="iuhtools.html">iuhtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="networktools.html">networktools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ppolytools.html">ppolytools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quadtools.html">quadtools</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">roottools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.auxs.roottools.Pegasus"><code class="docutils literal notranslate"><span class="pre">Pegasus</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.roottools.Pegasus.CYTHONBASECLASS"><code class="docutils literal notranslate"><span class="pre">Pegasus.CYTHONBASECLASS</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.roottools.Pegasus.PYTHONCLASS"><code class="docutils literal notranslate"><span class="pre">Pegasus.PYTHONCLASS</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.roottools.Pegasus.find_x"><code class="docutils literal notranslate"><span class="pre">Pegasus.find_x()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.roottools.Pegasus.apply_method0"><code class="docutils literal notranslate"><span class="pre">Pegasus.apply_method0()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.roottools.Pegasus.name"><code class="docutils literal notranslate"><span class="pre">Pegasus.name</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="smoothtools.html">smoothtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="statstools.html">statstools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="validtools.html">validtools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="xmltools.html">xmltools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html">Configuration Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="quadtools.html"
+                          title="previous chapter">quadtools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="smoothtools.html"
+                          title="next chapter">smoothtools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/roottools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="roottools">
+<span id="id1"></span><h1>roottools<a class="headerlink" href="#roottools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.auxs.roottools">This module specialises class <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Submodel" title="hydpy.core.modeltools.Submodel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Submodel</span></code></a> for root-finding problems.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.roottools" title="hydpy.auxs.roottools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">roottools</span></code></a> provides Python interfaces only.  See the
+Cython extension module <cite>rootutils</cite> for the actual implementations
+of the mathematical algorithms.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.roottools" title="hydpy.auxs.roottools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">roottools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.auxs.roottools.Pegasus" title="hydpy.auxs.roottools.Pegasus"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pegasus</span></code></a> Root-finder based on the <a class="reference external" href="https://link.springer.com/article/10.1007/BF01932959">Pegasus method</a>.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.roottools.Pegasus">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.roottools.</span></span><span class="sig-name descname"><span class="pre">Pegasus</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Model" title="hydpy.core.modeltools.Model"><span class="pre">Model</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/roottools.html#Pegasus"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.roottools.Pegasus" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.Submodel" title="hydpy.core.modeltools.Submodel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Submodel</span></code></a></p>
+<p>Root-finder based on the <a class="reference external" href="https://link.springer.com/article/10.1007/BF01932959">Pegasus method</a>.</p>
+<p>The Pegasus method is a root-finding algorithm which sequentially
+decreases its search radius (like the simple bisection algorithm)
+and shows superlinear convergence properties (like the Newton-Raphson
+algorithm).  Our implementation adds a simple “interval widening”
+strategy that comes into play when the given initial interval does not
+contain the root.  This widening should be left for emergencies as
+it might be not always efficient.  So please try to provide to
+initial interval estimates that rather overestimate than underestimate
+the interval width.  Additionally, make sure you apply <a class="reference internal" href="#hydpy.auxs.roottools.Pegasus" title="hydpy.auxs.roottools.Pegasus"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pegasus</span></code></a> on
+monotone functions only.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.roottools.Pegasus.CYTHONBASECLASS">
+<span class="sig-name descname"><span class="pre">CYTHONBASECLASS</span></span><a class="headerlink" href="#hydpy.auxs.roottools.Pegasus.CYTHONBASECLASS" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">PegasusBase</span></code></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.roottools.Pegasus.PYTHONCLASS">
+<span class="sig-name descname"><span class="pre">PYTHONCLASS</span></span><a class="headerlink" href="#hydpy.auxs.roottools.Pegasus.PYTHONCLASS" title="Link to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">PegasusPython</span></code></p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.roottools.Pegasus.find_x">
+<span class="sig-name descname"><span class="pre">find_x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">x1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">xtol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ytol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">itermax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/roottools.html#Pegasus.find_x"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.roottools.Pegasus.find_x" title="Link to this definition">¶</a></dt>
+<dd><p>Find the relevant root within the interval
+<span class="math notranslate nohighlight">\(x0 \leq x \leq x1\)</span> with an accuracy meeting at least
+one of the absolute tolerance values <cite>xtol</cite> and <cite>ytol</cite> (or the
+accuracy achieved by performing the maximum number of iteration
+steps, defined by argument <cite>itermax</cite>).</p>
+<p>The arguments <cite>xmin</cite> and <cite>xmax</cite> define the smallest and largest
+allowed <cite>x</cite> value, respectively.  Method <a class="reference internal" href="#hydpy.auxs.roottools.Pegasus.find_x" title="hydpy.auxs.roottools.Pegasus.find_x"><code class="xref py py-func docutils literal notranslate"><span class="pre">find_x()</span></code></a> never
+evaluates the underlying function for any <cite>x</cite> value outside these
+bounds, even if its “interval widening” strategy suggests so.
+Instead, it returns the relevant <cite>xmin</cite> or <cite>xmax</cite> value.</p>
+<p>In the following, we explain the details of our Pegasus implementation
+by using method <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Return_TempSSurface_V1" title="hydpy.models.lland.lland_model.Return_TempSSurface_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_TempSSurface_V1</span></code></a>.</p>
+<p>Method <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Return_TempSSurface_V1" title="hydpy.models.lland.lland_model.Return_TempSSurface_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_TempSSurface_V1</span></code></a> (used by application model
+<a class="reference internal" href="lland_v3.html#module-hydpy.models.lland_v3" title="hydpy.models.lland_v3"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_v3</span></code></a>) implements the Pegasus iteration to determine the surface
+temperature of the snow layer with the help of the Pegasus subclass
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.PegasusTempSSurface" title="hydpy.models.lland.lland_model.PegasusTempSSurface"><code class="xref py py-class docutils literal notranslate"><span class="pre">PegasusTempSSurface</span></code></a>.  For the correct surface
+temperature, the net energy gain of the surface (defined by method
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Return_EnergyGainSnowSurface_V1" title="hydpy.models.lland.lland_model.Return_EnergyGainSnowSurface_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_EnergyGainSnowSurface_V1</span></code></a>) must be zero.
+Iteration is necessary, as some terms of the net energy gain (for
+example, the emitted longwave radiation) depend on the surface
+temperature in a non-linear manner.</p>
+<p>As a starting point, we use the setting provided by the documentation
+on method <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Return_TempSSurface_V1" title="hydpy.models.lland.lland_model.Return_TempSSurface_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_TempSSurface_V1</span></code></a> but work in pure Python
+mode for flexibility (more specifically, to have direct access to
+method <cite>find_x</cite>) and focus on a single hydrological response unit
+for simplicity:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">usecython</span><span class="p">(</span><span class="kc">False</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="kn">from</span> <span class="nn">hydpy.models.lland</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="gp">... </span>    <span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nhru</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lnk</span><span class="p">(</span><span class="n">ACKER</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">turb0</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">turb1</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ktschnee</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">derived</span><span class="o">.</span><span class="n">days</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="o">.</span><span class="n">relativehumidity</span> <span class="o">=</span> <span class="mf">60.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">states</span><span class="o">.</span><span class="n">waes</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">tkor</span> <span class="o">=</span> <span class="o">-</span><span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">reducedwindspeed2m</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">actualvapourpressure</span> <span class="o">=</span> <span class="mf">2.9</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fluxes</span><span class="o">.</span><span class="n">netshortwaveradiationsnow</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aides</span><span class="o">.</span><span class="n">temps</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">aides</span><span class="o">.</span><span class="n">rlatm</span> <span class="o">=</span> <span class="mf">200.0</span>
+</pre></div>
+</div>
+<p>Method <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Return_TempSSurface_V1" title="hydpy.models.lland.lland_model.Return_TempSSurface_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_TempSSurface_V1</span></code></a> finds the following
+surface temperature value:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">idx_hru</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">return_tempssurface_v1</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<span class="go">-8.307868</span>
+</pre></div>
+</div>
+<p>We confirm that the net energy gain corresponding to this surface
+temperature is approximately zero to validate this result:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">return_energygainsnowsurface_v1</span><span class="p">(</span><span class="o">-</span><span class="mf">8.3078682</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>Method <cite>apply_method0</cite> always calls the appropriate target
+method, which is, for <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.PegasusTempSSurface" title="hydpy.models.lland.lland_model.PegasusTempSSurface"><code class="xref py py-class docutils literal notranslate"><span class="pre">PegasusTempSSurface</span></code></a>,
+method <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Return_EnergyGainSnowSurface_V1" title="hydpy.models.lland.lland_model.Return_EnergyGainSnowSurface_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_EnergyGainSnowSurface_V1</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">apply_method0</span><span class="p">(</span><span class="o">-</span><span class="mf">8.3078682</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>To check for some exceptional cases, we call the <cite>find_x</cite> method of
+class <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.PegasusTempSSurface" title="hydpy.models.lland.lland_model.PegasusTempSSurface"><code class="xref py py-class docutils literal notranslate"><span class="pre">PegasusTempSSurface</span></code></a> directly.  First, we pass
+the same arguments as in method <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Return_TempSSurface_V1" title="hydpy.models.lland.lland_model.Return_TempSSurface_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Return_TempSSurface_V1</span></code></a>
+and thus get the same result:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="go">-8.307868</span>
+</pre></div>
+</div>
+<p>Through decreasing the maximum number of iterations, the result
+becomes less accurate:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="go">-8.312628</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">return_energygainsnowsurface_v1</span><span class="p">(</span><span class="o">-</span><span class="mf">8.312628</span><span class="p">))</span>
+<span class="go">0.09905</span>
+</pre></div>
+</div>
+<p>Use the <cite>ytol</cite> argument to control the achieved accuracy more
+explicitly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="go">-8.312628</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">return_energygainsnowsurface_v1</span><span class="p">(</span><span class="o">-</span><span class="mf">8.312628</span><span class="p">))</span>
+<span class="go">0.09905</span>
+</pre></div>
+</div>
+<p>Pass an <cite>xtol</cite> value larger than zero to stop iteration as soon as
+the search interval is small enough:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="go">-8.30786</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">return_energygainsnowsurface_v1</span><span class="p">(</span><span class="o">-</span><span class="mf">8.30786</span><span class="p">))</span>
+<span class="go">-0.000171</span>
+</pre></div>
+</div>
+<p><cite>x0</cite> does not need to be smaller than <cite>x1</cite>, and <cite>xmin</cite> does not need to be
+smaller than <cite>xmax</cite> by necessity (the algorithm swaps values when necessary):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="mf">50.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="go">-8.307868</span>
+</pre></div>
+</div>
+<p>An ill-defined initial interval might decrease efficiency but
+should usually not affect the result:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="go">-8.307868</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">20.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="go">-8.307868</span>
+</pre></div>
+</div>
+<p>Defining proper values for arguments <cite>xmin</cite> and <cite>xmax</cite> provides a way to
+prevent possible program crashes.  As an example, we do not care about
+physics and set the snow layer’s temperature to -300 °C.  Theoretically,
+the surface temperature must also be (unrealistically) low to prevent a
+considerable energy gain of the surface due to an extreme temperature
+gradient within the snow layer. However, -100 °C is the lowest value allowed,
+so method <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.PegasusTempSSurface" title="hydpy.models.lland.lland_model.PegasusTempSSurface"><code class="xref py py-class docutils literal notranslate"><span class="pre">PegasusTempSSurface</span></code></a> returns this boundary-value.
+It is up to the model developer to handle such misleading responses
+(if possible):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aides</span><span class="o">.</span><span class="n">temps</span> <span class="o">=</span> <span class="o">-</span><span class="mi">400</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="go">-100.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">return_energygainsnowsurface_v1</span><span class="p">(</span><span class="o">-</span><span class="mf">100.0</span><span class="p">))</span>
+<span class="go">-524.133374</span>
+</pre></div>
+</div>
+<p>To demonstrate the upper boundary’s functionality, we set the snow layer
+temperature to 4’000 °C (also not the most plausible value, of course):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">aides</span><span class="o">.</span><span class="n">temps</span> <span class="o">=</span> <span class="mf">4000.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="go">100.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">return_energygainsnowsurface_v1</span><span class="p">(</span><span class="mf">100.0</span><span class="p">))</span>
+<span class="go">3561.059134</span>
+</pre></div>
+</div>
+<p>Finally, we evaluate some additional snow layer temperatures
+to show that everything works consistently:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">hydpy</span> <span class="kn">import</span> <span class="n">print_values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">temps</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">400</span><span class="p">,</span> <span class="o">-</span><span class="mi">300</span><span class="p">,</span> <span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">3000</span><span class="p">,</span> <span class="mi">4000</span><span class="p">]:</span>
+<span class="gp">... </span>   <span class="n">aides</span><span class="o">.</span><span class="n">temps</span> <span class="o">=</span> <span class="n">temps</span>
+<span class="gp">... </span>   <span class="n">tempssurface</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">pegasustempssurface</span><span class="o">.</span><span class="n">find_x</span><span class="p">(</span>
+<span class="gp">... </span>       <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="gp">... </span>   <span class="n">energygain</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">return_energygainsnowsurface_v1</span><span class="p">(</span><span class="n">tempssurface</span><span class="p">)</span>
+<span class="gp">... </span>   <span class="n">print_values</span><span class="p">([</span><span class="n">temps</span><span class="p">,</span> <span class="n">tempssurface</span><span class="p">,</span> <span class="n">energygain</span><span class="p">])</span>
+<span class="go">-500, -100.0, -1024.133374</span>
+<span class="go">-400, -100.0, -524.133374</span>
+<span class="go">-300, -100.0, -24.133374</span>
+<span class="go">-4, -8.790047, 0.0</span>
+<span class="go">-2, -8.307868, 0.0</span>
+<span class="go">2, -7.353441, 0.0</span>
+<span class="go">2000, 85.175508, 0.0</span>
+<span class="go">3000, 97.204856, 0.0</span>
+<span class="go">4000, 100.0, 3561.059134</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.roottools.Pegasus.apply_method0">
+<span class="sig-name descname"><span class="pre">apply_method0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/roottools.html#Pegasus.apply_method0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.roottools.Pegasus.apply_method0" title="Link to this definition">¶</a></dt>
+<dd><p>Apply the model method relevant for root-finding.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.roottools.Pegasus.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'pegasus'</span></em><a class="headerlink" href="#hydpy.auxs.roottools.Pegasus.name" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="smoothtools.html" title="smoothtools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="quadtools.html" title="quadtools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="framework.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="auxiliaries.html" >Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">roottools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

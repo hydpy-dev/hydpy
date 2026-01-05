@@ -1,0 +1,343 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.dam.dam_control &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam.dam_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.dam.dam_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># pylint: disable=missing-docstring</span>
+<span class="c1"># pylint: enable=missing-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span> <span class="nn">hydpy.auxs</span> <span class="kn">import</span> <span class="n">anntools</span>
+
+
+<div class="viewcode-block" id="CatchmentArea"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.CatchmentArea">[docs]</a><span class="k">class</span> <span class="nc">CatchmentArea</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Size of the catchment draining into the dam [km²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NmbLogEntries"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.NmbLogEntries">[docs]</a><span class="k">class</span> <span class="nc">NmbLogEntries</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Number of log entries for certain variables [-].</span>
+
+<span class="sd">    Note that setting a new value by calling the parameter object sets</span>
+<span class="sd">    the shapes of all associated log sequences automatically, except those</span>
+<span class="sd">    with a predefined default shape:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.dam import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; nmblogentries(3)</span>
+<span class="sd">    &gt;&gt;&gt; for seq in logs:</span>
+<span class="sd">    ...     print(seq)</span>
+<span class="sd">    loggedtotalremotedischarge(nan, nan, nan)</span>
+<span class="sd">    loggedoutflow(nan, nan, nan)</span>
+<span class="sd">    loggedrequiredremoterelease(nan)</span>
+<span class="sd">    loggedallowedremoterelieve(nan)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">seq</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="RemoteDischargeMinimum"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.RemoteDischargeMinimum">[docs]</a><span class="k">class</span> <span class="nc">RemoteDischargeMinimum</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Discharge threshold of a cross section far downstream that</span>
+<span class="sd">    should not be undercut by the actual discharge [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span>
+        <span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RemoteDischargeSafety"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.RemoteDischargeSafety">[docs]</a><span class="k">class</span> <span class="nc">RemoteDischargeSafety</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Safety factor to reduce the risk to release not enough water [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterLevel2PossibleRemoteRelieve"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterLevel2PossibleRemoteRelieve">[docs]</a><span class="k">class</span> <span class="nc">WaterLevel2PossibleRemoteRelieve</span><span class="p">(</span><span class="n">anntools</span><span class="o">.</span><span class="n">ANN</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Artificial neural network describing the relationship between</span>
+<span class="sd">    water level and the highest possible water release used to relieve</span>
+<span class="sd">    the dam during high flow conditions [-].&quot;&quot;&quot;</span>
+
+    <span class="n">XLABEL</span> <span class="o">=</span> <span class="s2">&quot;water level [m]&quot;</span>
+    <span class="n">YLABEL</span> <span class="o">=</span> <span class="s2">&quot;possible remote relieve [m³/s]&quot;</span></div>
+
+
+<div class="viewcode-block" id="RemoteRelieveTolerance"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.RemoteRelieveTolerance">[docs]</a><span class="k">class</span> <span class="nc">RemoteRelieveTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A tolerance value for the &quot;possible remote relieve&quot; [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NearDischargeMinimumThreshold"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.NearDischargeMinimumThreshold">[docs]</a><span class="k">class</span> <span class="nc">NearDischargeMinimumThreshold</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Discharge threshold of a cross section in the near of the dam that</span>
+<span class="sd">    not be undercut by the actual discharge [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="NearDischargeMinimumTolerance"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.NearDischargeMinimumTolerance">[docs]</a><span class="k">class</span> <span class="nc">NearDischargeMinimumTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A tolerance value for the &quot;near discharge minimum&quot; [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RestrictTargetedRelease"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.RestrictTargetedRelease">[docs]</a><span class="k">class</span> <span class="nc">RestrictTargetedRelease</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A flag indicating whether low flow variability has to be preserved</span>
+<span class="sd">    or not [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterVolumeMinimumThreshold"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterVolumeMinimumThreshold">[docs]</a><span class="k">class</span> <span class="nc">WaterVolumeMinimumThreshold</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The minimum operating water volume of the dam [million m³].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterLevelMinimumThreshold"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumThreshold">[docs]</a><span class="k">class</span> <span class="nc">WaterLevelMinimumThreshold</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The minimum operating water level of the dam [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterLevelMinimumTolerance"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumTolerance">[docs]</a><span class="k">class</span> <span class="nc">WaterLevelMinimumTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A tolarance value for the minimum operating water level [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterLevelMinimumRemoteThreshold"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumRemoteThreshold">[docs]</a><span class="k">class</span> <span class="nc">WaterLevelMinimumRemoteThreshold</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The minimum operating water level of the dam regarding remote</span>
+<span class="sd">    water supply [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterLevelMinimumRemoteTolerance"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterLevelMinimumRemoteTolerance">[docs]</a><span class="k">class</span> <span class="nc">WaterLevelMinimumRemoteTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A tolarance value for the minimum operating water level regarding</span>
+<span class="sd">    remote water supply [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HighestRemoteRelieve"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.HighestRemoteRelieve">[docs]</a><span class="k">class</span> <span class="nc">HighestRemoteRelieve</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The highest possible relieve discharge from another location [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterLevelRelieveThreshold"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterLevelRelieveThreshold">[docs]</a><span class="k">class</span> <span class="nc">WaterLevelRelieveThreshold</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The threshold water level of the dam regarding the allowed</span>
+<span class="sd">    relieve discharge from another location [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterLevelRelieveTolerance"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterLevelRelieveTolerance">[docs]</a><span class="k">class</span> <span class="nc">WaterLevelRelieveTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A tolerance value for parameter |WaterLevelRelieveThreshold| [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HighestRemoteSupply"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.HighestRemoteSupply">[docs]</a><span class="k">class</span> <span class="nc">HighestRemoteSupply</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The highest possible supply discharge from another location [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterLevelSupplyThreshold"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterLevelSupplyThreshold">[docs]</a><span class="k">class</span> <span class="nc">WaterLevelSupplyThreshold</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The threshold water level of the dam regarding the requried</span>
+<span class="sd">    supply discharge from another location [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterLevelSupplyTolerance"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterLevelSupplyTolerance">[docs]</a><span class="k">class</span> <span class="nc">WaterLevelSupplyTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A tolerance value for parameter |WaterLevelSupplyThreshold| [m].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HighestRemoteDischarge"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.HighestRemoteDischarge">[docs]</a><span class="k">class</span> <span class="nc">HighestRemoteDischarge</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The highest possible discharge between two remote locations [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HighestRemoteTolerance"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.HighestRemoteTolerance">[docs]</a><span class="k">class</span> <span class="nc">HighestRemoteTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Smoothing parameter associated with |HighestRemoteDischarge| [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WaterVolume2WaterLevel"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterVolume2WaterLevel">[docs]</a><span class="k">class</span> <span class="nc">WaterVolume2WaterLevel</span><span class="p">(</span><span class="n">anntools</span><span class="o">.</span><span class="n">ANN</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Artificial neural network describing the relationship between</span>
+<span class="sd">    water level and water volume [-].&quot;&quot;&quot;</span>
+
+    <span class="n">XLABEL</span> <span class="o">=</span> <span class="s2">&quot;water volume [million m³]&quot;</span>
+    <span class="n">YLABEL</span> <span class="o">=</span> <span class="s2">&quot;water level [m]&quot;</span></div>
+
+
+<div class="viewcode-block" id="WaterLevel2FloodDischarge"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.WaterLevel2FloodDischarge">[docs]</a><span class="k">class</span> <span class="nc">WaterLevel2FloodDischarge</span><span class="p">(</span><span class="n">anntools</span><span class="o">.</span><span class="n">SeasonalANN</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Artificial neural network describing the relationship between</span>
+<span class="sd">    flood discharge and water volume [-].&quot;&quot;&quot;</span>
+
+    <span class="n">XLABEL</span> <span class="o">=</span> <span class="s2">&quot;water level [m]&quot;</span>
+    <span class="n">YLABEL</span> <span class="o">=</span> <span class="s2">&quot;flood discharge [m³/s]&quot;</span></div>
+
+
+<div class="viewcode-block" id="AllowedWaterLevelDrop"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.AllowedWaterLevelDrop">[docs]</a><span class="k">class</span> <span class="nc">AllowedWaterLevelDrop</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The highest allowed water level decrease [m/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AllowedDischargeTolerance"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.AllowedDischargeTolerance">[docs]</a><span class="k">class</span> <span class="nc">AllowedDischargeTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Smoothing parameter eventually associated with |AllowedWaterLevelDrop|</span>
+<span class="sd">    [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AllowedRelease"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.AllowedRelease">[docs]</a><span class="k">class</span> <span class="nc">AllowedRelease</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The maximum water release not causing any harm downstream [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TargetVolume"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.TargetVolume">[docs]</a><span class="k">class</span> <span class="nc">TargetVolume</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SeasonalParameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The desired volume of water to be stored within the dam at specific</span>
+<span class="sd">    times of the year [Mio. m³].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TargetRangeAbsolute"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.TargetRangeAbsolute">[docs]</a><span class="k">class</span> <span class="nc">TargetRangeAbsolute</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The absolute interpolation range related to parameter |TargetVolume|</span>
+<span class="sd">    [Mio. m³].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TargetRangeRelative"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.TargetRangeRelative">[docs]</a><span class="k">class</span> <span class="nc">TargetRangeRelative</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The relative interpolation range related to parameter |TargetVolume|</span>
+<span class="sd">    [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VolumeTolerance"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.VolumeTolerance">[docs]</a><span class="k">class</span> <span class="nc">VolumeTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Smoothing parameter for volume related smoothing operations [Mio. m³].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DischargeTolerance"><a class="viewcode-back" href="../../../../dam.html#hydpy.models.dam.dam_control.DischargeTolerance">[docs]</a><span class="k">class</span> <span class="nc">DischargeTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Smoothing parameter for discharge related smoothing operations [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.dam.dam_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

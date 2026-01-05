@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Model Families &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="HydPy-ARMA" href="HydPy-ARMA.html" />
+    <link rel="prev" title="validtools" href="validtools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HydPy-ARMA.html" title="HydPy-ARMA"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="validtools.html" title="validtools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" accesskey="U">Reference Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Model Families</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Model Families</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="validtools.html"
+                          title="previous chapter">validtools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="HydPy-ARMA.html"
+                          title="next chapter">HydPy-ARMA</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/model_families.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="model-families">
+<span id="id1"></span><h1>Model Families<a class="headerlink" href="#model-families" title="Link to this heading">¶</a></h1>
+<p>HydPy divides all models into “families” as <a class="reference internal" href="HydPy-L.html#hydpy-l"><span class="std std-ref">HydPy-L (LARSIM)</span></a>.  Each model family consists
+of one base model (e.g. <a class="reference internal" href="lland.html#module-hydpy.models.lland" title="hydpy.models.lland"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland</span></code></a>) and several application models (e.g. <a class="reference internal" href="lland_dd.html#module-hydpy.models.lland_dd" title="hydpy.models.lland_dd"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland_dd</span></code></a>).  The
+base models offer basic features like model parameter classes (e.g.
+<a class="reference internal" href="lland.html#hydpy.models.lland.lland_control.KG" title="hydpy.models.lland.lland_control.KG"><code class="xref py py-class docutils literal notranslate"><span class="pre">KG</span></code></a>), sequence classes (e.g. <a class="reference internal" href="lland.html#hydpy.models.lland.lland_fluxes.NKor" title="hydpy.models.lland.lland_fluxes.NKor"><code class="xref py py-class docutils literal notranslate"><span class="pre">NKor</span></code></a>) and process equation
+methods (e.g. <a class="reference internal" href="lland.html#hydpy.models.lland.lland_model.Calc_NKor_V1" title="hydpy.models.lland.lland_model.Calc_NKor_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_NKor_V1</span></code></a>) but cannot perform an actual simulation run.
+This is the task of the application models, which select different parameters,
+sequences, and process equations in a meaningful combination and order.</p>
+<p>Unless otherwise stated, you can freely combine all models and apply them with
+arbitrary simulation time steps.  It is, for example, possible to simulate “land
+processes” with <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a>, “stream processes” with <a class="reference internal" href="musk_mct.html#module-hydpy.models.musk_mct" title="hydpy.models.musk_mct"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_mct</span></code></a>, and “lake processes”
+with <a class="reference internal" href="dam_llake.html#module-hydpy.models.dam_llake" title="hydpy.models.dam_llake"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dam_llake</span></code></a> in either a daily or hourly time step.</p>
+<p>Base models often offer different versions of a method to calculate the value of the
+same variable.  For example, base model <a class="reference internal" href="evap.html#module-hydpy.models.evap" title="hydpy.models.evap"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap</span></code></a> has two methods for estimating reference
+evapotranspiration: <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V1" title="hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ReferenceEvapotranspiration_V1</span></code></a> and
+<a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V2" title="hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ReferenceEvapotranspiration_V2</span></code></a>.  Each application model that wants to
+calculate reference evapotranspiration has to choose. In this case, <a class="reference internal" href="evap_ret_fao56.html#module-hydpy.models.evap_ret_fao56" title="hydpy.models.evap_ret_fao56"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_fao56</span></code></a>
+selects <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V1" title="hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ReferenceEvapotranspiration_V1</span></code></a> to follow
+<span id="id2"><a class="reference internal" href="zbibliography.html#id3" title="Richard G. Allen, Luis S. Pareira, Dirk Raes, and Martin Smith. Crop Evapotranspiration - Guidelines for Computing Crop Water Requirements. FAO - Food and Agriculture Organization of the United Nations, 1998. ISBN 978-9-251-04219-9. URL: http://www.fao.org/3/x0490e/x0490e00.htm.">Allen <em>et al.</em> (1998)</a></span> and  <a class="reference internal" href="evap_ret_tw2002.html#module-hydpy.models.evap_ret_tw2002" title="hydpy.models.evap_ret_tw2002"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_tw2002</span></code></a> selects
+<a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V2" title="hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ReferenceEvapotranspiration_V2</span></code></a> to follow <span id="id3"><a class="reference internal" href="zbibliography.html#id4" title="ATV-DVWK. ATV-DVWK-M 504 - Verdunstung in Bezug zu Landnutzung, Bewuchs und Boden. Deutsche Vereinigung für Wasserwirtschaft, Abwasser und Abfall, 2002. URL: https://webshop.dwa.de/de/merkblatt-atv-dvwk-m-504-september-2002.html.">ATV-DVWK (2002)</a></span>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.evap_ret_tw2002</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;calc_referenceevapotranspiration_v2&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;calc_referenceevapotranspiration_v1&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For simplicity, the selected method is also accessible without the version suffix (as
+long as the model does not choose multiple versions of the same method, which is a
+HydPy convention only seldom broken by application models):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;calc_referenceevapotranspiration_v2&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Methods define their parameter and sequence requirements.  Due to choosing
+<a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V2" title="hydpy.models.evap.evap_model.Calc_ReferenceEvapotranspiration_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ReferenceEvapotranspiration_V2</span></code></a>, application model <a class="reference internal" href="evap_ret_tw2002.html#module-hydpy.models.evap_ret_tw2002" title="hydpy.models.evap_ret_tw2002"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_tw2002</span></code></a>
+possesses, for example, the flux sequence <a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.ReferenceEvapotranspiration" title="hydpy.models.evap.evap_fluxes.ReferenceEvapotranspiration"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReferenceEvapotranspiration</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">fluxes</span><span class="p">,</span> <span class="s1">&#39;referenceevapotranspiration&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Due to this selection mechanism, it is relatively easy to compose new models based on
+existing or alternative methods.  However, such compositions are restricted to using
+methods of only one base model or model family.  To overcome this limitation, HydPy
+also implements the so-called “submodel concept”, which brings another kind of
+flexibility by coupling main models (of one model family) with submodels (of the same
+or another model family).  This section describes both the main and the submodels.  See
+the <a class="reference internal" href="model_overview.html#model-overview"><span class="std std-ref">Model overview</span></a> section, which clarifies this distinction more clearly.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HydPy-ARMA.html" title="HydPy-ARMA"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="validtools.html" title="validtools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Model Families</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.interfaces.aetinterfaces &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.interfaces.aetinterfaces</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.interfaces.aetinterfaces</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module defines submodel interfaces for calculating actual evapotranspiration.&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from hydpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="AETModel_V1">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AETModel_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelInterface</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for calculating interception evaporation, evapotranspiration from</span>
+<span class="sd">    soils, evaporation from water areas in separate steps.</span>
+
+<span class="sd">    An essential note for model developers: All main models using the |AETModel_V1|</span>
+<span class="sd">    interface must first call |AETModel_V1.determine_interceptionevaporation| but are</span>
+<span class="sd">    free to choose the execution order of methods</span>
+<span class="sd">    |AETModel_V1.determine_soilevapotranspiration| and</span>
+<span class="sd">    |AETModel_V1.determine_waterevaporation|.  All submodels following the</span>
+<span class="sd">    |AETModel_V1| interface must work for both orders.  Additionally, the main model</span>
+<span class="sd">    must calculate its snow routine (if it has one) before calling any method defined</span>
+<span class="sd">    by the |AETModel_V1| interface.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">typeid</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type identifier for |AETModel_V1| submodels.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AETModel_V1.prepare_nmbzones">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_nmbzones">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_nmbzones</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nmbzones</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the number of zones in which the actual calculations take place.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_subareas">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_subareas">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_subareas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subareas</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the areas of the individual zones in km².&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_elevations">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_elevations">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_elevations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elevations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the elevations of the individual zones in m.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_zonetypes">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_zonetypes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_zonetypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zonetypes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the types (usually land cover types) of the individual zones.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_water">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_water">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_water</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">water</span><span class="p">:</span> <span class="n">VectorInputBool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the flags for whether the individual zones are water areas or not.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_interception">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_interception">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_interception</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interception</span><span class="p">:</span> <span class="n">VectorInputBool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the flags for whether interception evaporation is relevant for the</span>
+<span class="sd">        individual zones.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_soil">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_soil">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_soil</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">soil</span><span class="p">:</span> <span class="n">VectorInputBool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the flags for whether soil evapotranspiration is relevant for the</span>
+<span class="sd">        individual zones.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_plant">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_plant">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_plant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plant</span><span class="p">:</span> <span class="n">VectorInputBool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the flags for whether the individual zones contain any vegetation.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_tree">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_tree">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">:</span> <span class="n">VectorInputBool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the flags for whether the individual zones contain tree-like</span>
+<span class="sd">        vegetation.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_conifer">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_conifer">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_conifer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conifer</span><span class="p">:</span> <span class="n">VectorInputBool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the flags for whether the individual zones contain conifer-like</span>
+<span class="sd">        vegetation.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_measuringheightwindspeed">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_measuringheightwindspeed">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_measuringheightwindspeed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measuringheightwindspeed</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the height above the ground of the wind speed measurements in m.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_leafareaindex">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_leafareaindex">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_leafareaindex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">leafareaindex</span><span class="p">:</span> <span class="n">MatrixInputFloat</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the leaf area index in m²/m².&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.prepare_maxsoilwater">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.prepare_maxsoilwater">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_maxsoilwater</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxsoilwater</span><span class="p">:</span> <span class="n">VectorInputFloat</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the maximum soil water content in mm.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.determine_interceptionevaporation">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_interceptionevaporation">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">determine_interceptionevaporation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the actual interception evaporation.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.determine_soilevapotranspiration">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_soilevapotranspiration">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">determine_soilevapotranspiration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the actual evapotranspiration from the soil.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.determine_waterevaporation">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.determine_waterevaporation">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">determine_waterevaporation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the actual evapotranspiration from open water areas.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.get_interceptionevaporation">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.get_interceptionevaporation">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_interceptionevaporation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the selected zone&#39;s previously calculated interception evaporation in</span>
+<span class="sd">        mm/T.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.get_soilevapotranspiration">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.get_soilevapotranspiration">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_soilevapotranspiration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the selected zone&#39;s previously calculated soil evapotranspiration in</span>
+<span class="sd">        mm/T.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="AETModel_V1.get_waterevaporation">
+<a class="viewcode-back" href="../../../aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1.get_waterevaporation">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_waterevaporation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the selected zone&#39;s previously calculated water area evaporation in</span>
+<span class="sd">        mm/T.&quot;&quot;&quot;</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.interfaces.aetinterfaces</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

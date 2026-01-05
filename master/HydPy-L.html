@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>HydPy-L (LARSIM) &#8212; HydPy 6.3dev0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=6fd2034b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="lland" href="lland.html" />
+    <link rel="prev" title="kinw_williams_ext" href="kinw_williams_ext.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="lland.html" title="lland"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="kinw_williams_ext.html" title="kinw_williams_ext"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" accesskey="U">Model Families</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">HydPy-L (LARSIM)</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">HydPy-L (LARSIM)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="lland.html">lland</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lland_dd.html">lland_dd</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lland_knauf.html">lland_knauf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="lland_knauf_ic.html">lland_knauf_ic</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="kinw_williams_ext.html"
+                          title="previous chapter">kinw_williams_ext</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="lland.html"
+                          title="next chapter">lland</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/HydPy-L.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="hydpy-l-larsim">
+<span id="hydpy-l"></span><h1>HydPy-L (LARSIM)<a class="headerlink" href="#hydpy-l-larsim" title="Link to this heading">¶</a></h1>
+<p><em>HydPy</em> implements a close but not exact emulation of the central routines of the
+<a class="reference external" href="http://www.larsim.de/en/the-model/">LARSIM</a> model, applied by many forecasting centres in Germany and some neighbouring
+countries.  The version 1 application model of <em>HydPy-L</em> agrees very well with a LARSIM
+configuration called LARSIM-ME (“ME” stands for Middle Europe), used by the <a class="reference external" href="https://www.bafg.de/EN">German
+Federal Institute of Hydrology (BfG)</a> for calculating hydroclimatic scenarios for
+large river basins (see e. g. the <a class="reference external" href="http://www.kliwas.de/KLIWAS/DE/Service/Downloads/Publikationen/abschlussbericht.pdf;jsessionid=C89ED85DF782A3D5FE117808A6129002.live21303?__blob=publicationFile">KLIWAS</a> project).</p>
+<p><em>HydPy-L</em> is partly based on the original publication on LARSIM (<a class="reference external" href="http://www.larsim.info/fileadmin/files/Dokumentation/FSH-Bd11-Bremicker.pdf">BREMICKER</a>), the
+summary of the theory and the range of applications of LARSIM, which is continuously
+updated by the LARSIM development community (<a class="reference external" href="http://www.larsim.info/fileadmin/files/Dokumentation/LARSIM-Dokumentation.pdf">LARSIM-Entwicklergemeinschaft</a>), the
+LARSIM online documentation (<a class="reference external" href="http://www.larsim.info/larsim-hilfe/">LARSIM Online-Hilfe</a>), and some helpful hints of the
+colleagues of the LUBW (Landesanstalt für Umwelt, Messungen und Naturschutz
+Baden-Württemberg) and the HYDRON GmbH.  Some other parts of <em>HydPy-L</em> have been
+programmed more independently and were incorporated into the original LARSIM
+implementation later.</p>
+<p>Available models:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="lland.html">lland &raquo; HydPy-L (base model)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lland_dd.html">lland_dd &raquo; HydPy-L-DD (adoption of LARSIM with degree day-based snow modelling)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lland_knauf.html">lland_knauf &raquo; HydPy-L-Knauf (adoption of LARSIM with Knauf-based snow modelling)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lland_knauf_ic.html">lland_knauf_ic &raquo; HydPy-L-Knauf-Ic (adoption of LARSIM with Knauf-based snow modelling including snow interception)</a></li>
+</ul>
+</div>
+<p>For reasons of consistency with the original LARSIM implementation, the names of all
+parameter and sequence classes are German terms and abbreviations.  Additionally, the
+documentation on each parameter or sequence contains an English translation.</p>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="lland.html" title="lland"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="kinw_williams_ext.html" title="kinw_williams_ext"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.3dev0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">HydPy-L (LARSIM)</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

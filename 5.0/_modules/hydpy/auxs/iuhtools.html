@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.auxs.iuhtools &#8212; HydPy 5.0.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=eafc0fe6" />
+    
+    <script src="../../../_static/documentation_options.js?v=f98c4cc8"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.auxs.iuhtools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.auxs.iuhtools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module supports modelling based on instantaneous unit hydrographs.</span>
+
+<span class="sd">This module implements some abstract descriptor classes, metaclasses and base classes.</span>
+<span class="sd">If you are just interested in applying a certain instantaneous unit hydrograph (iuh)</span>
+<span class="sd">function or if you want to implement an additional iuh, see the examples or the source</span>
+<span class="sd">code of class |TranslationDiffusionEquation|.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+<span class="c1"># ...from Hydpy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">exceptiontools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span> <span class="nn">hydpy.auxs</span> <span class="kn">import</span> <span class="n">statstools</span>
+<span class="kn">from</span> <span class="nn">hydpy.auxs</span> <span class="kn">import</span> <span class="n">armatools</span>
+<span class="kn">from</span> <span class="nn">hydpy.core.typingtools</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span>
+    <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">special</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">pyplot</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">OptionalImport</span><span class="p">(</span><span class="s2">&quot;pyplot&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;matplotlib.pyplot&quot;</span><span class="p">],</span> <span class="nb">locals</span><span class="p">())</span>
+    <span class="n">special</span> <span class="o">=</span> <span class="n">exceptiontools</span><span class="o">.</span><span class="n">OptionalImport</span><span class="p">(</span><span class="s2">&quot;special&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;scipy.special&quot;</span><span class="p">],</span> <span class="nb">locals</span><span class="p">())</span>
+
+
+<div class="viewcode-block" id="ParameterIUH">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.ParameterIUH">[docs]</a>
+<span class="k">class</span> <span class="nc">ParameterIUH</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Descriptor base class for |PrimaryParameterIUH| and |SecondaryParameterIUH|.</span>
+
+<span class="sd">    The first initialisation argument is the parameters name.  Optionally, an</span>
+<span class="sd">    alternative type (the default type is |float|) and a documentation string can be</span>
+<span class="sd">    passed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Name of the handled |IUH| parameter.&quot;&quot;&quot;</span>
+    <span class="n">type_</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type of the handled |IUH| parameter.&quot;&quot;&quot;</span>
+
+    <span class="n">_name</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">type_</span><span class="p">:</span> <span class="n">Type</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">doc</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type_</span> <span class="o">=</span> <span class="n">type_</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Instantaneous unit hydrograph parameter: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">doc</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="nb">str</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">IUH</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ParameterIUH</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">IUH</span><span class="p">,</span> <span class="n">type_</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">IUH</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__get__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">obj</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">IUH</span><span class="p">],</span>
+        <span class="n">type_</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">IUH</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">ParameterIUH</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_convert_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">type_</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The value `</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">` of type `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` could not be &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;converted to type `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type_</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">` of the instantaneous unit &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;hydrograph parameter `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="PrimaryParameterIUH">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.PrimaryParameterIUH">[docs]</a>
+<span class="k">class</span> <span class="nc">PrimaryParameterIUH</span><span class="p">(</span><span class="n">ParameterIUH</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Descriptor base class for parameters of instantaneous unit hydrograph functions</span>
+<span class="sd">    to be defined by the user.</span>
+
+<span class="sd">    When a primary parameter value is set or deleted, the master instance is instructed</span>
+<span class="sd">    to |IUH.update| all secondary parameter values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">IUH</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__delete__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">IUH</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="SecondaryParameterIUH">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.SecondaryParameterIUH">[docs]</a>
+<span class="k">class</span> <span class="nc">SecondaryParameterIUH</span><span class="p">(</span><span class="n">ParameterIUH</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Descriptor base class for parameters of instantaneous unit hydrograph functions</span>
+<span class="sd">    which can be determined automatically.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__set__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">IUH</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__delete__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">IUH</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="MetaIUH">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.MetaIUH">[docs]</a>
+<span class="k">class</span> <span class="nc">MetaIUH</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Metaclass for class |IUH|.</span>
+
+<span class="sd">    For storing |PrimaryParameterIUH| and |SecondaryParameterIUH| in separate</span>
+<span class="sd">    dictionaries.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span>
+        <span class="n">mcs</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">parents</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Type</span><span class="p">[</span><span class="n">Any</span><span class="p">]],</span>
+        <span class="n">dict_</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MetaIUH</span><span class="p">:</span>
+        <span class="n">primary_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">secondary_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dict_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">PrimaryParameterIUH</span><span class="p">):</span>
+                <span class="n">primary_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">SecondaryParameterIUH</span><span class="p">):</span>
+                <span class="n">secondary_parameters</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="n">dict_</span><span class="p">[</span><span class="s2">&quot;_PRIMARY_PARAMETERS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">primary_parameters</span>
+        <span class="n">dict_</span><span class="p">[</span><span class="s2">&quot;_SECONDARY_PARAMETERS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">secondary_parameters</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcs</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">dict_</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="IUH">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.IUH">[docs]</a>
+<span class="k">class</span> <span class="nc">IUH</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">MetaIUH</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for instantaneous unit hydrograph function objects.</span>
+
+<span class="sd">    See class |TranslationDiffusionEquation| for explanations and application examples.</span>
+
+<span class="sd">    For developers: The string representation does also work for parameter-free |IUH|</span>
+<span class="sd">    subclasses:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.auxs.iuhtools import IUH</span>
+<span class="sd">    &gt;&gt;&gt; class Test(IUH):</span>
+<span class="sd">    ...     __call__ = None</span>
+<span class="sd">    ...     calc_secondary_parameters = None</span>
+<span class="sd">    &gt;&gt;&gt; Test()</span>
+<span class="sd">    Test()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ma</span><span class="p">:</span> <span class="n">armatools</span><span class="o">.</span><span class="n">MA</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Moving Average model&quot;&quot;&quot;</span>
+    <span class="n">arma</span><span class="p">:</span> <span class="n">armatools</span><span class="o">.</span><span class="n">ARMA</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Autoregressive-Moving Average model.&quot;&quot;&quot;</span>
+    <span class="n">dt_response</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-2</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative stepsize for plotting and analyzing iuh functions.&quot;&quot;&quot;</span>
+    <span class="n">smallest_response</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Smallest value taken into account for plotting and analyzing iuh functions.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Overwritten by metaclass:</span>
+    <span class="n">_PRIMARY_PARAMETERS</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">PrimaryParameterIUH</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_SECONDARY_PARAMETERS</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">SecondaryParameterIUH</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ma</span> <span class="o">=</span> <span class="n">armatools</span><span class="o">.</span><span class="n">MA</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">arma</span> <span class="o">=</span> <span class="n">armatools</span><span class="o">.</span><span class="n">ARMA</span><span class="p">(</span><span class="n">ma_model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_primary_parameters</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Must be implemented by the concrete |IUH| subclass.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="IUH.set_primary_parameters">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.IUH.set_primary_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_primary_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set all primary parameters at once.&quot;&quot;&quot;</span>
+        <span class="n">given</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">required</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_PRIMARY_PARAMETERS</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">given</span> <span class="o">==</span> <span class="n">required</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;When passing primary parameter values as initialization arguments of &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;the instantaneous unit hydrograph class `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`, or &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;when using method `set_primary_parameters`, one has to to define all &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;values at once via keyword arguments.  But instead of the primary &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;parameter names `</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">required</span><span class="p">)</span><span class="si">}</span><span class="s2">` the following &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;keywords were given: </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">given</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">primary_parameters_complete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;True/False flag that indicates whether the values of all primary parameters</span>
+<span class="sd">        are defined or not.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">primpar</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_PRIMARY_PARAMETERS</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">primpar</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="IUH.calc_secondary_parameters">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.IUH.calc_secondary_parameters">[docs]</a>
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">calc_secondary_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Must be implemented by the concrete |IUH| subclass.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="IUH.update">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.IUH.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delete the coefficients of the pure MA model and also all MA and AR</span>
+<span class="sd">        coefficients of the ARMA model.  Also calculate or delete the values of all</span>
+<span class="sd">        secondary iuh parameters, depending on the completeness of the values of the</span>
+<span class="sd">        primary parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">coefs</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">arma</span><span class="o">.</span><span class="n">ma_coefs</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">arma</span><span class="o">.</span><span class="n">ar_coefs</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">primary_parameters_complete</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calc_secondary_parameters</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">secpar</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_SECONDARY_PARAMETERS</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">secpar</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">delay_response_series</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A tuple of two numpy arrays, which hold the time delays and the associated</span>
+<span class="sd">        iuh values respectively.&quot;&quot;&quot;</span>
+        <span class="n">delays</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">responses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sum_responses</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_response</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_response</span><span class="p">):</span>
+            <span class="n">delays</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+            <span class="n">responses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+            <span class="n">sum_responses</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_response</span> <span class="o">*</span> <span class="n">response</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">sum_responses</span> <span class="o">&gt;</span> <span class="mf">0.9</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">response</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">smallest_response</span><span class="p">):</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">delays</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
+
+<div class="viewcode-block" id="IUH.plot">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.IUH.plot">[docs]</a>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the instanteneous unit hydrograph.</span>
+
+<span class="sd">        The optional argument allows for defining a threshold of the cumulative sum of</span>
+<span class="sd">        the hydrograph, used to adjust the largest value of the x-axis.  It must be a</span>
+<span class="sd">        value between zero and one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">delays</span><span class="p">,</span> <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delay_response_series</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">delays</span><span class="p">,</span> <span class="n">responses</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+        <span class="n">pyplot</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;response&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">threshold</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">threshold</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">cumsum</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">responses</span><span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cumsum</span> <span class="o">&gt;=</span> <span class="n">threshold</span> <span class="o">*</span> <span class="n">cumsum</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">pyplot</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">delays</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">moment1</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The first time delay weighted statistical moment of the instantaneous unit</span>
+<span class="sd">        hydrograph.&quot;&quot;&quot;</span>
+        <span class="n">delays</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delay_response_series</span>
+        <span class="k">return</span> <span class="n">statstools</span><span class="o">.</span><span class="n">calc_mean_time</span><span class="p">(</span><span class="n">delays</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">moment2</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The second time delay weighted statistical momens of the instantaneous unit</span>
+<span class="sd">        hydrograph.&quot;&quot;&quot;</span>
+        <span class="n">moment1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">moment1</span>
+        <span class="n">delays</span><span class="p">,</span> <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delay_response_series</span>
+        <span class="k">return</span> <span class="n">statstools</span><span class="o">.</span><span class="n">calc_mean_time_deviation</span><span class="p">(</span><span class="n">delays</span><span class="p">,</span> <span class="n">response</span><span class="p">,</span> <span class="n">moment1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">moments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The first two time delay weighted statistical moments of the instantaneous</span>
+<span class="sd">        unit hydrograph.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">moment1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">moment2</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="s2">&quot;(&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">primpar</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_PRIMARY_PARAMETERS</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">primpar</span><span class="o">.</span><span class="fm">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="s2">&quot;, &quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;, &quot;</span><span class="p">:</span>
+            <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;)&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TranslationDiffusionEquation">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.TranslationDiffusionEquation">[docs]</a>
+<span class="k">class</span> <span class="nc">TranslationDiffusionEquation</span><span class="p">(</span><span class="n">IUH</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An instantaneous unit hydrograph based on the `translation diffusion equation`.</span>
+
+<span class="sd">    The equation used is a linear approximation of the Saint-Venant</span>
+<span class="sd">    equations for channel routing:</span>
+
+<span class="sd">      :math:`h(t) = \\frac{a}{t \\cdot \\sqrt{\\pi \\cdot t}} \\cdot</span>
+<span class="sd">      e^{-t \\cdot (a/t-b)^2}`</span>
+
+<span class="sd">    with:</span>
+<span class="sd">      :math:`a = \\frac{x}{2 \\cdot \\sqrt{d}}`</span>
+
+<span class="sd">      :math:`b = \\frac{u}{2 \\cdot \\sqrt{d}}`</span>
+
+<span class="sd">    There are three primary parameters, |TranslationDiffusionEquation.u|,</span>
+<span class="sd">    |TranslationDiffusionEquation.d|, and |TranslationDiffusionEquation.x|,  whichs</span>
+<span class="sd">    values need to be defined by the user:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import TranslationDiffusionEquation</span>
+<span class="sd">    &gt;&gt;&gt; tde = TranslationDiffusionEquation(u=5.0, d=15.0, x=50.0)</span>
+<span class="sd">    &gt;&gt;&gt; tde</span>
+<span class="sd">    TranslationDiffusionEquation(d=15.0, u=5.0, x=50.0)</span>
+
+<span class="sd">    The values of both secondary parameters are determined automatically:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_((tde.a, tde.b))</span>
+<span class="sd">    6.454972, 0.645497</span>
+
+<span class="sd">    The function can principally be evaluated for time delays larger zero, but not for</span>
+<span class="sd">    zero time delay, which can cause trouble when applying numerical integration</span>
+<span class="sd">    algorithms.  This is why we clip the given time delay to minimum value of 1e-10</span>
+<span class="sd">    internally.  In most cases (like the following), the returned result should be</span>
+<span class="sd">    workable for integration algorithms:</span>
+
+<span class="sd">    &gt;&gt;&gt; round_(tde([0.0, 5.0, 10.0, 15.0, 20.0]))</span>
+<span class="sd">    0.0, 0.040559, 0.115165, 0.031303, 0.00507</span>
+<span class="sd">    &gt;&gt;&gt; round_(tde(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0])</span>
+<span class="sd">    0.0, 0.040559, 0.115165, 0.031303, 0.00507</span>
+
+<span class="sd">    The first delay weighted central moment of the translation diffusion equation</span>
+<span class="sd">    corresponds to the time lag (`x`/`u`), the second one to wave diffusion:</span>
+
+<span class="sd">    &gt;&gt;&gt; round_(tde.moments)</span>
+<span class="sd">    10.0, 3.464101</span>
+
+<span class="sd">    Class |TranslationDiffusionEquation| implements its own property `moment1` (used in</span>
+<span class="sd">    the example above), which is computationally more efficient and robust than the one</span>
+<span class="sd">    of its base class |IUH|.  But both normally, both should return very similar values:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.auxs.iuhtools import IUH</span>
+<span class="sd">    &gt;&gt;&gt; round_(IUH.moment1.fget(tde))</span>
+<span class="sd">    10.0</span>
+
+
+<span class="sd">    You can also plot the graph corresponding to the actual parameterization:</span>
+
+<span class="sd">    &gt;&gt;&gt; tde.plot(threshold=0.9)</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; from matplotlib import pyplot</span>
+<span class="sd">        &gt;&gt;&gt; pyplot.close()</span>
+
+<span class="sd">    All instances of the subclasses of |IUH| provide a pure Moving Average and an</span>
+<span class="sd">    Autoregressive-Moving Average approximation to the dt standard impulse of the</span>
+<span class="sd">    instantaneous unit hydrograph function.  In the given example, the MA approximation</span>
+<span class="sd">    involves 57 coefficients, and the ARMA approximation invoves 17 coefficients:</span>
+
+<span class="sd">    &gt;&gt;&gt; tde.ma.order</span>
+<span class="sd">    57</span>
+<span class="sd">    &gt;&gt;&gt; tde.arma.order</span>
+<span class="sd">    (3, 14)</span>
+
+<span class="sd">    The diffusion of the MA model deviates from the iuh function due to aggregation.</span>
+<span class="sd">    For the ARMA model, there is also a slight deviation in time delay, as the ARMA</span>
+<span class="sd">    model itself is only a approximation of the MA model:</span>
+
+<span class="sd">    &gt;&gt;&gt; round_(tde.ma.moments)</span>
+<span class="sd">    10.0, 3.488074</span>
+<span class="sd">    &gt;&gt;&gt; round_(tde.arma.moments)</span>
+<span class="sd">    10.000091, 3.488377</span>
+
+<span class="sd">    For further information on using MA and ARMA models, read the documentation on</span>
+<span class="sd">    module |armatools|.</span>
+
+<span class="sd">    Changing a primary parameter results in an updating of the secondary parameters as</span>
+<span class="sd">    well as the MA and the ARMA model:</span>
+
+<span class="sd">    &gt;&gt;&gt; tde.x = 5.</span>
+<span class="sd">    &gt;&gt;&gt; round_((tde.a, tde.b))</span>
+<span class="sd">    0.645497, 0.645497</span>
+<span class="sd">    &gt;&gt;&gt; tde.ma.order</span>
+<span class="sd">    37</span>
+<span class="sd">    &gt;&gt;&gt; tde.arma.order</span>
+<span class="sd">    (4, 5)</span>
+
+<span class="sd">    As long as the primary parameter values are incomplete, no secondary parameter</span>
+<span class="sd">    values are available:</span>
+
+<span class="sd">    &gt;&gt;&gt; del tde.x</span>
+<span class="sd">    &gt;&gt;&gt; round_((tde.a, tde.b))</span>
+<span class="sd">    None, None</span>
+
+<span class="sd">    Suitable type conversions are performed when new parameter values are set:</span>
+
+<span class="sd">    &gt;&gt;&gt; tde.x = &quot;1.&quot;</span>
+<span class="sd">    &gt;&gt;&gt; tde.x</span>
+<span class="sd">    1.0</span>
+
+<span class="sd">    It a new value cannot be converted, an error is raised:</span>
+
+<span class="sd">    &gt;&gt;&gt; tde.x = &quot;a&quot;</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: The value `a` of type `str` could not be converted to type `float` of \</span>
+<span class="sd">the instantaneous unit hydrograph parameter `x`.</span>
+
+<span class="sd">    When passing parameter values as initialization arguments or when using method</span>
+<span class="sd">    `set_primary_parameters`, tests for completeness are performed:</span>
+
+<span class="sd">    &gt;&gt;&gt; TranslationDiffusionEquation(u=5.0, d=15.0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: When passing primary parameter values as initialization arguments of \</span>
+<span class="sd">the instantaneous unit hydrograph class `TranslationDiffusionEquation`, or when using \</span>
+<span class="sd">method `set_primary_parameters`, one has to to define all values at once via keyword \</span>
+<span class="sd">arguments.  But instead of the primary parameter names `d, u, and x` the following \</span>
+<span class="sd">keywords were given: d and u.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">u</span> <span class="o">=</span> <span class="n">PrimaryParameterIUH</span><span class="p">(</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Wave velocity [L/T].&quot;</span><span class="p">)</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">PrimaryParameterIUH</span><span class="p">(</span><span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Diffusion coefficient [L²/T].&quot;</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">PrimaryParameterIUH</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Routing distance [L].&quot;</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">SecondaryParameterIUH</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Distance related coefficient.&quot;</span><span class="p">)</span>
+    <span class="n">_a</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># used for speeding up numerical integration</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">SecondaryParameterIUH</span><span class="p">(</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Velocity related coefficient.&quot;</span><span class="p">)</span>
+    <span class="n">_b</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># used for speeding up numerical integration</span>
+
+<div class="viewcode-block" id="TranslationDiffusionEquation.calc_secondary_parameters">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.TranslationDiffusionEquation.calc_secondary_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">calc_secondary_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the values of the secondary parameters</span>
+<span class="sd">        |TranslationDiffusionEquation.a| and |TranslationDiffusionEquation.b|.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span></div>
+
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+        <span class="c1"># float-handling optimised for fast numerical integration</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="o">&lt;</span> <span class="mf">1e-10</span><span class="p">:</span>  <span class="c1"># pylint: disable=consider-using-max-builtin</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="mf">1e-10</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_a</span>
+            <span class="o">/</span> <span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span>
+            <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">e</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="n">t</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_a</span> <span class="o">/</span> <span class="n">t</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_b</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">moment1</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The first time delay weighted statistical moment of the translation</span>
+<span class="sd">        diffusion equation.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span></div>
+
+
+
+<div class="viewcode-block" id="LinearStorageCascade">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.LinearStorageCascade">[docs]</a>
+<span class="k">class</span> <span class="nc">LinearStorageCascade</span><span class="p">(</span><span class="n">IUH</span><span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;An instantaneous unit hydrograph based on the `linear storage cascade`.</span>
+
+<span class="sd">    The equation involves the gamma function, allowing for a fractional number of</span>
+<span class="sd">    storages:</span>
+
+<span class="sd">      :math:`h(t) = c \cdot (t/k)^{n-1} \cdot e^{-t/k}`</span>
+
+<span class="sd">    with:</span>
+<span class="sd">      :math:`c = \frac{1}{k \cdot \gamma(n)}`</span>
+
+<span class="sd">    After defining the values of the two primary parameters |LinearStorageCascade.n|</span>
+<span class="sd">    and |LinearStorageCascade.k|, the function object can be applied:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import LinearStorageCascade</span>
+<span class="sd">    &gt;&gt;&gt; lsc = LinearStorageCascade(n=2.5, k=2.0)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">    &gt;&gt;&gt; round_(lsc.c)</span>
+<span class="sd">    0.376126</span>
+<span class="sd">    &gt;&gt;&gt; round_(lsc([0.0, 5.0, 10.0, 15.0, 20.0]))</span>
+<span class="sd">    0.0, 0.122042, 0.028335, 0.004273, 0.00054</span>
+<span class="sd">    &gt;&gt;&gt; round_(lsc(value) for value in [0.0, 5.0, 10.0, 15.0, 20.0])</span>
+<span class="sd">    0.0, 0.122042, 0.028335, 0.004273, 0.00054</span>
+
+<span class="sd">    Note that we do not use the above equation directly.  Instead, we apply a</span>
+<span class="sd">    logarithmic transformation, which allows defining extremely high values for</span>
+<span class="sd">    parameter |LinearStorageCascade.n|, resulting in spiky response functions:</span>
+
+<span class="sd">    &gt;&gt;&gt; round_(LinearStorageCascade(n=10, k=1.0/10)(1.0))</span>
+<span class="sd">    1.2511</span>
+<span class="sd">    &gt;&gt;&gt; round_(LinearStorageCascade(n=10000, k=1.0/10000)(1.0))</span>
+<span class="sd">    39.893896</span>
+
+<span class="sd">    &gt;&gt;&gt; round_(LinearStorageCascade(n=10, k=1.0/10)([0.9, 1.0, 1.1]))</span>
+<span class="sd">    1.317556, 1.2511, 1.085255</span>
+<span class="sd">    &gt;&gt;&gt; round_(LinearStorageCascade(n=10000, k=1.0/10000)([0.9, 1.0, 1.1]))</span>
+<span class="sd">    0.0, 39.893896, 0.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="n">PrimaryParameterIUH</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Number of linear storages [-].&quot;</span><span class="p">)</span>
+    <span class="n">_n</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># used for speeding up numerical integration</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">PrimaryParameterIUH</span><span class="p">(</span>
+        <span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Time of concentration of each individual storage [T].&quot;</span>
+    <span class="p">)</span>
+    <span class="n">_k</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># used for speeding up numerical integration</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">SecondaryParameterIUH</span><span class="p">(</span><span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Proportionality factor.&quot;</span><span class="p">)</span>
+    <span class="n">log_c</span> <span class="o">=</span> <span class="n">SecondaryParameterIUH</span><span class="p">(</span><span class="s2">&quot;log_c&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Logarithmic value of `c`.&quot;</span><span class="p">)</span>
+    <span class="n">_log_c</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># used for speeding up numerical integration</span>
+    <span class="n">log_k</span> <span class="o">=</span> <span class="n">SecondaryParameterIUH</span><span class="p">(</span><span class="s2">&quot;log_k&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;Logarithmic value of `k`.&quot;</span><span class="p">)</span>  <span class="c1">#</span>
+    <span class="n">_log_k</span><span class="p">:</span> <span class="nb">float</span>  <span class="c1"># used for speeding up numerical integration</span>
+
+<div class="viewcode-block" id="LinearStorageCascade.calc_secondary_parameters">
+<a class="viewcode-back" href="../../../iuhtools.html#hydpy.auxs.iuhtools.LinearStorageCascade.calc_secondary_parameters">[docs]</a>
+    <span class="k">def</span> <span class="nf">calc_secondary_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the values of the secondary parameters |LinearStorageCascade.c|,</span>
+<span class="sd">        |LinearStorageCascade.log_c|, and |LinearStorageCascade.log_k|.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">c</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="n">special</span><span class="o">.</span><span class="n">gamma</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_c</span> <span class="o">=</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span> <span class="o">-</span> <span class="n">special</span><span class="o">.</span><span class="n">gammaln</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_k</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">)</span></div>
+
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="o">...</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">Vector</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+        <span class="c1"># float-handling optimised for fast numerical integration</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mf">0.0</span>
+            <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">e</span> <span class="o">**</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_log_c</span>
+                <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_k</span><span class="p">)</span>
+                <span class="o">-</span> <span class="n">t</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_k</span>
+            <span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">t</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span>
+        <span class="n">values</span><span class="p">[</span><span class="n">idxs</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log_c</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_k</span><span class="p">)</span> <span class="o">-</span> <span class="n">t</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">moment1</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The first time delay weighted statistical moment of the linear storage</span>
+<span class="sd">        cascade.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 5.0.3 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.auxs.iuhtools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2023, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>

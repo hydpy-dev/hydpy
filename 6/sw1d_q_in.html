@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>sw1d_q_in &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="sw1d_lias" href="sw1d_lias.html" />
+    <link rel="prev" title="sw1d_storage" href="sw1d_storage.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sw1d_lias.html" title="sw1d_lias"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="sw1d_storage.html" title="sw1d_storage"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-SW1D.html" accesskey="U">HydPy-SW1D (Shallow Water 1D)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">sw1d_q_in</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="sw1d.html">sw1d</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sw1d_channel.html">sw1d_channel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sw1d_network.html">sw1d_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sw1d_storage.html">sw1d_storage</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">sw1d_q_in</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.sw1d_q_in.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.sw1d_q_in.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.sw1d_q_in.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.sw1d_q_in.Model.crosssection"><code class="docutils literal notranslate"><span class="pre">Model.crosssection</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.sw1d_q_in.Model.storagemodeldownstream"><code class="docutils literal notranslate"><span class="pre">Model.storagemodeldownstream</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.sw1d_q_in.Model.storagemodeldownstream_is_mainmodel"><code class="docutils literal notranslate"><span class="pre">Model.storagemodeldownstream_is_mainmodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.sw1d_q_in.Model.storagemodeldownstream_typeid"><code class="docutils literal notranslate"><span class="pre">Model.storagemodeldownstream_typeid</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.sw1d_q_in.Model.routingmodelsdownstream"><code class="docutils literal notranslate"><span class="pre">Model.routingmodelsdownstream</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.sw1d_q_in.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.sw1d_q_in.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.sw1d_q_in.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.sw1d_q_in.FactorSequences"><code class="docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.sw1d_q_in.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.sw1d_q_in.InletSequences"><code class="docutils literal notranslate"><span class="pre">InletSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.sw1d_q_in.StateSequences"><code class="docutils literal notranslate"><span class="pre">StateSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="sw1d_lias.html">sw1d_lias</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sw1d_lias_sluice.html">sw1d_lias_sluice</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sw1d_pump.html">sw1d_pump</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sw1d_q_out.html">sw1d_q_out</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sw1d_weir_out.html">sw1d_weir_out</a></li>
+<li class="toctree-l4"><a class="reference internal" href="sw1d_gate_out.html">sw1d_gate_out</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="sw1d_storage.html"
+                          title="previous chapter">sw1d_storage</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="sw1d_lias.html"
+                          title="next chapter">sw1d_lias</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/sw1d_q_in.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="sw1d-q-in">
+<span id="id1"></span><h1>HydPy-SW1D-Q-In (submodel for adding pre-determined discharge to a channel inlet)<a class="headerlink" href="#sw1d-q-in" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.sw1d_q_in">The HydPy-SW1D model family member <a class="reference internal" href="#module-hydpy.models.sw1d_q_in" title="hydpy.models.sw1d_q_in"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_q_in</span></code></a> is a simple routing submodel,
+which allows taking observed or previously simulated discharge series as “longitudinal”
+channel inflow.</p>
+<p>Please refer to the documentation of the “user model” <a class="reference internal" href="sw1d_channel.html#module-hydpy.models.sw1d_channel" title="hydpy.models.sw1d_channel"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_channel</span></code></a> and the
+“composite model” <a class="reference internal" href="sw1d_network.html#module-hydpy.models.sw1d_network" title="hydpy.models.sw1d_network"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_network</span></code></a>, where we demonstrate and discuss <a class="reference internal" href="#module-hydpy.models.sw1d_q_in" title="hydpy.models.sw1d_q_in"><code class="xref py py-mod docutils literal notranslate"><span class="pre">sw1d_q_in</span></code></a> in more
+detail (see, for example, <cite>:ref:`sw1d_channel_longitudinal_inflow</cite>).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.sw1d_q_in.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/sw1d_q_in.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.sw1d_q_in.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Main_CrossSectionModel_V2" title="hydpy.models.sw1d.sw1d_model.Main_CrossSectionModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_CrossSectionModel_V2</span></code></a>, <a class="reference internal" href="routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModel_V1" title="hydpy.interfaces.routinginterfaces.RoutingModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V1</span></code></a></p>
+<p>HydPy-SW1D-Q-In (submodel for adding pre-determined discharge to a channel inlet).</p>
+<dl class="simple">
+<dt>The following “inlet update methods” are called in the given sequence at the beginning of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Pick_Inflow_V1" title="hydpy.models.sw1d.sw1d_model.Pick_Inflow_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Inflow_V1</span></code></a> Pick the longitudinal inflow from an arbitrary number of inlet sequences.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Calc_DischargeVolume_V1" title="hydpy.models.sw1d.sw1d_model.Calc_DischargeVolume_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_DischargeVolume_V1</span></code></a> Calculate the total discharge volume of a complete external simulation step at once.</p></li>
+</ul>
+</dd>
+<dt>The following interface methods are available to main models using the defined model as a submodel:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Determine_MaxTimeStep_V2" title="hydpy.models.sw1d.sw1d_model.Determine_MaxTimeStep_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_MaxTimeStep_V2</span></code></a> Interface method for determining the highest possible computation time step at an inflow location.</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Determine_Discharge_V2" title="hydpy.models.sw1d.sw1d_model.Determine_Discharge_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_Discharge_V2</span></code></a> Interface method for determining the discharge at an inflow location.</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Get_MaxTimeStep_V1" title="hydpy.models.sw1d.sw1d_model.Get_MaxTimeStep_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_MaxTimeStep_V1</span></code></a> Interface method for querying the highest possible computation time step in s.</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Get_Discharge_V1" title="hydpy.models.sw1d.sw1d_model.Get_Discharge_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_Discharge_V1</span></code></a> Interface method for querying the discharge in m³/s.</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Get_PartialDischargeUpstream_V1" title="hydpy.models.sw1d.sw1d_model.Get_PartialDischargeUpstream_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_PartialDischargeUpstream_V1</span></code></a> Return a partial discharge estimate suitable for a downstream model.</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Get_DischargeVolume_V1" title="hydpy.models.sw1d.sw1d_model.Get_DischargeVolume_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_DischargeVolume_V1</span></code></a> Interface method for querying the discharge in m³.</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Set_TimeStep_V1" title="hydpy.models.sw1d.sw1d_model.Set_TimeStep_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Set_TimeStep_V1</span></code></a> Interface method for setting the actual computation time step in s.</p></li>
+</ul>
+</dd>
+<dt>The following “additional methods” might be called by one or more of the other methods or are meant to be directly called by the user:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Calc_WaterLevelDownstream_V1" title="hydpy.models.sw1d.sw1d_model.Calc_WaterLevelDownstream_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WaterLevelDownstream_V1</span></code></a> Query the water level from a downstream submodel that follows the <a class="reference internal" href="routinginterfaces.html#hydpy.interfaces.routinginterfaces.StorageModel_V1" title="hydpy.interfaces.routinginterfaces.StorageModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">StorageModel_V1</span></code></a> interface.</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Calc_WaterLevel_V2" title="hydpy.models.sw1d.sw1d_model.Calc_WaterLevel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WaterLevel_V2</span></code></a> Take the water level from the downstream channel segment.</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Calc_WaterDepth_WettedArea_CrossSectionModel_V2" title="hydpy.models.sw1d.sw1d_model.Calc_WaterDepth_WettedArea_CrossSectionModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WaterDepth_WettedArea_CrossSectionModel_V2</span></code></a> Let a submodel that follows the <a class="reference internal" href="routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2" title="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossSectionModel_V2</span></code></a> submodel interface calculate the water depth and the wetted area based on the current water level.</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Calc_WaterDepth_WettedArea_V1" title="hydpy.models.sw1d.sw1d_model.Calc_WaterDepth_WettedArea_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WaterDepth_WettedArea_V1</span></code></a> Let a submodel that follows the <a class="reference internal" href="routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2" title="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossSectionModel_V2</span></code></a> submodel interface calculate the water depth and the wetted area based on the current water level.</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_model.Calc_MaxTimeStep_V2" title="hydpy.models.sw1d.sw1d_model.Calc_MaxTimeStep_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_MaxTimeStep_V2</span></code></a> Estimate the highest possible computation time step for which we can expect stability for an inflow-providing routing model.</p></li>
+</ul>
+</dd>
+<dt>Users can hook submodels into the defined main model if they satisfy one of the following interfaces:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2" title="hydpy.interfaces.routinginterfaces.CrossSectionModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">CrossSectionModel_V2</span></code></a> Interface for calculating discharge-related properties at a channel cross-section.</p></li>
+<li><p><a class="reference internal" href="routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModel_V2" title="hydpy.interfaces.routinginterfaces.RoutingModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V2</span></code></a> Interface for calculating the discharge between two channel segments.</p></li>
+<li><p><a class="reference internal" href="routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModel_V3" title="hydpy.interfaces.routinginterfaces.RoutingModel_V3"><code class="xref py py-class docutils literal notranslate"><span class="pre">RoutingModel_V3</span></code></a> Interface for calculating the outflow of a channel.</p></li>
+<li><p><a class="reference internal" href="routinginterfaces.html#hydpy.interfaces.routinginterfaces.StorageModel_V1" title="hydpy.interfaces.routinginterfaces.StorageModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">StorageModel_V1</span></code></a> Interface for calculating the water amount stored in a single channel segment.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('SW1D-Q-In',</span> <span class="pre">'submodel</span> <span class="pre">for</span> <span class="pre">adding</span> <span class="pre">pre-determined</span> <span class="pre">discharge</span> <span class="pre">to</span> <span class="pre">a</span> <span class="pre">channel</span> <span class="pre">inlet')</span></span><a class="headerlink" href="#hydpy.models.sw1d_q_in.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.sw1d_q_in.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.Model.crosssection">
+<span class="sig-name descname"><span class="pre">crosssection</span></span><a class="headerlink" href="#hydpy.models.sw1d_q_in.Model.crosssection" title="Link to this definition">¶</a></dt>
+<dd><p>Required submodel that complies with the following interface: CrossSectionModel_V2.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.Model.storagemodeldownstream">
+<span class="sig-name descname"><span class="pre">storagemodeldownstream</span></span><a class="headerlink" href="#hydpy.models.sw1d_q_in.Model.storagemodeldownstream" title="Link to this definition">¶</a></dt>
+<dd><p>Required reference to the neighbour storage model downstream.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.Model.storagemodeldownstream_is_mainmodel">
+<span class="sig-name descname"><span class="pre">storagemodeldownstream_is_mainmodel</span></span><a class="headerlink" href="#hydpy.models.sw1d_q_in.Model.storagemodeldownstream_is_mainmodel" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.Model.storagemodeldownstream_typeid">
+<span class="sig-name descname"><span class="pre">storagemodeldownstream_typeid</span></span><a class="headerlink" href="#hydpy.models.sw1d_q_in.Model.storagemodeldownstream_typeid" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.Model.routingmodelsdownstream">
+<span class="sig-name descname"><span class="pre">routingmodelsdownstream</span></span><a class="headerlink" href="#hydpy.models.sw1d_q_in.Model.routingmodelsdownstream" title="Link to this definition">¶</a></dt>
+<dd><p>References to the neighbour routing models lying downstream.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.sw1d_q_in.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.sw1d_q_in.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.sw1d_q_in.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model sw1d_q_in.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_control.LengthDownstream" title="hydpy.models.sw1d.sw1d_control.LengthDownstream"><code class="xref py py-func docutils literal notranslate"><span class="pre">LengthDownstream()</span></code></a> The downstream channel segment’s length [km].</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_control.TimeStepFactor" title="hydpy.models.sw1d.sw1d_control.TimeStepFactor"><code class="xref py py-func docutils literal notranslate"><span class="pre">TimeStepFactor()</span></code></a> A factor for reducing the estimated computation time step to increase numerical stability [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.sw1d_q_in.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.sw1d_q_in.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model sw1d_q_in.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_derived.Seconds" title="hydpy.models.sw1d.sw1d_derived.Seconds"><code class="xref py py-func docutils literal notranslate"><span class="pre">Seconds()</span></code></a> The length of the actual simulation step size in seconds [s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.FactorSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.sw1d_q_in.</span></span><span class="sig-name descname"><span class="pre">FactorSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.sw1d_q_in.FactorSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequences" title="hydpy.core.sequencetools.FactorSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></p>
+<p>Factor sequences of model sw1d_q_in.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_factors.MaxTimeStep" title="hydpy.models.sw1d.sw1d_factors.MaxTimeStep"><code class="xref py py-func docutils literal notranslate"><span class="pre">MaxTimeStep()</span></code></a> The highest possible computation time step according to local stability considerations [s].</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_factors.TimeStep" title="hydpy.models.sw1d.sw1d_factors.TimeStep"><code class="xref py py-func docutils literal notranslate"><span class="pre">TimeStep()</span></code></a> The actual computation step according to global stability considerations [s].</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_factors.WaterDepth" title="hydpy.models.sw1d.sw1d_factors.WaterDepth"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterDepth()</span></code></a> Water depth [m].</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_factors.WaterLevel" title="hydpy.models.sw1d.sw1d_factors.WaterLevel"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevel()</span></code></a> Water level [m].</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_factors.WaterLevelDownstream" title="hydpy.models.sw1d.sw1d_factors.WaterLevelDownstream"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterLevelDownstream()</span></code></a> The downstream channel segment’s water level [m].</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_factors.WettedArea" title="hydpy.models.sw1d.sw1d_factors.WettedArea"><code class="xref py py-func docutils literal notranslate"><span class="pre">WettedArea()</span></code></a> The channel wetted area [m²].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.sw1d_q_in.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.sw1d_q_in.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model sw1d_q_in.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_fluxes.Inflow" title="hydpy.models.sw1d.sw1d_fluxes.Inflow"><code class="xref py py-func docutils literal notranslate"><span class="pre">Inflow()</span></code></a> Longitudinal flow into the first channel segment [m³/s].</p></li>
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_fluxes.DischargeVolume" title="hydpy.models.sw1d.sw1d_fluxes.DischargeVolume"><code class="xref py py-func docutils literal notranslate"><span class="pre">DischargeVolume()</span></code></a> The total amount of discharge of a simulation step [m³/T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.InletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.sw1d_q_in.</span></span><span class="sig-name descname"><span class="pre">InletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.sw1d_q_in.InletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequences" title="hydpy.core.sequencetools.InletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequences</span></code></a></p>
+<p>Inlet sequences of model sw1d_q_in.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_inlets.LongQ" title="hydpy.models.sw1d.sw1d_inlets.LongQ"><code class="xref py py-func docutils literal notranslate"><span class="pre">LongQ()</span></code></a> The longitudinal inflow into the first channel segment [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.sw1d_q_in.StateSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.sw1d_q_in.</span></span><span class="sig-name descname"><span class="pre">StateSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.sw1d_q_in.StateSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequences</span></code></a></p>
+<p>State sequences of model sw1d_q_in.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="sw1d.html#hydpy.models.sw1d.sw1d_states.Discharge" title="hydpy.models.sw1d.sw1d_states.Discharge"><code class="xref py py-func docutils literal notranslate"><span class="pre">Discharge()</span></code></a> Discharge [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sw1d_lias.html" title="sw1d_lias"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="sw1d_storage.html" title="sw1d_storage"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-SW1D.html" >HydPy-SW1D (Shallow Water 1D)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">sw1d_q_in</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

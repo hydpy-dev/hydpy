@@ -1,0 +1,38 @@
+.. |BaseModel.prepare_layers| replace:: :func:`~hydpy.models.snow.snow_model.BaseModel.prepare_layers`
+.. |CN4| replace:: :class:`~hydpy.models.snow.snow_control.CN4`
+.. |Calc_PLayer_V1| replace:: :class:`~hydpy.models.snow.snow_model.Calc_PLayer_V1`
+.. |Calc_PotMelt_V1| replace:: :class:`~hydpy.models.snow.snow_model.Calc_PotMelt_V1`
+.. |Calc_SolidFractionPrecipitation_V1| replace:: :class:`~hydpy.models.snow.snow_model.Calc_SolidFractionPrecipitation_V1`
+.. |GLocalMax| replace:: :class:`~hydpy.models.snow.snow_logs.GLocalMax`
+.. |GRatio| replace:: :class:`~hydpy.models.snow.snow_states.GRatio`
+.. |GThresh| replace:: :class:`~hydpy.models.snow.snow_derived.GThresh`
+.. |G| replace:: :class:`~hydpy.models.snow.snow_states.G`
+.. |Hysteresis| replace:: :class:`~hydpy.models.snow.snow_control.Hysteresis`
+.. |LayerArea| replace:: :class:`~hydpy.models.snow.snow_control.LayerArea`
+.. |MeanAnSolidPrecip| replace:: :class:`~hydpy.models.snow.snow_control.MeanAnSolidPrecip`
+.. |Melt| replace:: :class:`~hydpy.models.snow.snow_fluxes.Melt`
+.. |MinG| replace:: :class:`~hydpy.models.snow.snow_fixed.MinG`
+.. |PLayer| replace:: :class:`~hydpy.models.snow.snow_fluxes.PLayer`
+.. |PotMelt| replace:: :class:`~hydpy.models.snow.snow_fluxes.PotMelt`
+.. |Return_T_V1| replace:: :class:`~hydpy.models.snow.snow_model.Return_T_V1`
+.. |TLayer| replace:: :class:`~hydpy.models.snow.snow_factors.TLayer`
+.. |TMaxLayer| replace:: :class:`~hydpy.models.snow.snow_factors.TMaxLayer`
+.. |TMinLayer| replace:: :class:`~hydpy.models.snow.snow_factors.TMinLayer`
+.. |TThreshRain| replace:: :class:`~hydpy.models.snow.snow_fixed.TThreshRain`
+.. |TThreshSnow| replace:: :class:`~hydpy.models.snow.snow_fixed.TThreshSnow`
+.. |Update_GRatio_GLocalMax_V2| replace:: :class:`~hydpy.models.snow.snow_model.Update_GRatio_GLocalMax_V2`
+.. |ZLayers| replace:: :class:`~hydpy.models.snow.snow_control.ZLayers`
+.. |ZMean| replace:: :class:`~hydpy.models.snow.snow_derived.ZMean`
+.. |ZThreshold| replace:: :class:`~hydpy.models.snow.snow_fixed.ZThreshold`
+.. |snow.DOCNAME.complete| replace:: HydPy-Snow (base model)
+.. |snow_model.BaseModel.prepare_layers| replace:: :func:`~hydpy.models.snow.snow_model.BaseModel.prepare_layers`
+
+.. _snow:
+
+snow
+====
+
+.. automodule:: hydpy.models.snow
+    :members:
+    :show-inheritance:
+    :exclude-members: Hashable, Match, Text, RECEIVER_METHODS, Union, Iterable, cast, Callable, SupportsAbs, OutletSequences, disjoint_base, overload, Sized, ParamSpecArgs, get_original_bases, get_protocol_members, SOLVERPARAMETERS, is_typeddict, Writer, get_overloads, FULL_ODE_METHODS, REQUIREDSEQUENCES, CapsuleType, SupportsRound, ReadOnly, fastaccess_old, evaluate_forward_ref, List, subpars, Required, ForwardRef, Protocol, Format, NoExtraItems, TypeGuard, clear_overloads, seqs, TypeAliasType, CONTROLPARAMETERS, Final, AbstractSet, DefaultDict, ADD_METHODS, SupportsFloat, dataclass_transform, AnyStr, MappingView, Doc, Reversible, assert_never, Concatenate, Dict, OUTLET_METHODS, AsyncIterator, SUBMETHODS, ParamSpec, Annotated, no_type_check_decorator, get_type_hints, CLASSES, NamedTuple, ByteString, Generator, FrozenSet, pars, IO, TypeIs, Set, Deque, INTERFACE_METHODS, type_repr, NoDefault, Literal, Any, DERIVEDPARAMETERS, SupportsBytes, subseqs, Buffer, Reader, deprecated, Sentinel, SOLVERSEQUENCES, Counter, Optional, MutableSequence, OrderedDict, NoReturn, runtime, MutableSet, final, fastaccess_new, reveal_type, Awaitable, Unpack, Container, IntVar, LiteralString, TextIO, KeysView, ChainMap, Mapping, UPDATEDSEQUENCES, ClassVar, fastaccess, override, FIXEDPARAMETERS, SUBMODELINTERFACES, AsyncGenerator, TypeVar, SupportsIndex, NotRequired, AsyncIterable, Iterator, TypeVarTuple, get_args, Never, PART_ODE_METHODS, ValuesView, TYPE_CHECKING, TypedDict, NewType, AsyncContextManager, no_type_check, Pattern, RESULTSEQUENCES, Tuple, runtime_checkable, BinaryIO, ObserverSequences, InletSequences, get_origin, ParamSpecKwargs, Collection, SUBMODELS, ItemsView, TypeAlias, SupportsInt, TypeForm, get_annotations, SENDER_METHODS, Coroutine, ReceiverSequences, Self, Sequence, RUN_METHODS, SenderSequences, subvars, INLET_METHODS, MutableMapping, ContextManager, AideSequences, SupportsComplex, Generic, Type, is_protocol, assert_type

@@ -1,0 +1,19 @@
+.. |Branched| replace:: :class:`~hydpy.models.hbranch.hbranch_outlets.Branched`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |OriginalInput| replace:: :class:`~hydpy.models.hbranch.hbranch_fluxes.OriginalInput`
+.. |Outputs| replace:: :class:`~hydpy.models.hbranch.hbranch_fluxes.Outputs`
+.. |Total| replace:: :class:`~hydpy.models.hbranch.hbranch_inlets.Total`
+.. |XPoints| replace:: :class:`~hydpy.models.hbranch.hbranch_control.XPoints`
+.. |hbranch_v1| replace:: :mod:`~hydpy.models.hbranch_v1`
+.. |parameterstep| replace:: :func:`~hydpy.core.importtools.parameterstep`
+
+.. _hbranch_v1:
+
+hbranch_v1
+==========
+
+.. automodule:: hydpy.models.hbranch_v1
+    :members:
+    :show-inheritance:
+    :exclude-members: Self, Reversible, Generic, Sized, Awaitable, IntVar, clear_overloads, TypeAlias, Sequence, Hashable, SenderSequences, SUBMETHODS, SupportsAbs, AnyStr, assert_never, InputSequences, reveal_type, CLASSES, REQUIREDSEQUENCES, ItemsView, Union, SupportsFloat, get_overloads, get_origin, OUTLET_METHODS, NoReturn, no_type_check, Type, Final, PART_ODE_METHODS, RECEIVER_METHODS, Tuple, AbstractSet, ByteString, MappingView, subpars, MutableSequence, MutableSet, SupportsRound, CONTROLPARAMETERS, INLET_METHODS, get_protocol_members, SOLVERSEQUENCES, FrozenSet, no_type_check_decorator, fastaccess_old, Mapping, FIXEDPARAMETERS, seqs, KeysView, SUBMODELS, Protocol, SupportsComplex, SENDER_METHODS, ContextManager, deprecated, SupportsBytes, get_original_bases, Iterator, is_protocol, TypeGuard, DefaultDict, LiteralString, Required, TextIO, TYPE_CHECKING, AsyncContextManager, fastaccess_new, FULL_ODE_METHODS, SOLVERPARAMETERS, BinaryIO, fastaccess, runtime, IO, Text, TypeVarTuple, ValuesView, AsyncIterable, Generator, Optional, assert_type, Literal, dataclass_transform, subvars, pars, get_args, ParamSpec, Annotated, cast, final, subseqs, ClassVar, Any, Unpack, Coroutine, is_typeddict, Counter, UPDATEDSEQUENCES, Callable, Dict, NamedTuple, overload, OrderedDict, Set, ADD_METHODS, AideSequences, Collection, Pattern, List, get_type_hints, Concatenate, ParamSpecKwargs, DERIVEDPARAMETERS, AsyncGenerator, override, Container, RUN_METHODS, NotRequired, NewType, RESULTSEQUENCES, SupportsInt, Buffer, StateSequences, Iterable, TypeVar, SupportsIndex, MutableMapping, ChainMap, FactorSequences, ForwardRef, TypeAliasType, AsyncIterator, Never, ParamSpecArgs, Match, LogSequences, Deque, TypedDict, ReceiverSequences, runtime_checkable

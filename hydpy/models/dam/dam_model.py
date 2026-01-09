@@ -23,6 +23,7 @@ from hydpy.models.dam import dam_states
 from hydpy.models.dam import dam_logs
 from hydpy.models.dam import dam_aides
 from hydpy.models.dam import dam_inlets
+from hydpy.models.dam import dam_observers
 from hydpy.models.dam import dam_receivers
 from hydpy.models.dam import dam_outlets
 from hydpy.models.dam import dam_senders
@@ -778,6 +779,35 @@ class Pick_LoggedRequiredRemoteRelease_V2(modeltools.Method):
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         log.loggedrequiredremoterelease[0] = rec.s
+
+
+class Pick_RequiredRelease_V1(modeltools.Method):
+    """Take the externally requested release.
+
+    Basic equation:
+      :math:`RequiredRelease = max(R)`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> observers.r.shape = 3
+        >>> observers.r = 2.0, 3.0, 1.0
+        >>> model.pick_requiredrelease_v1()
+        >>> fluxes.requiredrelease
+        requiredrelease(3.0)
+    """
+
+    REQUIREDSEQUENCES = (dam_observers.R,)
+    RESULTSEQUENCES = (dam_fluxes.RequiredRelease,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        obs = model.sequences.observers.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.requiredrelease = 0.0
+        for i in range(obs.len_r):
+            flu.requiredrelease = max(flu.requiredrelease, obs.r[i])
 
 
 class Pick_Exchange_V1(modeltools.Method):
@@ -5940,7 +5970,7 @@ class Model(modeltools.ELSModel):
         Calc_RequiredRelease_V2,
         Calc_TargetedRelease_V1,
     )
-    OBSERVER_METHODS = ()
+    OBSERVER_METHODS = (Pick_RequiredRelease_V1,)
     RECEIVER_METHODS = (
         Pick_TotalRemoteDischarge_V1,
         Update_LoggedTotalRemoteDischarge_V1,

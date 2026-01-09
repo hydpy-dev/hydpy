@@ -5179,16 +5179,19 @@ class Calc_Outflow_V2(modeltools.Method):
         Outflow = \begin{cases}
         I + X + P - E  &|& i_{sim}  < i_{commission}
         \\
-        f(F, \, A, \, D)  &|&  i_{sim} \geq i_{commission}
+        f_{max} \big( f_{min}(F, \, A, \, D), \, R, \, D \big)
+        &|&  i_{sim} \geq i_{commission}
         \end{cases}
         \\ \\
         I = Inflow \\
         X = Exchange \\
         P = AdjustedPrecipitation \\
         E = ActualEvaporation \\
-        f = smooth_{Fix\_Min1\_V1} \\
+        f_{max} = Smooth\_Max1 \\
+        f_{min} = Fix\_Min1\_V1 \\
         F = FloodDischarge \\
-        A = AllowedDischarge\\
+        A = AllowedDischarge \\
+        R = RequiredRelease \\
         D = DischargeSmoothPar
 
     Used additional method:
@@ -5213,61 +5216,112 @@ class Calc_Outflow_V2(modeltools.Method):
         >>> fluxes.outflow
         outflow(2.0)
 
-        After the commission date, the final outflow is the (eventually smoothed)
-        minimum of |FloodDischarge| and |AllowedDischarge|:
+        After the commission date and without any required release, the outflow is the
+        (eventually smoothed) minimum of |FloodDischarge| and
+        |AllowedDischarge|:
 
         >>> commission("2000-01-01")
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model,
-        ...                 model.calc_outflow_v2,
-        ...                 last_example=8,
-        ...                 parseqs=(fluxes.flooddischarge,
-        ...                          fluxes.outflow))
+        >>> test = UnitTest(
+        ...     model,
+        ...     model.calc_outflow_v2,
+        ...     last_example=8,
+        ...     parseqs=(fluxes.flooddischarge, fluxes.requiredrelease, fluxes.outflow),
+        ... )
         >>> test.nexts.flooddischarge = range(8)
+        >>> test.nexts.requiredrelease = 8 * [0.0]
 
+        >>> fluxes.requiredrelease = 0.0
         >>> aides.alloweddischarge = 3.0
 
         >>> dischargetolerance(0.0)
         >>> derived.dischargesmoothpar.update()
         >>> test()
-        | ex. | flooddischarge | outflow |
-        ----------------------------------
-        |   1 |            0.0 |     0.0 |
-        |   2 |            1.0 |     1.0 |
-        |   3 |            2.0 |     2.0 |
-        |   4 |            3.0 |     3.0 |
-        |   5 |            4.0 |     3.0 |
-        |   6 |            5.0 |     3.0 |
-        |   7 |            6.0 |     3.0 |
-        |   8 |            7.0 |     3.0 |
-
+        | ex. | flooddischarge | requiredrelease | outflow |
+        ----------------------------------------------------
+        |   1 |            0.0 |             0.0 |     0.0 |
+        |   2 |            1.0 |             0.0 |     1.0 |
+        |   3 |            2.0 |             0.0 |     2.0 |
+        |   4 |            3.0 |             0.0 |     3.0 |
+        |   5 |            4.0 |             0.0 |     3.0 |
+        |   6 |            5.0 |             0.0 |     3.0 |
+        |   7 |            6.0 |             0.0 |     3.0 |
+        |   8 |            7.0 |             0.0 |     3.0 |
 
         >>> dischargetolerance(1.0)
         >>> derived.dischargesmoothpar.update()
         >>> test()
-        | ex. | flooddischarge |  outflow |
-        -----------------------------------
-        |   1 |            0.0 |      0.0 |
-        |   2 |            1.0 | 0.999651 |
-        |   3 |            2.0 |     1.99 |
-        |   4 |            3.0 | 2.794476 |
-        |   5 |            4.0 | 2.985755 |
-        |   6 |            5.0 | 2.991603 |
-        |   7 |            6.0 | 2.991773 |
-        |   8 |            7.0 | 2.991779 |
+        | ex. | flooddischarge | requiredrelease |  outflow |
+        -----------------------------------------------------
+        |   1 |            0.0 |             0.0 |      0.0 |
+        |   2 |            1.0 |             0.0 | 0.999651 |
+        |   3 |            2.0 |             0.0 |     1.99 |
+        |   4 |            3.0 |             0.0 | 2.794476 |
+        |   5 |            4.0 |             0.0 | 2.985755 |
+        |   6 |            5.0 |             0.0 | 2.991603 |
+        |   7 |            6.0 |             0.0 | 2.991773 |
+        |   8 |            7.0 |             0.0 | 2.991779 |
 
         >>> aides.alloweddischarge = 0.0
         >>> test()
-        | ex. | flooddischarge | outflow |
-        ----------------------------------
-        |   1 |            0.0 |     0.0 |
-        |   2 |            1.0 |     0.0 |
-        |   3 |            2.0 |     0.0 |
-        |   4 |            3.0 |     0.0 |
-        |   5 |            4.0 |     0.0 |
-        |   6 |            5.0 |     0.0 |
-        |   7 |            6.0 |     0.0 |
-        |   8 |            7.0 |     0.0 |
+        | ex. | flooddischarge | requiredrelease | outflow |
+        ----------------------------------------------------
+        |   1 |            0.0 |             0.0 |     0.0 |
+        |   2 |            1.0 |             0.0 |     0.0 |
+        |   3 |            2.0 |             0.0 |     0.0 |
+        |   4 |            3.0 |             0.0 |     0.0 |
+        |   5 |            4.0 |             0.0 |     0.0 |
+        |   6 |            5.0 |             0.0 |     0.0 |
+        |   7 |            6.0 |             0.0 |     0.0 |
+        |   8 |            7.0 |             0.0 |     0.0 |
+
+        If there is an external request, the final outflow is the (eventually smoothed)
+        maximum (previously calculated) outflow and the required release:
+
+        >>> aides.alloweddischarge = 8.0
+        >>> test.nexts.flooddischarge = 8 * [3.0]
+        >>> test.nexts.requiredrelease = range(8)
+
+        >>> dischargetolerance(0.0)
+        >>> derived.dischargesmoothpar.update()
+        >>> test()
+        | ex. | flooddischarge | requiredrelease | outflow |
+        ----------------------------------------------------
+        |   1 |            3.0 |             0.0 |     3.0 |
+        |   2 |            3.0 |             1.0 |     3.0 |
+        |   3 |            3.0 |             2.0 |     3.0 |
+        |   4 |            3.0 |             3.0 |     3.0 |
+        |   5 |            3.0 |             4.0 |     4.0 |
+        |   6 |            3.0 |             5.0 |     5.0 |
+        |   7 |            3.0 |             6.0 |     6.0 |
+        |   8 |            3.0 |             7.0 |     7.0 |
+
+        >>> dischargetolerance(1.0)
+        >>> derived.dischargesmoothpar.update()
+        >>> test()
+        | ex. | flooddischarge | requiredrelease |  outflow |
+        -----------------------------------------------------
+        |   1 |            3.0 |             0.0 |      3.0 |
+        |   2 |            3.0 |             1.0 | 3.000349 |
+        |   3 |            3.0 |             2.0 |     3.01 |
+        |   4 |            3.0 |             3.0 | 3.205524 |
+        |   5 |            3.0 |             4.0 |     4.01 |
+        |   6 |            3.0 |             5.0 | 5.000349 |
+        |   7 |            3.0 |             6.0 | 6.000012 |
+        |   8 |            3.0 |             7.0 |      7.0 |
+
+        >>> test.nexts.flooddischarge = 8 * [0.0]
+        >>> test()
+        | ex. | flooddischarge | requiredrelease |  outflow |
+        -----------------------------------------------------
+        |   1 |            0.0 |             0.0 |      0.0 |
+        |   2 |            0.0 |             1.0 |     1.01 |
+        |   3 |            0.0 |             2.0 | 2.000349 |
+        |   4 |            0.0 |             3.0 | 3.000012 |
+        |   5 |            0.0 |             4.0 |      4.0 |
+        |   6 |            0.0 |             5.0 |      5.0 |
+        |   7 |            0.0 |             6.0 |      6.0 |
+        |   8 |            0.0 |             7.0 |      7.0 |
     """
 
     CONTROLPARAMETERS = (dam_control.Commission,)
@@ -5278,6 +5332,7 @@ class Calc_Outflow_V2(modeltools.Method):
         dam_fluxes.AdjustedPrecipitation,
         dam_fluxes.ActualEvaporation,
         dam_fluxes.FloodDischarge,
+        dam_fluxes.RequiredRelease,
         dam_aides.AllowedDischarge,
     )
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
@@ -5299,6 +5354,10 @@ class Calc_Outflow_V2(modeltools.Method):
             flu.outflow = model.fix_min1_v1(
                 flu.flooddischarge, aid.alloweddischarge, der.dischargesmoothpar, False
             )
+            if flu.requiredrelease > 0.0:
+                flu.outflow = smoothutils.smooth_max1(
+                    flu.outflow, flu.requiredrelease, der.dischargesmoothpar
+                )
 
 
 class Calc_Outflow_V3(modeltools.Method):

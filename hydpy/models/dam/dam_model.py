@@ -5072,7 +5072,9 @@ class Calc_AimedRelease_WaterVolume_V1(modeltools.Method):
         else:
             targetvolume: float = con.targetvolume[der.toy[model.idx_sim]]
             q: float = 1e6 / der.seconds * (sta.watervolume - targetvolume)
-            q = min(max(q, con.minimumrelease), flu.saferelease, aid.alloweddischarge)
+            q = max(q, con.minimumrelease)
+            q = min(q, flu.saferelease, aid.alloweddischarge)
+            q = max(q, flu.requiredrelease)
             v: float = der.seconds / 1e6 * q
             if v < sta.watervolume:
                 flu.aimedrelease = q
@@ -5516,23 +5518,33 @@ class Calc_Outflow_V7(modeltools.Method):
     """
 
     CONTROLPARAMETERS = (dam_control.Commission,)
+    DERIVEDPARAMETERS = (dam_derived.DischargeSmoothPar,)
     REQUIREDSEQUENCES = (
         dam_fluxes.Inflow,
         dam_fluxes.AdjustedPrecipitation,
         dam_fluxes.ActualEvaporation,
         dam_fluxes.ActualRelease,
         dam_fluxes.FloodDischarge,
+        dam_fluxes.RequiredRelease,
     )
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
         con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if model.idx_sim < con.commission:
             flu.outflow = flu.inflow + flu.adjustedprecipitation - flu.actualevaporation
         else:
-            flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.0)
+            if flu.requiredrelease <= 0.0:
+                flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.0)
+            else:
+                flu.outflow = smoothutils.smooth_max1(
+                    flu.actualrelease + flu.flooddischarge,
+                    flu.requiredrelease,
+                    der.dischargesmoothpar,
+                )
 
 
 class Update_WaterVolume_V1(modeltools.Method):

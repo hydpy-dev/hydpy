@@ -270,6 +270,22 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
         )
 
 
+def is_valid_variable_identifier(v: object, /) -> bool:
+    """Check if the given object is a variable variable identifier.
+
+    |is_valid_variable_identifier| is similar to |valid_variable_identifier| but
+    returns |True| or |False| instead of eventually raising an error and allows
+    filtering out non-string values:
+
+    >>> from hydpy.core.objecttools import is_valid_variable_identifier as ivvi
+    >>> assert not ivvi(0)
+    >>> assert ivvi("valid")
+    >>> assert not ivvi("not valid")
+    >>> assert not ivvi("int")
+    """
+    return isinstance(v, str) and (v not in _builtinnames) and v.isidentifier()
+
+
 def augment_excmessage(
     prefix: str | None = None, suffix: str | None = None
 ) -> NoReturn:

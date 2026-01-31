@@ -356,7 +356,7 @@ class FusedVariable:
 
     Without further configuration, |evap_ret_fao56| cannot perform any simulation
     steps.  Hence, we just call its |Model.load_data| method to show that the input
-    sequence |meteo_inputs.Temperature| of its submodel is well connected to the |Sim|
+    sequence |meteo_inputs.Temperature| of its submodel is well-connected to the |Sim|
     sequence of node `t2` and receives the correct data:
 
     >>> evap.model.load_data(0)
@@ -403,8 +403,8 @@ The already defined sequences of the fused variable `T` are `lland_inputs_TemL a
 meteo_inputs_Temperature` instead of `hland_inputs_T and lland_inputs_TemL`.  Keep in \
 mind, that `name` is the unique identifier for fused variable instances.
 
-    Defining additional fused variables with the same member sequences is not advisable
-    but is allowed:
+    Defining additional fused variables with the same member sequences is not
+    advisable, but is allowed:
 
     >>> Temp = FusedVariable("Temp", meteo_inputs_Temperature, lland_inputs_TemL)
     >>> T is Temp
@@ -425,6 +425,22 @@ mind, that `name` is the unique identifier for fused variable instances.
     ()
     >>> t2.variable
     FusedVariable("T", lland_inputs_TemL, meteo_inputs_Temperature)
+
+    For convenience, |FusedVariable| supports equality comparisons with other fused
+    variables (Are all handled variable types identical?), individual sequences (Is the
+    given sequence type among the handled types?), and sequence names (Is any of the
+    handled types the given name?):
+
+    >>> assert T == Temp
+    >>> assert T != E
+    >>> assert T == meteo_inputs_Temperature
+    >>> assert meteo_inputs_Temperature == T
+    >>> assert T != evap_inputs_ReferenceEvapotranspiration
+    >>> assert evap_inputs_ReferenceEvapotranspiration != T
+    >>> assert T == "TemL"
+    >>> assert "TemL" == T
+    >>> assert T != "ReferenceEvapotranspiration"
+    >>> assert "ReferenceEvapotranspiration" != T
 
     .. testsetup::
 
@@ -481,9 +497,21 @@ mind, that `name` is the unique identifier for fused variable instances.
 
     def __contains__(self, item: object) -> bool:
         sqt = sequencetools
+        if isinstance(item, str):
+            return any(v.__name__ == item for v in self._variables)
         if isinstance(item, (sqt.LinkSequence, sqt.InputSequence, sqt.OutputSequence)):
             item = type(item)
         return item in self._variables
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, FusedVariable):
+            return set(self._variables) == set(other._variables)
+        if other in self:
+            return True
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash((type(self), self._name))
 
     def __str__(self) -> str:
         return self._name

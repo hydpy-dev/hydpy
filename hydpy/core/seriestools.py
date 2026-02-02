@@ -290,10 +290,10 @@ are supported: `monthly` (default), `daily`, and `yearly`.
         )
     elif stepsize in ("m", "monthly"):
         rule = "MS"
-        offset = 0
+        offset = None
     elif stepsize in ("y", "yearly"):
         rule = "YS"
-        offset = 0
+        offset = None
     else:
         raise ValueError(
             f"Argument `stepsize` received value `{stepsize}`, but only the following "
@@ -312,7 +312,10 @@ are supported: `monthly` (default), `daily`, and `yearly`.
         end=(tg.lastdate - tg.stepsize).datetime,
         freq=tg.stepsize.timedelta,
     )
-    resampler = dataframe_orig.resample(rule=rule, offset=f"{offset}s")
+    if offset is None:
+        resampler = dataframe_orig.resample(rule=rule)
+    else:
+        resampler = dataframe_orig.resample(rule=rule, offset=f"{offset}s")
     try:
         dataframe_resampled = resampler.apply(lambda x: realaggregator(x.values))
     except BaseException:

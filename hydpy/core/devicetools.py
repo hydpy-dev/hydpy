@@ -4047,5 +4047,6 @@ def _get_pandasindex() -> pandas.Index:
         (tg.firstdate + shift).datetime,
         (tg.lastdate - shift).datetime,
         int((tg.lastdate - tg.firstdate - tg.stepsize) / tg.stepsize) + 1,
+        unit="ns",
     )
     return index

@@ -6679,7 +6679,7 @@ class Calc_QBGA_SBG_QBGZ_QDGZ_V1(modeltools.Method):
             ...     fluxes.qdgz = 1.0
             ...     # apply a numerical solver:
             ...     integrator = ode(f_ode)
-            ...     _ = integrator.set_integrator("zvode", method="bdf", rtol=1e-10)
+            ...     _ = integrator.set_integrator("dopri5", method="bdf", rtol=1e-10)
             ...     _ = integrator.set_initial_value([min(states.sbg.old, sm), 0.0])
             ...     sbg_est, qbga_est = integrator.integrate(1.0).real
             ...     qbga_est += max(states.sbg.old - sm, 0.0)

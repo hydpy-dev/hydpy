@@ -4381,6 +4381,98 @@ class DaysParameter(Parameter):
         self.value = hydpy.pub.options.simulationstep.days
 
 
+class DateParameter(Parameter):
+    """Base parameter class that allows for selecting a special simulation step at which
+    the behaviour of some aspects of the relevant model changes.
+
+    We use the parameter |dam_control.Commission| of the base model |dam| as an example.
+
+    Parameter |dam_control.Commission| requires a date as input.  It compares this date
+    with the current initialisation period, which must therefore be defined first:
+
+    >>> from hydpy.models.dam import *
+    >>> parameterstep()
+    >>> commission("2000-01-05")
+    Traceback (most recent call last):
+    ...
+    hydpy.core.exceptiontools.AttributeNotReady: While trying to set the commission \
+date via parameter `commission` of element `?`, the following error occurred: \
+Attribute timegrids of module `pub` is not defined at the moment.
+
+    After defining the initialisation period, you can pass the commission data, for
+    example, in the form of a |Date| instance or a suitable string:
+
+    >>> from hydpy import Date, pub
+    >>> pub.timegrids = "2000-01-01", "2000-01-10", "1d"
+
+    >>> commission(Date("2000-01-01"))
+    >>> commission
+    commission("2000-01-01 00:00:00")
+
+    >>> commission("2000-01-05")
+    >>> commission
+    commission("2000-01-05 00:00:00")
+
+    Parameter |dam_control.Commission| internally converts the given date to an index
+    value relative to the initialisation period:
+
+    >>> commission.value
+    4
+
+    Commission dates outside the initialisation period pose no problems:
+
+    >>> commission("1999-12-01")
+    >>> commission
+    commission("1999-12-01 00:00:00")
+    >>> commission.value
+    -31
+
+    >>> commission("2000-02-01")
+    >>> commission
+    commission("2000-02-01 00:00:00")
+    >>> commission.value
+    31
+
+    However, we expect a date that lies precisely at the start or end of one simulation
+    step:
+
+    >>> commission("2000-02-01 12:00")
+    Traceback (most recent call last):
+    ...
+    ValueError: While trying to set the commission date via parameter `commission` of \
+element `?`, the following error occurred: The given date `2000-02-01 12:00:00` is not \
+properly alligned on the indexed timegrid `Timegrid("2000-01-01 00:00:00", \
+"2000-01-10 00:00:00", "1d")`.
+
+    Alternatively, you can set the commission date by passing the mentioned index value:
+
+    >>> commission(4)
+    >>> commission
+    commission("2000-01-05 00:00:00")
+    >>> commission.value
+    4
+
+   .. testsetup::
+
+        >>> del pub.timegrids
+    """
+
+    NDIM, TYPE, TIME, SPAN = 0, int, None, (None, None)
+    INIT = 0
+
+    def __call__(self, *args, **kwargs) -> None:
+        try:
+            try:
+                super().__call__(*args, **kwargs)
+            except TypeError:
+                self.value = hydpy.pub.timegrids.init[args[0]]
+        except BaseException:
+            objecttools.augment_excmessage(
+                f"While trying to set the commission date via parameter "
+                f"{objecttools.elementphrase(self)}"
+            )
+
+
 class IndexParameter(Parameter):
     """Base class for parameters that do not allocate RAM for handling their data but
     reference an index array provided by the instance of class|Indexer| available in

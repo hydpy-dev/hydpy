@@ -69,6 +69,7 @@ the :ref:`model_overview` section, which clarifies this distinction more clearly
    HydPy-H
    HydPy-KinW
    HydPy-L
+   HydPy-Manager
    HydPy-Meteo
    HydPy-Musk
    HydPy-Rconc

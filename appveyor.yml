@@ -11,25 +11,21 @@ environment:
       make_exe: false
       python_mode: false
       cython_mode: true
-      numpy_version: 1
       threads: 0
     - PYTHON: "C:\\Python312-x64"
       make_exe: false
       python_mode: true
       cython_mode: false
-      numpy_version: 2
       threads: 4
     - PYTHON: "C:\\Python313-x64"
       make_exe: false
       python_mode: false
       cython_mode: true
-      numpy_version: 2
       threads: 4
     - PYTHON: "C:\\Python314-x64"
       make_exe: true
       python_mode: false
       cython_mode: false
-      numpy_version: 2
       threads: 0
 
 install:
@@ -51,7 +47,7 @@ before_test:
   - if %make_exe%==true pynsist make_hydpy_installer.cfg
 
 test_script:
-  - if %make_exe%==false nox -s "doctest(numpy='%numpy_version%')" -- --python-mode=%python_mode% --cython-mode=%cython_mode% --threads=%threads%
+  - if %make_exe%==false nox -s doctest -- --python-mode=%python_mode% --cython-mode=%cython_mode% --threads=%threads%
   - if %make_exe%==true rename hydpy _hydpy
   - if %make_exe%==true python call_installer.py
   - if %make_exe%==true set PATH=C:/Users\appveyor\AppData\Local\Programs\HydPy\bin;%PATH%

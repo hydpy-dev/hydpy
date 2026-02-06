@@ -860,6 +860,8 @@ standard library for for further information.
         act_names2: list[str] = []
         for sequence in sel_sequences:
             name = type(sequence).__name__
+            if isinstance(sequence, sequencetools.NodeSequence):
+                name = f"{name} {sequence.subseqs.node.name}"
             if sequence.NDIM == 0:
                 sel_names.append(name)
                 sel_units.append(sequence.unit)

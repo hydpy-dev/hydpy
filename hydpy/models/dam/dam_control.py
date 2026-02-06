@@ -4,7 +4,6 @@
 # ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
-from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import timetools
 from hydpy.auxs import interptools

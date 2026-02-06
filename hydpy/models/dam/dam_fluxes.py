@@ -115,6 +115,12 @@ class RequiredRelease(sequencetools.FluxSequence):
     NDIM, NUMERIC = 0, False
 
 
+class AdditionalRelease(sequencetools.FluxSequence):
+    """Additional water release for reducing drought events downstream [m³/s]."""
+
+    NDIM, NUMERIC = 0, False
+
+
 class TargetedRelease(sequencetools.FluxSequence):
     """The targeted water release for reducing drought events downstream after taking
     both the required release and additional low flow regulations into account

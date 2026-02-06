@@ -23,6 +23,7 @@ from hydpy.models.dam import dam_states
 from hydpy.models.dam import dam_logs
 from hydpy.models.dam import dam_aides
 from hydpy.models.dam import dam_inlets
+from hydpy.models.dam import dam_observers
 from hydpy.models.dam import dam_receivers
 from hydpy.models.dam import dam_outlets
 from hydpy.models.dam import dam_senders
@@ -778,6 +779,35 @@ class Pick_LoggedRequiredRemoteRelease_V2(modeltools.Method):
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         log.loggedrequiredremoterelease[0] = rec.s
+
+
+class Pick_AdditionalRelease_V1(modeltools.Method):
+    """Take the externally requested additional release.
+
+    Basic equation:
+      :math:`AdditionalRelease = max(A)`
+
+    Example:
+
+        >>> from hydpy.models.dam import *
+        >>> parameterstep()
+        >>> observers.a.shape = 3
+        >>> observers.a = 2.0, 3.0, 1.0
+        >>> model.pick_additionalrelease_v1()
+        >>> fluxes.additionalrelease
+        additionalrelease(3.0)
+    """
+
+    REQUIREDSEQUENCES = (dam_observers.A,)
+    RESULTSEQUENCES = (dam_fluxes.AdditionalRelease,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model) -> None:
+        obs = model.sequences.observers.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+        flu.additionalrelease = 0.0
+        for i in range(obs.len_a):
+            flu.additionalrelease = max(flu.additionalrelease, obs.a[i])
 
 
 class Pick_Exchange_V1(modeltools.Method):
@@ -5042,7 +5072,8 @@ class Calc_AimedRelease_WaterVolume_V1(modeltools.Method):
         else:
             targetvolume: float = con.targetvolume[der.toy[model.idx_sim]]
             q: float = 1e6 / der.seconds * (sta.watervolume - targetvolume)
-            q = min(max(q, con.minimumrelease), flu.saferelease, aid.alloweddischarge)
+            q = max(q, con.minimumrelease)
+            q = min(q, flu.saferelease, aid.alloweddischarge)
             v: float = der.seconds / 1e6 * q
             if v < sta.watervolume:
                 flu.aimedrelease = q
@@ -5142,23 +5173,26 @@ class Calc_UnavoidableRelease_WaterVolume_V1(modeltools.Method):
 
 class Calc_Outflow_V2(modeltools.Method):
     r"""Calculate the total outflow of the dam before and after the commission date,
-    taking the allowed water discharge into account.
+    taking the allowed water discharge and the additional water request into account.
 
     Basic equation:
       .. math::
         Outflow = \begin{cases}
         I + X + P - E  &|& i_{sim}  < i_{commission}
         \\
-        f(F, \, A, \, D)  &|&  i_{sim} \geq i_{commission}
+        f_{min}(F, \, A, \, D) + R
+        &|&  i_{sim} \geq i_{commission}
         \end{cases}
         \\ \\
         I = Inflow \\
         X = Exchange \\
         P = AdjustedPrecipitation \\
         E = ActualEvaporation \\
-        f = smooth_{Fix\_Min1\_V1} \\
+        f_{max} = Smooth\_Max1 \\
+        f_{min} = Fix\_Min1\_V1 \\
         F = FloodDischarge \\
-        A = AllowedDischarge\\
+        A = AllowedDischarge \\
+        R = AdditionalRelease \\
         D = DischargeSmoothPar
 
     Used additional method:
@@ -5183,18 +5217,21 @@ class Calc_Outflow_V2(modeltools.Method):
         >>> fluxes.outflow
         outflow(2.0)
 
-        After the commission date, the final outflow is the (eventually smoothed)
-        minimum of |FloodDischarge| and |AllowedDischarge|:
+        After the commission date and without any required additional release, the
+        outflow is the (eventually smoothed) minimum of |FloodDischarge| and
+        |AllowedDischarge|:
 
         >>> commission("2000-01-01")
         >>> from hydpy import UnitTest
-        >>> test = UnitTest(model,
-        ...                 model.calc_outflow_v2,
-        ...                 last_example=8,
-        ...                 parseqs=(fluxes.flooddischarge,
-        ...                          fluxes.outflow))
+        >>> test = UnitTest(
+        ...     model,
+        ...     model.calc_outflow_v2,
+        ...     last_example=8,
+        ...     parseqs=(fluxes.flooddischarge, fluxes.outflow),
+        ... )
         >>> test.nexts.flooddischarge = range(8)
 
+        >>> fluxes.additionalrelease = 0.0
         >>> aides.alloweddischarge = 3.0
 
         >>> dischargetolerance(0.0)
@@ -5210,7 +5247,6 @@ class Calc_Outflow_V2(modeltools.Method):
         |   6 |            5.0 |     3.0 |
         |   7 |            6.0 |     3.0 |
         |   8 |            7.0 |     3.0 |
-
 
         >>> dischargetolerance(1.0)
         >>> derived.dischargesmoothpar.update()
@@ -5238,19 +5274,38 @@ class Calc_Outflow_V2(modeltools.Method):
         |   6 |            5.0 |     0.0 |
         |   7 |            6.0 |     0.0 |
         |   8 |            7.0 |     0.0 |
+
+        External additional release requests are simply added to the previously
+        discussed results:
+
+        >>> fluxes.additionalrelease = 1.0
+        >>> aides.alloweddischarge = 3.0
+        >>> test()
+        | ex. | flooddischarge |  outflow |
+        -----------------------------------
+        |   1 |            0.0 |      1.0 |
+        |   2 |            1.0 | 1.999651 |
+        |   3 |            2.0 |     2.99 |
+        |   4 |            3.0 | 3.794476 |
+        |   5 |            4.0 | 3.985755 |
+        |   6 |            5.0 | 3.991603 |
+        |   7 |            6.0 | 3.991773 |
+        |   8 |            7.0 | 3.991779 |
+
     """
 
     CONTROLPARAMETERS = (dam_control.Commission,)
     DERIVEDPARAMETERS = (dam_derived.DischargeSmoothPar,)
+    RESULTSEQUENCES = (dam_fluxes.Outflow,)
     REQUIREDSEQUENCES = (
         dam_fluxes.Inflow,
         dam_fluxes.Exchange,
         dam_fluxes.AdjustedPrecipitation,
         dam_fluxes.ActualEvaporation,
         dam_fluxes.FloodDischarge,
+        dam_fluxes.AdditionalRelease,
         dam_aides.AllowedDischarge,
     )
-    RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
@@ -5266,7 +5321,7 @@ class Calc_Outflow_V2(modeltools.Method):
                 - flu.actualevaporation
             )
         else:
-            flu.outflow = model.fix_min1_v1(
+            flu.outflow = flu.additionalrelease + model.fix_min1_v1(
                 flu.flooddischarge, aid.alloweddischarge, der.dischargesmoothpar, False
             )
 
@@ -5347,42 +5402,94 @@ class Calc_Outflow_V5(modeltools.Method):
         flu.outflow = flu.freedischarge + flu.forceddischarge
 
 
-class Calc_Outflow_V6(modeltools.Method):
-    """Calculate the outflow as the sum of the aimed and the unavoidable release.
+class Calc_Outflow_WaterVolume_V6(modeltools.Method):
+    r"""Calculate the outflow as the sum of the aimed, the unavoidable, and the
+    requested additional release.
 
     Basic equation:
-      :math:`Outflow = AimedRelease + UnavoidableRelease`
+      .. math::
+        O = \begin{cases}
+        A + U  &|&  i_{sim} < i_{commission}
+        \\
+        A + U + R &|&  i_{sim} \geq i_{commission}
+        \end{cases}
+        \\ \\
+        O = Outflow \\
+        A = AimedRelease \\
+        U = UnavoidableRelease \\
+        R = AdditionalRelease
 
     Example:
 
+        Before the commission date, requests for additional releases must be ignored:
+
+        >>> from hydpy import pub
+        >>> pub.timegrids = "2000-01-01", "2001-01-01", "1d"
         >>> from hydpy.models.dam import *
         >>> parameterstep()
+        >>> commission("2000-01-02")
+        >>> derived.seconds.update()
         >>> fluxes.aimedrelease = 1.0
         >>> fluxes.unavoidablerelease = 2.0
-        >>> model.calc_outflow_v6()
+        >>> fluxes.additionalrelease = 3.0
+        >>> model.calc_outflow_watervolume_v6()
         >>> fluxes.outflow
         outflow(3.0)
+
+        After the commission date, |Calc_Outflow_WaterVolume_V6| fulfils requests for
+        additional releases as long as enough water is available:
+
+        >>> commission("2000-01-01")
+        >>> states.watervolume(0.5)
+        >>> model.calc_outflow_watervolume_v6()
+        >>> fluxes.outflow
+        outflow(6.0)
+        >>> states.watervolume
+        watervolume(0.2408)
+
+        >>> model.calc_outflow_watervolume_v6()
+        >>> fluxes.outflow
+        outflow(5.787037)
+        >>> states.watervolume
+        watervolume(0.0)
     """
 
-    REQUIREDSEQUENCES = (dam_fluxes.AimedRelease, dam_fluxes.UnavoidableRelease)
-    UPDATEDSEQUENCES = (dam_fluxes.Outflow,)
+    CONTROLPARAMETERS = (dam_control.Commission,)
+    DERIVEDPARAMETERS = (dam_derived.Seconds,)
+    REQUIREDSEQUENCES = (
+        dam_fluxes.AimedRelease,
+        dam_fluxes.UnavoidableRelease,
+        dam_fluxes.AdditionalRelease,
+    )
+    UPDATEDSEQUENCES = (dam_fluxes.Outflow, dam_states.WaterVolume)
 
     @staticmethod
     def __call__(model: modeltools.Model) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
+        sta = model.sequences.states.fastaccess
 
         flu.outflow = flu.aimedrelease + flu.unavoidablerelease
+        if model.idx_sim >= con.commission:
+            q_max: float = 1e6 / der.seconds * sta.watervolume
+            if flu.additionalrelease < q_max:
+                flu.outflow += flu.additionalrelease
+                sta.watervolume -= der.seconds / 1e6 * flu.additionalrelease
+            else:
+                flu.outflow += q_max
+                sta.watervolume = 0.0
 
 
 class Calc_Outflow_V7(modeltools.Method):
-    r"""Calculate the total outflow of the dam before and after the commission date
+    r"""Calculate the total outflow of the dam before and after the commission date.
 
     Basic equation:
       .. math::
         Outflow = \begin{cases}
-        I + P - E  &|&  i_{sim}  < i_{commission}
+        I + P - E  &|&  i_{sim} < i_{commission}
         \\
-        max(R + F, \, 0)  &|&  i_{sim} \geq i_{commission}
+        max(R + F, \, 0) + A &|&  i_{sim} \geq i_{commission}
         \end{cases}
         \\ \\
         I = Inflow \\
@@ -5390,7 +5497,8 @@ class Calc_Outflow_V7(modeltools.Method):
         E = ActualEvaporation \\
         f = smooth_{Fix\_Min1\_V1} \\
         R = AllowedDischarge\\
-        F = FloodDischarge
+        F = FloodDischarge \\
+        A = AdditionalRelease
 
     Examples:
 
@@ -5410,12 +5518,13 @@ class Calc_Outflow_V7(modeltools.Method):
         >>> fluxes.outflow
         outflow(1.0)
 
-        After the commission date, the final outflow is the (never negative) sum of
-        |ActualRelease| and |FloodDischarge|:
+        After the commission date, the final outflow is usually the (never negative)
+        sum of |ActualRelease| and |FloodDischarge|:
 
         >>> commission("2000-01-01")
         >>> fluxes.actualrelease = 2.0
         >>> fluxes.flooddischarge = 3.0
+        >>> fluxes.additionalrelease = 0.0
         >>> model.calc_outflow_v7()
         >>> fluxes.outflow
         outflow(5.0)
@@ -5424,6 +5533,20 @@ class Calc_Outflow_V7(modeltools.Method):
         >>> model.calc_outflow_v7()
         >>> fluxes.outflow
         outflow(0.0)
+
+        Eventual additional release requests are simply added to the previously
+        discussed results:
+
+        >>> fluxes.flooddischarge = 3.0
+        >>> fluxes.additionalrelease = 1.0
+        >>> model.calc_outflow_v7()
+        >>> fluxes.outflow
+        outflow(6.0)
+
+        >>> fluxes.flooddischarge = -3.0
+        >>> model.calc_outflow_v7()
+        >>> fluxes.outflow
+        outflow(1.0)
     """
 
     CONTROLPARAMETERS = (dam_control.Commission,)
@@ -5433,6 +5556,7 @@ class Calc_Outflow_V7(modeltools.Method):
         dam_fluxes.ActualEvaporation,
         dam_fluxes.ActualRelease,
         dam_fluxes.FloodDischarge,
+        dam_fluxes.AdditionalRelease,
     )
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
@@ -5443,7 +5567,9 @@ class Calc_Outflow_V7(modeltools.Method):
         if model.idx_sim < con.commission:
             flu.outflow = flu.inflow + flu.adjustedprecipitation - flu.actualevaporation
         else:
-            flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.0)
+            flu.outflow = flu.additionalrelease + max(
+                flu.actualrelease + flu.flooddischarge, 0.0
+            )
 
 
 class Update_WaterVolume_V1(modeltools.Method):
@@ -5940,7 +6066,7 @@ class Model(modeltools.ELSModel):
         Calc_RequiredRelease_V2,
         Calc_TargetedRelease_V1,
     )
-    OBSERVER_METHODS = ()
+    OBSERVER_METHODS = (Pick_AdditionalRelease_V1,)
     RECEIVER_METHODS = (
         Pick_TotalRemoteDischarge_V1,
         Update_LoggedTotalRemoteDischarge_V1,
@@ -5964,7 +6090,7 @@ class Model(modeltools.ELSModel):
         Calc_SafeRelease_V1,
         Calc_AimedRelease_WaterVolume_V1,
         Calc_UnavoidableRelease_WaterVolume_V1,
-        Calc_Outflow_V6,
+        Calc_Outflow_WaterVolume_V6,
         Update_WaterVolume_V5,
         Return_WaterLevelError_V1,
     )

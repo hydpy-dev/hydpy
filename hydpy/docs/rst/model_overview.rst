@@ -80,10 +80,10 @@ Stream models
 -------------
 
 The `stream models` simulate water and wave movement through rivers and channels.  They
-might consider overbank flow in a simplified manner but generally implement
+might consider overbank flow in a simplified manner, but generally implement
 1-dimensional hydrological or hydrodynamical routing methods.  You can choose the
-stream model type independently from the preferred land model type and combine
-different stream model types in one :ref:`project`.
+stream model type independently of the preferred land model type and combine different
+stream model types in one :ref:`project`.
 
 There are currently four stream model families.
 
@@ -158,6 +158,19 @@ current water level gradient.
 
 Note that :ref:`HydPy-Exch` also provides submodels like
 |exch_waterlevel| (see below).
+
+.. _managing_models:
+
+Manager models
+--------------
+
+`Manager models` coordinate other models, enabling them to achieve goals they could not
+reach when acting independently.  To this end, manager models send some information to
+and usually also need to receive information from the models they coordinate.
+
+Currently, the corresponding model family :ref:`HydPy-Manager` only implements
+|manager_lwc|, which synchronises multiple instances of the :ref:`HydPy-Dam` family to
+prevent severe low-flow conditions.
 
 .. _interpolation_models:
 

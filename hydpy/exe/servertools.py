@@ -252,7 +252,6 @@ from hydpy.exe import commandtools
 from hydpy.exe import xmltools
 from hydpy.core.typingtools import *
 
-
 # pylint: disable=wrong-import-position, wrong-import-order
 # see the documentation on method `start_server` for explanations
 mimetypes.inited = True

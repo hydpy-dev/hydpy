@@ -1,6 +1,7 @@
 # pylint: disable=unused-wildcard-import
 """|test_stiff1d| similar to |test_stiff0d| but works on 1-dimensional sequences
 instead of 0-dimensional sequences."""
+
 # imports...
 # ...from HydPy
 from hydpy.exe.modelimports import *

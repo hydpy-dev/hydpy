@@ -12,7 +12,6 @@ sub-catchment.  They are all available via wildcard-imports:
 
 from hydpy.core import parametertools
 
-
 GRASS = parametertools.IntConstant(1)
 """Land type constant for grassland."""
 DECIDUOUS = parametertools.IntConstant(2)

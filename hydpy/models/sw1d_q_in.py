@@ -8,6 +8,7 @@ Please refer to the documentation of the "user model" |sw1d_channel| and the
 "composite model" |sw1d_network|, where we demonstrate and discuss |sw1d_q_in| in more
 detail (see, for example, `:ref:`sw1d_channel_longitudinal_inflow`).
 """
+
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *

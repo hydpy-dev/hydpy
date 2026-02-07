@@ -18,7 +18,6 @@ from hydpy.models.sw1d import sw1d_fluxes
 from hydpy.models.sw1d import sw1d_states
 from hydpy.models.sw1d import sw1d_senders
 
-
 # pick data from and pass data to link sequences
 
 RoutingModels_V1_V2: TypeAlias = Union[

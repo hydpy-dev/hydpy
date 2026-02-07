@@ -24,6 +24,7 @@ tests short and take a single example from its documentation:
 >>> round_(model.calculate_discharge(3.0))
 0.111111
 """
+
 # import...
 # ...from HydPy
 from hydpy.core import modeltools

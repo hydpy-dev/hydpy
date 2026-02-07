@@ -42,6 +42,7 @@ explanations:
 >>> round_(model.get_globalradiation())
 200.0
 """
+
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *

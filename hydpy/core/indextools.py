@@ -17,7 +17,6 @@ from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
-
 Date2Float: TypeAlias = Callable[[timetools.Date], float]
 
 

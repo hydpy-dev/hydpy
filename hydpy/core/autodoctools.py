@@ -50,7 +50,6 @@ from hydpy.core import sequencetools
 from hydpy.core import typingtools
 from hydpy.core.typingtools import *
 
-
 if TYPE_CHECKING:
     from hydpy.cythons import annutils
     from hydpy.cythons import interputils

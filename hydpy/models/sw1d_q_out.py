@@ -8,6 +8,7 @@ Please refer to the documentation of the "composite model" |sw1d_network|, where
 demonstrate and discuss |sw1d_q_out| in more detail (see the
 :ref:`sw1d_network_bifurcations` example).
 """
+
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *

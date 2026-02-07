@@ -308,7 +308,6 @@ from hydpy.core import testtools
 from hydpy.core.typingtools import *
 from hydpy.cythons import autogenpath
 
-
 if TYPE_CHECKING:
     import Cython.Build as build
 else:

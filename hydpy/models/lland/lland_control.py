@@ -24,7 +24,6 @@ from hydpy.core.typingtools import *
 from hydpy.models.lland.lland_constants import CONSTANTS as CONSTANTS_
 from hydpy.models.lland import lland_parameters
 
-
 # spatial information
 
 

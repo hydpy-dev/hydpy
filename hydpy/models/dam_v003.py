@@ -362,7 +362,6 @@ from hydpy.core import modeltools
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 
-
 # ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver

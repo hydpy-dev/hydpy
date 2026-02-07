@@ -357,6 +357,7 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 """
+
 # import...
 # ...from HydPy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import

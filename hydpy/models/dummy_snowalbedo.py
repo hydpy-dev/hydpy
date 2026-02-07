@@ -36,6 +36,7 @@ configuring and testing it does not require additional explanations:
 >>> round_(model.get_snowalbedo_v1(1))
 4.0
 """
+
 # import...
 # ...from HydPy
 from hydpy.core import importtools

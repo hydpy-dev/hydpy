@@ -37,6 +37,7 @@ radiation.  Hence, configuring and testing it does not require additional explan
 >>> round_(model.get_globalradiation())
 400.0
 """
+
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *

@@ -99,6 +99,7 @@ calculates the same potential evapotranspiration value:
     | 2000-06-07 |           16.9 |      255.367464 |                    3.787245 |                        3.787245 |
 
 """
+
 # import...
 # ...from HydPy
 from hydpy.core import modeltools

@@ -27,6 +27,7 @@ to the documentation on |wq_trapeze| for further details:
 .. image:: wq_trapeze_strickler_three_trapezes.png
    :width: 400
 """
+
 # import...
 # ...from HydPy
 from hydpy.core import importtools

@@ -16,7 +16,6 @@ from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 
-
 _printprogress_indentation = -4
 
 

@@ -114,6 +114,7 @@ that "?" serves as a spare:
 (Upon closer inspection, the last example also shows that |TrapezeModel.plot| ignores
 too low `ymax`  values silently.)
 """
+
 # import...
 
 # ...from HydPy

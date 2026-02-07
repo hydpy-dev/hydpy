@@ -9,6 +9,7 @@ Please refer to the documentation of the "user model" |sw1d_channel| and the
 "composite model" |sw1d_network|, where we demonstrate and discuss |sw1d_lias| in
 detail.
 """
+
 # import...
 # ...from HydPy
 from hydpy.exe.modelimports import *

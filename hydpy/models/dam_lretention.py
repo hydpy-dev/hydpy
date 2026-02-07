@@ -336,6 +336,7 @@ discussed in the :ref:`analogue example <dam_llake_commissioning>` of applicatio
 >>> round_(model.check_waterbalance(conditions))
 0.0
 """
+
 # import...
 # ...from HydPy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import

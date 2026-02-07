@@ -26,7 +26,6 @@ from hydpy.core import propertytools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
-
 if TYPE_CHECKING:
     from hydpy.core import modeltools
     from hydpy.core import timetools

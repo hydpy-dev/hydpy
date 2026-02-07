@@ -7,7 +7,6 @@ from typing import Final
 
 import numpy
 
-
 USEAUTODOC = False
 """A flag that indicates whether *HydPy's* automatic documentation manipulation 
 features should be applied or not.  It is imperative to set it to `True` before one 

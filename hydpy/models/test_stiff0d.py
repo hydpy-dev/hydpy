@@ -6,6 +6,7 @@ value problems.  On the other hand, it describes a simple storage with a linear 
 term and without any input.  The loss rate |Q| and the initial storage content |S| can
 be set as required.
 """
+
 # imports...
 # ...HydPy specific
 from hydpy.exe.modelimports import *

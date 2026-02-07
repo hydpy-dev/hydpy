@@ -1192,6 +1192,7 @@ desired accuracy while preventing excessive processing time:
 >>> model.numvars.nmb_calls
 217
 """
+
 # import...
 # ...from HydPy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import

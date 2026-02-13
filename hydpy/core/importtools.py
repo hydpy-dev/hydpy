@@ -962,21 +962,21 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 def define_targetparameter(
     parameter: type[parametertools.Parameter],
 ) -> Callable[
-    [Callable[Concatenate[TM_contra, P], None]], TargetParameterUpdater[TM_contra, P]
+    [Callable[Concatenate[TM_contra, P_], None]], TargetParameterUpdater[TM_contra, P_]
 ]:
     """Wrap a submodel-specific method that allows the main model to set the value
     of a single control parameter of the submodel into a |TargetParameterUpdater|
     instance."""
 
     def _select_parameter(
-        wrapped: Callable[Concatenate[TM_contra, P], None],
-    ) -> TargetParameterUpdater[TM_contra, P]:
-        return TargetParameterUpdater[TM_contra, P](wrapped, parameter)
+        wrapped: Callable[Concatenate[TM_contra, P_], None],
+    ) -> TargetParameterUpdater[TM_contra, P_]:
+        return TargetParameterUpdater[TM_contra, P_](wrapped, parameter)
 
     return _select_parameter
 
 
-class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
+class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P_]):
     """Wrapper that extends the functionality of a submodel-specific method that allows
     the main model to set the value of a single control parameter of the submodel.
 
@@ -1045,14 +1045,14 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     and the already available values of the target parameters of the respective model 
     instances."""
 
-    _wrapped: Callable[Concatenate[TM_contra, P], None]
+    _wrapped: Callable[Concatenate[TM_contra, P_], None]
     """The wrapped, submodel-specific method for setting the value of a single control 
     parameter."""
     _model: TM_contra | None
 
     def __init__(
         self,
-        wrapped: Callable[Concatenate[TM_contra, P], None],
+        wrapped: Callable[Concatenate[TM_contra, P_], None],
         targetparameter: type[parametertools.Parameter],
     ) -> None:
         self._wrapped = wrapped
@@ -1063,12 +1063,12 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
 
     def __get__(
         self, obj: TM_contra | None, type_: type[modeltools.Model]
-    ) -> TargetParameterUpdater[TM_contra, P]:
+    ) -> TargetParameterUpdater[TM_contra, P_]:
         if obj is not None:
             self._model = obj
         return self
 
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> None:
+    def __call__(self, *args: P_.args, **kwargs: P_.kwargs) -> None:
         assert (model := self._model) is not None
         args = copy.deepcopy(args)
         kwargs = copy.deepcopy(kwargs)

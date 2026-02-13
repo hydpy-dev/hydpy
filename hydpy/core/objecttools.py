@@ -366,7 +366,7 @@ def decorator(wrapper: Callable[..., Any]) -> Callable[[F], F]:
 
 def excmessage_decorator(
     description_: str,
-) -> Callable[[Callable[P, T]], Callable[P, T]]:
+) -> Callable[[Callable[P_, T]], Callable[P_, T]]:
     """Wrap a function with |augment_excmessage|.
 
     Function |excmessage_decorator| is a means to apply function |augment_excmessage|

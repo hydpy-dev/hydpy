@@ -2881,12 +2881,12 @@ data for (sub)device `land_lahn_kalk_0` is available in NetCDF file \
                 ncfile.close()
 
 
-def add_netcdfreading(wrapped: Callable[P, None]) -> Callable[P, None]:
+def add_netcdfreading(wrapped: Callable[P_, None]) -> Callable[P_, None]:
     """Enable a function or method that can read time series from NetCDF files to
     automatically activate the |SequenceManager.netcdfreading| mode if not already
     done."""
 
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> None:
+    def wrapper(*args: P_.args, **kwargs: P_.kwargs) -> None:
         sm = hydpy.pub.sequencemanager
         if sm._netcdfreader is None:  # pylint: disable=protected-access
             with sm.netcdfreading():
@@ -2898,12 +2898,12 @@ def add_netcdfreading(wrapped: Callable[P, None]) -> Callable[P, None]:
     return wrapper
 
 
-def add_netcdfwriting(wrapped: Callable[P, None]) -> Callable[P, None]:
+def add_netcdfwriting(wrapped: Callable[P_, None]) -> Callable[P_, None]:
     """Enable a function or method that can write time series to NetCDF files to
     automatically activate the |SequenceManager.netcdfwriting| mode if not already
     done."""
 
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> None:
+    def wrapper(*args: P_.args, **kwargs: P_.kwargs) -> None:
         sm = hydpy.pub.sequencemanager
         if sm._netcdfwriter is None:  # pylint: disable=protected-access
             with sm.netcdfwriting():

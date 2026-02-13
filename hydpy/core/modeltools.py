@@ -136,7 +136,7 @@ class ReusableMethod(Method):
 abstractmodelmethods: set[Callable[..., Any]] = set()
 
 
-def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
+def abstractmodelmethod(method: Callable[P_, T]) -> Callable[P_, T]:
     """Alternative for Python's |abc.abstractmethod|.
 
     We currently use it to mark abstract methods in submodel interfaces that are not

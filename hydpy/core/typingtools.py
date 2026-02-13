@@ -58,7 +58,7 @@ T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 T3 = TypeVar("T3")
 
-P = ParamSpec("P")
+P_ = ParamSpec("P_")
 
 Name = NewType("Name", str)
 Name.__doc__ = """Type for strings that represent names."""
@@ -298,7 +298,7 @@ __all__ = [
     "NoReturn",
     "Optional",
     "overload",
-    "P",
+    "P_",
     "ParamSpec",
     "Protocol",
     "Self",

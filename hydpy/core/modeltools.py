@@ -3265,7 +3265,7 @@ the available directories (calib_1 and calib_2).
         if controlparameters and not hasattr(module, "ControlParameters"):
             module.ControlParameters = type(
                 "ControlParameters",
-                (parametertools.SubParameters,),
+                (parametertools.ControlParameters,),
                 {
                     "CLASSES": variabletools.sort_variables(controlparameters),
                     "__doc__": f"Control parameters of model {modelname}.",
@@ -3275,7 +3275,7 @@ the available directories (calib_1 and calib_2).
         if derivedparameters and not hasattr(module, "DerivedParameters"):
             module.DerivedParameters = type(
                 "DerivedParameters",
-                (parametertools.SubParameters,),
+                (parametertools.DerivedParameters,),
                 {
                     "CLASSES": variabletools.sort_variables(derivedparameters),
                     "__doc__": f"Derived parameters of model {modelname}.",
@@ -3285,7 +3285,7 @@ the available directories (calib_1 and calib_2).
         if fixedparameters and not hasattr(module, "FixedParameters"):
             module.FixedParameters = type(
                 "FixedParameters",
-                (parametertools.SubParameters,),
+                (parametertools.FixedParameters,),
                 {
                     "CLASSES": variabletools.sort_variables(fixedparameters),
                     "__doc__": f"Fixed parameters of model {modelname}.",
@@ -3295,7 +3295,7 @@ the available directories (calib_1 and calib_2).
         if cls.SOLVERPARAMETERS and not hasattr(module, "SolverParameters"):
             module.SolverParameters = type(
                 "SolverParameters",
-                (parametertools.SubParameters,),
+                (parametertools.SolverParameters,),
                 {
                     "CLASSES": variabletools.sort_variables(cls.SOLVERPARAMETERS),
                     "__doc__": f"Solver parameters of model {modelname}.",

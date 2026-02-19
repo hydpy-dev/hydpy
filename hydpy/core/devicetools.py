@@ -103,7 +103,6 @@ if TYPE_CHECKING:
     from matplotlib import pyplot
     import pandas
     from hydpy.core import auxfiletools
-    from hydpy.core import hydpytools
     from hydpy.core import modeltools
     from hydpy.cythons import pointerutils
 else:
@@ -3656,6 +3655,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         self,
         *,
         subseqs: sequencetools.IOSequences[
+            modeltools.Model,
             sequencetools.Sequences,
             sequencetools.IOSequence,
             sequencetools.FastAccessIOSequence,
@@ -3738,6 +3738,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
     def _query_iosequences(
         self,
         subseqs: sequencetools.IOSequences[
+            modeltools.Model,
             sequencetools.Sequences,
             sequencetools.IOSequence,
             sequencetools.FastAccessIOSequence,

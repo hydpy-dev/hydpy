@@ -32,8 +32,6 @@ if TYPE_CHECKING:
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
     from hydpy.cythons import pointerutils
-    from hydpy.cythons import sequenceutils
-
 
 TypeGroup_co = TypeVar(
     "TypeGroup_co",
@@ -2350,7 +2348,7 @@ def sort_variables(
     return tuple(value for _, _, value in sorted(modulepath_position_value))
 
 
-class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
+class SubVariables(Generic[TOM_co, TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
     """Base class for |SubParameters| and |SubSequences|.
 
     Each subclass of class |SubVariables| is thought for handling a certain group of
@@ -2441,7 +2439,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
     1
     """
 
-    CLASSES: tuple[type[TypeVariable_co], ...]
+    CLASSES: tuple[type[TypeVariable_co], ...] = ()
     vars: TypeGroup_co
     _name2variable: dict[str, TypeVariable_co] = {}
     fastaccess: TypeFastAccess_co

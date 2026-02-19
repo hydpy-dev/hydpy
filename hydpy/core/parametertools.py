@@ -36,6 +36,9 @@ if TYPE_CHECKING:
     from hydpy.core import modeltools
 
 
+TypeSubParameters = TypeVar("TypeSubParameters", bound="SubParameters")
+
+
 def trim_kwarg(
     parameter: Parameter,
     name: str,
@@ -178,7 +181,7 @@ class Constants(dict[str, int]):
         return tuple(n.lower() for v, n in sorted(self.value2name.items()) if v in rel)
 
 
-class Parameters:
+class Parameters(Generic[TM_co]):
     """Base class for handling all parameters of a specific model.
 
     |Parameters| objects handle four subgroups as attributes: the `control`
@@ -217,27 +220,49 @@ class Parameters:
 `SubParameters`.
     """
 
-    model: modeltools.Model
-    control: SubParameters
-    derived: SubParameters
-    fixed: SubParameters
-    solver: SubParameters
+    model: TM_co
+    control: ControlParameters[TM_co]
+    derived: DerivedParameters[TM_co]
+    fixed: FixedParameters[TM_co]
+    solver: SolverParameters[TM_co]
 
-    def __init__(self, kwargs):
-        self.model = kwargs.get("model")
-        self.control = self._prepare_subpars("control", kwargs)
-        self.derived = self._prepare_subpars("derived", kwargs)
-        self.fixed = self._prepare_subpars("fixed", kwargs)
-        self.solver = self._prepare_subpars("solver", kwargs)
-
-    def _prepare_subpars(self, shortname, kwargs):
-        fullname = f"{shortname.capitalize()}Parameters"
-        cls = kwargs.get(fullname, type(fullname, (SubParameters,), {"CLASSES": ()}))
-        return cls(
-            self,
-            getattr(kwargs.get("cythonmodule"), fullname, None),
-            kwargs.get("cymodel"),
+    def __init__(
+        self,
+        model: TM_co,
+        *,
+        cls_control: type[ControlParameters] | None = None,
+        cls_derived: type[DerivedParameters] | None = None,
+        cls_fixed: type[FixedParameters] | None = None,
+        cls_solver: type[SolverParameters] | None = None,
+        cymodel: CyModelProtocol | None = None,
+        cythonmodule: types.ModuleType | None = None,
+    ) -> None:
+        self.model = model
+        self.control = self._prepare_subpars(
+            ControlParameters, cls_control, cymodel, cythonmodule
         )
+        self.derived = self._prepare_subpars(
+            DerivedParameters, cls_derived, cymodel, cythonmodule
+        )
+        self.fixed = self._prepare_subpars(
+            FixedParameters, cls_fixed, cymodel, cythonmodule
+        )
+        self.solver = self._prepare_subpars(
+            SolverParameters, cls_solver, cymodel, cythonmodule
+        )
+
+    def _prepare_subpars(
+        self,
+        default: type[TypeSubParameters],
+        class_: type[TypeSubParameters] | None,
+        cymodel: CyModelProtocol | None,
+        cythonmodule: types.ModuleType | None,
+    ) -> TypeSubParameters:
+        name = default.__name__
+        if class_ is None:
+            class_ = copy.copy(default)
+            setattr(class_, "CLASSES", ())
+        return class_(self, getattr(cythonmodule, name, None), cymodel)
 
     def update(self, ignore_errors: bool = False) -> None:
         """Call method |Parameter.update| of all "secondary" parameters.
@@ -415,7 +440,7 @@ class FastAccessParameter(variabletools.FastAccess):
 
 
 class SubParameters(
-    variabletools.SubVariables[Parameters, "Parameter", FastAccessParameter]
+    variabletools.SubVariables[TM_co, Parameters, "Parameter", FastAccessParameter]
 ):
     '''Base class for handling subgroups of model parameters.
 
@@ -492,7 +517,7 @@ class SubParameters(
 
     @property
     def name(self) -> str:
-        """The class name in lowercase letters omitting the last ten characters
+        """The class name in lowercase letters, omitting the last ten characters
         ("parameters").
 
         >>> from hydpy.core.parametertools import SubParameters
@@ -502,6 +527,22 @@ class SubParameters(
         'control'
         """
         return type(self).__name__[:-10].lower()
+
+
+class ControlParameters(SubParameters[TM_co]):
+    """Base class for handling control parameters."""
+
+
+class DerivedParameters(SubParameters[TM_co]):
+    """Base class for handling derived parameters."""
+
+
+class FixedParameters(SubParameters[TM_co]):
+    """Base class for handling fixed parameters."""
+
+
+class SolverParameters(SubParameters[TM_co]):
+    """Base class for handling solver parameters."""
 
 
 class Keyword(NamedTuple):

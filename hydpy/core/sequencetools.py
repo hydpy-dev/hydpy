@@ -41,7 +41,7 @@ TypeSequences = TypeVar("TypeSequences", "Sequences", "devicetools.Node")
 
 TypeModelSequences = TypeVar(
     "TypeModelSequences",
-    bound="ModelSequences[ModelSequence, variabletools.FastAccess]",
+    bound="ModelSequences[modeltools.Model, ModelSequence, variabletools.FastAccess]",
 )
 
 TypeSequence_co = TypeVar("TypeSequence_co", bound="Sequence_", covariant=True)
@@ -458,7 +458,7 @@ class StandardInputNames(enum.StrEnum):
     """Wind speed [m/s]."""
 
 
-class Sequences:
+class Sequences(Generic[TM_co]):
     """Base class for handling all sequences of a specific model.
 
     |Sequences| objects handle nine sequence subgroups as attributes such as the
@@ -601,22 +601,22 @@ class Sequences:
         >>> pub.sequencemanager.overwrite = False
     """
 
-    model: modeltools.Model
-    inlets: InletSequences
-    observers: ObserverSequences
-    receivers: ReceiverSequences
-    inputs: InputSequences
-    factors: FactorSequences
-    fluxes: FluxSequences
-    states: StateSequences
-    logs: LogSequences
-    aides: AideSequences
-    outlets: OutletSequences
-    senders: SenderSequences
+    model: TM_co
+    inlets: InletSequences[TM_co]
+    observers: ObserverSequences[TM_co]
+    receivers: ReceiverSequences[TM_co]
+    inputs: InputSequences[TM_co]
+    factors: FactorSequences[TM_co]
+    fluxes: FluxSequences[TM_co]
+    states: StateSequences[TM_co]
+    logs: LogSequences[TM_co]
+    aides: AideSequences[TM_co]
+    outlets: OutletSequences[TM_co]
+    senders: SenderSequences[TM_co]
 
     def __init__(
         self,
-        model: modeltools.Model,
+        model: TM_co,
         *,
         cls_inlets: type[InletSequences] | None = None,
         cls_observers: type[ObserverSequences] | None = None,
@@ -671,8 +671,8 @@ class Sequences:
         self,
         default: type[TypeModelSequences],
         class_: type[TypeModelSequences] | None,
-        cymodel,
-        cythonmodule,
+        cymodel: CyModelProtocol | None,
+        cythonmodule: types.ModuleType | None,
     ) -> TypeModelSequences:
         name = default.__name__
         if class_ is None:
@@ -853,7 +853,7 @@ class Sequences:
 
     def __getitem__(
         self, item: str
-    ) -> SubSequences[TypeSequences, Sequence_, variabletools.FastAccess]:
+    ) -> SubSequences[TM_co, TypeSequences, Sequence_, variabletools.FastAccess]:
         try:
             subseqs = getattr(self, item)
         except AttributeError:
@@ -898,7 +898,7 @@ class Sequences:
 
 class SubSequences(
     variabletools.SubVariables[
-        TypeSequences, TypeSequence_co, variabletools.TypeFastAccess_co
+        TOM_co, TypeSequences, TypeSequence_co, variabletools.TypeFastAccess_co
     ]
 ):
     """Base class for handling subgroups of sequences.
@@ -959,7 +959,9 @@ class SubSequences(
 
 
 class ModelSequences(
-    SubSequences[Sequences, TypeModelSequence_co, variabletools.TypeFastAccess_co]
+    SubSequences[
+        TM_co, Sequences, TypeModelSequence_co, variabletools.TypeFastAccess_co
+    ]
 ):
     """Base class for handling model-related subgroups of sequences."""
 
@@ -995,7 +997,7 @@ class SeriesMode:
 
 
 class IOSequences(
-    SubSequences[TypeSequences, TypeIOSequence_co, TypeFastAccessIOSequence_co]
+    SubSequences[TOM_co, TypeSequences, TypeIOSequence_co, TypeFastAccessIOSequence_co]
 ):
     """Subclass of |SubSequences|, specialised for handling |IOSequence| objects."""
 
@@ -1027,8 +1029,8 @@ class IOSequences(
 
 
 class ModelIOSequences(
-    IOSequences[Sequences, TypeModelIOSequence_co, TypeFastAccessIOSequence_co],
-    ModelSequences[TypeModelIOSequence_co, TypeFastAccessIOSequence_co],
+    IOSequences[TM_co, Sequences, TypeModelIOSequence_co, TypeFastAccessIOSequence_co],
+    ModelSequences[TM_co, TypeModelIOSequence_co, TypeFastAccessIOSequence_co],
 ):
     """Base class for handling model-related subgroups of |IOSequence| objects."""
 
@@ -1043,14 +1045,14 @@ class ModelIOSequences(
         self.fastaccess.save_data(idx)
 
 
-class InputSequences(ModelIOSequences["InputSequence", FastAccessInputSequence]):
+class InputSequences(ModelIOSequences[TM_co, "InputSequence", FastAccessInputSequence]):
     """Base class for handling |InputSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = FastAccessInputSequence
 
 
 class OutputSequences(
-    ModelIOSequences[TypeOutputSequence_co, FastAccessOutputSequence]
+    ModelIOSequences[TM_co, TypeOutputSequence_co, FastAccessOutputSequence]
 ):
     """Base class for handling |OutputSequence| objects."""
 
@@ -1087,11 +1089,11 @@ class OutputSequences(
                 yield flux
 
 
-class FactorSequences(OutputSequences["FactorSequence"]):
+class FactorSequences(OutputSequences[TM_co, "FactorSequence"]):
     """Base class for handling |FactorSequence| objects."""
 
 
-class FluxSequences(OutputSequences["FluxSequence"]):
+class FluxSequences(OutputSequences[TM_co, "FluxSequence"]):
     """Base class for handling |FluxSequence| objects."""
 
     @property
@@ -1100,7 +1102,7 @@ class FluxSequences(OutputSequences["FluxSequence"]):
         return "fluxes"
 
 
-class StateSequences(OutputSequences["StateSequence"]):
+class StateSequences(OutputSequences[TM_co, "StateSequence"]):
     """Base class for handling |StateSequence| objects."""
 
     fastaccess_new: FastAccessOutputSequence
@@ -1129,7 +1131,7 @@ class StateSequences(OutputSequences["StateSequence"]):
             seq.reset()
 
 
-class LogSequences(ModelSequences["LogSequence", variabletools.FastAccess]):
+class LogSequences(ModelSequences[TM_co, "LogSequence", variabletools.FastAccess]):
     """Base class for handling |LogSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
@@ -1141,35 +1143,37 @@ class LogSequences(ModelSequences["LogSequence", variabletools.FastAccess]):
             seq.reset()
 
 
-class AideSequences(ModelSequences["AideSequence", variabletools.FastAccess]):
+class AideSequences(ModelSequences[TM_co, "AideSequence", variabletools.FastAccess]):
     """Base class for handling |AideSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequences(ModelIOSequences[TypeLinkSequence_co, FastAccessLinkSequence]):
+class LinkSequences(
+    ModelIOSequences[TM_co, TypeLinkSequence_co, FastAccessLinkSequence]
+):
     """Base class for handling |LinkSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = FastAccessLinkSequence
 
 
-class InletSequences(LinkSequences["InletSequence"]):
+class InletSequences(LinkSequences[TM_co, "InletSequence"]):
     """Base class for handling "inlet" |LinkSequence| objects."""
 
 
-class OutletSequences(LinkSequences["OutletSequence"]):
+class OutletSequences(LinkSequences[TM_co, "OutletSequence"]):
     """Base class for handling "outlet" |LinkSequence| objects."""
 
 
-class ObserverSequences(LinkSequences["ObserverSequence"]):
+class ObserverSequences(LinkSequences[TM_co, "ObserverSequence"]):
     """Base class for handling "observer" |LinkSequence| objects."""
 
 
-class ReceiverSequences(LinkSequences["ReceiverSequence"]):
+class ReceiverSequences(LinkSequences[TM_co, "ReceiverSequence"]):
     """Base class for handling "receiver" |LinkSequence| objects."""
 
 
-class SenderSequences(LinkSequences["SenderSequence"]):
+class SenderSequences(LinkSequences[TM_co, "SenderSequence"]):
     """Base class for handling "sender" |LinkSequence| objects."""
 
 
@@ -1226,13 +1230,13 @@ class Sequence_(variabletools.Variable):
     NUMERIC: bool
 
     subvars: (
-        SubSequences[Sequences, Sequence_, variabletools.FastAccess]
-        | SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess]
+        SubSequences[modeltools.Model, Sequences, Sequence_, variabletools.FastAccess]
+        | SubSequences[None, devicetools.Node, Sequence_, variabletools.FastAccess]
     )
     """The subgroup to which the sequence belongs."""
     subseqs: (
-        SubSequences[Sequences, Sequence_, variabletools.FastAccess]
-        | SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess]
+        SubSequences[modeltools.Model, Sequences, Sequence_, variabletools.FastAccess]
+        | SubSequences[None, devicetools.Node, Sequence_, variabletools.FastAccess]
     )
     """Alias for |Sequence_.subvars|."""
     strict_valuehandling: bool = False
@@ -1581,13 +1585,13 @@ during a simulation run is not supported but tried for sequence `t` of element \
     """
 
     subvars: (
-        IOSequences[Sequences, IOSequence, FastAccessIOSequence]
-        | IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence]
+        IOSequences[modeltools.Model, Sequences, IOSequence, FastAccessIOSequence]
+        | IOSequences[None, devicetools.Node, IOSequence, FastAccessIOSequence]
     )
     """The subgroup to which the IO sequence belongs."""
     subseqs: (
-        IOSequences[Sequences, IOSequence, FastAccessIOSequence]
-        | IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence]
+        IOSequences[modeltools.Model, Sequences, IOSequence, FastAccessIOSequence]
+        | IOSequences[None, devicetools.Node, IOSequence, FastAccessIOSequence]
     )
     """Alias for |IOSequence.subvars|."""
     fastaccess: FastAccessIOSequence
@@ -2770,13 +2774,16 @@ element `element3`.
 class ModelSequence(Sequence_):
     """Base class for sequences to be handled by |Model| objects."""
 
-    subvars: ModelSequences[ModelSequence, variabletools.FastAccess]
+    subvars: ModelSequences[modeltools.Model, ModelSequence, variabletools.FastAccess]
     """The subgroup to which the model sequence belongs."""
-    subseqs: ModelSequences[ModelSequence, variabletools.FastAccess]
+    subseqs: ModelSequences[modeltools.Model, ModelSequence, variabletools.FastAccess]
     """Alias for |ModelSequence.subvars|."""
 
     def __init__(
-        self, subvars: ModelSequences[ModelSequence, variabletools.FastAccess]
+        self,
+        subvars: ModelSequences[
+            modeltools.Model, ModelSequence, variabletools.FastAccess
+        ],
     ) -> None:
         super().__init__(subvars)
         self.subseqs = subvars
@@ -2912,16 +2919,16 @@ class ModelIOSequence(ModelSequence, IOSequence):
     """Base class for sequences with time series functionalities to be handled by
     |Model| objects."""
 
-    subvars: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
+    subvars: ModelIOSequences[modeltools.Model, ModelIOSequence, FastAccessIOSequence]
     """The subgroup to which the model IO sequence belongs."""
-    subseqs: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
+    subseqs: ModelIOSequences[modeltools.Model, ModelIOSequence, FastAccessIOSequence]
     """Alias for |ModelIOSequence.subvars|."""
     node2idx: dict[devicetools.Node, int | None]
     """The connected |Node| instances and, for 1-dimensional link sequences, the 
     corresponding column's indices."""
 
     def __init__(
-        self, subvars: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
+        self, subvars: ModelIOSequences[TM_co, ModelIOSequence, FastAccessIOSequence]
     ) -> None:
         super().__init__(subvars)
         self.node2idx = {}
@@ -3246,9 +3253,9 @@ class OutputSequence(ModelIOSequence):
         >>> Node.clear_all()
     """
 
-    subvars: OutputSequences[OutputSequence]
+    subvars: OutputSequences[modeltools.Model, OutputSequence]
     """The subgroup to which the output sequence belongs."""
-    subseqs: OutputSequences[OutputSequence]
+    subseqs: OutputSequences[modeltools.Model, OutputSequence]
     """Alias for |OutputSequence.subvars|."""
     fastaccess: FastAccessOutputSequence
     """Object for accessing the output sequence's data with little overhead."""
@@ -3838,9 +3845,9 @@ class LinkSequence(BaseLinkInputSequence):
         >>> Element.clear_all()
     """
 
-    subvars: LinkSequences[LinkSequence]
+    subvars: LinkSequences[modeltools.Model, LinkSequence]
     """The subgroup to which the link sequence belongs."""
-    subseqs: LinkSequences[LinkSequence]
+    subseqs: LinkSequences[modeltools.Model, LinkSequence]
     """Alias for |LinkSequence.subvars|."""
     fastaccess: FastAccessLinkSequence
     """Object for accessing the link sequence's data with little overhead."""
@@ -4434,7 +4441,7 @@ to be set to `False` due to the following problem: No data for (sub)device \
 
 
 class NodeSequences(
-    IOSequences["devicetools.Node", NodeSequence, FastAccessNodeSequence]
+    IOSequences[None, "devicetools.Node", NodeSequence, FastAccessNodeSequence]
 ):
     """Base class for handling |Sim| and |Obs| sequence objects.
 

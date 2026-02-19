@@ -149,16 +149,28 @@ def _add_locals_to_namespace(
 def prepare_parameters(dict_: dict[str, Any]) -> parametertools.Parameters:
     """Prepare a |Parameters| object based on the given dictionary
     information and return it."""
-    cls_parameters = dict_.get("Parameters", parametertools.Parameters)
-    return cls_parameters(dict_)
+    cls_parameters: type[parametertools.Parameters] = dict_.get(
+        "Parameters", parametertools.Parameters
+    )
+    return cls_parameters(
+        model=dict_["model"],
+        cls_control=dict_.get("ControlParameters"),
+        cls_derived=dict_.get("DerivedParameters"),
+        cls_fixed=dict_.get("FixedParameters"),
+        cls_solver=dict_.get("SolverParameters"),
+        cymodel=dict_.get("cymodel"),
+        cythonmodule=dict_.get("cythonmodule"),
+    )
 
 
 def prepare_sequences(dict_: dict[str, Any]) -> sequencetools.Sequences:
     """Prepare a |Sequences| object based on the given dictionary
     information and return it."""
-    cls_sequences = dict_.get("Sequences", sequencetools.Sequences)
+    cls_sequences: type[sequencetools.Sequences] = dict_.get(
+        "Sequences", sequencetools.Sequences
+    )
     return cls_sequences(
-        model=dict_.get("model"),
+        model=dict_["model"],
         cls_inlets=dict_.get("InletSequences"),
         cls_observers=dict_.get("ObserverSequences"),
         cls_receivers=dict_.get("ReceiverSequences"),

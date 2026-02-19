@@ -46,10 +46,8 @@ from numpy.typing import NDArray
 
 # ...from hydpy
 if TYPE_CHECKING:
-    from hydpy.core import devicetools
-    from hydpy.core import hydpytools
+    from hydpy.core import modeltools
     from hydpy.core import parametertools
-    from hydpy.cythons import pointerutils
 
 T = TypeVar("T")
 T_co = TypeVar("T_co", covariant=True)
@@ -133,6 +131,9 @@ ArrayFloat = TypeVar(
 ConditionsSubmodel: TypeAlias = dict[str, dict[str, float | NDArrayFloat]]
 ConditionsModel: TypeAlias = dict[str, ConditionsSubmodel]
 Conditions: TypeAlias = dict[str, ConditionsModel]
+
+TM_co = TypeVar("TM_co", bound="modeltools.Model", covariant=True)
+TOM_co = TypeVar("TOM_co", bound="modeltools.Model | None", covariant=True)
 
 
 class SharableConfiguration(TypedDict):
@@ -328,6 +329,8 @@ __all__ = [
     "TensorInputObject",
     "TensorInt",
     "TextIO",
+    "TM_co",
+    "TOM_co",
     "TypeAlias",
     "TypeVar",
     "TypedDict",

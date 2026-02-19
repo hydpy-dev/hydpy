@@ -1058,7 +1058,7 @@ class PyxWriter:
 
     @staticmethod
     def _add_cdef_jdxs(
-        lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any]
+        lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any, Any]
     ) -> None:
         maxndim = max(seq.NDIM for seq in subseqs)
         if maxndim:
@@ -1081,7 +1081,7 @@ class PyxWriter:
 
     @classmethod
     def load_data(
-        cls, lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any]
+        cls, lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any, Any]
     ) -> None:
         """Load data statements."""
         print("            . load_data")
@@ -1129,7 +1129,7 @@ class PyxWriter:
 
     @classmethod
     def save_data(
-        cls, lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any]
+        cls, lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any, Any]
     ) -> None:
         """Save data statements."""
         print("            . save_data")
@@ -1174,8 +1174,8 @@ class PyxWriter:
         lines: PyxPxdLines,
         subseqs: (
             sequencetools.InputSequences
-            | sequencetools.OutputSequences[Any]
-            | sequencetools.LinkSequences[Any]
+            | sequencetools.OutputSequences[Any, Any]
+            | sequencetools.LinkSequences[Any, Any]
         ),
     ) -> None:
         """Set pointer statements for all input, output, and link sequences."""
@@ -1193,7 +1193,7 @@ class PyxWriter:
 
     @staticmethod
     def set_pointer0d(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any, Any]
     ) -> None:
         """Set pointer statements for 0-dimensional link sequences."""
         print("            . set_pointer0d")
@@ -1208,7 +1208,7 @@ class PyxWriter:
 
     @staticmethod
     def get_pointervalue(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any, Any]
     ) -> None:
         """Get pointer value statements for link sequences."""
         print("            . get_value")
@@ -1228,7 +1228,7 @@ class PyxWriter:
 
     @staticmethod
     def set_pointervalue(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any, Any]
     ) -> None:
         """Set pointer value statements for link sequences."""
         print("            . set_pointervalue")
@@ -1253,7 +1253,7 @@ class PyxWriter:
 
     @staticmethod
     def alloc_pointers(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any, Any]
     ) -> None:
         """Allocate memory statements for 1-dimensional link sequences."""
         print("            . setlength")
@@ -1275,7 +1275,7 @@ class PyxWriter:
 
     @staticmethod
     def dealloc_pointers(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any, Any]
     ) -> None:
         """Deallocate memory statements for 1-dimensional link sequences."""
         print("            . dealloc")
@@ -1287,7 +1287,7 @@ class PyxWriter:
 
     @staticmethod
     def set_pointer1d(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any, Any]
     ) -> None:
         """Set_pointer statements for 1-dimensional link sequences."""
         print("            . set_pointer1d")
@@ -1325,7 +1325,7 @@ class PyxWriter:
 
     @classmethod
     def set_pointeroutput(
-        cls, lines: PyxPxdLines, subseqs: sequencetools.OutputSequences[Any]
+        cls, lines: PyxPxdLines, subseqs: sequencetools.OutputSequences[Any, Any]
     ) -> None:
         """Set pointer statements for output sequences."""
         print("            . set_pointeroutput")
@@ -1351,7 +1351,7 @@ class PyxWriter:
 
     @staticmethod
     def _filter_outputsequences(
-        subseqs: sequencetools.OutputSequences[Any],
+        subseqs: sequencetools.OutputSequences[Any, Any],
     ) -> list[sequencetools.OutputSequence]:
         return [subseq for subseq in subseqs if not subseq.NDIM]
 
@@ -1988,7 +1988,7 @@ class PyxWriter:
             pyx(2, "pass")
 
     def update_outputs(
-        self, lines: PyxPxdLines, subseqs: sequencetools.OutputSequences[Any]
+        self, lines: PyxPxdLines, subseqs: sequencetools.OutputSequences[Any, Any]
     ) -> None:
         """Lines of the subsequences method with the same name."""
         pyx, both = lines.pyx.add, lines.add

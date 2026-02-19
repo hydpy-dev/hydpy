@@ -2651,7 +2651,7 @@ class XSDWriter:
 
     @classmethod
     def get_subsequencesinsertion(
-        cls, subsequences: sequencetools.SubSequences[Any, Any, Any], indent: int
+        cls, subsequences: sequencetools.SubSequences[Any, Any, Any, Any], indent: int
     ) -> str:
         """Return the insertion string required for the given group of sequences.
 
@@ -3136,7 +3136,7 @@ class XSDWriter:
     @classmethod
     def _get_subvars(
         cls, model: modeltools.Model, conditions: bool
-    ) -> Iterator[variabletools.SubVariables[Any, Any, Any]]:
+    ) -> Iterator[variabletools.SubVariables[Any, Any, Any, Any]]:
         yield model.parameters.control
         names = ["inputs", "factors", "fluxes"]
         if conditions:
@@ -3151,7 +3151,7 @@ class XSDWriter:
         cls,
         itemgroup: str,
         model: modeltools.Model,
-        subgroup: variabletools.SubVariables[Any, Any, Any],
+        subgroup: variabletools.SubVariables[Any, Any, Any, Any],
         indent: int,
     ) -> str:
         """Return a string defining the required types for the given combination of an

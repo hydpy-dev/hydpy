@@ -2481,7 +2481,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
         else:
             self.fastaccess = self._cls_fastaccess()
 
-    def __getitem__(self, item) -> TypeVariable_co:
+    def __getitem__(self, item: str) -> TypeVariable_co:
         try:
             return self._name2variable[item]
         except KeyError:
@@ -2490,7 +2490,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
                 f"a variable named `{item}`."
             ) from None
 
-    def __getattr__(self, name) -> TypeVariable_co:
+    def __getattr__(self, name: str) -> TypeVariable_co:
         try:
             return self._name2variable[name]
         except KeyError:
@@ -2499,7 +2499,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
                 f"handle a variable nor another attribute named {name}."
             ) from None
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: object) -> None:
         variable = self._name2variable.get(name)
         if variable is None:
             super().__setattr__(name, value)

@@ -13,7 +13,6 @@ import Cython.Build
 import numpy
 import setuptools
 
-
 INT = "numpy.int64_t"
 
 
@@ -103,8 +102,8 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
     cydirpath = os.path.join("hydpy", "cythons", "autogen")
     pyfilenames = (n for n in os.listdir(pydirpath) if n.endswith(".py"))
     modulenames = (n[:-3] for n in pyfilenames if n != "__init__.py")
-    pxdpath = os.path.join(cydirpath, f"masterinterface.pxd")
-    pyxpath = os.path.join(cydirpath, f"masterinterface.pyx")
+    pxdpath = os.path.join(cydirpath, "masterinterface.pxd")
+    pyxpath = os.path.join(cydirpath, "masterinterface.pyx")
     funcname2signature: dict[str, str] = {}
     with open(pxdpath, "w", encoding="utf-8") as pxdfile, open(
         pyxpath, "w", encoding="utf-8"
@@ -116,7 +115,7 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
         signature = f"\n    cdef void new2old(self) {_nogil}"
         pxdfile.write(f"{signature}\n")
         pyxfile.write(f"{signature}:\n")
-        pyxfile.write(f"        pass\n")
+        pyxfile.write("        pass\n")
         for modulename in modulenames:
             pymodule = importlib.import_module(f"hydpy.interfaces.{modulename}")
             name2class = {
@@ -124,7 +123,7 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
                 for name, member in inspect.getmembers(pymodule)
                 if (inspect.isclass(member) and (inspect.getmodule(member) is pymodule))
             }
-            for classname, class_ in name2class.items():
+            for class_ in name2class.values():
                 name2func = {
                     n: m
                     for n, m in inspect.getmembers(class_)
@@ -156,7 +155,7 @@ def _convert_interfaces(fast_cython: bool, profile_cython: bool) -> None:
                             assert False
 
 
-def _compile_extensions(filetype: Literal["utils", "interfaces"]) -> None:
+def _compile_extensions(filetype: Literal["utils", "interface"]) -> None:
     argv = copy.deepcopy(sys.argv)
     try:
         sys.argv = [sys.argv[0], "build_ext", "--build-lib=.", "--build-temp=."]

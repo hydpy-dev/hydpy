@@ -2872,8 +2872,6 @@ class Sub_BaseModel(modeltools.AdHocModel):
             sharable_configuration["landtype_refindices"]
         ), meteo_parameters.ZipParameter1D.modify_refweights(
             sharable_configuration["refweights"]
-        ), meteo_parameters.ZipParameter1D.modify_refweights(
-            sharable_configuration["refweights"]
         ), meteo_sequences.FluxSequence1D.modify_refweights(
             sharable_configuration["refweights"]
         ):

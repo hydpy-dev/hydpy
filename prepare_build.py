@@ -5,6 +5,7 @@ import copy
 import importlib
 import inspect
 import os
+import pickle
 import sys
 from typing import get_type_hints, Literal
 
@@ -195,6 +196,60 @@ def _prepare_modelspecifics(fast_cython: bool, profile_cython: bool) -> None:
         xmltools.XSDWriter().write_xsd()
 
 
+def _write_mypy_plugin_data() -> None:
+    """Infer and write model-specific data required by the Mypy plugin."""
+
+    from hydpy import conf
+    from hydpy import models
+    from hydpy import pub
+    from hydpy.core import importtools
+
+    model2attr2module_and_type: dict[str, dict[str, tuple[str, str]]] = {}
+    model2subgroup2attr2module_and_type: dict[
+        str, dict[str, dict[str, tuple[str, str]]]
+    ] = {}
+
+    with pub.options.usecython(False):
+        dirpath = models.__path__[0]
+        for modelname in os.listdir(dirpath):
+            modelpath = os.path.join(dirpath, modelname)
+            if os.path.isdir(modelpath) and (modelname != "__pycache__"):
+                modelmodule = f"hydpy.models.{modelname}.{modelname}_model"
+            elif modelpath.endswith(".py") and (modelname != "__init__.py"):
+                modelname = modelname.removesuffix(".py")
+                modelmodule = f"hydpy.models.{modelname}"
+            else:
+                continue
+            model = importtools.prepare_model(modelname)
+            subdict = {}
+            for method in model.get_methods():
+                complete_name = method.__name__.lower()
+                subdict[complete_name] = (method.__module__, method.__name__)
+                short_name = complete_name.rpartition("_")[0]
+                if hasattr(model, short_name):
+                    subdict[short_name] = (method.__module__, method.__name__)
+            model2attr2module_and_type[modelmodule] = subdict
+            subdict_ = {}
+            for prefix, vars_ in (
+                ("hydpy.core.parametertools", model.parameters),
+                ("hydpy.core.sequencetools", model.sequences),
+            ):
+                for subvars in vars_:
+                    subsubdict = {}
+                    for var in subvars:
+                        subsubdict[var.name] = (
+                            type(var).__module__,
+                            type(var).__name__,
+                        )
+                    subdict_[f"{prefix}.{type(subvars).__name__}"] = subsubdict
+            model2subgroup2attr2module_and_type[f"{modelmodule}.Model"] = subdict_
+
+        filepath = os.path.join(conf.__path__[0], "mypy_plugin_data.pickle")
+        with open(filepath, "wb") as file_:
+            data = (model2attr2module_and_type, model2subgroup2attr2module_and_type)
+            pickle.dump(data, file_, protocol=pickle.HIGHEST_PROTOCOL)
+
+
 @click.command()
 @click.option(
     "-f",
@@ -251,6 +306,7 @@ def main(
     if compile_interfaceextensions:
         _compile_extensions(filetype="interface")
     _prepare_modelspecifics(fast_cython=fast_cython, profile_cython=profile_cython)
+    _write_mypy_plugin_data()
 
 
 if __name__ == "__main__":

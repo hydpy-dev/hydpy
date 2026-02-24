@@ -60,6 +60,7 @@ setuptools.setup(
         "cython",
         "inflect",
         "matplotlib",
+        "mypy",
         "netcdf4",
         "networkx",
         "numpy",

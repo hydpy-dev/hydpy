@@ -3188,16 +3188,11 @@ the available directories (calib_1 and calib_2).
         |Elements.unite_collectives|)."""
         return None
 
-    # ToDo: Replace this hack with a Mypy plugin?
-    def __getattr__(self, item: str) -> Any:
-        assert False
+    if TYPE_CHECKING:
 
-    del __getattr__
+        def __getattr__(self, item: str) -> Any: ...
 
-    def __setattr__(self, key: str, value: Any) -> None:
-        assert False
-
-    del __setattr__
+        def __setattr__(self, key: str, value: Any) -> None: ...
 
     def __str__(self) -> str:
         return self.name

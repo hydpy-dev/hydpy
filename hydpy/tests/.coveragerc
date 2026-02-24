@@ -6,6 +6,7 @@ omit =
     */hydpy/tests/*
     */hydpy/docs/*
     */hydpy/cythons/modelutils.py
+    */hydpy/mypy_plugin.py
 parallel=True
 
 [report]

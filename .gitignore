@@ -12,6 +12,7 @@ extra_wheel_sources/*
 *.c
 *.h
 *.pysource
+*.pickle
 temp
 hydpy/aliases.py
 hydpy/conf/mimetypes.txt

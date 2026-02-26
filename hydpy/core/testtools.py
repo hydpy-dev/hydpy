@@ -2329,15 +2329,20 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     element2 = devicetools.Element("element2", outlets=node1)
     element3 = devicetools.Element("element3", outlets=node1)
     element4 = devicetools.Element("element4", outlets=node1)
-    elements_lland = devicetools.Elements(element1, element2, element3)
-    elements = elements_lland + element4
+    elements = devicetools.Elements(element1, element2, element3, element4)
 
-    element1.model = importtools.prepare_model("lland_dd")
-    element2.model = importtools.prepare_model("lland_dd")
-    element3.model = importtools.prepare_model("lland_knauf")
-    element4.model = importtools.prepare_model("hland_96")
+    model1 = importtools.prepare_model("lland_dd")
+    element1.model = model1
+    model2 = importtools.prepare_model("lland_dd")
+    element2.model = model2
+    model3 = importtools.prepare_model("lland_knauf")
+    element3.model = model3
+    model4 = importtools.prepare_model("hland_96")
+    element4.model = model4
+    models_lland = (model1, model2, model3)
+    models = models_lland + (model4,)
 
-    control3 = element3.model.parameters.control
+    control3 = model3.parameters.control
     control3.nhru(1)
     control3.ft(1.0)
     control3.fhru(1.0)
@@ -2346,11 +2351,11 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     control3.measuringheightwindspeed(10.0)
     control3.lai(3.0)
     control3.wmax(300.0)
-    with element3.model.add_aetmodel_v1("evap_aet_morsim"):
+    with model3.add_aetmodel_v1("evap_aet_morsim"):
         pass
 
-    for idx, element in enumerate(elements_lland):
-        parameters = element.model.parameters
+    for idx, model in enumerate(models_lland):
+        parameters = model.parameters
         parameters.control.nhru(idx + 1)
         parameters.control.lnk(lland.ACKER)
         parameters.derived.absfhru(10.0)
@@ -2383,16 +2388,14 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     for subname, seqname in zip(
         ["inputs", "fluxes", "states"], ["nied", "nkor", "bowa"]
     ):
-        for element in elements_lland:
-            subseqs = getattr(element.model.sequences, subname)
+        for model in models_lland:
+            subseqs = getattr(model.sequences, subname)
             value1 = init_values(getattr(subseqs, seqname), value1)
     for node in nodes:
         value1 = init_values(node.sequences.sim, value1)  # type: ignore[arg-type]
-    init_values(element4.model.sequences.states.sp, value1)  # type: ignore[arg-type]
-    init_values(
-        element3.model.sequences.inputs.windspeed, value1  # type: ignore[arg-type]
-    )
-    init_values(element3.model.aetmodel.sequences.inputs.windspeed, value1)
+    init_values(model4.sequences.states.sp, value1)  # type: ignore[arg-type]
+    init_values(model3.sequences.inputs.windspeed, value1)  # type: ignore[arg-type]
+    init_values(model3.aetmodel.sequences.inputs.windspeed, value1)
 
     return nodes, elements
 
@@ -2584,25 +2587,25 @@ def prepare_interpolation_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     e_dummy = devicetools.Element("dummy", inlets=(n_q1, n_q2), outlets=n_q12)
 
     convmodel = importtools.prepare_model("conv_nn")
-    control = convmodel.parameters.control
-    control.inputcoordinates(in1=(1.0, 3.0), in2=(5.0, 7.0))
-    control.outputcoordinates(out1=(2.0, 2.0), out2=(6.0, 6.0))
-    control.maxnmbinputs(1)
+    control_nn = convmodel.parameters.control
+    control_nn.inputcoordinates(in1=(1.0, 3.0), in2=(5.0, 7.0))
+    control_nn.outputcoordinates(out1=(2.0, 2.0), out2=(6.0, 6.0))
+    control_nn.maxnmbinputs(1)
 
     gr4models = []
     for _ in range(2):
         gr4model = importtools.prepare_model("gland_gr4")
-        control = gr4model.parameters.control
+        control_gr4 = gr4model.parameters.control
         with hydpy.pub.options.parameterstep("1d"):
-            control.area(1.0)
-            control.imax(0.0)
-            control.x1(100.0)
-            control.x2(1.0)
-            control.x3(100.0)
-        states = gr4model.sequences.states
-        states.i(control.imax)
-        states.s(control.x1)
-        states.r(control.x3)
+            control_gr4.area(1.0)
+            control_gr4.imax(0.0)
+            control_gr4.x1(100.0)
+            control_gr4.x2(1.0)
+            control_gr4.x3(100.0)
+        states_gr4 = gr4model.sequences.states
+        states_gr4.i(control_gr4.imax)
+        states_gr4.s(control_gr4.x1)
+        states_gr4.r(control_gr4.x3)
         with gr4model.add_petmodel_v1("evap_ret_io") as evapmodel:
             evapmodel.parameters.control.evapotranspirationfactor(1.0)
         gr4models.append(gr4model)
@@ -2724,48 +2727,48 @@ def prepare_receiver_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     lmodels = []
     for _ in range(3):
         lmodel = importtools.prepare_model("gland_gr4")
-        control = lmodel.parameters.control
+        control_gr4 = lmodel.parameters.control
         with hydpy.pub.options.parameterstep("1d"):
-            control.area(100.0)
-            control.imax(0.0)
-            control.x1(100.0)
-            control.x2(1.0)
-            control.x3(100.0)
-        states = lmodel.sequences.states
-        states.i(control.imax)
-        states.s(0.6 * control.x1)
-        states.r(0.6 * control.x3)
+            control_gr4.area(100.0)
+            control_gr4.imax(0.0)
+            control_gr4.x1(100.0)
+            control_gr4.x2(1.0)
+            control_gr4.x3(100.0)
+        states_gr4 = lmodel.sequences.states
+        states_gr4.i(control_gr4.imax)
+        states_gr4.s(0.6 * control_gr4.x1)
+        states_gr4.r(0.6 * control_gr4.x3)
         with lmodel.add_petmodel_v1("evap_ret_io") as evapmodel:
             evapmodel.parameters.control.evapotranspirationfactor(1.0)
         lmodels.append(lmodel)
 
     dmodel = importtools.prepare_model("dam_v001")
     with hydpy.pub.options.parameterstep("1d"):
-        control = dmodel.parameters.control
+        control_dam = dmodel.parameters.control
         from_data = ppolytools.PPoly.from_data
-        control.watervolume2waterlevel(from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
-        control.waterlevel2flooddischarge(from_data(xs=[0.0], ys=[0.0]))
-        control.catchmentarea(100.0)
-        control.surfacearea(1.0)
-        control.correctionprecipitation(1.0)
-        control.correctionevaporation(1.0)
-        control.weightevaporation(1.0)
-        control.thresholdevaporation(0.0)
-        control.toleranceevaporation(0.001)
-        control.nmblogentries(1)
-        control.remotedischargeminimum(2.0)
-        control.remotedischargesafety(0.0)
-        control.neardischargeminimumthreshold(0.0)
-        control.neardischargeminimumtolerance(0.0)
-        control.waterlevelminimumthreshold(0.0)
-        control.waterlevelminimumtolerance(0.0)
-        control.restricttargetedrelease(True)
-        states = dmodel.sequences.states
-        states.watervolume(1.0)
-        logs = dmodel.sequences.logs
-        logs.loggedadjustedevaporation(0.0)
-        logs.loggedtotalremotedischarge(2.0)
-        logs.loggedoutflow(0.0)
+        control_dam.watervolume2waterlevel(from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+        control_dam.waterlevel2flooddischarge(from_data(xs=[0.0], ys=[0.0]))
+        control_dam.catchmentarea(100.0)
+        control_dam.surfacearea(1.0)
+        control_dam.correctionprecipitation(1.0)
+        control_dam.correctionevaporation(1.0)
+        control_dam.weightevaporation(1.0)
+        control_dam.thresholdevaporation(0.0)
+        control_dam.toleranceevaporation(0.001)
+        control_dam.nmblogentries(1)
+        control_dam.remotedischargeminimum(2.0)
+        control_dam.remotedischargesafety(0.0)
+        control_dam.neardischargeminimumthreshold(0.0)
+        control_dam.neardischargeminimumtolerance(0.0)
+        control_dam.waterlevelminimumthreshold(0.0)
+        control_dam.waterlevelminimumtolerance(0.0)
+        control_dam.restricttargetedrelease(True)
+        states_dam = dmodel.sequences.states
+        states_dam.watervolume(1.0)
+        logs_dam = dmodel.sequences.logs
+        logs_dam.loggedadjustedevaporation(0.0)
+        logs_dam.loggedtotalremotedischarge(2.0)
+        logs_dam.loggedoutflow(0.0)
 
     l1_.model = lmodels[0]
     l2.model = lmodels[1]
@@ -2992,17 +2995,17 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     gr_models = []
     for _ in range(5):
         gr_model = importtools.prepare_model("gland_gr4")
-        control = gr_model.parameters.control
+        control_gr4 = gr_model.parameters.control
         with hydpy.pub.options.parameterstep("1d"):
-            control.area(10.0)
-            control.imax(0.0)
-            control.x1(100.0)
-            control.x2(1.0)
-            control.x3(100.0)
-        states = gr_model.sequences.states
-        states.i(control.imax)
-        states.s(0.6 * control.x1)
-        states.r(0.6 * control.x3)
+            control_gr4.area(10.0)
+            control_gr4.imax(0.0)
+            control_gr4.x1(100.0)
+            control_gr4.x2(1.0)
+            control_gr4.x3(100.0)
+        states_gr4 = gr_model.sequences.states
+        states_gr4.i(control_gr4.imax)
+        states_gr4.s(0.6 * control_gr4.x1)
+        states_gr4.r(0.6 * control_gr4.x3)
         with gr_model.add_petmodel_v1("evap_ret_io") as evap_model:
             evap_model.parameters.control.evapotranspirationfactor(1.0)
         gr_models.append(gr_model)
@@ -3010,31 +3013,31 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     sluice_models = []
     for _ in range(3):
         sluice_model = importtools.prepare_model("dam_sluice")
-        control = sluice_model.parameters.control
+        control_sluice = sluice_model.parameters.control
         with hydpy.pub.options.parameterstep("1d"):
-            control.surfacearea(1.44)
-            control.catchmentarea(86.4)
-            control.watervolume2waterlevel(
+            control_sluice.surfacearea(1.44)
+            control_sluice.catchmentarea(86.4)
+            control_sluice.watervolume2waterlevel(
                 ppolytools.PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0])
             )
-            control.remotewaterlevelmaximumthreshold(2.0)
-            control.remotewaterlevelmaximumtolerance(0.0)
-            control.correctionprecipitation(1.0)
-            control.correctionevaporation(1.0)
-            control.weightevaporation(0.8)
-            control.thresholdevaporation(0.0)
-            control.toleranceevaporation(0.001)
-            control.crestlevel(1.0)
-            control.waterleveldifference2maxfreedischarge(
+            control_sluice.remotewaterlevelmaximumthreshold(2.0)
+            control_sluice.remotewaterlevelmaximumtolerance(0.0)
+            control_sluice.correctionprecipitation(1.0)
+            control_sluice.correctionevaporation(1.0)
+            control_sluice.weightevaporation(0.8)
+            control_sluice.thresholdevaporation(0.0)
+            control_sluice.toleranceevaporation(0.001)
+            control_sluice.crestlevel(1.0)
+            control_sluice.waterleveldifference2maxfreedischarge(
                 ppolytools.PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.1])
             )
-            control.crestleveltolerance(0.1)
-            control.dischargetolerance(0.0)
+            control_sluice.crestleveltolerance(0.1)
+            control_sluice.dischargetolerance(0.0)
         sluice_model.sequences.states.watervolume(3.0)
-        logs = sluice_model.sequences.logs
-        logs.loggedadjustedevaporation(0.0)
-        logs.loggedouterwaterlevel(0.0)
-        logs.loggedremotewaterlevel(0.0)
+        logs_sluice = sluice_model.sequences.logs
+        logs_sluice.loggedadjustedevaporation(0.0)
+        logs_sluice.loggedouterwaterlevel(0.0)
+        logs_sluice.loggedremotewaterlevel(0.0)
         sluice_models.append(sluice_model)
 
     channel_models = []
@@ -3050,40 +3053,40 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     for i in range(2):
         channel_model = channel_models[i]
         with channel_model.add_routingmodel_v1("sw1d_q_in", position=0) as q_model:
-            control = q_model.parameters.control
-            control.lengthdownstream(10.0)
-            control.timestepfactor(0.7)
+            control_q = q_model.parameters.control
+            control_q.lengthdownstream(10.0)
+            control_q.timestepfactor(0.7)
         with channel_model.add_routingmodel_v2("sw1d_lias", position=1) as lias_model:
-            control = lias_model.parameters.control
-            control.lengthupstream(10.0)
-            control.lengthdownstream(10.0)
-            control.stricklercoefficient(1.0 / 0.03)
-            control.timestepfactor(0.7)
-            control.diffusionfactor(0.2)
+            control_lias = lias_model.parameters.control
+            control_lias.lengthupstream(10.0)
+            control_lias.lengthdownstream(10.0)
+            control_lias.stricklercoefficient(1.0 / 0.03)
+            control_lias.timestepfactor(0.7)
+            control_lias.diffusionfactor(0.2)
             lias_model.sequences.states.discharge(0.0)
     channel_model = channel_models[2]
     with channel_model.add_routingmodel_v3("sw1d_gate_out", position=1) as gate_model:
-        control = gate_model.parameters.control
-        control.lengthupstream(10.0)
-        control.bottomlevel(0.0)
-        control.gateheight(0.1)
-        control.gatewidth(2.0)
-        control.flowcoefficient(0.6)
-        control.timestepfactor(0.7)
-        control.dampingradius(0.0)
+        control_gate = gate_model.parameters.control
+        control_gate.lengthupstream(10.0)
+        control_gate.bottomlevel(0.0)
+        control_gate.gateheight(0.1)
+        control_gate.gatewidth(2.0)
+        control_gate.flowcoefficient(0.6)
+        control_gate.timestepfactor(0.7)
+        control_gate.dampingradius(0.0)
     for channel_model in channel_models:
         for submodel in (
             channel_model.storagemodels[0],
             channel_model.routingmodels[0],
             channel_model.routingmodels[1],
         ):
-            if hasattr(submodel, "add_crosssection_v2"):
+            if (submodel is not None) and hasattr(submodel, "add_crosssection_v2"):
                 with submodel.add_crosssection_v2("wq_trapeze") as trapeze_model:
-                    control = trapeze_model.parameters.control
-                    control.nmbtrapezes(1)
-                    control.bottomlevels(0.0)
-                    control.bottomwidths(10.0)
-                    control.sideslopes(0.0)
+                    control_trapeze = trapeze_model.parameters.control
+                    control_trapeze.nmbtrapezes(1)
+                    control_trapeze.bottomlevels(0.0)
+                    control_trapeze.bottomwidths(10.0)
+                    control_trapeze.sideslopes(0.0)
 
     # pylint: disable=unbalanced-tuple-unpacking
     g11.model, g12.model, g21.model, g22.model, g31.model = gr_models

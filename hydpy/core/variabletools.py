@@ -1004,11 +1004,11 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     """
 
     # Subclasses need to define...
-    NDIM: int
-    TYPE: type[float | int | bool]  # ToDo: is still `str` in some cases
+    NDIM: TypeNDIM
+    TYPE: TypeTYPE
     # ...and optionally...
-    SPAN: tuple[int | float | bool | None, int | float | bool | None] = (None, None)
-    INIT: int | float | bool | None = None
+    SPAN: TypeSPAN = (None, None)
+    INIT: TypeINIT = None
 
     _NOT_DEEPCOPYABLE_MEMBERS: Final[frozenset[str]] = frozenset(
         (

@@ -1225,9 +1225,9 @@ class Sequence_(variabletools.Variable):
     3
     """
 
-    TYPE: type[float] = float
-    INIT: float = 0.0
-    NUMERIC: bool
+    TYPE: TypeTYPE = float
+    INIT: TypeINIT = 0.0
+    NUMERIC: TypeNUMERIC
 
     subvars: (
         SubSequences[modeltools.Model, Sequences, Sequence_, variabletools.FastAccess]
@@ -3359,8 +3359,9 @@ class FactorSequence(DependentSequence):
     subseqs: FactorSequences
     """Alias for |FactorSequence.subvars|."""
 
-    NUMERIC = False  # Changing this requires implementing the related functionalites
-    # in modules `modeltools` and `modeltutils`.
+    NUMERIC: TypeNUMERIC = False  # Changing this requires implementing the related
+    #                               functionalites in modules `modeltools` and
+    #                               `modeltutils`.
 
 
 class FluxSequence(DependentSequence):
@@ -3704,7 +3705,7 @@ class LogSequence(ConditionSequence):
 class LogSequenceFixed(LogSequence):
     """Base class for log sequences with a fixed shape."""
 
-    NDIM = 1
+    NDIM: TypeNDIM = 1
     SHAPE: int
 
     def _finalise_connections(self):

@@ -1874,9 +1874,9 @@ class NmbParameter(Parameter):
     (0,)
     """
 
-    NDIM = 0
-    TYPE = int
-    TIME = None
+    NDIM: TypeNDIM = 0
+    TYPE: TypeTYPE = int
+    TIME: TypeTIME = None
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
@@ -1953,10 +1953,10 @@ class NameParameter(_MixinModifiableParameter, Parameter):
              SOIL, GLACIER)
     """
 
-    NDIM = 1
-    TYPE = int
-    TIME = None
-    SPAN = (None, None)
+    NDIM: TypeNDIM = 1
+    TYPE: TypeTYPE = int
+    TIME: TypeTIME = None
+    SPAN: TypeSPAN = (None, None)
     constants: Constants
     _possible_values: set[int]
 
@@ -2259,7 +2259,7 @@ related to the special attribute `soil`, the following error occurred: could not
 convert string to float: 'test'
     """
 
-    NDIM = 1
+    NDIM: TypeNDIM = 1
     constants: dict[str, int]
     """Mapping of the constants' names and values."""
     refindices: NameParameter | None = None
@@ -2707,7 +2707,7 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> del pub.timegrids
     """
 
-    TYPE = float
+    TYPE: TypeTYPE = float
 
     strict_valuehandling: bool = False
 
@@ -3298,7 +3298,7 @@ bounds for axis 0 with size 1
 for axis 0 with size 1
     """
 
-    NDIM = 1
+    NDIM: TypeNDIM = 1
     entrynames: tuple[str, ...]
     entrymin: int = 0
 
@@ -3306,7 +3306,7 @@ for axis 0 with size 1
 
     def __init__(self, subvars: SubParameters) -> None:
         super().__init__(subvars)
-        self.entrynames = type(self).entrynames
+        self.entrynames: tuple[str, ...] = type(self).entrynames
         self.entrymin = type(self).entrymin
 
     @classmethod
@@ -3515,7 +3515,7 @@ class MonthParameter(KeywordParameter1D):
          aug=-2.0, sep=-1.0, oct=0.0, nov=1.0, dec=2.0)
     """
 
-    entrynames = (
+    entrynames: tuple[str, ...] = (
         "jan",
         "feb",
         "mar",
@@ -3667,7 +3667,7 @@ attribute nor a row or column related attribute named `wrong`.
                   False, False])
     """
 
-    NDIM = 2
+    NDIM: TypeNDIM = 2
     rownames: tuple[str, ...]
     columnnames: tuple[str, ...]
     rowmin: int = 0
@@ -4032,7 +4032,7 @@ given, but is not.
     floodplainwidth(left=3.0, right=4.0)
     """
 
-    NDIM = 1
+    NDIM: TypeNDIM = 1
     SHAPE = (2,)
     strict_valuehandling: bool = False
 
@@ -4109,8 +4109,8 @@ sorted in increasing order (0.333333, 0.0, and 0.666667).
     heights(0.333333, 0.666667, 0.666667)
     """
 
-    NDIM = 1
-    TYPE = float
+    NDIM: TypeNDIM = 1
+    TYPE: TypeTYPE = float
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
@@ -4356,10 +4356,10 @@ solver parameter `tol` of element `?` has been defined so far.
 class SecondsParameter(Parameter):
     """The length of the actual simulation step size in seconds [s]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
-    SPAN = (0.0, None)
+    NDIM: TypeNDIM = 0
+    TYPE: TypeTYPE = float
+    TIME: TypeTIME = None
+    SPAN: TypeSPAN = (0.0, None)
 
     def update(self) -> None:
         """Take the number of seconds from the current simulation time step.
@@ -4379,10 +4379,10 @@ class SecondsParameter(Parameter):
 class HoursParameter(Parameter):
     """The length of the actual simulation step size in hours [h]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
-    SPAN = (0.0, None)
+    NDIM: TypeNDIM = 0
+    TYPE: TypeTYPE = float
+    TIME: TypeTIME = None
+    SPAN: TypeSPAN = (0.0, None)
 
     def update(self) -> None:
         """Take the number of hours from the current simulation time step.
@@ -4402,10 +4402,10 @@ class HoursParameter(Parameter):
 class DaysParameter(Parameter):
     """The length of the actual simulation step size in days [d]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
-    SPAN = (0.0, None)
+    NDIM: TypeNDIM = 0
+    TYPE: TypeTYPE = float
+    TIME: TypeTIME = None
+    SPAN: TypeSPAN = (0.0, None)
 
     def update(self) -> None:
         """Take the number of days from the current simulation time step.
@@ -4519,8 +4519,8 @@ class IndexParameter(Parameter):
     reference an index array provided by the instance of class|Indexer| available in
     module |pub|."""
 
-    NDIM = 1
-    TIME = None
+    NDIM: TypeNDIM = 1
+    TIME: TypeTIME = None
 
     def compress_repr(self) -> str | None:
         """Return a compressed parameter value representation that agrees with the
@@ -4578,8 +4578,8 @@ class TOYParameter(IndexParameter):
     """References the |Indexer.timeofyear| index array provided by the
     instance of class |Indexer| available in module |pub|. [-]."""
 
-    TYPE = int
-    SPAN = (0, None)
+    TYPE: TypeTYPE = int
+    SPAN: TypeSPAN = (0, None)
 
     def update(self) -> None:
         """Reference the actual |Indexer.timeofyear| array of the
@@ -4606,8 +4606,8 @@ class MOYParameter(IndexParameter):
     """References the |Indexer.monthofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
 
-    TYPE = int
-    SPAN = (0, 11)
+    TYPE: TypeTYPE = int
+    SPAN: TypeSPAN = (0, 11)
 
     def update(self) -> None:
         """Reference the actual |Indexer.monthofyear| array of the
@@ -4634,8 +4634,8 @@ class DOYParameter(IndexParameter):
     """References the |Indexer.dayofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
 
-    TYPE = int
-    SPAN = (0, 365)
+    TYPE: TypeTYPE = int
+    SPAN: TypeSPAN = (0, 365)
 
     def update(self) -> None:
         """Reference the actual |Indexer.dayofyear| array of the
@@ -4662,8 +4662,8 @@ class SCTParameter(IndexParameter):
     """References the |Indexer.standardclocktime| array provided by the
     instance of class |Indexer| available in module |pub| [h]."""
 
-    TYPE = float
-    SPAN = (0.0, 86400.0)
+    TYPE: TypeTYPE = float
+    SPAN: TypeSPAN = (0.0, 86400.0)
 
     def update(self) -> None:
         """Reference the actual |Indexer.standardclocktime| array of the
@@ -4690,10 +4690,10 @@ class UTCLongitudeParameter(IndexParameter):
     """References the current "UTC longitude" defined by option
     |Options.utclongitude|."""
 
-    NDIM = 0
-    TYPE = int
-    TIME = None
-    SPAN = (-180, 180)
+    NDIM: TypeNDIM = 0
+    TYPE: TypeTYPE = int
+    TIME: TypeTIME = None
+    SPAN: TypeSPAN = (-180, 180)
 
     def update(self):
         """Apply the current value of option |Options.utclongitude|.

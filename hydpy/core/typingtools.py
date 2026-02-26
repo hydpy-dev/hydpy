@@ -135,6 +135,13 @@ Conditions: TypeAlias = dict[str, ConditionsModel]
 TM_co = TypeVar("TM_co", bound="modeltools.Model", covariant=True)
 TOM_co = TypeVar("TOM_co", bound="modeltools.Model | None", covariant=True)
 
+TypeNDIM: TypeAlias = int
+TypeTYPE: TypeAlias = type[float | int | bool]  # ToDo: is still `str` in some cases
+TypeSPAN: TypeAlias = tuple[int | float | bool | None, int | float | bool | None]
+TypeINIT: TypeAlias = int | float | bool | None
+TypeTIME: TypeAlias = bool | None
+TypeNUMERIC: TypeAlias = bool
+
 
 class SharableConfiguration(TypedDict):
     """Specification of the configuration data that main models can share with their
@@ -332,6 +339,12 @@ __all__ = [
     "TM_co",
     "TOM_co",
     "TypeAlias",
+    "TypeINIT",
+    "TypeNDIM",
+    "TypeNUMERIC",
+    "TypeSPAN",
+    "TypeTIME",
+    "TypeTYPE",
     "TypeVar",
     "TypedDict",
     "TYPE_CHECKING",

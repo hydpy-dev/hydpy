@@ -149,7 +149,12 @@ def mypy_plugin(session: nox.Session) -> None:
 
     with session.chdir(session.create_tmp()):
         with open("mypy.ini", "w", encoding="UTF-8") as file_:
-            file_.write("[mypy]\nplugins = hydpy.mypy_plugin\n")
+            file_.write(
+                "[mypy]\n"
+                "plugins = hydpy.mypy_plugin\n"
+                "[hydpy.mypy_plugin]\n"
+                "relevant_sources = hydpy\n"
+            )
         dirpath = os.path.join(_get_sitepackagepath(session), "hydpy", "tests")
         shutil.copy(os.path.join(dirpath, f"{filename_script}t"), filename_script)
         with open(filename_results, "w", encoding="UTF-8") as file_:

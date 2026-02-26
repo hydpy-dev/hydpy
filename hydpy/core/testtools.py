@@ -2340,7 +2340,6 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     model4 = importtools.prepare_model("hland_96")
     element4.model = model4
     models_lland = (model1, model2, model3)
-    models = models_lland + (model4,)
 
     control3 = model3.parameters.control
     control3.nhru(1)
@@ -2395,7 +2394,8 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
         value1 = init_values(node.sequences.sim, value1)  # type: ignore[arg-type]
     init_values(model4.sequences.states.sp, value1)  # type: ignore[arg-type]
     init_values(model3.sequences.inputs.windspeed, value1)  # type: ignore[arg-type]
-    init_values(model3.aetmodel.sequences.inputs.windspeed, value1)
+    assert (aetmodel := model3.aetmodel) is not None
+    init_values(aetmodel.sequences.inputs.windspeed, value1)
 
     return nodes, elements
 
@@ -2628,8 +2628,10 @@ def prepare_interpolation_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     n_in1.sequences.obs.series = 10.0, 20.0, 30.0
     n_in2.deploymode = "oldsim"
     n_in2.sequences.sim.series = 40.0, 50.0, 60.0
-    e_gr4_1.model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
-    e_gr4_2.model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
+    assert (petmodel_1 := e_gr4_1.model.petmodel) is not None
+    petmodel_1.sequences.inputs.referenceevapotranspiration.series = 0.0
+    assert (petmodel_2 := e_gr4_2.model.petmodel) is not None
+    petmodel_2.sequences.inputs.referenceevapotranspiration.series = 0.0
 
     return hp, hydpy.pub
 
@@ -2786,7 +2788,8 @@ def prepare_receiver_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     hp.prepare_allseries()
     for lmodel in lmodels:
         lmodel.sequences.inputs.p.series = 0.0
-        lmodel.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
+        assert (petmodel := lmodel.petmodel) is not None
+        petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
 
     return hp, hydpy.pub
 
@@ -2923,7 +2926,7 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     1.5, 1.7, 1.9, 2.1, 2.3, 2.5
     """
 
-    # pylint: disable=too-many-statements
+    # pylint: disable=too-many-statements, too-many-locals
 
     from hydpy import aliases  # pylint: disable=import-outside-toplevel
 
@@ -3107,7 +3110,8 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     hp.prepare_allseries()
     for gr_model in gr_models:
         gr_model.sequences.inputs.p.series = 0.0
-        gr_model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
+        assert (petmodel := gr_model.petmodel) is not None
+        petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
     out_c3_s1.deploymode = "oldsim"
     out_c3_s1.sequences.sim.series = numpy.linspace(1.5, 2.5, 6)
 

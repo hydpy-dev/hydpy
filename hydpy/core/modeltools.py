@@ -3454,7 +3454,7 @@ class SegmentModel(RunModel):
                 for method in self.RUN_METHODS:
                     method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
-    def run_segments(self, method: Method) -> None:
+    def run_segments(self, method: Callable[[], None]) -> None:
         """Run the given methods for all segments.
 
         Method |SegmentModel.run_segments| is mainly thought for testing purposes.

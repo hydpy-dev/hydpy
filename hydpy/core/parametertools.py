@@ -23,7 +23,6 @@ from hydpy.core import exceptiontools
 from hydpy.core import filetools
 from hydpy.core import masktools
 from hydpy.core import objecttools
-from hydpy.core import propertytools
 from hydpy.core import timetools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
@@ -2978,7 +2977,8 @@ broadcast input array from shape (2,) into shape (366,3)
         """A sorted |tuple| of all contained |TOY| objects."""
         return tuple(toy for toy, _ in self._toy2values_unprotected)
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         .. testsetup::
@@ -3038,9 +3038,10 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         >>> par.shape
         (4, 3)
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
+    @shape.setter
+    def shape(self, shape: int | tuple[int, ...]) -> None:
         if isinstance(shape, tuple):
             shape_ = list(shape)
         else:
@@ -3056,9 +3057,8 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
             )
         shape_[0] = int(numpy.ceil(timetools.Period("366d") / simulationstep))
         shape_[0] = int(numpy.ceil(round(shape_[0], 10)))
-        super()._set_shape(tuple(shape_))
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
+        proxy = super(__class__, type(self))  # type: ignore[name-defined]
+        proxy.shape.fset(self, tuple(shape_))  # type: ignore[attr-defined]
 
     def trim(self, lower=None, upper=None) -> bool:
         """Extend the usual trim logic with a warning mechanism to account for that

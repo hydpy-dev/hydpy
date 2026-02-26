@@ -24,7 +24,7 @@ class NmbSegments(parametertools.Parameter):
         model.routingmodels.number = self.value + 1
         for subseqs in self.subpars.pars.model.sequences:
             for seq in (s for s in subseqs if s.NDIM == 1):
-                seq._set_shape(self.value + isinstance(seq, sw1d_fluxes.Discharges))
+                seq.shape = self.value + isinstance(seq, sw1d_fluxes.Discharges)
 
 
 class Length(parametertools.Parameter):

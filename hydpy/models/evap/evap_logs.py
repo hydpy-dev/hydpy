@@ -2,7 +2,6 @@
 
 # import...
 # ...from HydPy
-from hydpy.core import propertytools
 from hydpy.core import sequencetools
 
 
@@ -59,7 +58,8 @@ class LoggedPotentialEvapotranspiration(sequencetools.LogSequence):
 
     NDIM, NUMERIC = 2, False
 
-    def _get_shape(self):
+    @property
+    def shape(self):
         """A tuple containing the lengths of all dimensions.
 
         |LoggedPotentialEvapotranspiration| is generally initialised with a length of
@@ -71,12 +71,11 @@ class LoggedPotentialEvapotranspiration(sequencetools.LogSequence):
         >>> logs.loggedpotentialevapotranspiration.shape
         (1, 3)
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape):
-        super()._set_shape((1, shape))
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
+    @shape.setter
+    def shape(self, shape):
+        super(__class__, type(self)).shape.fset(self, (1, shape))
 
 
 class LoggedWaterEvaporation(sequencetools.LogSequence):

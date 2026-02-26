@@ -89,7 +89,7 @@ Node("in3", variable="Q"))
             nodes.append(devicetools.Node(name))
             coordinates[idx, :] = values
         self.nodes = tuple(nodes)
-        self._set_shape((len(nodes), 2))
+        self.shape = (len(nodes), 2)
         self.value = coordinates
 
     def __repr__(self) -> str:
@@ -193,7 +193,7 @@ Node("in3", variable="Q"))
             nodes.append(devicetools.Node(name))
             heights[idx] = value
         self.nodes = tuple(nodes)
-        self._set_shape(len(nodes))
+        self.shape = len(nodes)
         self.value = heights
 
     def __repr__(self) -> str:

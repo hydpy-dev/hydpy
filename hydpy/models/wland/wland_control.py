@@ -62,11 +62,11 @@ class NU(parametertools.Parameter):
                     if (par.NDIM == 1) and (
                         not isinstance(par, parametertools.MonthParameter)
                     ):
-                        par._set_shape(new)
+                        par.shape = new
             for subseqs in self.subpars.pars.model.sequences:
                 for seq in subseqs:
                     if seq.NDIM == 1:
-                        seq._set_shape(new)
+                        seq.shape = new
 
 
 class LT(parametertools.NameParameter):

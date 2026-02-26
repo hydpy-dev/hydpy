@@ -2061,7 +2061,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
         values = numpy.array(values, dtype=config.NP_FLOAT)
         self.__hydpy__set_fastaccessattribute__("array", values)
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         When setting a new |IOSequence.shape| of an |IOSequence| object, one
@@ -2070,16 +2071,16 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
         See the main documentation on class |IOSequence| for further information.
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape: int | tuple[int, ...]):
-        super()._set_shape(shape)
+    @shape.setter
+    def shape(self, shape: int | tuple[int, ...]):
+        proxy = super(__class__, type(self))  # type: ignore[name-defined]
+        proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
         if self.ramflag:
             values = numpy.full(self.seriesshape, numpy.nan, dtype=config.NP_FLOAT)
             self.__set_array(values)
         self.update_fastaccess()
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     @property
     def seriesshape(self) -> tuple[int, ...]:
@@ -3302,7 +3303,8 @@ class DependentSequence(OutputSequence):
             value = None if self.NDIM else 0.0
             self.__hydpy__set_fastaccessattribute__("sum", value)
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         |FactorSequence| and |FluxSequence| objects come with some additional
@@ -3332,10 +3334,12 @@ class DependentSequence(OutputSequence):
         >>> ei.fastaccess._ei_results.shape
         (11, 2)
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
-        super()._set_shape(shape)
+    @shape.setter
+    def shape(self, shape: int | tuple[int, ...]) -> None:
+        proxy = super(__class__, type(self))  # type: ignore[name-defined]
+        proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
         if self.NDIM and self.NUMERIC:
             self.__hydpy__set_fastaccessattribute__(
                 "points", numpy.zeros(self.numericshape)
@@ -3347,8 +3351,6 @@ class DependentSequence(OutputSequence):
                 "results", numpy.zeros(self.numericshape)
             )
             self.__hydpy__set_fastaccessattribute__("sum", numpy.zeros(self.shape))
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
 
 class FactorSequence(DependentSequence):
@@ -3571,7 +3573,8 @@ not broadcast input array from shape (3,) into shape (2,)
         else:
             setattr(self.fastaccess_old, self.name, 0.0)
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         |StateSequence| objects come with some additional `fastaccess` attributes,
@@ -3600,12 +3603,14 @@ not broadcast input array from shape (3,) into shape (2,)
         >>> ic.fastaccess._ic_results.shape
         (11, 2)
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape: int | tuple[int, ...]):
+    @shape.setter
+    def shape(self, shape: int | tuple[int, ...]):
         from hydpy.core import modeltools  # pylint: disable=import-outside-toplevel
 
-        super()._set_shape(shape)
+        proxy = super(__class__, type(self))  # type: ignore[name-defined]
+        proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC and isinstance(
@@ -3617,8 +3622,6 @@ not broadcast input array from shape (3,) into shape (2,)
                 self.__hydpy__set_fastaccessattribute__(
                     "results", numpy.zeros(self.numericshape)
                 )
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     @property
     def new(self):
@@ -3711,7 +3714,8 @@ class LogSequenceFixed(LogSequence):
     def _finalise_connections(self):
         self.shape = (self.SHAPE,)
 
-    def _get_shape(self):
+    @property
+    def shape(self):
         """Sequences derived from |LogSequenceFixed| initialise themselves with a
         predefined shape.
 
@@ -3735,17 +3739,16 @@ changed, but this was attempted for element `?`.
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape):
+    @shape.setter
+    def shape(self, shape):
         if exceptiontools.attrready(self, "shape"):
             raise AttributeError(
                 f"The shape of sequence `{self.name}` cannot be changed, but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
-        super()._set_shape(shape)
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
+        super(__class__, type(self)).shape.fset(self, shape)
 
 
 class AideSequence(ModelSequence):
@@ -3881,7 +3884,8 @@ class LinkSequence(BaseLinkInputSequence):
         except AttributeError:
             pass
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         Property |LinkSequence.shape| of class |LinkSequence| works similarly to the
@@ -3951,12 +3955,14 @@ requested, but not prepared yet via `set_pointer`.
             >>> Node.clear_all()
             >>> Element.clear_all()
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape: int | tuple[int, ...]):
+    @shape.setter
+    def shape(self, shape: int | tuple[int, ...]):
         try:
             old_shape = exceptiontools.getattr_(self, "shape", None)
-            super()._set_shape(shape)
+            proxy = super(__class__, type(self))  # type: ignore[name-defined]
+            proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
             if (shape != old_shape) and (self.NDIM == 1):
                 self.fastaccess.dealloc_pointer(self.name)
                 self.fastaccess.alloc_pointer(self.name, shape)
@@ -3966,8 +3972,6 @@ requested, but not prepared yet via `set_pointer`.
                 f"While trying to set the shape of link sequence"
                 f"{objecttools.elementphrase(self)}"
             )
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     @property
     def pointervalue(self) -> float | NDArrayFloat:

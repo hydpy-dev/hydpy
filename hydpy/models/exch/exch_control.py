@@ -93,8 +93,8 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
     NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
 
     def __call__(self, *args, **kwargs) -> None:
-        self._set_shape(len(args))
-        if (shape := self._get_shape()[0]) < 2:
+        self.shape = len(args)
+        if (shape := self.shape[0]) < 2:
             raise ValueError(
                 f"Branching via linear interpolation requires at least two supporting "
                 f"points, but parameter {objecttools.elementphrase(self)} received "

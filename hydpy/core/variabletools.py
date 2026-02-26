@@ -24,7 +24,6 @@ from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
-from hydpy.core import propertytools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
@@ -1251,7 +1250,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         array([], shape=(0, 0), dtype=...)
         """
         if (self.NDIM > 0) and not self._shapeready:
-            self._get_shape()  # raise the proper error
+            # raise the proper error
+            self.shape  # pylint: disable=pointless-statement
         value = self._prepare_getvalue(
             self._valueready or not self.strict_valuehandling,
             getattr(self.fastaccess, self.name, None),
@@ -1323,7 +1323,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
     def values(self, values):
         self.value = values
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> tuple[int, ...]:
         """A tuple containing the actual lengths of all dimensions.
 
         Note that setting a new |Variable.shape| results in a loss of
@@ -1469,7 +1470,8 @@ as `var` can only be `()`, but `(2,)` is given.
             )
         return ()
 
-    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
+    @shape.setter
+    def shape(self, shape: int | tuple[int, ...]) -> None:
         self._valueready = False
         self._shapeready = False
         initvalue, initflag = self.initinfo
@@ -1500,8 +1502,6 @@ as `var` can only be `()`, but `(2,)` is given.
             setattr(self.fastaccess, self.name, initvalue)
         if initflag:
             self._valueready = True
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     def _raise_wrongshape(self, shape):
         raise ValueError(
@@ -1972,7 +1972,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 f"but this variable is 0-dimensional and thus unsized.  Consider "
                 f"using the `numberofvalues` property instead."
             )
-        return self._get_shape()[0]
+        return self.shape[0]
 
     def _do_math(self, other, methodname, description):
         try:
@@ -2233,7 +2233,8 @@ class MixinFixedShape:
         super()._finalise_connections()  # type: ignore[misc]
         self.shape = self.SHAPE
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> tuple[int, ...]:
         """Variables that mix in |MixinFixedShape| are generally initialised with a
         fixed shape.
 
@@ -2259,19 +2260,19 @@ this was attempted for element `?`.
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
         """
-        return super()._get_shape()  # type: ignore[misc]
+        return super().shape  # type: ignore[misc]
 
-    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
+    @shape.setter
+    def shape(self, shape: int | tuple[int, ...]) -> None:
         oldshape = exceptiontools.getattr_(self, "shape", None)
         if oldshape is None:
-            super()._set_shape(shape)  # type: ignore[misc]
+            proxy = super(__class__, type(self))  # type: ignore[name-defined]
+            proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
         elif shape != oldshape:
             raise AttributeError(
                 f"The shape of variable `{self.name}` cannot be changed but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
 
 @overload

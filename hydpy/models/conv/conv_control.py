@@ -76,7 +76,6 @@ Node("in3", variable="Q"))
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
@@ -183,7 +182,6 @@ Node("in3", variable="Q"))
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
@@ -303,7 +301,6 @@ class DefaultConstant(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class DefaultFactor(parametertools.Parameter):

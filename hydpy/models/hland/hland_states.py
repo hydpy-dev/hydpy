@@ -24,7 +24,6 @@ class Ic(hland_sequences.State1DSequence):
 class SP(hland_sequences.State2DSequence):
     """Frozen water stored in the snow layer [mm]."""
 
-    SPAN = (None, None)
     mask = hland_masks.Snow()
 
     CONTROLPARAMETERS = (hland_control.WHC,)
@@ -168,7 +167,6 @@ class LZ(sequencetools.StateSequence):
     """
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
 
@@ -226,14 +224,12 @@ class SG2(sequencetools.StateSequence):
     """First-order slow response groundwater reservoir [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)
 
 
 class SG3(sequencetools.StateSequence):
     """Second-order slow response groundwater reservoir [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)
 
 
 class SC(sequencetools.StateSequence):

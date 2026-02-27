@@ -71,7 +71,6 @@ class Delta(parametertools.MonthParameter):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -81,7 +80,6 @@ class Minimum(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -114,7 +112,6 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     def __call__(self, *args, **kwargs) -> None:
         self.shape = len(args)
@@ -222,7 +219,6 @@ sequence and connect it to the respective outlet nodes properly.
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     def __call__(self, *args, **kwargs) -> None:
         try:

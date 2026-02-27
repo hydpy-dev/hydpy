@@ -144,7 +144,6 @@ class ER(wland_parameters.LanduseParameterLand):
 
     TYPE: Final = bool
     TIME = None
-    SPAN = (None, None)
     INIT = False
 
 
@@ -163,7 +162,6 @@ class GL(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Ensure |GL| is above |BL|.
@@ -191,7 +189,6 @@ class BL(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Ensure |BL| is below |GL|.
@@ -239,7 +236,6 @@ class IH(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class TT(parametertools.Parameter):
@@ -248,7 +244,6 @@ class TT(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class TI(parametertools.Parameter):
@@ -274,7 +269,6 @@ class DDT(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class CWE(parametertools.Parameter):
@@ -328,7 +322,6 @@ class RG(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
     TIME = None
-    SPAN = (None, None)
 
 
 class CGF(parametertools.Parameter):
@@ -346,7 +339,6 @@ class DGC(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
     TIME = None
-    SPAN = (None, None)
 
 
 class CQ(parametertools.Parameter):

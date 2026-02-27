@@ -12,7 +12,6 @@ class Inflow(sequencetools.FluxSequence):
     """Inflow [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)
 
 
 class ReferenceDischarge(musk_sequences.FluxSequence1D):
@@ -25,4 +24,3 @@ class Outflow(sequencetools.FluxSequence):
     """Outflow [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)

@@ -141,7 +141,6 @@ class MGH(lland_parameters.ParameterComplete):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (lland_control.GH, lland_control.FHRU)
 

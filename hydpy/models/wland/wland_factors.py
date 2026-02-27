@@ -10,4 +10,3 @@ class DHS(sequencetools.FactorSequence):
     """External change of the surface water depth [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)

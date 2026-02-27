@@ -1961,7 +1961,6 @@ class NameParameter(_MixinModifiableParameter, Parameter):
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = int
     TIME: TypeTIME = None
-    SPAN: TypeSPAN = (None, None)
     constants: Constants
     _possible_values: set[int]
 

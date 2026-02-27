@@ -44,7 +44,6 @@ class HRUType(parametertools.NameParameter):
     """Hydrological response unit type [-]."""
 
     TIME = None
-    SPAN = (None, None)
     constants = parametertools.Constants(ANY=0)
 
 
@@ -114,7 +113,6 @@ class HRUAltitude(evap_parameters.ZipParameter1D):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -133,7 +131,6 @@ class AirTemperatureAddend(evap_parameters.ZipParameter1D):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -246,7 +243,6 @@ class AverageSoilHeatFlux(parametertools.MonthParameter):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -332,7 +328,6 @@ class AltitudeFactor(evap_parameters.ZipParameter1D):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.1
 
 
@@ -357,7 +352,6 @@ class AirTemperatureFactor(evap_parameters.ZipParameter1D):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.1
 
 
@@ -379,7 +373,6 @@ class TemperatureThresholdIce(evap_parameters.WaterParameter1D):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class MaxSoilWater(evap_parameters.SoilParameter1D):

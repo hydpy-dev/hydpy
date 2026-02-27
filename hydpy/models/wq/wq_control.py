@@ -91,7 +91,6 @@ class Heights(wq_variables.MixinWidths, parametertools.SortedParameter):
     """
 
     TIME = None
-    SPAN = (None, None)
 
 
 class FlowWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
@@ -273,7 +272,6 @@ class BottomLevels(wq_variables.MixinTrapezes, parametertools.SortedParameter):
     """
 
     TIME = None
-    SPAN = (None, None)
 
 
 class BottomWidths(wq_variables.MixinTrapezes, parametertools.Parameter):

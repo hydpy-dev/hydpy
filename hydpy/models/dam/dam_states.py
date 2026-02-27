@@ -11,4 +11,3 @@ class WaterVolume(sequencetools.StateSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)

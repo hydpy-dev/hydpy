@@ -18,10 +18,8 @@ class AirTemperature(evap_sequences.FactorSequence1D):
     """Air temperature [°C]."""
 
 
-
 class DailyAirTemperature(evap_sequences.FactorSequence1D):
     """The average air temperature in the last 24 hours [°C]."""
-
 
 
 class WindSpeed2m(sequencetools.FactorSequence):
@@ -76,40 +74,32 @@ class SaturationVapourPressure(evap_sequences.FactorSequence1D):
     """Saturation vapour pressure [hPa]."""
 
 
-
 class DailySaturationVapourPressure(evap_sequences.FactorSequence1D):
     """Average saturation vapour pressure in the last 24 hours [hPa]."""
-
 
 
 class SaturationVapourPressureSlope(evap_sequences.FactorSequence1D):
     """The slope of the saturation vapour pressure curve [hPa/K]."""
 
 
-
 class DailySaturationVapourPressureSlope(evap_sequences.FactorSequence1D):
     """Average saturation vapour pressure slope in the last 24 hours [hPa/K]."""
-
 
 
 class ActualVapourPressure(evap_sequences.FactorSequence1D):
     """Actual vapour pressure [hPa]."""
 
 
-
 class DailyActualVapourPressure(evap_sequences.FactorSequence1D):
     """The average actual vapour pressure in the last 24 hours [hPa]."""
-
 
 
 class DryAirPressure(evap_sequences.FactorSequence1D):
     """Dry air pressure [hPa]."""
 
 
-
 class AirDensity(evap_sequences.FactorSequence1D):
     """Air density [kg/m³]."""
-
 
 
 class PsychrometricConstant(sequencetools.FactorSequence):
@@ -120,7 +110,6 @@ class PsychrometricConstant(sequencetools.FactorSequence):
 
 class CurrentAlbedo(evap_sequences.FactorSequence1D):
     """The current albedo of the relevant surface [-]."""
-
 
 
 class AdjustedCloudCoverage(sequencetools.FactorSequence):
@@ -134,10 +123,8 @@ class AerodynamicResistance(evap_sequences.FactorSequence1D):
     """Aerodynamic resistance [s/m]."""
 
 
-
 class SoilSurfaceResistance(evap_sequences.FactorSequence1D):
     """Soil surface resistance [s/m]."""
-
 
 
 class LanduseSurfaceResistance(evap_sequences.FactorSequence1D):
@@ -145,28 +132,22 @@ class LanduseSurfaceResistance(evap_sequences.FactorSequence1D):
     areas, and vegetation [s/m]."""
 
 
-
 class ActualSurfaceResistance(evap_sequences.FactorSequence1D):
     """Actual surface resistance [s/m]."""
-
 
 
 class InterceptedWater(evap_sequences.FactorSequence1D):
     """Intercepted water [mm]."""
 
 
-
 class SoilWater(evap_sequences.FactorSequence1D):
     """Soil water content [mm]."""
-
 
 
 class SnowCover(evap_sequences.FactorSequence1D):
     """Snow cover degree [-]."""
 
 
-
 class SnowyCanopy(evap_sequences.FactorSequence1D):
     """Snow cover degree in the canopies of tree-like vegetation (is for |numpy.nan|
     non-tree-like vegetation) [-]."""
-

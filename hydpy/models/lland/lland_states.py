@@ -100,7 +100,6 @@ class SInz(lland_sequences.State1DSequence):
 class ESnowInz(lland_sequences.State1DSequence):
     """Kälteinhalt der Schneedecke des Interzeptionsspeichers [WT/m²]."""
 
-    SPAN = (None, None)
     mask = lland_masks.Forest()
 
 
@@ -188,7 +187,6 @@ class ESnow(lland_sequences.State1DSequence):
     """Thermischer Energieinhalt der Schneedecke bezogen auf 0°C (thermal
     energy content of the snow layer with respect to 0°C) [WT/m²]."""
 
-    SPAN = (None, None)
     mask = lland_masks.Land()
 
 
@@ -206,7 +204,6 @@ class EBdn(lland_sequences.State1DSequence):
     """Energiegehalt des Bodenwassers (energy content of the soil water)
     [WT/m²]."""
 
-    SPAN = (None, None)
     mask = lland_masks.Land()
 
 
@@ -236,14 +233,12 @@ class SDG1(sequencetools.StateSequence):
     """Träger Direktabfluss-Gebietsspeicher (slow direct runoff storage) [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)
 
 
 class SDG2(sequencetools.StateSequence):
     """Dynamischer Direktabfluss-Gebietsspeicher (fast direct runoff storage) [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)
 
 
 class SIG1(sequencetools.StateSequence):
@@ -264,7 +259,6 @@ class SBG(sequencetools.StateSequence):
     """Basisabfluss-Gebietsspeicher (base flow storage) [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Trim in accordance with :math:`SBG \leq GSBMax \cdot VolBMax`.

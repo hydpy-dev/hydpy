@@ -14,13 +14,9 @@ from hydpy.models.musk import musk_sequences
 class CourantNumber(musk_sequences.StateSequence1D):
     """Courant number [-]."""
 
-    SPAN = (None, None)
-
 
 class ReynoldsNumber(musk_sequences.StateSequence1D):
     """Cell Reynolds number [-]."""
-
-    SPAN = (None, None)
 
 
 class Discharge(musk_sequences.StateSequence1D):

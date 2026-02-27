@@ -63,7 +63,6 @@ class BottomLevel(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class StricklerCoefficient(parametertools.Parameter):
@@ -119,7 +118,6 @@ class CrestHeight(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class CrestWidth(parametertools.Parameter):
@@ -142,7 +140,6 @@ class GateHeight(parametertools.CallbackParameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class GateWidth(parametertools.Parameter):
@@ -170,7 +167,6 @@ class TargetWaterLevel1(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |TargetWaterLevel1| following
@@ -196,7 +192,6 @@ class TargetWaterLevel2(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |TargetWaterLevel2| following
@@ -222,7 +217,6 @@ class BottomLowWaterThreshold(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
     TIME = None
-    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |BottomLowWaterThreshold| following
@@ -272,7 +266,6 @@ class UpperLowWaterThreshold(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
     TIME = None
-    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |UpperLowWaterThreshold| following
@@ -316,7 +309,6 @@ class BottomHighWaterThreshold(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
     TIME = None
-    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |BottomHighWaterThreshold| following
@@ -360,7 +352,6 @@ class UpperHighWaterThreshold(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
     TIME = None
-    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |UpperHighWaterThreshold| following

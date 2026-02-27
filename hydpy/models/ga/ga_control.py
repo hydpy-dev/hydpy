@@ -73,7 +73,6 @@ class DT(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = False
-    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         """Adjust |DT| when necessary, so the simulation period is an integer multiple.

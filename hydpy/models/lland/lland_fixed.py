@@ -164,5 +164,4 @@ class CG(parametertools.FixedParameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = False
-    SPAN = (None, None)
     INIT = 17.36111111111111

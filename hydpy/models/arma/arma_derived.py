@@ -163,7 +163,6 @@ class AR_Coefs(parametertools.Parameter):
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
@@ -198,7 +197,6 @@ class MA_Coefs(parametertools.Parameter):
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 

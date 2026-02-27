@@ -26,8 +26,6 @@ class SurfaceWidth(musk_sequences.FactorSequence1D):
 class Celerity(musk_sequences.FactorSequence1D):
     """Kinematic celerity (wave speed) [m/T]."""
 
-    SPAN = (None, None)
-
 
 class CorrectingFactor(musk_sequences.FactorSequence1D):
     """Correcting factor [-]."""
@@ -38,16 +36,10 @@ class CorrectingFactor(musk_sequences.FactorSequence1D):
 class Coefficient1(musk_sequences.FactorSequence1D):
     """First coefficient of the Muskingum working formula [-]."""
 
-    SPAN = (None, None)
-
 
 class Coefficient2(musk_sequences.FactorSequence1D):
     """Second coefficient of the Muskingum working formula [-]."""
 
-    SPAN = (None, None)
-
 
 class Coefficient3(musk_sequences.FactorSequence1D):
     """Third coefficient of the Muskingum working formula [-]."""
-
-    SPAN = (None, None)

@@ -40,7 +40,6 @@ class X2(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = True
-    SPAN = (None, None)
 
     @classmethod
     def get_timefactor(cls) -> float:
@@ -100,7 +99,6 @@ class X5(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class X6(parametertools.Parameter):

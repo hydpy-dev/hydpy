@@ -11,7 +11,6 @@ class SurfaceArea(sequencetools.AideSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class AllowedDischarge(sequencetools.AideSequence):
@@ -20,7 +19,6 @@ class AllowedDischarge(sequencetools.AideSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class AllowedWaterLevel(sequencetools.AideSequence):
@@ -29,4 +27,3 @@ class AllowedWaterLevel(sequencetools.AideSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)

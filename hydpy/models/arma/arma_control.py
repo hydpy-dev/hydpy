@@ -208,7 +208,6 @@ the same threshold value(s) twice.
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     def __init__(self, subvars: parametertools.SubParameters) -> None:
         with objecttools.ResetAttrFuncs(self):

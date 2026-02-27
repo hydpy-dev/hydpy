@@ -11,7 +11,6 @@ class LogIn(sequencetools.LogSequence):
     different MA processes [m³/s]."""
 
     NDIM: Final[Literal[2]] = 2
-    SPAN = (None, None)
 
 
 class LogOut(sequencetools.LogSequence):
@@ -19,4 +18,3 @@ class LogOut(sequencetools.LogSequence):
     different AR processes [m³/s]."""
 
     NDIM: Final[Literal[2]] = 2
-    SPAN = (None, None)

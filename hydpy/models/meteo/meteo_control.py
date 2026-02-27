@@ -165,7 +165,6 @@ class TemperatureAddend(meteo_parameters.ZipParameter1D):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 

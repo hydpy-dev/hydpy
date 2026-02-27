@@ -173,7 +173,6 @@ class RestrictTargetedRelease(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
     TIME = None
-    SPAN = (None, None)
 
 
 class WaterVolumeMinimumThreshold(parametertools.SeasonalParameter):
@@ -190,7 +189,6 @@ class WaterLevelMinimumThreshold(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class WaterLevelMinimumTolerance(parametertools.Parameter):
@@ -208,7 +206,6 @@ class WaterLevelMaximumThreshold(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class WaterLevelMaximumTolerance(parametertools.Parameter):
@@ -226,7 +223,6 @@ class RemoteWaterLevelMaximumThreshold(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class RemoteWaterLevelMaximumTolerance(parametertools.Parameter):
@@ -245,7 +241,6 @@ class ThresholdEvaporation(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class ToleranceEvaporation(parametertools.Parameter):
@@ -283,7 +278,6 @@ class HighestRemoteRelief(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
     TIME = None
-    SPAN = (None, None)
 
 
 class WaterLevelReliefThreshold(parametertools.SeasonalParameter):
@@ -292,7 +286,6 @@ class WaterLevelReliefThreshold(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
     TIME = None
-    SPAN = (None, None)
 
 
 class WaterLevelReliefTolerance(parametertools.SeasonalParameter):
@@ -300,7 +293,6 @@ class WaterLevelReliefTolerance(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
     TIME = None
-    SPAN = (None, None)
 
 
 class HighestRemoteSupply(parametertools.SeasonalParameter):
@@ -308,7 +300,6 @@ class HighestRemoteSupply(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
     TIME = None
-    SPAN = (None, None)
 
 
 class WaterLevelSupplyThreshold(parametertools.SeasonalParameter):
@@ -317,7 +308,6 @@ class WaterLevelSupplyThreshold(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
     TIME = None
-    SPAN = (None, None)
 
 
 class WaterLevelSupplyTolerance(parametertools.SeasonalParameter):
@@ -325,7 +315,6 @@ class WaterLevelSupplyTolerance(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
     TIME = None
-    SPAN = (None, None)
 
 
 class HighestRemoteDischarge(parametertools.Parameter):
@@ -466,7 +455,6 @@ class CrestLevel(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class CrestLevelTolerance(parametertools.Parameter):

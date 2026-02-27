@@ -114,7 +114,6 @@ class GH(lland_parameters.ParameterComplete):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     def update(self) -> None:
         """Always fall back to the default value if the user provides none
@@ -169,7 +168,6 @@ class ATG(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = -0.65
 
     def update(self) -> None:
@@ -202,7 +200,6 @@ class KT(lland_parameters.ParameterComplete):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -415,7 +412,6 @@ class TRefT(lland_parameters.ParameterLand):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -426,7 +422,6 @@ class TRefN(lland_parameters.ParameterLand):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -436,7 +431,6 @@ class TGr(lland_parameters.ParameterLand):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -500,7 +494,6 @@ class AGGH(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = numpy.inf
 
     def update(self) -> None:
@@ -534,7 +527,6 @@ class AGSH(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = numpy.inf
 
     def update(self) -> None:
@@ -731,7 +723,6 @@ class WG2Z(parametertools.MonthParameter):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -1041,7 +1032,6 @@ Keyword `rdmax` is not among the available model constants.
 
     TYPE: Final = float
     TIME = True
-    SPAN = (None, None)
     INIT = 1.0
 
     def __call__(self, *args, **kwargs) -> None:
@@ -1267,7 +1257,6 @@ could not be set based on the given keyword arguments.
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
     KEYWORDS = {"option": parametertools.Keyword(name="option")}
 
@@ -1356,7 +1345,6 @@ class GSBGrad1(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = True
-    SPAN = (None, None)
     INIT = numpy.inf
 
     def trim(self, lower=None, upper=None) -> bool:
@@ -1388,7 +1376,6 @@ class GSBGrad2(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = True
-    SPAN = (None, None)
     INIT = numpy.inf
 
     def trim(self, lower=None, upper=None) -> bool:

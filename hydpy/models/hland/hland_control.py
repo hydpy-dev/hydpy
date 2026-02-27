@@ -282,7 +282,6 @@ class ZoneZ(hland_parameters.ParameterComplete):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
 
 class PCorr(hland_parameters.ParameterComplete):
@@ -299,7 +298,6 @@ class PCAlt(hland_parameters.ParameterComplete):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.1
 
 
@@ -326,7 +324,6 @@ class TCorr(hland_parameters.ParameterNoGlacier):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -335,7 +332,6 @@ class TCAlt(hland_parameters.ParameterComplete):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.6
 
 
@@ -1088,7 +1084,6 @@ class TT(hland_parameters.ParameterComplete):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -1106,7 +1101,6 @@ class DTTM(hland_parameters.ParameterLand):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -1128,7 +1122,6 @@ class CFVar(hland_parameters.ParameterLand):
 
     TYPE: Final = float
     TIME = True
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -1150,7 +1143,6 @@ class GVar(hland_parameters.ParameterGlacier):
 
     TYPE: Final = float
     TIME = True
-    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -1214,7 +1206,6 @@ class RespArea(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
     TIME = None
-    SPAN = (None, None)
 
 
 class RecStep(parametertools.Parameter):
@@ -1378,7 +1369,6 @@ class K0(hland_parameters.ParameterUpperZone):
 
     TYPE: Final = float
     TIME = False
-    SPAN = (None, None)
 
     # defined at the bottom of the file:
     CONTROLPARAMETERS: tuple[type[K1]]
@@ -1440,7 +1430,6 @@ class K1(hland_parameters.ParameterUpperZone):
 
     TYPE: Final = float
     TIME = False
-    SPAN = (None, None)
 
     # defined at the bottom of the file:
     CONTROLPARAMETERS: tuple[type[K0], type[K2]]
@@ -1534,7 +1523,6 @@ class K2(hland_parameters.ParameterUpperZone):
 
     TYPE: Final = float
     TIME = False
-    SPAN = (None, None)
 
     # defined at the bottom of the file:
     CONTROLPARAMETERS: tuple[type[K1], type[K3]]

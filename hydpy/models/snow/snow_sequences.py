@@ -39,7 +39,6 @@ class Factor1DNLayers(Sequence1DNLayers, sequencetools.FactorSequence):
     """
 
 
-
 class Flux1DNLayers(Sequence1DNLayers, sequencetools.FluxSequence):
     """Base class for flux sequences with different values for individual layers.
 
@@ -55,7 +54,6 @@ class Flux1DNLayers(Sequence1DNLayers, sequencetools.FluxSequence):
     >>> round_(fluxes.player.average_values())
     2.5
     """
-
 
 
 class State1DNLayers(Sequence1DNLayers, sequencetools.StateSequence):
@@ -75,7 +73,6 @@ class State1DNLayers(Sequence1DNLayers, sequencetools.StateSequence):
     """
 
 
-
 class Log1DNLayers(Sequence1DNLayers, sequencetools.LogSequence):
     """Base class for log sequences with different values for individual layers.
 
@@ -91,4 +88,3 @@ class Log1DNLayers(Sequence1DNLayers, sequencetools.LogSequence):
     >>> round_(logs.glocalmax.average_values())
     2.5
     """
-

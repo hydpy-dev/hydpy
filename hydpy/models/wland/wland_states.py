@@ -14,7 +14,6 @@ class IC(wland_sequences.StateSequence1DLand):
 
     NDIM: Final[Literal[1]] = 1
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class SP(wland_sequences.StateSequence1DLand):
@@ -22,7 +21,6 @@ class SP(wland_sequences.StateSequence1DLand):
 
     NDIM: Final[Literal[1]] = 1
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class DVE(sequencetools.StateSequence):
@@ -30,7 +28,6 @@ class DVE(sequencetools.StateSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class DV(sequencetools.StateSequence):
@@ -38,7 +35,6 @@ class DV(sequencetools.StateSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class HGE(sequencetools.StateSequence):
@@ -46,7 +42,6 @@ class HGE(sequencetools.StateSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class DG(sequencetools.StateSequence):
@@ -54,7 +49,6 @@ class DG(sequencetools.StateSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class HQ(sequencetools.StateSequence):
@@ -62,7 +56,6 @@ class HQ(sequencetools.StateSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class HS(sequencetools.StateSequence):
@@ -70,4 +63,3 @@ class HS(sequencetools.StateSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)

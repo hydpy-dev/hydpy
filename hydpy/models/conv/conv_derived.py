@@ -118,7 +118,6 @@ class Distances(parametertools.Parameter):
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (conv_control.InputCoordinates, conv_control.OutputCoordinates)
 
@@ -162,7 +161,6 @@ class ProximityOrder(parametertools.Parameter):
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = int
     TIME = None
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (
         conv_control.MaxNmbInputs,
@@ -221,7 +219,6 @@ class Weights(parametertools.Parameter):
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (
         conv_control.MaxNmbInputs,

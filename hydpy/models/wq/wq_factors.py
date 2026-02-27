@@ -20,7 +20,6 @@ class WaterLevel(sequencetools.FactorSequence):
     """Water level [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)
 
 
 class WettedAreas(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
@@ -145,18 +144,14 @@ class DischargeDerivatives(
     """Discharge change of each trapeze range with respect to a water level increase
     [m²/s]."""
 
-    SPAN = (None, None)
-
 
 class DischargeDerivative(sequencetools.FactorSequence):
     """Total discharge change with respect to a water level increase [m²/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)
 
 
 class Celerity(sequencetools.FactorSequence):
     """Kinematic celerity (wave speed) [m/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)

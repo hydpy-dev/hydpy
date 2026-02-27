@@ -48,7 +48,6 @@ class ZMean(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (snow_control.ZLayers,)
 

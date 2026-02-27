@@ -54,7 +54,6 @@ class Altitude(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (evap_control.HRUArea, evap_control.HRUAltitude)
 

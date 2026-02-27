@@ -166,8 +166,8 @@ and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
     var(3.0)
 
-    If a |Variable| subclass does not have (fixed) boundaries, give it either no `SPAN`
-    attribute or a |tuple| containing |None| values:
+    If a |Variable| subclass does not have (fixed) boundaries, give it no `SPAN`
+    attribute:
 
     >>> del Var.SPAN
     >>> var.value = 5.0
@@ -175,7 +175,6 @@ and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
     var(5.0)
 
-    >>> Var.SPAN = (None, None)
     >>> assert var.trim() is False
     >>> var
     var(5.0)

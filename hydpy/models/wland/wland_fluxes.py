@@ -22,10 +22,8 @@ class PE(wland_sequences.FluxSequence1DComplete):
     [mm/T]."""
 
 
-
 class PET(wland_sequences.FluxSequence1DSoil):
     """Potential evapotranspiration from the vadose zone [mm/T]."""
-
 
 
 class TF(wland_sequences.FluxSequence1DLand):
@@ -107,7 +105,6 @@ class ETVE(sequencetools.FluxSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class ETV(sequencetools.FluxSequence):
@@ -115,7 +112,6 @@ class ETV(sequencetools.FluxSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class ES(sequencetools.FluxSequence):
@@ -123,14 +119,12 @@ class ES(sequencetools.FluxSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class ET(sequencetools.FluxSequence):
     """Total actual evapotranspiration [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    SPAN = (None, None)
 
 
 class GR(sequencetools.FluxSequence):
@@ -138,7 +132,6 @@ class GR(sequencetools.FluxSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class FXS(sequencetools.FluxSequence):
@@ -162,7 +155,6 @@ class CDG(sequencetools.FluxSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class FGSE(sequencetools.FluxSequence):
@@ -170,7 +162,6 @@ class FGSE(sequencetools.FluxSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class FGS(sequencetools.FluxSequence):
@@ -178,7 +169,6 @@ class FGS(sequencetools.FluxSequence):
 
     NDIM: Final[Literal[0]] = 0
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class FQS(sequencetools.FluxSequence):

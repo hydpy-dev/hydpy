@@ -278,7 +278,6 @@ with value `1.0` needed to be trimmed to `0.0`.
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     SHAPE = (3,)
     KEYWORDS = {
         "damp": parametertools.Keyword(name="damp"),

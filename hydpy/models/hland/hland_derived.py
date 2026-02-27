@@ -294,7 +294,6 @@ class Z(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (
         hland_control.Area,
@@ -481,7 +480,6 @@ class TTM(hland_parameters.ParameterLand):
 
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
 
     CONTROLPARAMETERS = (hland_control.TT, hland_control.DTTM)
 

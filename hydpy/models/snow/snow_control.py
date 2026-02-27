@@ -24,7 +24,6 @@ class ZLayers(snow_parameters.Parameter1DLayers):
     """
 
     TIME = None
-    SPAN = (None, None)
 
 
 class LayerArea(snow_parameters.Parameter1DLayers):
@@ -45,7 +44,6 @@ class GradP(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
     TIME = None
-    SPAN = (None, None)
     INIT = 0.00041
 
 

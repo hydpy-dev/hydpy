@@ -12,7 +12,6 @@ class H(sequencetools.StateSequence):
 
     NDIM: Final[Literal[1]] = 1
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class VG(sequencetools.StateSequence):
@@ -20,7 +19,6 @@ class VG(sequencetools.StateSequence):
 
     NDIM: Final[Literal[1]] = 1
     NUMERIC = True
-    SPAN = (None, None)
 
 
 class WaterVolume(sequencetools.StateSequence):

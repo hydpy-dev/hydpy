@@ -8,4 +8,5 @@ from hydpy.core import sequencetools
 class WaterLevel(sequencetools.SenderSequence):
     """The water level within the first channel segment [m]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False

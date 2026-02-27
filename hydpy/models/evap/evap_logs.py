@@ -8,55 +8,64 @@ from hydpy.core import sequencetools
 class LoggedAirTemperature(sequencetools.LogSequence):
     """Logged air temperature [°C]."""
 
-    NDIM, NUMERIC = 2, False
+    NDIM = 2
+    NUMERIC = False
 
 
 class LoggedPrecipitation(sequencetools.LogSequence):
     """Logged precipitation [mm/T]."""
 
-    NDIM, NUMERIC = 2, False
+    NDIM = 2
+    NUMERIC = False
 
 
 class LoggedWindSpeed2m(sequencetools.LogSequence):
     """Logged wind speed at 2 m above grass-like vegetation [m/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
 
 class LoggedRelativeHumidity(sequencetools.LogSequence):
     """Logged relative humidity [%]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
 
 class LoggedSunshineDuration(sequencetools.LogSequence):
     """Logged sunshine duration [h]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
 
 class LoggedPossibleSunshineDuration(sequencetools.LogSequence):
     """Logged astronomically possible sunshine duration [h]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
 
 class LoggedGlobalRadiation(sequencetools.LogSequence):
     """Logged global radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
 
 class LoggedClearSkySolarRadiation(sequencetools.LogSequence):
     """Logged clear sky radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
 
 class LoggedPotentialEvapotranspiration(sequencetools.LogSequence):
     """Logged (damped) potential evapotranspiration [mm/T]."""
 
-    NDIM, NUMERIC = 2, False
+    NDIM = 2
+    NUMERIC = False
 
     @property
     def shape(self):
@@ -81,10 +90,12 @@ class LoggedPotentialEvapotranspiration(sequencetools.LogSequence):
 class LoggedWaterEvaporation(sequencetools.LogSequence):
     """Logged evaporation from water areas [mm/T]."""
 
-    NDIM, NUMERIC = 2, False
+    NDIM = 2
+    NUMERIC = False
 
 
 class LoggedPotentialSoilEvapotranspiration(sequencetools.LogSequence):
     """Logged potential soil evapotranspiration [mm/T]."""
 
-    NDIM, NUMERIC = 2, False
+    NDIM = 2
+    NUMERIC = False

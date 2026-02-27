@@ -16,7 +16,8 @@ class DOY(parametertools.DOYParameter):
 class GThresh(snow_parameters.Parameter1DLayers):
     """Accumulation threshold [mm]."""
 
-    TIME, SPAN = None, (0.0, None)
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (
         snow_control.NLayers,
@@ -43,7 +44,10 @@ class GThresh(snow_parameters.Parameter1DLayers):
 class ZMean(parametertools.Parameter):
     """Mean elevation of all layer [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (snow_control.ZLayers,)
 

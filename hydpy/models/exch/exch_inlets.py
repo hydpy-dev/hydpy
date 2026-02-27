@@ -8,4 +8,5 @@ from hydpy.core import sequencetools
 class Total(sequencetools.InletSequence):
     """Total input [e.g. m³/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False

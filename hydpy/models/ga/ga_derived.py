@@ -12,7 +12,10 @@ from hydpy.models.ga import ga_control
 class NmbSubsteps(parametertools.Parameter):
     """The number of numerical substeps in each simulation step [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, numpy.inf)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (1, numpy.inf)
 
     CONTROLPARAMETERS = (ga_control.DT,)
 
@@ -33,7 +36,10 @@ class NmbSubsteps(parametertools.Parameter):
 class SoilAreaFraction(parametertools.Parameter):
     """The area fraction of each soil compartment [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (ga_control.SoilArea,)
 
@@ -57,7 +63,10 @@ class EffectiveCapillarySuction(parametertools.Parameter):
     """The effective capillary suction according to the Brooks-Corey soil moisture
     characteristic model :cite:p:`ref-Brooks1966` [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (ga_control.PoreSizeDistribution, ga_control.AirEntryPotential)
 

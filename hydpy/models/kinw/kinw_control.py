@@ -15,19 +15,28 @@ from hydpy.auxs import interptools
 class Laen(parametertools.Parameter):
     """Flusslänge (channel length) [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class Length(parametertools.Parameter):
     """Channel length [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class Gef(parametertools.Parameter):
     """Sohlgefälle (channel slope) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class GTS(parametertools.Parameter):
@@ -44,7 +53,10 @@ class GTS(parametertools.Parameter):
     h(nan, nan, nan)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
@@ -97,76 +109,112 @@ class NmbSegments(parametertools.NmbParameter):
 class HM(parametertools.Parameter):
     """Höhe Hauptgerinne (height of the main channel) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class BM(parametertools.Parameter):
     """Sohlbreite Hauptgerinne (bed width of the main channel) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class BNM(parametertools.Parameter):
     """Böschungsneigung Hauptgerinne (slope of both main channel embankments) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class BV(parametertools.LeftRightParameter):
     """Sohlbreite Vorländer (bed widths of both forelands) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class BBV(parametertools.LeftRightParameter):
     """Breite Vorlandböschungen (width of both foreland embankments) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class BNV(parametertools.LeftRightParameter):
     """Böschungsneigung Vorländer (slope of both foreland embankments) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class BNVR(parametertools.LeftRightParameter):
     """Böschungsneigung Vorlandränder (slope of both outer embankments) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class SKM(parametertools.Parameter):
     """Rauigkeitsbeiwert Hauptgerinne (roughness coefficient of the main channel)
     [m^(1/3)/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class SKV(parametertools.LeftRightParameter):
     """Rauigkeitsbeiwert Vorländer (roughness coefficient of both forelands)
     [m^(1/3)/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class EKM(parametertools.Parameter):
     """Kalibrierfaktor Hauptgerinne (calibration factor for the main channel) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class EKV(parametertools.LeftRightParameter):
     """Kalibrierfaktor Vorländer (calibration factor for both forelands) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class HR(parametertools.Parameter):
     """Allgemeiner Glättungsparameter für den Wasserstand (general smoothing parameter
     for the water stage) [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class VG2FG(interptools.SimpleInterpolator):
@@ -313,4 +361,7 @@ class VG2FG(interptools.SimpleInterpolator):
 class EK(parametertools.Parameter):
     """Kalibrierfaktor (calibration factor) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)

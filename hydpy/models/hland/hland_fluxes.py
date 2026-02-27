@@ -111,13 +111,15 @@ class CF(hland_sequences.Flux1DSequence):
 class InUZ(sequencetools.FluxSequence):
     """Inflow to the upper zone layer [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class Perc(sequencetools.FluxSequence):
     """Percolation from the upper to the lower zone layer [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class DP(hland_sequences.Flux1DSequence):
@@ -134,7 +136,8 @@ class DP(hland_sequences.Flux1DSequence):
 class Q0(sequencetools.FluxSequence):
     """Outflow from the upper zone layer [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class QVs1(hland_sequences.Flux1DSequence):
@@ -182,7 +185,8 @@ class EL(hland_sequences.Flux1DSequence):
 class Q1(sequencetools.FluxSequence):
     """Outflow from the lower zone layer [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class RS(hland_sequences.Flux1DSequence):

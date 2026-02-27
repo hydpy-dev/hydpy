@@ -14,10 +14,13 @@ class WaterVolume(sequencetools.StateSequence):
     :ref:`sw1d_channel_excessive_water_withdrawal`).
     """
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)
 
 
 class Discharge(sequencetools.StateSequence):
     """Discharge [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False

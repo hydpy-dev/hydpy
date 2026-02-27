@@ -12,7 +12,10 @@ from hydpy.models.arma import arma_control
 class Nmb(parametertools.Parameter):
     """Number of response functions [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
@@ -51,7 +54,10 @@ class Nmb(parametertools.Parameter):
 class MaxQ(parametertools.Parameter):
     """Maximum discharge values of the respective ARMA models [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
@@ -73,7 +79,10 @@ class MaxQ(parametertools.Parameter):
 class DiffQ(parametertools.Parameter):
     """Differences between the values of |MaxQ| [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
@@ -99,7 +108,10 @@ class DiffQ(parametertools.Parameter):
 class AR_Order(parametertools.Parameter):
     """Number of AR coefficients of the different responses [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
+    NDIM = 1
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
@@ -121,7 +133,10 @@ class AR_Order(parametertools.Parameter):
 class MA_Order(parametertools.Parameter):
     """Number of MA coefficients of the different responses [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
+    NDIM = 1
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
@@ -143,7 +158,10 @@ class MA_Order(parametertools.Parameter):
 class AR_Coefs(parametertools.Parameter):
     """AR coefficients of the different responses [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM = 2
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
@@ -175,7 +193,10 @@ class AR_Coefs(parametertools.Parameter):
 class MA_Coefs(parametertools.Parameter):
     """MA coefficients of the different responses [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM = 2
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 

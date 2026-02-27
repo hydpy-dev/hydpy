@@ -8,5 +8,6 @@ from hydpy.core import sequencetools
 class P(sequencetools.InputSequence):
     """Precipitation [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.PRECIPITATION

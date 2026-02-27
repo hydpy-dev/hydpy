@@ -22,7 +22,10 @@ class Seconds(parametertools.SecondsParameter):
 class HV(parametertools.LeftRightParameter):
     """Höhe Vorländer (height of both forelands) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BBV, kinw_control.BNV)
 
@@ -55,7 +58,10 @@ class MFM(parametertools.Parameter):
     Hauptgerinne (product of the time-constant terms of the Manning-Strickler
     equation, calculated for the main channel) [m^(1/3)/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.EKM, kinw_control.SKM, kinw_control.Gef)
 
@@ -81,7 +87,10 @@ class MFV(parametertools.LeftRightParameter):
     beide Vorländer (product of the time-constant terms of the Manning-Strickler
     equation, calculated for both forelands) [m^(1/3)/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.EKV, kinw_control.SKV, kinw_control.Gef)
 
@@ -107,7 +116,10 @@ class BNMF(parametertools.Parameter):
     Hauptgerinne (auxiliary term for the calculation of the wetted
     perimeter of the slope of the main channel) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BNM,)
 
@@ -130,7 +142,10 @@ class BNVF(parametertools.LeftRightParameter):
     (auxiliary term for the calculation of the wetted perimeter of the slope
     of both forelands) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BNV,)
 
@@ -153,7 +168,10 @@ class BNVRF(parametertools.LeftRightParameter):
     Vorlandränder (auxiliary term for the calculation of the wetted
     perimeter of the slope of both outer embankments) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BNVR,)
 
@@ -177,7 +195,10 @@ class HRP(parametertools.Parameter):
     for water stage to be used when applying regularisation function
     |smooth_logistic2|) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.HR,)
 
@@ -207,7 +228,10 @@ class HRP(parametertools.Parameter):
 class NmbDiscontinuities(parametertools.Parameter):
     """Number of points of discontinuity in the rating curve [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     def update(self):
         """Take the number of discontinuities from the available cross-section
@@ -234,7 +258,10 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
     according to the implicit Euler method for each point of discontinuity in the
     rating curve [m and million m³]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+    NDIM = 2
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     def update(self):
         """Use the methods |CrossSectionModel_V1.get_depths_of_discontinuity| and

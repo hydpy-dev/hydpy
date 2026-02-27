@@ -9,7 +9,9 @@ from hydpy.models.musk import musk_sequences
 class Inflow(sequencetools.FluxSequence):
     """Inflow [m³/s]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)
 
 
 class ReferenceDischarge(musk_sequences.FluxSequence1D):
@@ -21,4 +23,6 @@ class ReferenceDischarge(musk_sequences.FluxSequence1D):
 class Outflow(sequencetools.FluxSequence):
     """Outflow [m³/s]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)

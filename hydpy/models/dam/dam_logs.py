@@ -8,13 +8,15 @@ from hydpy.core import sequencetools
 class LoggedTotalRemoteDischarge(sequencetools.LogSequence):
     """Logged discharge values from somewhere else [m³/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
 
 class LoggedOutflow(sequencetools.LogSequence):
     """Logged discharge values from the dam itself [m³/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
 
 class LoggedAdjustedEvaporation(sequencetools.LogSequenceFixed):

@@ -16,7 +16,9 @@ class Moisture(sequencetools.StateSequence):
     ToDo: What is the reason behind this behaviour? Can we change it?
     """
 
-    NDIM, NUMERIC, SPAN = 2, False, (0.0, 1.0)
+    NDIM = 2
+    NUMERIC = False
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (ga_control.ResidualMoisture, ga_control.SaturationMoisture)
 
@@ -57,7 +59,9 @@ class FrontDepth(sequencetools.StateSequence):
     does not necessarily mean a bin is inactive.
     """
 
-    NDIM, NUMERIC, SPAN = 2, False, (0.0, None)
+    NDIM = 2
+    NUMERIC = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (ga_control.SoilDepth,)
 

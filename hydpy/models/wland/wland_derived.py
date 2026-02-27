@@ -22,7 +22,10 @@ class MOY(parametertools.MOYParameter):
 class NUL(parametertools.Parameter):
     r"""Number of land-related hydrological response units [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (wland_control.NU,)
 
@@ -43,7 +46,10 @@ class NUGE(parametertools.Parameter):
     r"""Number of groundwater-affected hydrological response units in the elevated
     region [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (wland_control.LT,)
 
@@ -72,7 +78,10 @@ class NUG(parametertools.Parameter):
     r"""Number of groundwater-affected hydrological response units in the lowland
     region [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (wland_control.LT, wland_control.ER)
 
@@ -100,7 +109,10 @@ class NUG(parametertools.Parameter):
 class ALR(parametertools.Parameter):
     r"""Relative land area [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR,)
 
@@ -122,7 +134,10 @@ class ALR(parametertools.Parameter):
 class ASR(parametertools.Parameter):
     r"""Relative surface water area fraction [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR,)
 
@@ -144,7 +159,10 @@ class ASR(parametertools.Parameter):
 class AGRE(parametertools.Parameter):
     r"""Relative groundwater area in the elevated region [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT, wland_control.ER)
 
@@ -170,7 +188,10 @@ class AGRE(parametertools.Parameter):
 class AGR(parametertools.Parameter):
     r"""Relative groundwater area in the lowland region [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT, wland_control.ER)
 
@@ -196,7 +217,10 @@ class AGR(parametertools.Parameter):
 class QF(parametertools.Parameter):
     r"""Factor for converting mm/T to m³/s [T m³ / mm s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AT,)
 
@@ -218,7 +242,10 @@ class QF(parametertools.Parameter):
 class CD(parametertools.Parameter):
     """Channel depth [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.GL, wland_control.BL)
 
@@ -241,7 +268,10 @@ class RH1(parametertools.Parameter):
     """Regularisation parameter related to the height of water columns used when
     applying regularisation function |smooth_logistic1| [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.SH,)
 
@@ -272,7 +302,10 @@ class RH2(parametertools.Parameter):
     """Regularisation parameter related to the height of water columns used when
     applying regularisation function |smooth_logistic2| [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.SH,)
 
@@ -303,7 +336,10 @@ class RT2(parametertools.Parameter):
     """Regularisation parameter related to temperature for applying regularisation
     function |smooth_logistic2|) [°C]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.ST,)
 

@@ -19,7 +19,9 @@ class CourantNumber(musk_sequences.StateSequence1D):
 class ReynoldsNumber(musk_sequences.StateSequence1D):
     """Cell Reynolds number [-]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (None, None)
+    NDIM = 1
+    NUMERIC = False
+    SPAN = (None, None)
 
 
 class Discharge(musk_sequences.StateSequence1D):

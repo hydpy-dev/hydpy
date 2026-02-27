@@ -40,7 +40,10 @@ class SCT(parametertools.SCTParameter):
 class HRUAreaFraction(parametertools.Parameter):
     """The area fraction of each hydrological response unit [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (meteo_control.HRUArea,)
 
@@ -63,7 +66,10 @@ class HRUAreaFraction(parametertools.Parameter):
 class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for memorising one day's data [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (1, None)
 
     def update(self):
         """Calculate the number of entries and adjust the shape of all relevant log
@@ -133,7 +139,10 @@ class UTCLongitude(parametertools.UTCLongitudeParameter):
 class LatitudeRad(parametertools.Parameter):
     """The latitude [rad]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-1.5708, 1.5708)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (-1.5708, 1.5708)
 
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
     CONTROLPARAMETERS = (meteo_control.Latitude,)

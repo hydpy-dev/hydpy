@@ -17,4 +17,6 @@ class Discharges(wq_variables.MixinTrapezesOrSectors, sequencetools.FluxSequence
 class Discharge(sequencetools.FluxSequence):
     """Total discharge [m³/s]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)

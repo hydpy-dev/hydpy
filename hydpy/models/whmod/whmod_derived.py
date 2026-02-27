@@ -17,7 +17,9 @@ class MOY(parametertools.MOYParameter):
 class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
     """Relative zone area [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (whmod_control.Area, whmod_control.ZoneArea)
 
@@ -42,7 +44,9 @@ class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
 class SoilDepth(whmod_parameters.SoilTypeParameter):
     """Effective soil depth [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (whmod_control.RootingDepth, whmod_control.GroundwaterDepth)
 
@@ -69,7 +73,9 @@ class SoilDepth(whmod_parameters.SoilTypeParameter):
 class MaxSoilWater(whmod_parameters.SoilTypeParameter):
     """Maximum water content of the considered soil column [mm]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (
         whmod_control.AvailableFieldCapacity,
@@ -103,7 +109,9 @@ class MaxSoilWater(whmod_parameters.SoilTypeParameter):
 class Beta(whmod_parameters.SoilTypeParameter):
     """Nonlinearity parameter for calculating percolation [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (whmod_control.SoilType,)
     DERIVEDPARAMETERS = (MaxSoilWater,)
@@ -148,7 +156,9 @@ class Beta(whmod_parameters.SoilTypeParameter):
 class PotentialCapillaryRise(whmod_parameters.SoilTypeParameter):
     """Potential capillary rise [mm/T]."""
 
-    TYPE, TIME, SPAN = float, True, (0.0, None)
+    TYPE = float
+    TIME = True
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (
         whmod_control.SoilType,

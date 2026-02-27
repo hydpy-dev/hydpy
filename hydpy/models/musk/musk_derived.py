@@ -13,7 +13,10 @@ class Seconds(parametertools.SecondsParameter):
 class SegmentLength(parametertools.Parameter):
     """The length of each channel segments [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
     CONTROLPARAMETERS = (musk_control.Length,)
 
     def update(self):

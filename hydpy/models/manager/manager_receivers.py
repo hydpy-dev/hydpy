@@ -8,10 +8,12 @@ from hydpy.core import sequencetools
 class Q(sequencetools.ReceiverSequence):
     """Discharge at the target location [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class WaterVolume(sequencetools.ReceiverSequence):
     """The current water volume of the individual sources [million m³]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False

@@ -11,14 +11,16 @@ from hydpy.models.manager import manager_sequences
 class DemandTarget(sequencetools.FluxSequence):
     """The demand for additional water release at the target location [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class FreeDischarge(sequencetools.FluxSequence):
     """The discharge at the target location that would have occurred without requesting
     additional water releases [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class DemandSources(manager_sequences.MixinSource, sequencetools.FluxSequence):

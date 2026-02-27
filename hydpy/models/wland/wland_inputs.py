@@ -8,26 +8,30 @@ from hydpy.core import sequencetools
 class T(sequencetools.InputSequence):
     """Air temperature [°C]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.AIR_TEMPERATURE
 
 
 class P(sequencetools.InputSequence):
     """Precipitation [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.PRECIPITATION
 
 
 class FXG(sequencetools.InputSequence):
     """Seepage/extraction (normalised to |AT|) [mm/T]."""
 
-    NDIM, NUMERIC = 0, True
+    NDIM = 0
+    NUMERIC = True
     STANDARD_NAME = sequencetools.StandardInputNames.ARTIFICIAL_GROUNDWATER_RECHARGE
 
 
 class FXS(sequencetools.InputSequence):
     """Surface water supply/extraction (normalised to |AT|) [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.ARTIFICIAL_SURFACE_WATER_SUPPLY

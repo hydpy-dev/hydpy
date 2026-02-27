@@ -43,7 +43,9 @@ class SoilMoisture(whmod_sequences.State1DSoilSequence):
 class CisternWater(sequencetools.StateSequence):
     """Amount of water that is collected in the cistern [m³]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (0.0, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |CisternWater| following
@@ -70,4 +72,6 @@ class CisternWater(sequencetools.StateSequence):
 class DeepWater(sequencetools.StateSequence):
     """Amount of water that is (still) percolating through the vadose zone [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)

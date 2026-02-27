@@ -35,4 +35,5 @@ class PNetLayer(snow_sequences.Flux1DNLayers):
 class PNet(sequencetools.FluxSequence):
     """Net precipitation of the complete catchment [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False

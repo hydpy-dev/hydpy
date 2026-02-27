@@ -13,13 +13,19 @@ class K(parametertools.Parameter):
     the actual parameter time step.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class N(parametertools.Parameter):
     """Number of storages [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)

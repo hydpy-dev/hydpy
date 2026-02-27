@@ -10,7 +10,10 @@ from hydpy.core import parametertools
 class NmbSoils(parametertools.Parameter):
     """The number of separately modelled soil compartments in the subbasin [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
         nmbsoils_old = exceptiontools.getattr_(self, "value", None)
@@ -45,7 +48,10 @@ class NmbBins(parametertools.Parameter):
     and depth.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (2, None)
 
     def __call__(self, *args, **kwargs) -> None:
         nmbbins_old = exceptiontools.getattr_(self, "value", None)
@@ -63,7 +69,10 @@ class NmbBins(parametertools.Parameter):
 class DT(parametertools.Parameter):
     """The length of the numerical substeps [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = False
+    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         """Adjust |DT| when necessary, so the simulation period is an integer multiple.
@@ -119,25 +128,37 @@ class DT(parametertools.Parameter):
 class Sealed(parametertools.Parameter):
     """Flag indicating if a (soil) compartment is sealed for infiltration [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, bool, None, (False, True)
+    NDIM = 1
+    TYPE = bool
+    TIME = None
+    SPAN = (False, True)
 
 
 class SoilArea(parametertools.Parameter):
     """The area of each soil compartment [km²]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class SoilDepth(parametertools.Parameter):
     """Depth of the considered soil domains [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class ResidualMoisture(parametertools.Parameter):
     """Relative residual water content [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |ResidualMoisture| following
@@ -165,7 +186,10 @@ class ResidualMoisture(parametertools.Parameter):
 class SaturationMoisture(parametertools.Parameter):
     """Relative saturation water content [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |SaturationMoisture| following
@@ -193,16 +217,25 @@ class SaturationMoisture(parametertools.Parameter):
 class SaturatedConductivity(parametertools.Parameter):
     """Saturated hydraulic conductivity [mm/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = True
+    SPAN = (0.0, None)
 
 
 class PoreSizeDistribution(parametertools.Parameter):
     """Pore-size distribution parameter [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class AirEntryPotential(parametertools.Parameter):
     """Air entry potential [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)

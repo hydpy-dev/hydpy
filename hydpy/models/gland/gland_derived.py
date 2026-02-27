@@ -16,7 +16,10 @@ class DOY(parametertools.DOYParameter):
 class Beta(parametertools.Parameter):
     """Percolation factor [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     def update(self) -> None:
         r"""Update |Beta| based on the equation
@@ -80,7 +83,10 @@ class Beta(parametertools.Parameter):
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (gland_control.Area,)
 

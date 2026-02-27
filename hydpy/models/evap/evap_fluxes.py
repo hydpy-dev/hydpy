@@ -21,19 +21,22 @@ class DailyPrecipitation(evap_sequences.FluxSequence1D):
 class GlobalRadiation(sequencetools.FluxSequence):
     """Global radiation [W/m²]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class ClearSkySolarRadiation(sequencetools.FluxSequence):
     """Clear sky solar radiation [W/m²]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class DailyGlobalRadiation(sequencetools.FluxSequence):
     """Average global radiation in the last 24 hours [W/m²]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class NetShortwaveRadiation(evap_sequences.FluxSequence1D):
@@ -111,13 +114,15 @@ class DailyPotentialSoilEvapotranspiration(evap_sequences.FluxSequence1D):
 class MeanReferenceEvapotranspiration(sequencetools.FluxSequence):
     """Mean reference evapotranspiration [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class MeanPotentialEvapotranspiration(sequencetools.FluxSequence):
     """Mean potential evapotranspiration [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class PotentialWaterEvaporation(evap_sequences.FluxSequence1D):

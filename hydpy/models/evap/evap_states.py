@@ -9,7 +9,9 @@ from hydpy.models.evap import evap_sequences
 class CloudCoverage(sequencetools.StateSequence):
     """Degree of cloud coverage [-]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, 1.0)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (0.0, 1.0)
 
 
 class SoilResistance(evap_sequences.StateSequence1D):

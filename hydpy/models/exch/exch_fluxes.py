@@ -9,31 +9,36 @@ from hydpy.core import sequencetools
 class PotentialExchange(sequencetools.FluxSequence):
     """The potential bidirectional water exchange [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class ActualExchange(sequencetools.FluxSequence):
     """The actual bidirectional water exchange [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class OriginalInput(sequencetools.FluxSequence):
     """Unadjusted total input [e.g. m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class AdjustedInput(sequencetools.FluxSequence):
     """Adjusted total input [e.g. m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class Outputs(sequencetools.FluxSequence):
     """Branched outputs [e.g. m³/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
     def __repr__(self) -> str:
         names = self.subseqs.seqs.model.nodenames

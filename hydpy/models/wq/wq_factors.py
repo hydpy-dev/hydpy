@@ -11,13 +11,15 @@ from hydpy.models.wq import wq_variables
 class WaterDepth(sequencetools.FactorSequence):
     """Water depth [m]."""
 
-    NDIM, SPAN = 0, (0.0, None)
+    NDIM = 0
+    SPAN = (0.0, None)
 
 
 class WaterLevel(sequencetools.FactorSequence):
     """Water level [m]."""
 
-    NDIM, SPAN = 0, (None, None)
+    NDIM = 0
+    SPAN = (None, None)
 
 
 class WettedAreas(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
@@ -29,7 +31,8 @@ class WettedAreas(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
 class WettedArea(sequencetools.FactorSequence):
     """Total wetted area [m²]."""
 
-    NDIM, SPAN = 0, (0.0, None)
+    NDIM = 0
+    SPAN = (0.0, None)
 
 
 class FlowAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
@@ -43,7 +46,8 @@ class FlowArea(sequencetools.FactorSequence):
     """The total wetted area of those subareas of the cross section involved in water
     routing [m²]."""
 
-    NDIM, SPAN = 0, (0.0, None)
+    NDIM = 0
+    SPAN = (0.0, None)
 
 
 class TotalAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
@@ -55,7 +59,8 @@ class TotalAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequen
 class TotalArea(sequencetools.FactorSequence):
     """The total wetted area of the total cross section [m²]."""
 
-    NDIM, SPAN = 0, (0.0, None)
+    NDIM = 0
+    SPAN = (0.0, None)
 
 
 class WettedPerimeters(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
@@ -74,7 +79,8 @@ class FlowPerimeters(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSe
 class WettedPerimeter(sequencetools.FactorSequence):
     """Total wetted perimeter [m]."""
 
-    NDIM, SPAN = 0, (0.0, None)
+    NDIM = 0
+    SPAN = (0.0, None)
 
 
 class WettedPerimeterDerivatives(
@@ -104,7 +110,8 @@ class SurfaceWidths(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
 class SurfaceWidth(sequencetools.FactorSequence):
     """Total surface width [m]."""
 
-    NDIM, SPAN = 0, (0.0, None)
+    NDIM = 0
+    SPAN = (0.0, None)
 
 
 class FlowWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequence):
@@ -123,7 +130,8 @@ class TotalWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSeque
 class TotalWidth(sequencetools.FactorSequence):
     """The total width of the total cross section [m]."""
 
-    NDIM, SPAN = 0, (0.0, None)
+    NDIM = 0
+    SPAN = (0.0, None)
 
 
 class DischargeDerivatives(
@@ -138,10 +146,13 @@ class DischargeDerivatives(
 class DischargeDerivative(sequencetools.FactorSequence):
     """Total discharge change with respect to a water level increase [m²/s]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)
 
 
 class Celerity(sequencetools.FactorSequence):
     """Kinematic celerity (wave speed) [m/s]."""
 
-    NDIM, SPAN = 0, (None, None)
+    NDIM = 0
+    SPAN = (None, None)

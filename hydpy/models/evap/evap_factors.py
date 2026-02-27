@@ -9,7 +9,8 @@ from hydpy.models.evap import evap_sequences
 class MeanAirTemperature(sequencetools.FactorSequence):
     """The basin's mean air temperature [°C]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class AirTemperature(evap_sequences.FactorSequence1D):
@@ -27,49 +28,57 @@ class DailyAirTemperature(evap_sequences.FactorSequence1D):
 class WindSpeed2m(sequencetools.FactorSequence):
     """Wind speed at 2 m above grass-like vegetation [m/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class DailyWindSpeed2m(sequencetools.FactorSequence):
     """Average wind speed 2 meters above ground in the last 24 hours [m/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class WindSpeed10m(sequencetools.FactorSequence):
     """Wind speed at 10 m above grass-like vegetation [m/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class DailyRelativeHumidity(sequencetools.FactorSequence):
     """Average relative humidity in the last 24 hours [%]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class SunshineDuration(sequencetools.FactorSequence):
     """Sunshine duration [h]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class PossibleSunshineDuration(sequencetools.FactorSequence):
     """Astronomically possible sunshine duration [h]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class DailySunshineDuration(sequencetools.FactorSequence):
     """The actual sunshine duration in the last 24 hours [h]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class DailyPossibleSunshineDuration(sequencetools.FactorSequence):
     """The astronomically possible sunshine duration in the last 24 hours [h]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class SaturationVapourPressure(evap_sequences.FactorSequence1D):
@@ -123,7 +132,8 @@ class AirDensity(evap_sequences.FactorSequence1D):
 class PsychrometricConstant(sequencetools.FactorSequence):
     """Psychrometric constant [hPa/K]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM = 0
+    NUMERIC = False
 
 
 class CurrentAlbedo(evap_sequences.FactorSequence1D):
@@ -135,7 +145,9 @@ class CurrentAlbedo(evap_sequences.FactorSequence1D):
 class AdjustedCloudCoverage(sequencetools.FactorSequence):
     """Adjusted degree of cloud coverage [-]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, 1.0)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (0.0, 1.0)
 
 
 class AerodynamicResistance(evap_sequences.FactorSequence1D):

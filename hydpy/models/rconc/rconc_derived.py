@@ -14,7 +14,10 @@ from hydpy.models.rconc import rconc_control
 class KSC(parametertools.Parameter):
     """Coefficient of the individual storages of the linear storage cascade [1/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = True
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (rconc_control.RetentionTime, rconc_control.NmbStorages)
 
@@ -47,7 +50,10 @@ class KSC(parametertools.Parameter):
 class DT(parametertools.Parameter):
     """Relative length of each simulation step [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (rconc_control.NmbSteps,)
 

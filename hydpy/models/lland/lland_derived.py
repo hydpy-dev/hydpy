@@ -36,7 +36,10 @@ class Days(parametertools.DaysParameter):
 class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for a memory duration of 24 hours [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (1, None)
 
     def update(self):
         """Calculate the number of entries and adjust the shape of all relevant log
@@ -109,7 +112,10 @@ determined for a the current simulation step size.  The fraction of the memory p
 class AbsFHRU(lland_parameters.ParameterComplete):
     """Flächen der Hydrotope (areas of the respective HRUs) [km²]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.FT, lland_control.FHRU)
 
@@ -133,7 +139,10 @@ class AbsFHRU(lland_parameters.ParameterComplete):
 class MGH(lland_parameters.ParameterComplete):
     """Mittlere Gebietshöhe (average elevation) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (lland_control.GH, lland_control.FHRU)
 
@@ -158,7 +167,10 @@ class KInz(lland_parameters.LanduseMonthParameter):
     """Interzeptionskapazität bezogen auf die Bodenoberfläche (interception
     capacity normalized to the soil surface area) [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+    NDIM = 2
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.HInz, lland_control.LAI)
 
@@ -186,7 +198,10 @@ class KInz(lland_parameters.LanduseMonthParameter):
 class HeatOfFusion(lland_parameters.ParameterLand):
     """Heat which is necessary to melt the frozen soil water content [WT]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
+    NDIM = 1
+    TYPE = float
+    TIME = False
+    SPAN = (0.0, None)
 
     FIXEDPARAMETERS = (lland_fixed.BoWa2Z, lland_fixed.RSchmelz)
 
@@ -219,7 +234,10 @@ class Fr(lland_parameters.LanduseMonthParameter):
     long wave radiation) :cite:t:`ref-LARSIM` (based on :cite:t:`ref-LUBWLUWG2015`)
     [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+    NDIM = 2
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (
         lland_control.LAI,
@@ -269,7 +287,10 @@ class KB(parametertools.Parameter):
     """Konzentrationszeit des Basisabflusses (concentration time of the baseflow
     storage) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.EQB, lland_control.TInd)
 
@@ -293,7 +314,10 @@ class KI1(parametertools.Parameter):
     """Konzentrationszeit des "unteren" Zwischenabflusses (concentration time of the
     first interflow storage) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.EQI1, lland_control.TInd)
 
@@ -317,7 +341,10 @@ class KI2(parametertools.Parameter):
     """Konzentrationszeit des "oberen" Zwischenabflusses" (concentration time of the
     second interflow storage) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.EQI2, lland_control.TInd)
 
@@ -341,7 +368,10 @@ class KD1(parametertools.Parameter):
     """Konzentrationszeit des "langsamen" Direktabflusses (concentration time of the
     slow direct runoff storage) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.EQD1, lland_control.TInd)
 
@@ -365,7 +395,10 @@ class KD2(parametertools.Parameter):
     """Konzentrationszeit des "schnellen" Direktabflusses (concentration time of the
     fast direct runoff storage) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.EQD2, lland_control.TInd)
 
@@ -388,7 +421,10 @@ class KD2(parametertools.Parameter):
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/T to m³/s."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.FT,)
 

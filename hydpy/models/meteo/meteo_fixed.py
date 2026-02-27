@@ -8,12 +8,18 @@ from hydpy.core import parametertools
 class Pi(parametertools.FixedParameter):
     """π [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
     INIT = 3.141592653589793
 
 
 class SolarConstant(parametertools.FixedParameter):
     """Solar constant [W/m²]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
     INIT = 1367.0

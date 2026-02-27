@@ -205,7 +205,10 @@ the same threshold value(s) twice.
 
     _coefs: dict[str, tuple[tuple[float, ...], tuple[float, ...]]]
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     def __init__(self, subvars: parametertools.SubParameters) -> None:
         with objecttools.ResetAttrFuncs(self):

@@ -19,7 +19,10 @@ class WeightUpstream(parametertools.Parameter):
     """A weighting coefficient for interpolating the water level from the centroids of
     two adjacent segments to their shared edge [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.LengthDownstream)
 
@@ -43,7 +46,10 @@ class LengthMin(parametertools.Parameter):
     """The minimum length of the segments upstream and downstream of the relevant
     routing model [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.LengthDownstream)
 
@@ -66,7 +72,10 @@ class LengthMean(parametertools.Parameter):
     """The mean length of the segments upstream and downstream of the relevant routing
     model [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.LengthDownstream)
 

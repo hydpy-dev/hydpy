@@ -14,4 +14,5 @@ class MoistureChange(sequencetools.LogSequence):
     ToDo: Would constants like "INACTIVE" or "REDISTRIBUTION" simplify the methods?
     """
 
-    NDIM, NUMERIC = 2, False
+    NDIM = 2
+    NUMERIC = False

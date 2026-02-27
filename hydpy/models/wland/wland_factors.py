@@ -8,4 +8,6 @@ from hydpy.core import sequencetools
 class DHS(sequencetools.FactorSequence):
     """External change of the surface water depth [mm/T]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)

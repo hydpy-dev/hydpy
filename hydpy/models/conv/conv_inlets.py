@@ -8,4 +8,5 @@ from hydpy.core import sequencetools
 class Inputs(sequencetools.InletSequence):
     """Inputs [?]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False

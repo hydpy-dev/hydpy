@@ -12,7 +12,10 @@ from hydpy.core.typingtools import *
 class CatchmentArea(parametertools.Parameter):
     """Size of the catchment draining into the channel [km²]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class NmbSegments(parametertools.Parameter):
@@ -79,7 +82,10 @@ class NmbSegments(parametertools.Parameter):
     discharge(1.0, 2.0, 3.0)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
     KEYWORDS = {"lag": parametertools.Keyword(name="lag", time=False)}
 
     def __call__(self, *args, **kwargs) -> None:
@@ -269,7 +275,10 @@ with value `1.0` needed to be trimmed to `0.0`.
     0.5, 0.5, 0.0
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
     SHAPE = (3,)
     KEYWORDS = {
         "damp": parametertools.Keyword(name="damp"),
@@ -316,7 +325,10 @@ with value `1.0` needed to be trimmed to `0.0`.
 class Length(parametertools.Parameter):
     """The total length of channel [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class BottomSlope(parametertools.Parameter):
@@ -325,4 +337,7 @@ class BottomSlope(parametertools.Parameter):
     :math:`BottomSlope = \frac{elevation_{start} - elevation_{end}}{Length}`
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)

@@ -29,7 +29,10 @@ class DOY(parametertools.DOYParameter):
 class RelZoneAreas(hland_parameters.ParameterComplete):
     """Relative area of all zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
     strict_valuehandling: bool = False
 
     CONTROLPARAMETERS = (
@@ -120,7 +123,10 @@ class RelZoneAreas(hland_parameters.ParameterComplete):
 class RelSoilArea(parametertools.Parameter):
     """Relative area of all |FIELD| and |FOREST| zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
@@ -148,7 +154,10 @@ class RelSoilArea(parametertools.Parameter):
 class RelLandArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, |GLACIER|, and |SEALED| zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
@@ -173,7 +182,10 @@ class RelLandArea(parametertools.Parameter):
 class RelUpperZoneArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, and |GLACIER| zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
@@ -200,7 +212,10 @@ class RelUpperZoneArea(parametertools.Parameter):
 class RelLowerZoneArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, |GLACIER|, and |ILAKE| zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
@@ -225,7 +240,10 @@ class RelLowerZoneArea(parametertools.Parameter):
 class ZoneAreaRatios(parametertools.Parameter):
     """Ratios of all zone combinations [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+    NDIM = 2
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     DERIVEDPARAMETERS = (RelZoneAreas,)
 
@@ -249,7 +267,10 @@ class ZoneAreaRatios(parametertools.Parameter):
 class IndicesZoneZ(parametertools.Parameter):
     """Indices of the zones sorted by altitude [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
+    NDIM = 1
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (hland_control.ZoneZ,)
 
@@ -270,7 +291,10 @@ class IndicesZoneZ(parametertools.Parameter):
 class Z(parametertools.Parameter):
     """Average (reference) subbasin elevation [100m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (
         hland_control.Area,
@@ -301,7 +325,10 @@ class Z(parametertools.Parameter):
 class SRedOrder(parametertools.Parameter):
     """Processing order for the snow redistribution routine [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, int, None, (0, None)
+    NDIM = 2
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (hland_control.SRed,)
 
@@ -392,7 +419,10 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
 class SRedEnd(parametertools.Parameter):
     """Flags that indicate the "dead ends" of snow redistribution within a subbasin."""
 
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (False, True)
+    NDIM = 1
+    TYPE = int
+    TIME = None
+    SPAN = (False, True)
 
     CONTROLPARAMETERS = (hland_control.NmbZones,)
     DERIVEDPARAMETERS = (SRedOrder,)
@@ -425,7 +455,10 @@ class SRedEnd(parametertools.Parameter):
 class SRedNumber(parametertools.Parameter):
     """The total number of snow redistribution paths [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (hland_control.SRed,)
     DERIVEDPARAMETERS = (ZoneAreaRatios,)
@@ -446,7 +479,10 @@ class SRedNumber(parametertools.Parameter):
 class TTM(hland_parameters.ParameterLand):
     """Threshold temperature for snow melting and refreezing [°C]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (hland_control.TT, hland_control.DTTM)
 
@@ -470,7 +506,10 @@ class TTM(hland_parameters.ParameterLand):
 class DT(parametertools.Parameter):
     """Relative time step length for the upper zone layer calculations [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.RecStep,)
 
@@ -502,7 +541,10 @@ class DT(parametertools.Parameter):
 class W0(parametertools.Parameter):
     """Weight for calculating surface runoff [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K0,)
 
@@ -529,7 +571,10 @@ class W0(parametertools.Parameter):
 class W1(parametertools.Parameter):
     """Weight for calculating interflow [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K1,)
 
@@ -556,7 +601,10 @@ class W1(parametertools.Parameter):
 class W2(parametertools.Parameter):
     """Weight for calculating the quick response base flow [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K2,)
 
@@ -584,7 +632,10 @@ class W3(parametertools.Parameter):
     """Weight for calculating the response of the first-order groundwater reservoir
     [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K3,)
 
@@ -610,7 +661,10 @@ class W3(parametertools.Parameter):
 class K4(parametertools.Parameter):
     """Storage time for very delayed baseflow [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = False
+    SPAN = (0.0, None)
 
     def update(self):
         r"""Update |hland_derived.K4| based on :math:`K4 = 9 \cdot K3`.
@@ -635,7 +689,10 @@ class W4(parametertools.Parameter):
     """Weight for calculating the response of the second-order groundwater reservoir
     [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     DERIVEDPARAMETERS = (K4,)
 
@@ -661,7 +718,10 @@ class W4(parametertools.Parameter):
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (hland_control.Area,)
 

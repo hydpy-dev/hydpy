@@ -191,7 +191,10 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
     0.181444, 0.637113, 0.181444
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
     strict_valuehandling: bool = False
 
     KEYWORDS = {
@@ -432,7 +435,10 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 class RetentionTime(parametertools.Parameter):
     """Retention time of the linear storage cascade [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = False
+    SPAN = (0.0, None)
 
 
 class NmbStorages(parametertools.Parameter):
@@ -448,7 +454,10 @@ class NmbStorages(parametertools.Parameter):
     (5,)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
@@ -469,5 +478,8 @@ class NmbSteps(parametertools.Parameter):
     nmbsteps(4.0)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, True, (1, None)
+    NDIM = 0
+    TYPE = int
+    TIME = True
+    SPAN = (1, None)
     INIT = 1440.0

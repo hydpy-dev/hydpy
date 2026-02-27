@@ -73,7 +73,10 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
 Node("in3", variable="Q"))
     """
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM = 2
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
@@ -177,7 +180,10 @@ variable `inputheights` can only be retrieved after it has been defined.
 Node("in3", variable="Q"))
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
@@ -246,7 +252,10 @@ class MaxNmbInputs(parametertools.Parameter):
     maxnmbinputs(2)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
         if not args and not kwargs:
@@ -282,22 +291,34 @@ element `?` is not valid.
 class MinNmbInputs(parametertools.Parameter):
     """The minimum number of inputs for performing a statistical analysis [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (2, None)
 
 
 class DefaultConstant(parametertools.Parameter):
     """Default or fallback value for the constant of the linear regression model [?]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
 
 class DefaultFactor(parametertools.Parameter):
     """Default or fallback value for the factor of the linear regression model [?]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-1.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (-1.0, 1.0)
 
 
 class Power(parametertools.Parameter):
     """Power parameter for calculating inverse distance weights [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0, None)

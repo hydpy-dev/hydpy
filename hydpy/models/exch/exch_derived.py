@@ -13,7 +13,10 @@ class MOY(parametertools.MOYParameter):
 class NmbBranches(parametertools.Parameter):
     """The number of branches [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (1, None)
 
     CONTROLPARAMETERS = (exch_control.YPoints,)
 
@@ -26,7 +29,10 @@ class NmbBranches(parametertools.Parameter):
 class NmbPoints(parametertools.Parameter):
     """The number of supporting points for linear interpolation [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (2, None)
 
     CONTROLPARAMETERS = (exch_control.YPoints,)
 

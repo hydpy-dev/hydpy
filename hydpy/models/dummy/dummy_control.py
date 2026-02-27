@@ -9,7 +9,10 @@ from hydpy.core import parametertools
 class NmbZones(parametertools.Parameter):
     """The number of separately modelled zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
         nmbhru_old = exceptiontools.getattr_(self, "value", None)

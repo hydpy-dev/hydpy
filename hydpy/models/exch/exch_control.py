@@ -20,47 +20,67 @@ from hydpy.models.exch import exch_observers
 class CrestHeight(parametertools.Parameter):
     """Crest height [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class CrestWidth(parametertools.Parameter):
     """Crest width [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class FlowCoefficient(parametertools.Parameter):
     """Flow coefficient [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
     INIT = 0.62
 
 
 class FlowExponent(parametertools.Parameter):
     """Flow exponent [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
     INIT = 1.5
 
 
 class AllowedExchange(parametertools.Parameter):
     """The highest water exchange allowed [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
     INIT = 1.5
 
 
 class Delta(parametertools.MonthParameter):
     """Monthly varying difference for increasing or decreasing the input [e.g. m³/s]."""
 
-    TYPE, TIME, SPAN = float, None, (None, None)
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
     INIT = 0.0
 
 
 class Minimum(parametertools.Parameter):
     """The allowed minimum value of the adjusted input [e.g. m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
     INIT = 0.0
 
 
@@ -90,7 +110,10 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
 3.0`.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     def __call__(self, *args, **kwargs) -> None:
         self.shape = len(args)
@@ -195,7 +218,10 @@ during runtime.  If you really need to do this, first initialise a new "branched
 sequence and connect it to the respective outlet nodes properly.
     """
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM = 2
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     def __call__(self, *args, **kwargs) -> None:
         try:
@@ -299,7 +325,10 @@ relevant observation nodes, but the first given value is of type `int`.
     2
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     def __call__(self, *observernodes: str) -> None:
         for i, node in enumerate(observernodes):

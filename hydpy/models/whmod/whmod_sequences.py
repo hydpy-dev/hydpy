@@ -8,7 +8,8 @@ from hydpy.models.whmod import whmod_masks
 class Mixin1DSequence(sequencetools.Sequence_):
     """Mixin class for all 1-dimensional sequences."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
     @property
     def refweights(self):

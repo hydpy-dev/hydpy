@@ -15,7 +15,10 @@ from hydpy.models.conv import conv_fluxes
 class NmbInputs(parametertools.Parameter):
     """The number of inlet nodes [-]"""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (1, None)
 
     CONTROLPARAMETERS = (conv_control.InputCoordinates,)
 
@@ -61,7 +64,10 @@ class NmbInputs(parametertools.Parameter):
 class NmbOutputs(parametertools.Parameter):
     """The number of outlet nodes [-]"""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (1, None)
 
     CONTROLPARAMETERS = (conv_control.OutputCoordinates,)
 
@@ -107,7 +113,10 @@ class NmbOutputs(parametertools.Parameter):
 class Distances(parametertools.Parameter):
     """Distances of the inlet nodes to each outlet node [?]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM = 2
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (conv_control.InputCoordinates, conv_control.OutputCoordinates)
 
@@ -148,7 +157,10 @@ class ProximityOrder(parametertools.Parameter):
     """Indices of the inlet nodes in the order of their proximity to each
     outlet node [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, int, None, (None, None)
+    NDIM = 2
+    TYPE = int
+    TIME = None
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (
         conv_control.MaxNmbInputs,
@@ -204,7 +216,10 @@ class Weights(parametertools.Parameter):
     """Weighting coefficients of the inlet nodes corresponding to their
     proximity to each outlet node and parameter |Power| [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM = 2
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (
         conv_control.MaxNmbInputs,

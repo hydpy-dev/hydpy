@@ -15,7 +15,8 @@ class MixinSource(sequencetools.ModelSequence):
     """Mixin class for 1-dimensional sequences that handle one value per source
     element."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         if isinstance(p, manager_control.Sources):
@@ -34,7 +35,8 @@ class MixinMemory(sequencetools.LogSequence):
     """Mixin class for 1-dimensional sequences that handle one value per memorised
     simulation step."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         if isinstance(p, manager_derived.MemoryLength):

@@ -128,7 +128,9 @@ class SM(hland_sequences.State1DSequence):
 class UZ(sequencetools.StateSequence):
     """Storage in the upper zone layer [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (0.0, None)
 
 
 class SUZ(hland_sequences.State1DSequence):
@@ -164,7 +166,9 @@ class LZ(sequencetools.StateSequence):
     `LZ`.
     """
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
 
@@ -221,16 +225,22 @@ class SG1(hland_sequences.State1DSequence):
 class SG2(sequencetools.StateSequence):
     """First-order slow response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)
 
 
 class SG3(sequencetools.StateSequence):
     """Second-order slow response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)
 
 
 class SC(sequencetools.StateSequence):
     """Storage cascade for runoff concentration [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    NDIM = 1
+    NUMERIC = False
+    SPAN = (0.0, None)

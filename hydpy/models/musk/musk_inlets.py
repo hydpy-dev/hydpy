@@ -8,4 +8,5 @@ from hydpy.core import sequencetools
 class Q(sequencetools.InletSequence):
     """Runoff [m³/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False

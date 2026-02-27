@@ -9,4 +9,5 @@ class Request(sequencetools.SenderSequence):
     """The actual additional water release requested from the individual sources
     [m³/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False

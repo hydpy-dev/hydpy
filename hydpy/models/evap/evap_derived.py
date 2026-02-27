@@ -24,7 +24,10 @@ class MOY(parametertools.MOYParameter):
 class HRUAreaFraction(parametertools.Parameter):
     """The area fraction of each hydrological response unit [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (evap_control.HRUArea,)
 
@@ -47,7 +50,10 @@ class HRUAreaFraction(parametertools.Parameter):
 class Altitude(parametertools.Parameter):
     """Average (reference) subbasin altitude [100m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     CONTROLPARAMETERS = (evap_control.HRUArea, evap_control.HRUAltitude)
 
@@ -84,7 +90,10 @@ class Days(parametertools.DaysParameter):
 class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for a memory duration of 24 hours [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (1, None)
 
     def update(self):
         """Calculate the number of entries and adjust the shape of all relevant log
@@ -172,7 +181,9 @@ class RoughnessLength(
 ):  # ToDo: not directy required, remove?
     """Roughness length [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (evap_control.CropHeight,)
 
@@ -203,7 +214,9 @@ class RoughnessLength(
 class AerodynamicResistanceFactor(evap_parameters.LandMonthParameter):
     """Factor for calculating aerodynamic resistance [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (evap_control.CropHeight,)
     DERIVEDPARAMETERS = (RoughnessLength,)

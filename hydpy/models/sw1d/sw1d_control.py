@@ -15,7 +15,10 @@ from hydpy.models.sw1d import sw1d_fluxes
 class NmbSegments(parametertools.Parameter):
     """The number of channel segments [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM = 0
+    TYPE = int
+    TIME = None
+    SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
@@ -30,25 +33,37 @@ class NmbSegments(parametertools.Parameter):
 class Length(parametertools.Parameter):
     """The length of a single channel segment [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class LengthUpstream(parametertools.Parameter):
     """The upstream channel segment's length [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class LengthDownstream(parametertools.Parameter):
     """The downstream channel segment's length [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class BottomLevel(parametertools.Parameter):
     """The channel bottom elevation [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
 
 class StricklerCoefficient(parametertools.Parameter):
@@ -58,21 +73,30 @@ class StricklerCoefficient(parametertools.Parameter):
     values range from 20 to 80.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class TimeStepFactor(parametertools.Parameter):
     """A factor for reducing the estimated computation time step to increase numerical
     stability [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
 
 class DiffusionFactor(parametertools.Parameter):
     """A factor for introducing numerical diffusion to increase numerical stability
     [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, 1.0)
 
 
 class DampingRadius(parametertools.Parameter):
@@ -83,19 +107,28 @@ class DampingRadius(parametertools.Parameter):
     target equation and, thus, no artificial damping.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class CrestHeight(parametertools.Parameter):
     """The weir crest height [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
 
 class CrestWidth(parametertools.Parameter):
     """The weir crest width [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class GateHeight(parametertools.CallbackParameter):
@@ -106,26 +139,38 @@ class GateHeight(parametertools.CallbackParameter):
     |Calc_Discharge_V3| documentation for further information.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
 
 class GateWidth(parametertools.Parameter):
     """The gate width [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
 
 class FlowCoefficient(parametertools.Parameter):
     """The weir flow coefficient [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
     INIT = 0.62
 
 
 class TargetWaterLevel1(parametertools.Parameter):
     """The lower target water level [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |TargetWaterLevel1| following
@@ -148,7 +193,10 @@ class TargetWaterLevel1(parametertools.Parameter):
 class TargetWaterLevel2(parametertools.Parameter):
     """The upper target water level [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |TargetWaterLevel2| following
@@ -172,7 +220,10 @@ class BottomLowWaterThreshold(parametertools.SeasonalParameter):
     """Water level below which gates are fully closed to stop drainage during low flow
     periods [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |BottomLowWaterThreshold| following
@@ -220,7 +271,10 @@ class UpperLowWaterThreshold(parametertools.SeasonalParameter):
     """Water level below which gates are partly closed to reduce drainage during low
     flow periods [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |UpperLowWaterThreshold| following
@@ -262,7 +316,10 @@ class BottomHighWaterThreshold(parametertools.SeasonalParameter):
     """Water level above which gate operation is partly sluice-like to increase
     drainage during high flow periods [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |BottomHighWaterThreshold| following
@@ -304,7 +361,10 @@ class UpperHighWaterThreshold(parametertools.SeasonalParameter):
     """Water level above which gate operation is fully sluice-like to maximise drainage
     during high flow periods [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM = 1
+    TYPE = float
+    TIME = None
+    SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |UpperHighWaterThreshold| following

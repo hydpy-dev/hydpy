@@ -8,10 +8,12 @@ from hydpy.core import sequencetools
 class Exchange(sequencetools.OutletSequence):
     """Bidirectional water exchange [m³/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False
 
 
 class Branched(sequencetools.OutletSequence):
     """Branched outputs [e.g. m³/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM = 1
+    NUMERIC = False

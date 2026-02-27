@@ -21,7 +21,9 @@ from hydpy.models.wq import wq_variables
 class BottomDepths(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The cumulated depth of a trapeze and its lower neighbours [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomLevels,)
 
@@ -47,7 +49,9 @@ class TrapezeHeights(wq_variables.MixinTrapezes, parametertools.Parameter):
     The highest trapeze has no upper neighbour and is thus infinitely high.
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomLevels,)
 
@@ -74,7 +78,9 @@ class SlopeWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
     potentially infinitely wide.
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.SideSlopes,)
     DERIVEDPARAMETERS = (TrapezeHeights,)
@@ -104,7 +110,9 @@ class TrapezeAreas(wq_variables.MixinTrapezes, parametertools.Parameter):
     The highest trapeze has no upper neighbour and is thus infinitely large.
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomWidths,)
     DERIVEDPARAMETERS = (TrapezeHeights, SlopeWidths)
@@ -138,7 +146,9 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
     within the trapeze's range [-].
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.SideSlopes,)
 
@@ -159,7 +169,9 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
 
 
 class _SectorWidths(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     def _update(self, widths: wq_control.FlowWidths | wq_control.TotalWidths) -> None:
         control = self.subpars.pars.control
@@ -242,7 +254,9 @@ class SectorTotalWidths(_SectorWidths):
 
 
 class _SectorAreas(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     def _update(self, widths: SectorFlowWidths | SectorTotalWidths) -> None:
         h = self.subpars.pars.control.heights.values
@@ -320,7 +334,9 @@ class SectorFlowPerimeters(
     """The sector-specific wetted perimeters of those subareas of the cross section
     involved in water routing [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.Heights,)
     DERIVEDPARAMETERS = (SectorFlowWidths,)
@@ -365,7 +381,9 @@ class SectorFlowPerimeterDerivatives(
     cross section involved in water routing with respect to water level increases
     [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.Heights,)
     DERIVEDPARAMETERS = (SectorFlowWidths,)
@@ -412,7 +430,10 @@ class CrestHeightRegularisation(parametertools.Parameter):
     """Regularisation parameter related to the difference between the water depth and
     the crest height [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM = 0
+    TYPE = float
+    TIME = None
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.CrestHeightTolerance,)
 

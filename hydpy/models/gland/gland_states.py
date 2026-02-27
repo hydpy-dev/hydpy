@@ -11,7 +11,9 @@ from hydpy.models.gland import gland_control
 class I(sequencetools.StateSequence):
     """Water content of the interception store [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (gland_control.IMax,)
 
@@ -36,7 +38,9 @@ class I(sequencetools.StateSequence):
 class S(sequencetools.StateSequence):
     """Water content of the production store [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (gland_control.X1,)
 
@@ -61,7 +65,9 @@ class S(sequencetools.StateSequence):
 class R(sequencetools.StateSequence):
     """Water content of the routing store [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (gland_control.X3,)
 
@@ -87,4 +93,6 @@ class R(sequencetools.StateSequence):
 class R2(sequencetools.StateSequence):
     """Level of the exponential store [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM = 0
+    NUMERIC = False
+    SPAN = (None, None)

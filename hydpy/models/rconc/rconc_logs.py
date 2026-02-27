@@ -43,7 +43,9 @@ shape (4...) into shape (3...)
     quh(3.0, 3.0, 0.0)
     """
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    NDIM = 1
+    NUMERIC = False
+    SPAN = (0.0, None)
 
     def __call__(self, *args) -> None:
         try:

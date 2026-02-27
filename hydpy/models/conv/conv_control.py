@@ -75,7 +75,6 @@ Node("in3", variable="Q"))
 
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
-    TIME = None
 
     nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
@@ -181,7 +180,6 @@ Node("in3", variable="Q"))
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
 
     nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
@@ -252,7 +250,6 @@ class MaxNmbInputs(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
@@ -291,7 +288,6 @@ class MinNmbInputs(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (2, None)
 
 
@@ -300,7 +296,6 @@ class DefaultConstant(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class DefaultFactor(parametertools.Parameter):
@@ -308,7 +303,6 @@ class DefaultFactor(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (-1.0, 1.0)
 
 
@@ -317,5 +311,4 @@ class Power(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0, None)

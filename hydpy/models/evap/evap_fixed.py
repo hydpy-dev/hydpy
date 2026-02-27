@@ -11,7 +11,6 @@ class StefanBoltzmannConstant(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 5.67e-08
 
@@ -21,7 +20,6 @@ class FactorCounterRadiation(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 1.28
 
@@ -31,7 +29,6 @@ class GasConstantDryAir(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 287.058
 
@@ -41,7 +38,6 @@ class GasConstantWaterVapour(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 461.495
 
@@ -51,7 +47,6 @@ class HeatCapacityAir(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 1005.0
 
@@ -71,7 +66,6 @@ class RoughnessLengthGrass(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 0.003
 
@@ -81,7 +75,6 @@ class PsychrometricConstant(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 0.655
 
@@ -91,6 +84,5 @@ class AerodynamicResistanceFactorMinimum(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 94.0

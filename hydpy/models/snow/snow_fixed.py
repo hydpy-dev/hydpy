@@ -11,7 +11,6 @@ class ZThreshold(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     INIT = 4000.0
 
 
@@ -20,7 +19,6 @@ class MinMelt(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.1
 
@@ -30,7 +28,6 @@ class TThreshSnow(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     INIT = -1.0
 
 
@@ -39,7 +36,6 @@ class TThreshRain(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     INIT = 3.0
 
 
@@ -48,5 +44,4 @@ class MinG(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     INIT = 0.0

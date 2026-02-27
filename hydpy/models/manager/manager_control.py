@@ -22,7 +22,6 @@ class DischargeThreshold(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -31,7 +30,6 @@ class DischargeTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -41,7 +39,6 @@ class TimeDelay(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
 
@@ -51,7 +48,6 @@ class TimeWindow(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
 
@@ -174,7 +170,6 @@ class VolumeThreshold(manager_parameters.ParameterSource):
     """
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -187,7 +182,6 @@ class VolumeTolerance(manager_parameters.ParameterSource):
     """
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -199,7 +193,6 @@ class ReleaseMax(manager_parameters.ParameterSource):
     """
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -211,5 +204,4 @@ class Active(manager_parameters.ParameterSource):
     """
 
     TYPE: Final = bool
-    TIME = None
     SPAN = (False, True)

@@ -19,7 +19,6 @@ class Beta(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     def update(self) -> None:
@@ -86,7 +85,6 @@ class QFactor(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (gland_control.Area,)

@@ -27,7 +27,6 @@ class HRUAreaFraction(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (evap_control.HRUArea,)
@@ -53,7 +52,6 @@ class Altitude(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
     CONTROLPARAMETERS = (evap_control.HRUArea, evap_control.HRUAltitude)
 
@@ -92,7 +90,6 @@ class NmbLogEntries(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
     def update(self):
@@ -181,7 +178,6 @@ class RoughnessLength(
 ):  # ToDo: not directy required, remove?
     """Roughness length [m]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (evap_control.CropHeight,)
@@ -213,7 +209,6 @@ class RoughnessLength(
 class AerodynamicResistanceFactor(evap_parameters.LandMonthParameter):
     """Factor for calculating aerodynamic resistance [-]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (evap_control.CropHeight,)

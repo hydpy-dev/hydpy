@@ -25,7 +25,6 @@ class HV(parametertools.LeftRightParameter):
     """Höhe Vorländer (height of both forelands) [m]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BBV, kinw_control.BNV)
@@ -61,7 +60,6 @@ class MFM(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.EKM, kinw_control.SKM, kinw_control.Gef)
@@ -89,7 +87,6 @@ class MFV(parametertools.LeftRightParameter):
     equation, calculated for both forelands) [m^(1/3)/s]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.EKV, kinw_control.SKV, kinw_control.Gef)
@@ -118,7 +115,6 @@ class BNMF(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BNM,)
@@ -143,7 +139,6 @@ class BNVF(parametertools.LeftRightParameter):
     of both forelands) [m]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BNV,)
@@ -168,7 +163,6 @@ class BNVRF(parametertools.LeftRightParameter):
     perimeter of the slope of both outer embankments) [m]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BNVR,)
@@ -195,7 +189,6 @@ class HRP(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.HR,)
@@ -228,7 +221,6 @@ class NmbDiscontinuities(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     def update(self):
@@ -258,7 +250,6 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
 
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     def update(self):

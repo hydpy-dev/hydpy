@@ -17,7 +17,6 @@ class NmbSegments(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
@@ -35,7 +34,6 @@ class Length(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -44,7 +42,6 @@ class LengthUpstream(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -53,7 +50,6 @@ class LengthDownstream(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -62,7 +58,6 @@ class BottomLevel(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class StricklerCoefficient(parametertools.Parameter):
@@ -74,7 +69,6 @@ class StricklerCoefficient(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -84,7 +78,6 @@ class TimeStepFactor(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
 
@@ -94,7 +87,6 @@ class DiffusionFactor(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
 
@@ -108,7 +100,6 @@ class DampingRadius(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -117,7 +108,6 @@ class CrestHeight(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class CrestWidth(parametertools.Parameter):
@@ -125,7 +115,6 @@ class CrestWidth(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -139,7 +128,6 @@ class GateHeight(parametertools.CallbackParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class GateWidth(parametertools.Parameter):
@@ -147,7 +135,6 @@ class GateWidth(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -156,7 +143,6 @@ class FlowCoefficient(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 0.62
 
@@ -166,7 +152,6 @@ class TargetWaterLevel1(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |TargetWaterLevel1| following
@@ -191,7 +176,6 @@ class TargetWaterLevel2(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Trim |TargetWaterLevel2| following
@@ -216,7 +200,6 @@ class BottomLowWaterThreshold(parametertools.SeasonalParameter):
     periods [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |BottomLowWaterThreshold| following
@@ -265,7 +248,6 @@ class UpperLowWaterThreshold(parametertools.SeasonalParameter):
     flow periods [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |UpperLowWaterThreshold| following
@@ -308,7 +290,6 @@ class BottomHighWaterThreshold(parametertools.SeasonalParameter):
     drainage during high flow periods [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |BottomHighWaterThreshold| following
@@ -351,7 +332,6 @@ class UpperHighWaterThreshold(parametertools.SeasonalParameter):
     during high flow periods [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
 
     def trim(self, lower=None, upper=None) -> bool:
         """Trim |UpperHighWaterThreshold| following

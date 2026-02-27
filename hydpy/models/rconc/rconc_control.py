@@ -193,7 +193,6 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
     strict_valuehandling: bool = False
 
@@ -456,7 +455,6 @@ class NmbStorages(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:

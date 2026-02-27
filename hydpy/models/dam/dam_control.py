@@ -15,7 +15,6 @@ class SurfaceArea(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -24,7 +23,6 @@ class CatchmentArea(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -59,7 +57,6 @@ class NmbLogEntries(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
@@ -79,7 +76,6 @@ class CorrectionPrecipitation(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -88,7 +84,6 @@ class CorrectionEvaporation(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -106,7 +101,6 @@ class RemoteDischargeMinimum(parametertools.SeasonalParameter):
     actual discharge [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
     SPAN = (0.0, None)
 
     def __call__(self, *args, **kwargs) -> None:
@@ -118,7 +112,6 @@ class RemoteDischargeSafety(parametertools.SeasonalParameter):
     """Safety factor for reducing the risk of insufficient water release [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -136,7 +129,6 @@ class RemoteReliefTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -145,7 +137,6 @@ class NearDischargeMinimumThreshold(parametertools.SeasonalParameter):
     actual discharge [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -153,7 +144,6 @@ class NearDischargeMinimumTolerance(parametertools.SeasonalParameter):
     """A tolerance value for the "near discharge minimum" [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -162,7 +152,6 @@ class MinimumRelease(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -172,14 +161,12 @@ class RestrictTargetedRelease(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
-    TIME = None
 
 
 class WaterVolumeMinimumThreshold(parametertools.SeasonalParameter):
     """The minimum operating water volume of the dam [million m³]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
     SPAN = (0, None)
 
 
@@ -188,7 +175,6 @@ class WaterLevelMinimumThreshold(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class WaterLevelMinimumTolerance(parametertools.Parameter):
@@ -196,7 +182,6 @@ class WaterLevelMinimumTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -205,7 +190,6 @@ class WaterLevelMaximumThreshold(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class WaterLevelMaximumTolerance(parametertools.Parameter):
@@ -213,7 +197,6 @@ class WaterLevelMaximumTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -222,7 +205,6 @@ class RemoteWaterLevelMaximumThreshold(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class RemoteWaterLevelMaximumTolerance(parametertools.Parameter):
@@ -230,7 +212,6 @@ class RemoteWaterLevelMaximumTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -240,7 +221,6 @@ class ThresholdEvaporation(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class ToleranceEvaporation(parametertools.Parameter):
@@ -249,7 +229,6 @@ class ToleranceEvaporation(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0, None)
 
 
@@ -259,7 +238,6 @@ class WaterLevelMinimumRemoteThreshold(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0, None)
 
 
@@ -269,7 +247,6 @@ class WaterLevelMinimumRemoteTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0, None)
 
 
@@ -277,7 +254,6 @@ class HighestRemoteRelief(parametertools.SeasonalParameter):
     """The highest possible relief discharge from another location [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
 
 
 class WaterLevelReliefThreshold(parametertools.SeasonalParameter):
@@ -285,21 +261,18 @@ class WaterLevelReliefThreshold(parametertools.SeasonalParameter):
     another location [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
 
 
 class WaterLevelReliefTolerance(parametertools.SeasonalParameter):
     """A tolerance value for parameter |WaterLevelReliefThreshold| [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
 
 
 class HighestRemoteSupply(parametertools.SeasonalParameter):
     """The highest possible supply discharge from another location [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
 
 
 class WaterLevelSupplyThreshold(parametertools.SeasonalParameter):
@@ -307,14 +280,12 @@ class WaterLevelSupplyThreshold(parametertools.SeasonalParameter):
     from another location [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
 
 
 class WaterLevelSupplyTolerance(parametertools.SeasonalParameter):
     """A tolerance value for parameter |WaterLevelSupplyThreshold| [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
 
 
 class HighestRemoteDischarge(parametertools.Parameter):
@@ -322,7 +293,6 @@ class HighestRemoteDischarge(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -331,7 +301,6 @@ class HighestRemoteTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -381,7 +350,6 @@ class AllowedDischargeTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -389,7 +357,6 @@ class AllowedRelease(parametertools.SeasonalParameter):
     """The maximum water release not causing any harm downstream [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -398,7 +365,6 @@ class TargetVolume(parametertools.SeasonalParameter):
     year [Mio. m³]."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -408,7 +374,6 @@ class TargetRangeAbsolute(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -417,7 +382,6 @@ class TargetRangeRelative(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -427,7 +391,6 @@ class MaximumVolume(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -436,7 +399,6 @@ class VolumeTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -445,7 +407,6 @@ class DischargeTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -454,7 +415,6 @@ class CrestLevel(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class CrestLevelTolerance(parametertools.Parameter):
@@ -462,7 +422,6 @@ class CrestLevelTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -479,7 +438,6 @@ class NmbSafeReleaseModels(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     def __call__(self, *args, **kwargs):

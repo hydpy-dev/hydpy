@@ -31,7 +31,6 @@ class RelZoneAreas(hland_parameters.ParameterComplete):
     """Relative area of all zones [-]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
     strict_valuehandling: bool = False
 
@@ -125,7 +124,6 @@ class RelSoilArea(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
@@ -156,7 +154,6 @@ class RelLandArea(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
@@ -184,7 +181,6 @@ class RelUpperZoneArea(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
@@ -214,7 +210,6 @@ class RelLowerZoneArea(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
@@ -242,7 +237,6 @@ class ZoneAreaRatios(parametertools.Parameter):
 
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     DERIVEDPARAMETERS = (RelZoneAreas,)
@@ -269,7 +263,6 @@ class IndicesZoneZ(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (hland_control.ZoneZ,)
@@ -293,7 +286,6 @@ class Z(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
     CONTROLPARAMETERS = (
         hland_control.Area,
@@ -326,7 +318,6 @@ class SRedOrder(parametertools.Parameter):
 
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (hland_control.SRed,)
@@ -420,7 +411,6 @@ class SRedEnd(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = int
-    TIME = None
     SPAN = (False, True)
 
     CONTROLPARAMETERS = (hland_control.NmbZones,)
@@ -456,7 +446,6 @@ class SRedNumber(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (hland_control.SRed,)
@@ -479,7 +468,6 @@ class TTM(hland_parameters.ParameterLand):
     """Threshold temperature for snow melting and refreezing [°C]."""
 
     TYPE: Final = float
-    TIME = None
 
     CONTROLPARAMETERS = (hland_control.TT, hland_control.DTTM)
 
@@ -505,7 +493,6 @@ class DT(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.RecStep,)
@@ -540,7 +527,6 @@ class W0(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K0,)
@@ -570,7 +556,6 @@ class W1(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K1,)
@@ -600,7 +585,6 @@ class W2(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K2,)
@@ -631,7 +615,6 @@ class W3(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K3,)
@@ -688,7 +671,6 @@ class W4(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     DERIVEDPARAMETERS = (K4,)
@@ -717,7 +699,6 @@ class QFactor(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (hland_control.Area,)

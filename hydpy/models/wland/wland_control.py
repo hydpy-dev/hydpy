@@ -16,7 +16,6 @@ class AT(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -57,7 +56,6 @@ class NU(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
@@ -143,7 +141,6 @@ class ER(wland_parameters.LanduseParameterLand):
     """Elevated region [-]."""
 
     TYPE: Final = bool
-    TIME = None
     INIT = False
 
 
@@ -152,7 +149,6 @@ class AUR(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
 
@@ -161,7 +157,6 @@ class GL(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Ensure |GL| is above |BL|.
@@ -188,7 +183,6 @@ class BL(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
     def trim(self, lower=None, upper=None) -> bool:
         r"""Ensure |BL| is below |GL|.
@@ -218,7 +212,6 @@ class CP(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -226,7 +219,6 @@ class LAI(wland_parameters.LanduseMonthParameter):
     """Leaf area index [-]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -235,7 +227,6 @@ class IH(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class TT(parametertools.Parameter):
@@ -243,7 +234,6 @@ class TT(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class TI(parametertools.Parameter):
@@ -251,7 +241,6 @@ class TI(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -268,7 +257,6 @@ class DDT(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
 
 
 class CWE(parametertools.Parameter):
@@ -276,7 +264,6 @@ class CWE(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (1.0, None)
 
 
@@ -285,7 +272,6 @@ class CW(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (1.0, None)
 
 
@@ -321,7 +307,6 @@ class RG(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
-    TIME = None
 
 
 class CGF(parametertools.Parameter):
@@ -338,7 +323,6 @@ class DGC(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
-    TIME = None
 
 
 class CQ(parametertools.Parameter):
@@ -375,7 +359,6 @@ class B(wland_parameters.SoilParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     _SOIL2VALUE = {
@@ -418,7 +401,6 @@ class PsiAE(wland_parameters.SoilParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     _SOIL2VALUE = {
@@ -461,7 +443,6 @@ class ThetaS(wland_parameters.SoilParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (None, 1.0)
 
     _SOIL2VALUE = {
@@ -516,7 +497,6 @@ class ThetaR(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (1e-6, None)
     INIT = 0.01
 
@@ -549,7 +529,6 @@ class AC(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 200.0
 
@@ -559,7 +538,6 @@ class Zeta1(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 0.02
 
@@ -569,7 +547,6 @@ class Zeta2(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 400.0
 
@@ -579,7 +556,6 @@ class SH(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -588,5 +564,4 @@ class ST(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)

@@ -39,7 +39,6 @@ class NmbLogEntries(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
     def update(self):
@@ -114,7 +113,6 @@ class AbsFHRU(lland_parameters.ParameterComplete):
     """Flächen der Hydrotope (areas of the respective HRUs) [km²]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.FT, lland_control.FHRU)
@@ -140,7 +138,6 @@ class MGH(lland_parameters.ParameterComplete):
     """Mittlere Gebietshöhe (average elevation) [m]."""
 
     TYPE: Final = float
-    TIME = None
 
     CONTROLPARAMETERS = (lland_control.GH, lland_control.FHRU)
 
@@ -166,7 +163,6 @@ class KInz(lland_parameters.LanduseMonthParameter):
     capacity normalized to the soil surface area) [mm]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.HInz, lland_control.LAI)
@@ -231,7 +227,6 @@ class Fr(lland_parameters.LanduseMonthParameter):
     [-]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (
@@ -418,7 +413,6 @@ class QFactor(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.FT,)

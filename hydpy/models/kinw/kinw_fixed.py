@@ -18,7 +18,6 @@ class WBMin(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 1e-9
 
@@ -29,6 +28,5 @@ class WBReg(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 1e-5

@@ -23,7 +23,6 @@ class CrestHeight(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -32,7 +31,6 @@ class CrestWidth(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -41,7 +39,6 @@ class FlowCoefficient(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 0.62
 
@@ -51,7 +48,6 @@ class FlowExponent(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 1.5
 
@@ -61,7 +57,6 @@ class AllowedExchange(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 1.5
 
@@ -70,7 +65,6 @@ class Delta(parametertools.MonthParameter):
     """Monthly varying difference for increasing or decreasing the input [e.g. m³/s]."""
 
     TYPE: Final = float
-    TIME = None
     INIT = 0.0
 
 
@@ -79,7 +73,6 @@ class Minimum(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     INIT = 0.0
 
 
@@ -111,7 +104,6 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
 
     def __call__(self, *args, **kwargs) -> None:
         self.shape = len(args)
@@ -218,7 +210,6 @@ sequence and connect it to the respective outlet nodes properly.
 
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
-    TIME = None
 
     def __call__(self, *args, **kwargs) -> None:
         try:
@@ -324,7 +315,6 @@ relevant observation nodes, but the first given value is of type `int`.
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     def __call__(self, *observernodes: str) -> None:

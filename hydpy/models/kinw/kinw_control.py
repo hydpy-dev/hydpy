@@ -17,7 +17,6 @@ class Laen(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -26,7 +25,6 @@ class Length(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -35,7 +33,6 @@ class Gef(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -55,7 +52,6 @@ class GTS(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
@@ -111,7 +107,6 @@ class HM(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -120,7 +115,6 @@ class BM(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -129,7 +123,6 @@ class BNM(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -137,7 +130,6 @@ class BV(parametertools.LeftRightParameter):
     """Sohlbreite Vorländer (bed widths of both forelands) [m]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -145,7 +137,6 @@ class BBV(parametertools.LeftRightParameter):
     """Breite Vorlandböschungen (width of both foreland embankments) [m]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -153,7 +144,6 @@ class BNV(parametertools.LeftRightParameter):
     """Böschungsneigung Vorländer (slope of both foreland embankments) [-]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -161,7 +151,6 @@ class BNVR(parametertools.LeftRightParameter):
     """Böschungsneigung Vorlandränder (slope of both outer embankments) [-]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -171,7 +160,6 @@ class SKM(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -180,7 +168,6 @@ class SKV(parametertools.LeftRightParameter):
     [m^(1/3)/s]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -189,7 +176,6 @@ class EKM(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -197,7 +183,6 @@ class EKV(parametertools.LeftRightParameter):
     """Kalibrierfaktor Vorländer (calibration factor for both forelands) [m]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -207,7 +192,6 @@ class HR(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -357,5 +341,4 @@ class EK(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)

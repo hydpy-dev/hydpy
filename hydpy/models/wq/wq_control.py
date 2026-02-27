@@ -90,14 +90,11 @@ class Heights(wq_variables.MixinWidths, parametertools.SortedParameter):
     tabulated level to zero.
     """
 
-    TIME = None
-
 
 class FlowWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
     """The widths of those subareas of the cross section involved in water routing
     [m]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
     def trim(self, lower=None, upper=None) -> bool:
@@ -124,7 +121,6 @@ class FlowWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
 class TotalWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
     """The widths of the total cross section [m]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
     def trim(self, lower=None, upper=None) -> bool:
@@ -218,7 +214,6 @@ not strictly rising (1, 4, and 4).
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
@@ -271,8 +266,6 @@ class BottomLevels(wq_variables.MixinTrapezes, parametertools.SortedParameter):
     trapeze's bottom level to zero.
     """
 
-    TIME = None
-
 
 class BottomWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The bottom width for each trapeze [m].
@@ -285,7 +278,6 @@ class BottomWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -299,7 +291,6 @@ class SideSlopes(wq_variables.MixinTrapezes, parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -313,7 +304,6 @@ class StricklerCoefficients(
     """
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -321,7 +311,6 @@ class CalibrationFactors(wq_variables.MixinTrapezesOrSectors, parametertools.Par
     """Calibration factor for each trapeze or sector [-]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 1.0
 
@@ -361,7 +350,6 @@ class BottomSlope(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -370,7 +358,6 @@ class ChannelDepth(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -382,7 +369,6 @@ class CrestHeight(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -392,7 +378,6 @@ class CrestHeightTolerance(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -410,6 +395,5 @@ class DischargeExponent(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 1.5

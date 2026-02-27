@@ -24,7 +24,6 @@ class BottomDepths(wq_variables.MixinTrapezes, parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomLevels,)
@@ -53,7 +52,6 @@ class TrapezeHeights(wq_variables.MixinTrapezes, parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomLevels,)
@@ -83,7 +81,6 @@ class SlopeWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.SideSlopes,)
@@ -116,7 +113,6 @@ class TrapezeAreas(wq_variables.MixinTrapezes, parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomWidths,)
@@ -153,7 +149,6 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.SideSlopes,)
@@ -176,7 +171,6 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
 
 class _SectorWidths(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     def _update(self, widths: wq_control.FlowWidths | wq_control.TotalWidths) -> None:
@@ -261,7 +255,6 @@ class SectorTotalWidths(_SectorWidths):
 
 class _SectorAreas(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     def _update(self, widths: SectorFlowWidths | SectorTotalWidths) -> None:
@@ -341,7 +334,6 @@ class SectorFlowPerimeters(
     involved in water routing [m]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.Heights,)
@@ -388,7 +380,6 @@ class SectorFlowPerimeterDerivatives(
     [m]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.Heights,)
@@ -438,7 +429,6 @@ class CrestHeightRegularisation(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.CrestHeightTolerance,)

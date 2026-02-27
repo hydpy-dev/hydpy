@@ -25,7 +25,6 @@ class NUL(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (wland_control.NU,)
@@ -49,7 +48,6 @@ class NUGE(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (wland_control.LT,)
@@ -81,7 +79,6 @@ class NUG(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (wland_control.LT, wland_control.ER)
@@ -112,7 +109,6 @@ class ALR(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR,)
@@ -137,7 +133,6 @@ class ASR(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR,)
@@ -162,7 +157,6 @@ class AGRE(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT, wland_control.ER)
@@ -191,7 +185,6 @@ class AGR(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT, wland_control.ER)
@@ -220,7 +213,6 @@ class QF(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AT,)
@@ -245,7 +237,6 @@ class CD(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.GL, wland_control.BL)
@@ -271,7 +262,6 @@ class RH1(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.SH,)
@@ -305,7 +295,6 @@ class RH2(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.SH,)
@@ -339,7 +328,6 @@ class RT2(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.ST,)

@@ -19,7 +19,6 @@ class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
     """Relative zone area [-]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (whmod_control.Area, whmod_control.ZoneArea)
@@ -45,7 +44,6 @@ class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
 class SoilDepth(whmod_parameters.SoilTypeParameter):
     """Effective soil depth [m]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (whmod_control.RootingDepth, whmod_control.GroundwaterDepth)
@@ -73,7 +71,6 @@ class SoilDepth(whmod_parameters.SoilTypeParameter):
 class MaxSoilWater(whmod_parameters.SoilTypeParameter):
     """Maximum water content of the considered soil column [mm]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (
@@ -108,7 +105,6 @@ class MaxSoilWater(whmod_parameters.SoilTypeParameter):
 class Beta(whmod_parameters.SoilTypeParameter):
     """Nonlinearity parameter for calculating percolation [-]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (whmod_control.SoilType,)

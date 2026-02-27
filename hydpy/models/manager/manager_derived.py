@@ -32,7 +32,6 @@ class DischargeSmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (manager_control.DischargeTolerance,)
@@ -68,7 +67,6 @@ class VolumeSmoothPar(manager_parameters.ParameterSource):
     """Smoothing parameter related to |VolumeTolerance| [m³/s]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (manager_control.VolumeTolerance,)
@@ -104,7 +102,6 @@ class VolumeSmoothPar(manager_parameters.ParameterSource):
 class MemoryLength(parametertools.NmbParameter):
     """Number of simulation steps to be covered by some log sequences [-]."""
 
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (manager_control.TimeDelay, manager_control.TimeWindow)
@@ -133,7 +130,6 @@ class Adjacency(parametertools.Parameter):
 
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = bool
-    TIME = None
     SPAN = (False, True)
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
@@ -318,7 +314,6 @@ class Order(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:

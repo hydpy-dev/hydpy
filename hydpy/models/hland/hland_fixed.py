@@ -11,7 +11,6 @@ class Pi(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 3.141592653589793
 
@@ -22,7 +21,6 @@ class FSG(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 8.0 / 9.0
 
@@ -47,6 +45,5 @@ class K1L(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 1.4426950408889632

@@ -22,7 +22,6 @@ class NmbRuns(parametertools.SolverParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
 
 
 class ToleranceWaterDepth(parametertools.SolverParameter):
@@ -30,7 +29,6 @@ class ToleranceWaterDepth(parametertools.SolverParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 0.0
 
@@ -40,7 +38,6 @@ class ToleranceDischarge(parametertools.SolverParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 0.000001
 
@@ -79,6 +76,5 @@ class ToleranceNegativeInflow(parametertools.SolverParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, -numpy.inf)
     INIT = -numpy.inf

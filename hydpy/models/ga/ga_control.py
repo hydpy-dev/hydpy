@@ -13,7 +13,6 @@ class NmbSoils(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
@@ -51,7 +50,6 @@ class NmbBins(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (2, None)
 
     def __call__(self, *args, **kwargs) -> None:
@@ -130,7 +128,6 @@ class Sealed(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = bool
-    TIME = None
     SPAN = (False, True)
 
 
@@ -139,7 +136,6 @@ class SoilArea(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -148,7 +144,6 @@ class SoilDepth(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -157,7 +152,6 @@ class ResidualMoisture(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     def trim(self, lower=None, upper=None) -> bool:
@@ -188,7 +182,6 @@ class SaturationMoisture(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     def trim(self, lower=None, upper=None) -> bool:
@@ -228,7 +221,6 @@ class PoreSizeDistribution(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -237,5 +229,4 @@ class AirEntryPotential(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)

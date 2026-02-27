@@ -14,7 +14,6 @@ class AbsErrorMax(parametertools.SolverParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 0.01
 
@@ -24,7 +23,6 @@ class RelErrorMax(parametertools.SolverParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = numpy.nan
 
@@ -34,7 +32,6 @@ class RelDTMin(parametertools.SolverParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.001
 
@@ -44,6 +41,5 @@ class RelDTMax(parametertools.SolverParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
     INIT = 1.0

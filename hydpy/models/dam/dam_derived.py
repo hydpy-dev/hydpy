@@ -26,7 +26,6 @@ class InputFactor(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.SurfaceArea,)
@@ -52,7 +51,6 @@ class RemoteDischargeSmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.RemoteDischargeSafety,)
@@ -88,7 +86,6 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.NearDischargeMinimumTolerance,)
@@ -124,7 +121,6 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.NearDischargeMinimumTolerance,)
@@ -160,7 +156,6 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMinimumTolerance,)
@@ -194,7 +189,6 @@ class WaterLevelMaximumSmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMaximumTolerance,)
@@ -228,7 +222,6 @@ class RemoteWaterLevelMaximumSmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.RemoteWaterLevelMaximumTolerance,)
@@ -262,7 +255,6 @@ class SmoothParEvaporation(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.ToleranceEvaporation,)
@@ -295,7 +287,6 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMinimumRemoteTolerance,)
@@ -330,7 +321,6 @@ class WaterLevelReliefSmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.WaterLevelReliefTolerance,)
@@ -366,7 +356,6 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.WaterLevelSupplyTolerance,)
@@ -402,7 +391,6 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.HighestRemoteTolerance,)
@@ -471,7 +459,6 @@ class VolumeSmoothParLog1(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.VolumeTolerance,)
@@ -505,7 +492,6 @@ class VolumeSmoothParLog2(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.VolumeTolerance,)
@@ -539,7 +525,6 @@ class DischargeSmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.DischargeTolerance,)
@@ -577,7 +562,6 @@ class CrestLevelSmoothPar(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.CrestLevelTolerance,)

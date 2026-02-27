@@ -16,7 +16,6 @@ class NmbSubsteps(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, numpy.inf)
 
     CONTROLPARAMETERS = (ga_control.DT,)
@@ -40,7 +39,6 @@ class SoilAreaFraction(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (ga_control.SoilArea,)
@@ -67,7 +65,6 @@ class EffectiveCapillarySuction(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (ga_control.PoreSizeDistribution, ga_control.AirEntryPotential)

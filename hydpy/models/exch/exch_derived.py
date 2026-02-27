@@ -17,7 +17,6 @@ class NmbBranches(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
     CONTROLPARAMETERS = (exch_control.YPoints,)
@@ -33,7 +32,6 @@ class NmbPoints(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (2, None)
 
     CONTROLPARAMETERS = (exch_control.YPoints,)

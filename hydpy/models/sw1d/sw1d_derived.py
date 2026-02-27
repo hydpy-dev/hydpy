@@ -23,7 +23,6 @@ class WeightUpstream(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.LengthDownstream)
@@ -50,7 +49,6 @@ class LengthMin(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.LengthDownstream)
@@ -76,7 +74,6 @@ class LengthMean(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (sw1d_control.LengthUpstream, sw1d_control.LengthDownstream)

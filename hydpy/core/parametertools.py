@@ -460,12 +460,10 @@ class SubParameters(
     ...     """Parameter 2 [-]."""
     ...     NDIM = 1
     ...     TYPE = float
-    ...     TIME = None
     >>> class Par1(Parameter):
     ...     """Parameter 1 [-]."""
     ...     NDIM = 1
     ...     TYPE = float
-    ...     TIME = None
     >>> class ControlParameters(SubParameters):
     ...     """Control Parameters."""
     ...     CLASSES = (Par2,
@@ -1050,14 +1048,13 @@ class Parameter(variabletools.Variable):
         >>> from hydpy import pub
         >>> del pub.options.simulationstep
 
-    Let us first prepare a new parameter class without time-dependency
-    (indicated by assigning |None|) and initialise it:
+    Let us first prepare a new parameter class without time-dependency and initialise
+    it:
 
     >>> from hydpy.core.parametertools import Parameter
     >>> class Par(Parameter):
     ...     NDIM = 0
     ...     TYPE = float
-    ...     TIME = None
     ...     SPAN = 0.0, 5.0
     >>> par = Par(None)
 
@@ -1264,7 +1261,7 @@ with shape `(2, 3)` and type `float`, the following error occurred: could not \
 broadcast input array from shape (2,) into shape (2,3)
     """
 
-    TIME: bool | None
+    TIME: TypeTIME = None
     KEYWORDS: Mapping[str, Keyword] = {}
 
     subvars: SubParameters
@@ -1411,7 +1408,6 @@ broadcast input array from shape (2,) into shape (2,3)
         >>> class Test(Parameter):
         ...     NDIM = 0
         ...     TYPE = float
-        ...     TIME = None
         ...     INIT = 2.0
         >>> class SubGroup(SubParameters):
         ...     CLASSES = (Test,)
@@ -1548,7 +1544,7 @@ parameter and a simulation time step size first.
 
         >>> from hydpy.core.parametertools import Parameter
         >>> class Par(Parameter):
-        ...     TIME = None
+        ...     ...
         >>> from hydpy import pub
         >>> pub.options.parameterstep = "1d"
         >>> pub.options.simulationstep = "6h"
@@ -1594,7 +1590,7 @@ parameter and a simulation time step size first.
 
         >>> from hydpy.core.parametertools import Parameter
         >>> class Par(Parameter):
-        ...     TIME = None
+        ...     ...
         >>> Par.parameterstep = "1d"
         >>> Par.simulationstep = "6h"
         >>> Par.revert_timefactor(4.0)
@@ -1780,7 +1776,6 @@ parameter and a simulation time step size first.
         >>> class Test(Parameter):
         ...     NDIM = 2
         ...     TYPE = int
-        ...     TIME = None
         >>> test = Test(None)
 
         >>> test.compress_repr()
@@ -1881,7 +1876,6 @@ class NmbParameter(Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME: TypeTIME = None
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
@@ -1960,7 +1954,6 @@ class NameParameter(_MixinModifiableParameter, Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = int
-    TIME: TypeTIME = None
     constants: Constants
     _possible_values: set[int]
 
@@ -2282,13 +2275,11 @@ convert string to float: 'test'
         The following example demonstrates that changes affect the relevant class only
         temporarily, but its objects initialised within the "with" block persistently:
 
-
         >>> from hydpy.core.variabletools import FastAccess, Variable
         >>> GRASS, TREES, WATER = 0, 1, 2
         >>> class RefPar(Variable):
         ...     NDIM = 1
         ...     TYPE = int
-        ...     TIME = None
         ...     initinfo = 0, True
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
         ...     constants = {"GRASS": GRASS, "TREES": TREES, "WATER": WATER}
@@ -2298,7 +2289,6 @@ convert string to float: 'test'
         >>> class ZipPar(ZipParameter):
         ...     NDIM = 1
         ...     TYPE = float
-        ...     TIME = None
         ...     initinfo = 0.0, True
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
         ...     constants = {"FIELD": 1, "FOREST": 3}
@@ -2587,7 +2577,6 @@ class SeasonalParameter(Parameter):
     >>> from hydpy.core.parametertools import SeasonalParameter
     >>> class Par(SeasonalParameter):
     ...     NDIM = 1
-    ...     TIME = None
     >>> par = Par(None)
     >>> par.NDIM = 1
     >>> par
@@ -2804,7 +2793,6 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> class Par(SeasonalParameter):
         ...     NDIM = 1
         ...     TYPE = float
-        ...     TIME = None
         >>> par = Par(None)
         >>> par.shape = (None,)
 
@@ -2900,7 +2888,6 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> class Par(SeasonalParameter):
         ...     NDIM = 1
         ...     TYPE = float
-        ...     TIME = None
         >>> par = Par(None)
         >>> par.shape = (None,)
 
@@ -3000,7 +2987,6 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> class Par(SeasonalParameter):
         ...     NDIM = 1
         ...     TYPE = float
-        ...     TIME = None
         >>> par = Par(None)
         >>> par.shape = (None,)
         Traceback (most recent call last):
@@ -3206,7 +3192,6 @@ Using the latter without modification might result in inconsistencies.
         >>> from hydpy.core.parametertools import SeasonalParameter
         >>> class Par(SeasonalParameter):
         ...     NDIM = 1
-        ...     TIME = None
         >>> par = Par(None)
         >>> par.NDIM = 1
         >>> par.shape = (None,)
@@ -3232,7 +3217,6 @@ class KeywordParameter1D(_MixinModifiableParameter, Parameter):
     >>> from hydpy.core.parametertools import KeywordParameter1D
     >>> class IsHot(KeywordParameter1D):
     ...     TYPE = bool
-    ...     TIME = None
     ...     entrynames = ("winter", "summer")
 
     Usually, |KeywordParameter1D| objects prepare their shape automatically.  However,
@@ -3328,7 +3312,6 @@ for axis 0 with size 1
         >>> from hydpy.core.parametertools import KeywordParameter1D
         >>> class LAI(KeywordParameter1D):
         ...     TYPE = float
-        ...     TIME = None
         ...     entrynames = ("field", "forest")
         >>> lai1 = LAI(None)
         >>> lai1.shape = 2
@@ -3485,7 +3468,6 @@ for axis 0 with size 1
         >>> from hydpy.core.parametertools import KeywordParameter1D
         >>> class Season(KeywordParameter1D):
         ...     TYPE = bool
-        ...     TIME = None
         ...     entrynames = ("winter", "summer")
         >>> season = Season(None)
         >>> sorted(set(dir(season)) - set(object.__dir__(season)))
@@ -3550,7 +3532,6 @@ class KeywordParameter2D(_MixinModifiableParameter, Parameter):
     >>> from hydpy.core.parametertools import KeywordParameter2D
     >>> class IsWarm(KeywordParameter2D):
     ...     TYPE = bool
-    ...     TIME = None
     ...     rownames = ("north", "south")
     ...     columnnames = ("apr2sep", "oct2mar")
 
@@ -3708,7 +3689,6 @@ attribute nor a row or column related attribute named `wrong`.
         >>> from hydpy.core.parametertools import KeywordParameter2D
         >>> class IsWarm(KeywordParameter2D):
         ...     TYPE = bool
-        ...     TIME = None
         ...     rownames = ("north", "south")
         ...     columnnames = ("apr2sep", "oct2mar")
         >>> iswarm1 = IsWarm(None)
@@ -3954,7 +3934,6 @@ attribute nor a row or column related attribute named `wrong`.
         >>> from hydpy.core.parametertools import KeywordParameter2D
         >>> class IsWarm(KeywordParameter2D):
         ...     TYPE = bool
-        ...     TIME = None
         ...     rownames = ("north", "south")
         ...     columnnames = ("apr2sep", "oct2mar")
         >>> iswarm = IsWarm(None)
@@ -3984,7 +3963,6 @@ class LeftRightParameter(variabletools.MixinFixedShape, Parameter):
     >>> from hydpy.core.parametertools import LeftRightParameter
     >>> class FloodPlainWidth(LeftRightParameter):
     ...     TYPE = float
-    ...     TIME = None
     >>> floodplainwidth = FloodPlainWidth(None)
 
     Here, we need to set the shape of the parameter to 2, which is an automated
@@ -4227,7 +4205,6 @@ class SolverParameter(Parameter):
     >>> class Tol(SolverParameter):
     ...     NDIM = 0
     ...     TYPE = float
-    ...     TIME = None
     ...     SPAN = (0.0, None)
     ...     INIT = 0.1
 
@@ -4363,7 +4340,6 @@ class SecondsParameter(Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME: TypeTIME = None
     SPAN: TypeSPAN = (0.0, None)
 
     def update(self) -> None:
@@ -4386,7 +4362,6 @@ class HoursParameter(Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME: TypeTIME = None
     SPAN: TypeSPAN = (0.0, None)
 
     def update(self) -> None:
@@ -4409,7 +4384,7 @@ class DaysParameter(Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME: TypeTIME = None
+
     SPAN: TypeSPAN = (0.0, None)
 
     def update(self) -> None:
@@ -4525,7 +4500,6 @@ class IndexParameter(Parameter):
     module |pub|."""
 
     NDIM: Final[Literal[1]] = 1
-    TIME: TypeTIME = None
 
     def compress_repr(self) -> str | None:
         """Return a compressed parameter value representation that agrees with the
@@ -4696,7 +4670,7 @@ class UTCLongitudeParameter(IndexParameter):
     |Options.utclongitude|."""
 
     TYPE: Final = int
-    TIME: TypeTIME = None
+
     SPAN: TypeSPAN = (-180, 180)
 
     def update(self):

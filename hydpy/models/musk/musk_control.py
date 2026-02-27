@@ -14,7 +14,6 @@ class CatchmentArea(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -84,7 +83,6 @@ class NmbSegments(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
     KEYWORDS = {"lag": parametertools.Keyword(name="lag", time=False)}
 
@@ -277,7 +275,6 @@ with value `1.0` needed to be trimmed to `0.0`.
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SHAPE = (3,)
     KEYWORDS = {
         "damp": parametertools.Keyword(name="damp"),
@@ -326,7 +323,6 @@ class Length(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -338,5 +334,4 @@ class BottomSlope(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)

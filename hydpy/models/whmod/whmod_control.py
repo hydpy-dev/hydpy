@@ -20,7 +20,6 @@ class Area(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (1e-10, None)
 
 
@@ -59,7 +58,6 @@ class NmbZones(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
     def __call__(self, *args, **kwargs):
@@ -78,7 +76,6 @@ class ZoneArea(whmod_parameters.LandTypeCompleteParameter):
     """Zone area [m²]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -159,7 +156,6 @@ class CisternSource(whmod_parameters.LandTypeNonWaterParameter):
     percolation) is channelled into the cistern [-].."""
 
     TYPE: Final = bool
-    TIME = None
     SPAN = (False, True)
 
 
@@ -168,7 +164,6 @@ class CisternCapacity(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -176,7 +171,6 @@ class InterceptionCapacity(parametertools.KeywordParameter2D):
     """Maximum interception storage [mm]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
     columnnames = parametertools.MonthParameter.entrynames
@@ -196,7 +190,6 @@ class DegreeDayFactor(whmod_parameters.LandTypeNonWaterParameter):
 class AvailableFieldCapacity(whmod_parameters.SoilTypeParameter):
     """Maximum relative soil moisture content [mm/m]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -204,14 +197,12 @@ class RootingDepth(whmod_parameters.LandTypeSoilParameter):
     """Maximum rooting depth [m]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
 
 
 class GroundwaterDepth(whmod_parameters.SoilTypeParameter):
     """Average groundwater depth [m]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -220,20 +211,17 @@ class WithCapillaryRise(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
-    TIME = None
 
 
 class CapillaryThreshold(whmod_parameters.SoilTypeParameter):
     """Relative soil moisture where the capillary rise starts [-]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
 
 class CapillaryLimit(whmod_parameters.SoilTypeParameter):
     """Relative soil moisture where the capillary rise reaches its maximum [-]."""
 
-    TIME = None
     SPAN = (0.0, None)
 
 
@@ -241,7 +229,6 @@ class IrrigationTrigger(parametertools.KeywordParameter2D):
     """Relative soil moisture below which irrigation starts [-]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     columnnames = parametertools.MonthParameter.entrynames
@@ -295,7 +282,6 @@ class IrrigationTarget(parametertools.KeywordParameter2D):
     """Relative soil moisture content at which irrigation ends [-]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     columnnames = parametertools.MonthParameter.entrynames
@@ -350,14 +336,12 @@ class WithExternalIrrigation(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = bool
-    TIME = None
 
 
 class BaseflowIndex(whmod_parameters.LandTypeGroundwaterParameter):
     """Baseflow index [-]."""
 
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
 

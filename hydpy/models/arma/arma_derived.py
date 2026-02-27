@@ -16,7 +16,6 @@ class Nmb(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
@@ -58,7 +57,6 @@ class MaxQ(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
@@ -83,7 +81,6 @@ class DiffQ(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
@@ -112,7 +109,6 @@ class AR_Order(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
@@ -137,7 +133,6 @@ class MA_Order(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = int
-    TIME = None
     SPAN = (0, None)
 
     CONTROLPARAMETERS = (arma_control.Responses,)
@@ -162,7 +157,6 @@ class AR_Coefs(parametertools.Parameter):
 
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
-    TIME = None
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
@@ -196,7 +190,6 @@ class MA_Coefs(parametertools.Parameter):
 
     NDIM: Final[Literal[2]] = 2
     TYPE: Final = float
-    TIME = None
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 

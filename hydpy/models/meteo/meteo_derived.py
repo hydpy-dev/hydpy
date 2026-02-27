@@ -44,7 +44,6 @@ class HRUAreaFraction(parametertools.Parameter):
 
     NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (meteo_control.HRUArea,)
@@ -70,7 +69,6 @@ class NmbLogEntries(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-    TIME = None
     SPAN = (1, None)
 
     def update(self):
@@ -143,7 +141,6 @@ class LatitudeRad(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (-1.5708, 1.5708)
 
     FIXEDPARAMETERS = (meteo_fixed.Pi,)

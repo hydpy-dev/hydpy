@@ -17,7 +17,6 @@ class SegmentLength(parametertools.Parameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     CONTROLPARAMETERS = (musk_control.Length,)
 

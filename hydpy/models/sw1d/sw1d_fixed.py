@@ -11,6 +11,5 @@ class GravitationalAcceleration(parametertools.FixedParameter):
 
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
-    TIME = None
     SPAN = (0.0, None)
     INIT = 9.81

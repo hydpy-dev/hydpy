@@ -13,7 +13,7 @@ class CPWasser(parametertools.FixedParameter):
     [WT/kg/K]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
     INIT = 0.04845833333333333
@@ -24,7 +24,7 @@ class CPEis(parametertools.FixedParameter):
     temperature of 0 °C) [WT/kg/K]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
     INIT = 0.024189814814814813
@@ -34,7 +34,7 @@ class RSchmelz(parametertools.FixedParameter):
     """Spezifische Schmelzwärme von Wasser (specific melt heat of water) [WT/kg]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
     INIT = 3.865740740740741
@@ -44,7 +44,7 @@ class Pi(parametertools.FixedParameter):
     """π [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 3.141592653589793
@@ -56,7 +56,7 @@ class Z(parametertools.FixedParameter):
     [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.1
@@ -67,7 +67,7 @@ class BoWa2Z(parametertools.FixedParameter):
     the soil layer down two a depth of 2z) [mm]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0, None)
     INIT = 80.0
@@ -78,7 +78,7 @@ class LambdaG(parametertools.FixedParameter):
     [W/m/K]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.6
@@ -88,7 +88,7 @@ class Sigma(parametertools.FixedParameter):
     """Stefan-Boltzmann-Konstante (Stefan-Boltzmann constant) [W/m²/K]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 5.67e-08
@@ -119,7 +119,7 @@ class LWE(parametertools.FixedParameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
     INIT = 30.87326388888889
@@ -130,7 +130,7 @@ class PsyInv(parametertools.FixedParameter):
     psychrometric constant for ice and snow at 0°C) [K/hPa]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1.76
@@ -140,7 +140,7 @@ class Z0(parametertools.FixedParameter):
     """Rauhigkeitslänge für Wiese (roughness length for short grass) [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.003
@@ -151,7 +151,7 @@ class FrAtm(parametertools.FixedParameter):
     factor for the calculation of atmospheric radiation) [-]"""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1.28
@@ -162,7 +162,7 @@ class CG(parametertools.FixedParameter):
     [WT/m³/K]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (None, None)
     INIT = 17.36111111111111

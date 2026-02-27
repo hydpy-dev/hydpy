@@ -11,7 +11,7 @@ class NmbRuns(parametertools.SolverParameter):
     [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     INIT = 1
 
@@ -20,7 +20,7 @@ class AbsErrorMax(parametertools.SolverParameter):
     """Absolute numerical error tolerance [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.000001
@@ -30,7 +30,7 @@ class RelErrorMax(parametertools.SolverParameter):
     """Relative numerical error tolerance [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.001
@@ -40,7 +40,7 @@ class RelDTMin(parametertools.SolverParameter):
     """Smallest relative integration time step size allowed [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.0
@@ -50,7 +50,7 @@ class RelDTMax(parametertools.SolverParameter):
     """Largest relative integration time step size allowed [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 1.0
@@ -61,7 +61,7 @@ class WaterVolumeTolerance(parametertools.SolverParameter):
     of the final water depth [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1e-10
@@ -72,7 +72,7 @@ class WaterDepthTolerance(parametertools.SolverParameter):
     the final water depth [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1e-10

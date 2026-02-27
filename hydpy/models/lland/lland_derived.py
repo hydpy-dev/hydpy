@@ -38,7 +38,7 @@ class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for a memory duration of 24 hours [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -113,7 +113,7 @@ determined for a the current simulation step size.  The fraction of the memory p
 class AbsFHRU(lland_parameters.ParameterComplete):
     """Flächen der Hydrotope (areas of the respective HRUs) [km²]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -139,7 +139,7 @@ class AbsFHRU(lland_parameters.ParameterComplete):
 class MGH(lland_parameters.ParameterComplete):
     """Mittlere Gebietshöhe (average elevation) [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -166,7 +166,7 @@ class KInz(lland_parameters.LanduseMonthParameter):
     """Interzeptionskapazität bezogen auf die Bodenoberfläche (interception
     capacity normalized to the soil surface area) [mm]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -196,7 +196,7 @@ class KInz(lland_parameters.LanduseMonthParameter):
 class HeatOfFusion(lland_parameters.ParameterLand):
     """Heat which is necessary to melt the frozen soil water content [WT]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -231,7 +231,7 @@ class Fr(lland_parameters.LanduseMonthParameter):
     long wave radiation) :cite:t:`ref-LARSIM` (based on :cite:t:`ref-LUBWLUWG2015`)
     [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -284,7 +284,7 @@ class KB(parametertools.Parameter):
     storage) [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -311,7 +311,7 @@ class KI1(parametertools.Parameter):
     first interflow storage) [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -338,7 +338,7 @@ class KI2(parametertools.Parameter):
     second interflow storage) [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -365,7 +365,7 @@ class KD1(parametertools.Parameter):
     slow direct runoff storage) [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -392,7 +392,7 @@ class KD2(parametertools.Parameter):
     fast direct runoff storage) [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -418,7 +418,7 @@ class QFactor(parametertools.Parameter):
     """Factor for converting mm/T to m³/s."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 

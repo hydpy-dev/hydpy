@@ -24,7 +24,7 @@ class Seconds(parametertools.SecondsParameter):
 class HV(parametertools.LeftRightParameter):
     """Höhe Vorländer (height of both forelands) [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -60,7 +60,7 @@ class MFM(parametertools.Parameter):
     equation, calculated for the main channel) [m^(1/3)/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -88,7 +88,7 @@ class MFV(parametertools.LeftRightParameter):
     beide Vorländer (product of the time-constant terms of the Manning-Strickler
     equation, calculated for both forelands) [m^(1/3)/s]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -117,7 +117,7 @@ class BNMF(parametertools.Parameter):
     perimeter of the slope of the main channel) [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -142,7 +142,7 @@ class BNVF(parametertools.LeftRightParameter):
     (auxiliary term for the calculation of the wetted perimeter of the slope
     of both forelands) [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -167,7 +167,7 @@ class BNVRF(parametertools.LeftRightParameter):
     Vorlandränder (auxiliary term for the calculation of the wetted
     perimeter of the slope of both outer embankments) [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -194,7 +194,7 @@ class HRP(parametertools.Parameter):
     |smooth_logistic2|) [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -227,7 +227,7 @@ class NmbDiscontinuities(parametertools.Parameter):
     """Number of points of discontinuity in the rating curve [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -257,7 +257,7 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
     rating curve [m and million m³]."""
 
     NDIM: Final[Literal[2]] = 2
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 

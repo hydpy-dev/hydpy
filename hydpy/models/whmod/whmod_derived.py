@@ -4,6 +4,7 @@ import numpy
 
 import hydpy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_parameters
@@ -17,7 +18,7 @@ class MOY(parametertools.MOYParameter):
 class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
     """Relative zone area [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -44,7 +45,6 @@ class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
 class SoilDepth(whmod_parameters.SoilTypeParameter):
     """Effective soil depth [m]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -73,7 +73,6 @@ class SoilDepth(whmod_parameters.SoilTypeParameter):
 class MaxSoilWater(whmod_parameters.SoilTypeParameter):
     """Maximum water content of the considered soil column [mm]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -109,7 +108,6 @@ class MaxSoilWater(whmod_parameters.SoilTypeParameter):
 class Beta(whmod_parameters.SoilTypeParameter):
     """Nonlinearity parameter for calculating percolation [-]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -156,7 +154,6 @@ class Beta(whmod_parameters.SoilTypeParameter):
 class PotentialCapillaryRise(whmod_parameters.SoilTypeParameter):
     """Potential capillary rise [mm/T]."""
 
-    TYPE = float
     TIME = True
     SPAN = (0.0, None)
 

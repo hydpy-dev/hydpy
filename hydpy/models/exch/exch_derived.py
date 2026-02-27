@@ -16,7 +16,7 @@ class NmbBranches(parametertools.Parameter):
     """The number of branches [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -32,7 +32,7 @@ class NmbPoints(parametertools.Parameter):
     """The number of supporting points for linear interpolation [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (2, None)
 

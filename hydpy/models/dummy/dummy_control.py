@@ -11,7 +11,7 @@ class NmbZones(parametertools.Parameter):
     """The number of separately modelled zones [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 

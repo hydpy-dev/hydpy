@@ -10,7 +10,7 @@ class Area(parametertools.Parameter):
     """Subbasin area [km²]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (1e-10, None)
 
@@ -19,7 +19,7 @@ class IMax(parametertools.Parameter):
     """Interception store capacity [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -28,7 +28,7 @@ class X1(parametertools.Parameter):
     """Maximum capacity of the production storage [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -38,7 +38,7 @@ class X2(parametertools.Parameter):
     exports) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = True
     SPAN = (None, None)
 
@@ -68,7 +68,7 @@ class X3(parametertools.Parameter):
     """One timestep ahead maximum capacity of the routing store [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = True
     SPAN = (0.0, None)
 
@@ -98,7 +98,7 @@ class X5(parametertools.Parameter):
     """Intercatchment exchange threshold [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -107,6 +107,6 @@ class X6(parametertools.Parameter):
     """Coefficient for emptying the exponential store [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)

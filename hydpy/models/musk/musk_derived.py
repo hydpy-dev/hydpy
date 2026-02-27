@@ -16,7 +16,7 @@ class SegmentLength(parametertools.Parameter):
     """The length of each channel segments [km]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     CONTROLPARAMETERS = (musk_control.Length,)

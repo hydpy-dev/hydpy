@@ -12,7 +12,7 @@ class NmbSoils(parametertools.Parameter):
     """The number of separately modelled soil compartments in the subbasin [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -50,7 +50,7 @@ class NmbBins(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (2, None)
 
@@ -71,7 +71,7 @@ class DT(parametertools.Parameter):
     """The length of the numerical substeps [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (None, None)
 
@@ -130,7 +130,7 @@ class Sealed(parametertools.Parameter):
     """Flag indicating if a (soil) compartment is sealed for infiltration [-]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)
 
@@ -139,7 +139,7 @@ class SoilArea(parametertools.Parameter):
     """The area of each soil compartment [km²]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -148,7 +148,7 @@ class SoilDepth(parametertools.Parameter):
     """Depth of the considered soil domains [mm]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -157,7 +157,7 @@ class ResidualMoisture(parametertools.Parameter):
     """Relative residual water content [-]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -188,7 +188,7 @@ class SaturationMoisture(parametertools.Parameter):
     """Relative saturation water content [-]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -219,7 +219,7 @@ class SaturatedConductivity(parametertools.Parameter):
     """Saturated hydraulic conductivity [mm/T]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = True
     SPAN = (0.0, None)
 
@@ -228,7 +228,7 @@ class PoreSizeDistribution(parametertools.Parameter):
     """Pore-size distribution parameter [-]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -237,6 +237,6 @@ class AirEntryPotential(parametertools.Parameter):
     """Air entry potential [mm]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)

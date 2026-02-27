@@ -25,7 +25,7 @@ class InputFactor(parametertools.Parameter):
     """Factor for converting meteorological input from mm/T to million m³/s."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -51,7 +51,7 @@ class RemoteDischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |RemoteDischargeSafety| [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -87,7 +87,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
     smoothing kernel |smooth_logistic1| [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -123,7 +123,7 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
     smoothing kernel |smooth_logistic2| [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -159,7 +159,7 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
     smoothing kernel |smooth_logistic1| [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -193,7 +193,7 @@ class WaterLevelMaximumSmoothPar(parametertools.Parameter):
     smoothing kernel |smooth_logistic1| [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -227,7 +227,7 @@ class RemoteWaterLevelMaximumSmoothPar(parametertools.Parameter):
     smoothing kernel |smooth_logistic1| [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -261,7 +261,7 @@ class SmoothParEvaporation(parametertools.Parameter):
     kernel |smooth_logistic1| [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -294,7 +294,7 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMinimumRemoteTolerance| [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -329,7 +329,7 @@ class WaterLevelReliefSmoothPar(parametertools.Parameter):
     kernel |smooth_logistic1| [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -365,7 +365,7 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
     kernel |smooth_logistic1| [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -401,7 +401,7 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
     kernel |smooth_min1| [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -470,7 +470,7 @@ class VolumeSmoothParLog1(parametertools.Parameter):
     |smooth_logistic1| [million m³]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -504,7 +504,7 @@ class VolumeSmoothParLog2(parametertools.Parameter):
     |smooth_logistic2| [million m³]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -538,7 +538,7 @@ class DischargeSmoothPar(parametertools.Parameter):
     kernels |smooth_logistic2|, |smooth_min1|, and |smooth_max1| [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -576,7 +576,7 @@ class CrestLevelSmoothPar(parametertools.Parameter):
     kernel |smooth_max1| [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 

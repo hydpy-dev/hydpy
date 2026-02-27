@@ -15,7 +15,7 @@ class Nmb(parametertools.Parameter):
     """Number of response functions [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -57,7 +57,7 @@ class MaxQ(parametertools.Parameter):
     """Maximum discharge values of the respective ARMA models [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0, None)
 
@@ -82,7 +82,7 @@ class DiffQ(parametertools.Parameter):
     """Differences between the values of |MaxQ| [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0, None)
 
@@ -111,7 +111,7 @@ class AR_Order(parametertools.Parameter):
     """Number of AR coefficients of the different responses [-]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -136,7 +136,7 @@ class MA_Order(parametertools.Parameter):
     """Number of MA coefficients of the different responses [-]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -161,7 +161,7 @@ class AR_Coefs(parametertools.Parameter):
     """AR coefficients of the different responses [-]."""
 
     NDIM: Final[Literal[2]] = 2
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -196,7 +196,7 @@ class MA_Coefs(parametertools.Parameter):
     """MA coefficients of the different responses [-]."""
 
     NDIM: Final[Literal[2]] = 2
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 

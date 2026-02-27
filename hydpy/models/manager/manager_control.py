@@ -21,7 +21,7 @@ class DischargeThreshold(parametertools.Parameter):
     """Discharge threshold for estimating release requests [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -30,7 +30,7 @@ class DischargeTolerance(parametertools.Parameter):
     """Discharge tolerance for estimating release requests [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -40,7 +40,7 @@ class TimeDelay(parametertools.Parameter):
     water and its effect on the target cross-section [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -50,7 +50,7 @@ class TimeWindow(parametertools.Parameter):
     discharge" estimates [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -173,7 +173,7 @@ class VolumeThreshold(manager_parameters.ParameterSource):
     different ways to set source-specific values.
     """
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -186,7 +186,7 @@ class VolumeTolerance(manager_parameters.ParameterSource):
     different ways to set source-specific values.
     """
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -198,7 +198,7 @@ class ReleaseMax(manager_parameters.ParameterSource):
     different ways to set source-specific values.
     """
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -210,6 +210,6 @@ class Active(manager_parameters.ParameterSource):
     different ways to set source-specific values.
     """
 
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)

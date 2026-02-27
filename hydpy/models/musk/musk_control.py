@@ -13,7 +13,7 @@ class CatchmentArea(parametertools.Parameter):
     """Size of the catchment draining into the channel [km²]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -83,7 +83,7 @@ class NmbSegments(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
     KEYWORDS = {"lag": parametertools.Keyword(name="lag", time=False)}
@@ -276,7 +276,7 @@ with value `1.0` needed to be trimmed to `0.0`.
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
     SHAPE = (3,)
@@ -326,7 +326,7 @@ class Length(parametertools.Parameter):
     """The total length of channel [km]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -338,6 +338,6 @@ class BottomSlope(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)

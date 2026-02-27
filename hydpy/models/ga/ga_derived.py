@@ -15,7 +15,7 @@ class NmbSubsteps(parametertools.Parameter):
     """The number of numerical substeps in each simulation step [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, numpy.inf)
 
@@ -39,7 +39,7 @@ class SoilAreaFraction(parametertools.Parameter):
     """The area fraction of each soil compartment [-]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -66,7 +66,7 @@ class EffectiveCapillarySuction(parametertools.Parameter):
     characteristic model :cite:p:`ref-Brooks1966` [mm]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 

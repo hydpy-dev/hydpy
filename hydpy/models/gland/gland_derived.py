@@ -18,7 +18,7 @@ class Beta(parametertools.Parameter):
     """Percolation factor [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -85,7 +85,7 @@ class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 

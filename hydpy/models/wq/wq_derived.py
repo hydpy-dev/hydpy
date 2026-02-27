@@ -23,7 +23,7 @@ class BottomDepths(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The cumulated depth of a trapeze and its lower neighbours [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -52,7 +52,7 @@ class TrapezeHeights(wq_variables.MixinTrapezes, parametertools.Parameter):
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -82,7 +82,7 @@ class SlopeWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -115,7 +115,7 @@ class TrapezeAreas(wq_variables.MixinTrapezes, parametertools.Parameter):
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -152,7 +152,7 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -175,7 +175,7 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
 
 
 class _SectorWidths(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -260,7 +260,7 @@ class SectorTotalWidths(_SectorWidths):
 
 
 class _SectorAreas(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -340,7 +340,7 @@ class SectorFlowPerimeters(
     """The sector-specific wetted perimeters of those subareas of the cross section
     involved in water routing [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -387,7 +387,7 @@ class SectorFlowPerimeterDerivatives(
     cross section involved in water routing with respect to water level increases
     [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -437,7 +437,7 @@ class CrestHeightRegularisation(parametertools.Parameter):
     the crest height [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 

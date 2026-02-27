@@ -32,6 +32,8 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
                            nan, nan])
     """
 
+    TYPE: Final = float
+
     columnnames = (
         "jan",
         "feb",

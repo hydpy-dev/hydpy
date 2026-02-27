@@ -15,7 +15,7 @@ class NmbHRU(parametertools.Parameter):
     """The number of separately modelled hydrological response units [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -43,7 +43,6 @@ class NmbHRU(parametertools.Parameter):
 class HRUType(parametertools.NameParameter):
     """Hydrological response unit type [-]."""
 
-    TYPE = int
     TIME = None
     SPAN = (None, None)
     constants = parametertools.Constants(ANY=0)
@@ -52,7 +51,7 @@ class HRUType(parametertools.NameParameter):
 class Water(evap_parameters.ZipParameter1D):
     """A flag that indicates whether the individual zones are water areas or not."""
 
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)
 
@@ -61,7 +60,7 @@ class Interception(evap_parameters.ZipParameter1D):
     """A flag that indicates whether interception evaporation is relevant for the
     individual zones."""
 
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)
 
@@ -70,7 +69,7 @@ class Soil(evap_parameters.ZipParameter1D):
     """A flag that indicates whether soil evapotranspiration is relevant for the
     individual zones."""
 
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)
 
@@ -78,7 +77,7 @@ class Soil(evap_parameters.ZipParameter1D):
 class Plant(evap_parameters.ZipParameter1D):
     """A flag that indicates whether the individual zones contain any vegetation."""
 
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)
 
@@ -87,7 +86,7 @@ class Tree(evap_parameters.ZipParameter1D):
     """A flag that indicates whether the individual zones contain tree-like
     vegetation."""
 
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)
 
@@ -96,7 +95,7 @@ class Conifer(evap_parameters.ZipParameter1D):
     """A flag that indicates whether the individual zones contain conifer-like
     vegetation."""
 
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)
 
@@ -105,7 +104,7 @@ class HRUArea(parametertools.Parameter):
     """The area of each hydrological response unit [km²]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -113,7 +112,7 @@ class HRUArea(parametertools.Parameter):
 class HRUAltitude(evap_parameters.ZipParameter1D):
     """The altitude of each hydrological response unit [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
     INIT = 0.0
@@ -123,7 +122,7 @@ class MeasuringHeightWindSpeed(parametertools.Parameter):
     """The height above ground of the wind speed measurements [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0, None)
     INIT = 10.0
@@ -132,7 +131,7 @@ class MeasuringHeightWindSpeed(parametertools.Parameter):
 class AirTemperatureAddend(evap_parameters.ZipParameter1D):
     """Adjustment addend for air temperature [K]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
     INIT = 0.0
@@ -142,7 +141,7 @@ class CoastFactor(evap_parameters.ZipParameter1D):
     """The "coast factor" of Turc-Wendling's reference evapotranspiration equation
     [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.6, 1.0)
     INIT = 1.0
@@ -151,7 +150,6 @@ class CoastFactor(evap_parameters.ZipParameter1D):
 class Albedo(evap_parameters.LandMonthParameter):
     """Earth surface albedo [-]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.5
@@ -161,7 +159,7 @@ class GroundAlbedo(evap_parameters.ZipParameter1D):
     """The albedo of the snow-free ground (including soils, sealed surfaces, and water
     areas) [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.2
@@ -171,7 +169,7 @@ class GroundAlbedoSnow(evap_parameters.ZipParameter1D):
     """The albedo of the snow-covered ground (including soils and sealed surfaces)
     [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.8
@@ -180,7 +178,7 @@ class GroundAlbedoSnow(evap_parameters.ZipParameter1D):
 class LeafAlbedo(evap_parameters.PlantParameter1D):
     """The albedo of the snow-free leaves [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.2
@@ -189,7 +187,7 @@ class LeafAlbedo(evap_parameters.PlantParameter1D):
 class LeafAlbedoSnow(evap_parameters.PlantParameter1D):
     """The albedo of the snow-covered leaves [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.8
@@ -198,7 +196,6 @@ class LeafAlbedoSnow(evap_parameters.PlantParameter1D):
 class LeafAreaIndex(evap_parameters.LandMonthParameter):
     """Leaf area index [-]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 5.0
@@ -207,7 +204,6 @@ class LeafAreaIndex(evap_parameters.LandMonthParameter):
 class CropHeight(evap_parameters.LandMonthParameter):
     """Crop height [m]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1.0
@@ -218,7 +214,7 @@ class CloudTypeFactor(parametertools.Parameter):
     [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.2
@@ -229,7 +225,7 @@ class NightCloudFactor(parametertools.Parameter):
     [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1.0
@@ -239,7 +235,7 @@ class Emissivity(parametertools.Parameter):
     """The emissivity of the land surface [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.95
@@ -248,7 +244,7 @@ class Emissivity(parametertools.Parameter):
 class AverageSoilHeatFlux(parametertools.MonthParameter):
     """Monthly averages of the soil heat flux [W/m²]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
     INIT = 0.0
@@ -258,7 +254,6 @@ class SurfaceResistance(evap_parameters.LandMonthParameter):
     """Surface resistance of water areas, sealed areas, and vegetation with sufficient
     water supply [s/m]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 100.0
@@ -267,7 +262,7 @@ class SurfaceResistance(evap_parameters.LandMonthParameter):
 class WetSoilResistance(evap_parameters.SoilParameter1D):
     """Surface resistance of wet soils [s/m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 100.0
@@ -277,7 +272,7 @@ class SoilResistanceIncrease(evap_parameters.SoilParameter1D):
     """Increase in soil surface resistance if evaporation dominates precipitation
     [s/m/T]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = True
     SPAN = (0.0, None)
     INIT = 0.0
@@ -287,7 +282,7 @@ class WetnessThreshold(evap_parameters.SoilParameter1D):
     """The ratio between precipitation and potential evapotranspiration above which the
     topmost soil layer becomes wet [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1.0
@@ -296,7 +291,7 @@ class WetnessThreshold(evap_parameters.SoilParameter1D):
 class LeafResistance(evap_parameters.PlantParameter1D):
     """Surface resistance of plant leaves [s/m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 100.0
@@ -305,7 +300,7 @@ class LeafResistance(evap_parameters.PlantParameter1D):
 class EvapotranspirationFactor(evap_parameters.ZipParameter1D):
     """The adjustment factor for potential evapotranspiration [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1.0
@@ -316,7 +311,7 @@ class MonthFactor(parametertools.MonthParameter):
     (usually grass reference evapotranspiration) to month-specific potential
     evaporation or evapotranspiration [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -326,7 +321,6 @@ class LandMonthFactor(evap_parameters.LandMonthParameter):
     (usually grass reference evapotranspiration) to land-use- and month-specific
     potential evaporation or evapotranspiration [-]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -336,7 +330,7 @@ class AltitudeFactor(evap_parameters.ZipParameter1D):
 
     In the terminology of HBV96: ECAlt."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
     INIT = 0.1
@@ -348,7 +342,7 @@ class PrecipitationFactor(evap_parameters.ZipParameter1D):
     In the terminology of HBV96: EPF.
     """
 
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
     INIT = 0.0
@@ -361,7 +355,7 @@ class AirTemperatureFactor(evap_parameters.ZipParameter1D):
     In the terminology of HBV96: ETF.
     """
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
     INIT = 0.1
@@ -371,7 +365,7 @@ class DampingFactor(evap_parameters.ZipParameter1D):
     """Damping factor (temporal weighting factor) for potential evapotranspiration
     [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = True
     SPAN = (0.0, 1.0)
     INIT = 0.0
@@ -383,7 +377,7 @@ class TemperatureThresholdIce(evap_parameters.WaterParameter1D):
     In the terminology of HBV96: TTIce.
     """
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -394,7 +388,7 @@ class MaxSoilWater(evap_parameters.SoilParameter1D):
     In the terminology of HBV96: FC.
     """
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 200.0
@@ -408,7 +402,7 @@ class SoilMoistureLimit(evap_parameters.SoilParameter1D):
     In the terminology of MORECS: `PY`. Typical value: 0.6.
     """
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.9
@@ -420,7 +414,7 @@ class ExcessReduction(evap_parameters.SoilParameter1D):
     In the terminology of HBV96: ERED.
     """
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -435,7 +429,7 @@ class DisseFactor(evap_parameters.SoilParameter1D):
     In the terminology of LARSIM: GRASREF_R.
     """
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 5.0

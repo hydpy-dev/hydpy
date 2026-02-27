@@ -74,7 +74,7 @@ Node("in3", variable="Q"))
     """
 
     NDIM: Final[Literal[2]] = 2
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -181,7 +181,7 @@ Node("in3", variable="Q"))
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -253,7 +253,7 @@ class MaxNmbInputs(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -292,7 +292,7 @@ class MinNmbInputs(parametertools.Parameter):
     """The minimum number of inputs for performing a statistical analysis [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (2, None)
 
@@ -301,7 +301,7 @@ class DefaultConstant(parametertools.Parameter):
     """Default or fallback value for the constant of the linear regression model [?]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -310,7 +310,7 @@ class DefaultFactor(parametertools.Parameter):
     """Default or fallback value for the factor of the linear regression model [?]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (-1.0, 1.0)
 
@@ -319,6 +319,6 @@ class Power(parametertools.Parameter):
     """Power parameter for calculating inverse distance weights [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0, None)

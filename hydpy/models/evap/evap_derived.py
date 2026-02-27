@@ -26,7 +26,7 @@ class HRUAreaFraction(parametertools.Parameter):
     """The area fraction of each hydrological response unit [-]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -52,7 +52,7 @@ class Altitude(parametertools.Parameter):
     """Average (reference) subbasin altitude [100m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -92,7 +92,7 @@ class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for a memory duration of 24 hours [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -182,7 +182,6 @@ class RoughnessLength(
 ):  # ToDo: not directy required, remove?
     """Roughness length [m]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -215,7 +214,6 @@ class RoughnessLength(
 class AerodynamicResistanceFactor(evap_parameters.LandMonthParameter):
     """Factor for calculating aerodynamic resistance [-]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
 

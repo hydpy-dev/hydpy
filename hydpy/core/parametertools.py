@@ -1880,7 +1880,7 @@ class NmbParameter(Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE: TypeTYPE = int
+    TYPE: Final = int
     TIME: TypeTIME = None
 
     def __call__(self, *args, **kwargs) -> None:
@@ -1959,7 +1959,7 @@ class NameParameter(_MixinModifiableParameter, Parameter):
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE: TypeTYPE = int
+    TYPE: Final = int
     TIME: TypeTIME = None
     SPAN: TypeSPAN = (None, None)
     constants: Constants
@@ -2712,7 +2712,7 @@ broadcast input array from shape (2,) into shape (366,3)
         >>> del pub.timegrids
     """
 
-    TYPE: TypeTYPE = float
+    TYPE: Final = float
 
     strict_valuehandling: bool = False
 
@@ -4116,7 +4116,7 @@ sorted in increasing order (0.333333, 0.0, and 0.666667).
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE: TypeTYPE = float
+    TYPE: Final = float
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
@@ -4363,7 +4363,7 @@ class SecondsParameter(Parameter):
     """The length of the actual simulation step size in seconds [s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE: TypeTYPE = float
+    TYPE: Final = float
     TIME: TypeTIME = None
     SPAN: TypeSPAN = (0.0, None)
 
@@ -4386,7 +4386,7 @@ class HoursParameter(Parameter):
     """The length of the actual simulation step size in hours [h]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE: TypeTYPE = float
+    TYPE: Final = float
     TIME: TypeTIME = None
     SPAN: TypeSPAN = (0.0, None)
 
@@ -4409,7 +4409,7 @@ class DaysParameter(Parameter):
     """The length of the actual simulation step size in days [d]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE: TypeTYPE = float
+    TYPE: Final = float
     TIME: TypeTIME = None
     SPAN: TypeSPAN = (0.0, None)
 
@@ -4584,7 +4584,7 @@ class TOYParameter(IndexParameter):
     """References the |Indexer.timeofyear| index array provided by the
     instance of class |Indexer| available in module |pub|. [-]."""
 
-    TYPE: TypeTYPE = int
+    TYPE: Final = int
     SPAN: TypeSPAN = (0, None)
 
     def update(self) -> None:
@@ -4612,7 +4612,7 @@ class MOYParameter(IndexParameter):
     """References the |Indexer.monthofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
 
-    TYPE: TypeTYPE = int
+    TYPE: Final = int
     SPAN: TypeSPAN = (0, 11)
 
     def update(self) -> None:
@@ -4640,7 +4640,7 @@ class DOYParameter(IndexParameter):
     """References the |Indexer.dayofyear| index array provided by the
     instance of class |Indexer| available in module |pub| [-]."""
 
-    TYPE: TypeTYPE = int
+    TYPE: Final = int
     SPAN: TypeSPAN = (0, 365)
 
     def update(self) -> None:
@@ -4668,7 +4668,7 @@ class SCTParameter(IndexParameter):
     """References the |Indexer.standardclocktime| array provided by the
     instance of class |Indexer| available in module |pub| [h]."""
 
-    TYPE: TypeTYPE = float
+    TYPE: Final = float
     SPAN: TypeSPAN = (0.0, 86400.0)
 
     def update(self) -> None:
@@ -4696,7 +4696,7 @@ class UTCLongitudeParameter(IndexParameter):
     """References the current "UTC longitude" defined by option
     |Options.utclongitude|."""
 
-    TYPE: TypeTYPE = int
+    TYPE: Final = int
     TIME: TypeTIME = None
     SPAN: TypeSPAN = (-180, 180)
 

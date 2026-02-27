@@ -22,7 +22,7 @@ class WeightUpstream(parametertools.Parameter):
     two adjacent segments to their shared edge [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -49,7 +49,7 @@ class LengthMin(parametertools.Parameter):
     routing model [km]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -75,7 +75,7 @@ class LengthMean(parametertools.Parameter):
     model [km]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 

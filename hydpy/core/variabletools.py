@@ -1010,7 +1010,14 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         Please override it with a class attribute.
         """
 
-    TYPE: TypeTYPE
+    @property
+    @abc.abstractmethod
+    def TYPE(self) -> TypeTYPE:
+        """Type of the values handled by the respective subclass.
+
+        Please override it with a class attribute.
+        """
+
     SPAN: TypeSPAN = (None, None)
     INIT: TypeINIT = None
 

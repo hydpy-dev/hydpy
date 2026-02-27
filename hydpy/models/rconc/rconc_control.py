@@ -192,7 +192,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     strict_valuehandling: bool = False
@@ -436,7 +436,7 @@ class RetentionTime(parametertools.Parameter):
     """Retention time of the linear storage cascade [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -455,7 +455,7 @@ class NmbStorages(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -479,7 +479,7 @@ class NmbSteps(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = True
     SPAN = (1, None)
     INIT = 1440.0

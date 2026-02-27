@@ -18,7 +18,7 @@ class NmbInputs(parametertools.Parameter):
     """The number of inlet nodes [-]"""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -67,7 +67,7 @@ class NmbOutputs(parametertools.Parameter):
     """The number of outlet nodes [-]"""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -116,7 +116,7 @@ class Distances(parametertools.Parameter):
     """Distances of the inlet nodes to each outlet node [?]."""
 
     NDIM: Final[Literal[2]] = 2
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -160,7 +160,7 @@ class ProximityOrder(parametertools.Parameter):
     outlet node [-]."""
 
     NDIM: Final[Literal[2]] = 2
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (None, None)
 
@@ -219,7 +219,7 @@ class Weights(parametertools.Parameter):
     proximity to each outlet node and parameter |Power| [-]."""
 
     NDIM: Final[Literal[2]] = 2
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 

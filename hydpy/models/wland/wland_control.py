@@ -15,7 +15,7 @@ class AT(parametertools.Parameter):
     """Total area [km²]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -56,7 +56,7 @@ class NU(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -142,7 +142,7 @@ unit, but 2 units are defined as such.
 class ER(wland_parameters.LanduseParameterLand):
     """Elevated region [-]."""
 
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (None, None)
     INIT = False
@@ -152,7 +152,7 @@ class AUR(parametertools.Parameter):
     """Relative area of each hydrological response unit [-]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -161,7 +161,7 @@ class GL(parametertools.Parameter):
     """The lowland region's average ground level [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -189,7 +189,7 @@ class BL(parametertools.Parameter):
     """Channel bottom level [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -220,7 +220,7 @@ class CP(parametertools.Parameter):
     """Factor for correcting precipitation [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -228,7 +228,7 @@ class CP(parametertools.Parameter):
 class LAI(wland_parameters.LanduseMonthParameter):
     """Leaf area index [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -237,7 +237,7 @@ class IH(parametertools.Parameter):
     """Interception capacity with respect to the leaf surface area [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -246,7 +246,7 @@ class TT(parametertools.Parameter):
     """Threshold temperature for snow/rain [°C]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -255,7 +255,7 @@ class TI(parametertools.Parameter):
     """Temperature interval with a mixture of snow and rain [°C]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -263,7 +263,7 @@ class TI(parametertools.Parameter):
 class DDF(wland_parameters.LanduseParameterLand):
     """Day degree factor [mm/°C/T]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = True
     SPAN = (0.0, None)
 
@@ -272,7 +272,7 @@ class DDT(parametertools.Parameter):
     """Day degree threshold temperature [°C]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -281,7 +281,7 @@ class CWE(parametertools.Parameter):
     """Wetness index parameter for the elevated region [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (1.0, None)
 
@@ -290,7 +290,7 @@ class CW(parametertools.Parameter):
     """Wetness index parameter for the lowland region [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (1.0, None)
 
@@ -299,7 +299,7 @@ class CV(parametertools.Parameter):
     """Vadose zone relaxation time constant for the lowland region [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -308,7 +308,7 @@ class CGE(parametertools.Parameter):
     """Groundwater reservoir constant for the elevated region [mm T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -317,7 +317,7 @@ class CG(parametertools.Parameter):
     """Groundwater reservoir constant for the lowland region [mm T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -326,7 +326,7 @@ class RG(parametertools.Parameter):
     """Groundwater reservoir restriction [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (None, None)
 
@@ -335,7 +335,7 @@ class CGF(parametertools.Parameter):
     """Groundwater reservoir flood factor [1/mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -344,7 +344,7 @@ class DGC(parametertools.Parameter):
     """Direct groundwater connect [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (None, None)
 
@@ -353,7 +353,7 @@ class CQ(parametertools.Parameter):
     """Quickflow reservoir relaxation time [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)
 
@@ -382,7 +382,7 @@ class B(wland_parameters.SoilParameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -425,7 +425,7 @@ class PsiAE(wland_parameters.SoilParameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -468,7 +468,7 @@ class ThetaS(wland_parameters.SoilParameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, 1.0)
 
@@ -523,7 +523,7 @@ class ThetaR(parametertools.Parameter):
     """Residual soil moisture deficit at tension saturation [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (1e-6, None)
     INIT = 0.01
@@ -556,7 +556,7 @@ class AC(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 200.0
@@ -566,7 +566,7 @@ class Zeta1(parametertools.Parameter):
     """Curvature parameter of the evapotranspiration reduction function [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.02
@@ -576,7 +576,7 @@ class Zeta2(parametertools.Parameter):
     """Inflection point of the evapotranspiration reduction function [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 400.0
@@ -586,7 +586,7 @@ class SH(parametertools.Parameter):
     """General smoothing parameter related to the height of water columns [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -595,6 +595,6 @@ class ST(parametertools.Parameter):
     """General smoothing parameter related to temperature [°C]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)

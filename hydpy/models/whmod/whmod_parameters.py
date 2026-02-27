@@ -143,7 +143,7 @@ class SoilTypeParameter(parametertools.ZipParameter):
     0.266667
     """
 
-    TYPE = float
+    TYPE: Final = float
 
     constants = whmod_constants.SOILTYPE_CONSTANTS
     mask = whmod_masks.SoilTypeComplete()

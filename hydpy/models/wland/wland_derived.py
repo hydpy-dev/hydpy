@@ -24,7 +24,7 @@ class NUL(parametertools.Parameter):
     r"""Number of land-related hydrological response units [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -48,7 +48,7 @@ class NUGE(parametertools.Parameter):
     region [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -80,7 +80,7 @@ class NUG(parametertools.Parameter):
     region [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -111,7 +111,7 @@ class ALR(parametertools.Parameter):
     r"""Relative land area [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -136,7 +136,7 @@ class ASR(parametertools.Parameter):
     r"""Relative surface water area fraction [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -161,7 +161,7 @@ class AGRE(parametertools.Parameter):
     r"""Relative groundwater area in the elevated region [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -190,7 +190,7 @@ class AGR(parametertools.Parameter):
     r"""Relative groundwater area in the lowland region [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -219,7 +219,7 @@ class QF(parametertools.Parameter):
     r"""Factor for converting mm/T to m³/s [T m³ / mm s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -244,7 +244,7 @@ class CD(parametertools.Parameter):
     """Channel depth [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -270,7 +270,7 @@ class RH1(parametertools.Parameter):
     applying regularisation function |smooth_logistic1| [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -304,7 +304,7 @@ class RH2(parametertools.Parameter):
     applying regularisation function |smooth_logistic2| [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -338,7 +338,7 @@ class RT2(parametertools.Parameter):
     function |smooth_logistic2|) [°C]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 

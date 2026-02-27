@@ -23,7 +23,7 @@ class Parameter1DLayers(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         self.__hydpy__change_shape_if_necessary__((p.value,))

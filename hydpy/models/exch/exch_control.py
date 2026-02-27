@@ -22,7 +22,7 @@ class CrestHeight(parametertools.Parameter):
     """Crest height [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -31,7 +31,7 @@ class CrestWidth(parametertools.Parameter):
     """Crest width [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -40,7 +40,7 @@ class FlowCoefficient(parametertools.Parameter):
     """Flow coefficient [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.62
@@ -50,7 +50,7 @@ class FlowExponent(parametertools.Parameter):
     """Flow exponent [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1.5
@@ -60,7 +60,7 @@ class AllowedExchange(parametertools.Parameter):
     """The highest water exchange allowed [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1.5
@@ -69,7 +69,7 @@ class AllowedExchange(parametertools.Parameter):
 class Delta(parametertools.MonthParameter):
     """Monthly varying difference for increasing or decreasing the input [e.g. m³/s]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
     INIT = 0.0
@@ -79,7 +79,7 @@ class Minimum(parametertools.Parameter):
     """The allowed minimum value of the adjusted input [e.g. m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
     INIT = 0.0
@@ -112,7 +112,7 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -220,7 +220,7 @@ sequence and connect it to the respective outlet nodes properly.
     """
 
     NDIM: Final[Literal[2]] = 2
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -327,7 +327,7 @@ relevant observation nodes, but the first given value is of type `int`.
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 

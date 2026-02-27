@@ -44,7 +44,7 @@ class NmbHRU(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -67,7 +67,7 @@ class HRUArea(parametertools.Parameter):
     """The area of each hydrological response unit [km²]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -76,7 +76,7 @@ class Latitude(parametertools.Parameter):
     """The latitude [decimal degrees]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (-90.0, 90.0)
 
@@ -85,7 +85,7 @@ class Longitude(parametertools.Parameter):
     """The longitude [decimal degrees]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (-180.0, 180.0)
 
@@ -93,7 +93,7 @@ class Longitude(parametertools.Parameter):
 class AngstromConstant(parametertools.MonthParameter):
     """The Ångström "a" coefficient for calculating global radiation [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.25
@@ -123,7 +123,7 @@ class AngstromConstant(parametertools.MonthParameter):
 class AngstromFactor(parametertools.MonthParameter):
     """The Ångström "b" coefficient for calculating global radiation [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.5
@@ -154,7 +154,7 @@ class AngstromAlternative(parametertools.MonthParameter):
     """An alternative Ångström coefficient for replacing coefficient "c"
     (|AngstromConstant|) on days without any direct sunshine [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.15
@@ -163,7 +163,7 @@ class AngstromAlternative(parametertools.MonthParameter):
 class TemperatureAddend(meteo_parameters.ZipParameter1D):
     """Temperature shift constant [°C]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
     INIT = 0.0
@@ -172,7 +172,7 @@ class TemperatureAddend(meteo_parameters.ZipParameter1D):
 class PrecipitationFactor(meteo_parameters.ZipParameter1D):
     """Precipitation adjustment factor [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 1.0

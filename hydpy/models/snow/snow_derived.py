@@ -46,7 +46,7 @@ class ZMean(parametertools.Parameter):
     """Mean elevation of all layer [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 

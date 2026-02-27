@@ -21,7 +21,7 @@ class NmbRuns(parametertools.SolverParameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
 
 
@@ -29,7 +29,7 @@ class ToleranceWaterDepth(parametertools.SolverParameter):
     """Acceptable water depth error for determining the reference water depth [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.0
@@ -39,7 +39,7 @@ class ToleranceDischarge(parametertools.SolverParameter):
     """Acceptable discharge error for determining the reference water depth [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.000001
@@ -78,7 +78,7 @@ class ToleranceNegativeInflow(parametertools.SolverParameter):
     """Threshold for setting negative inflow values to zero or |numpy.nan| [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, -numpy.inf)
     INIT = -numpy.inf

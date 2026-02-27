@@ -12,7 +12,6 @@ from hydpy.models.snow import snow_parameters
 class NLayers(parametertools.NmbParameter):
     """Number of snow layers  [-]."""
 
-    TYPE = int
     TIME = None
     SPAN = (1, None)
 
@@ -44,7 +43,7 @@ class GradP(parametertools.Parameter):
     """Altitude gradient of precipitation [1/m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
     INIT = 0.00041
@@ -54,7 +53,7 @@ class GradTMean(snow_parameters.Parameter1D366):
     """Altitude gradient of daily mean air temperature for each day of the year
     [°C/100m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -63,7 +62,7 @@ class GradTMin(snow_parameters.Parameter1D366):
     """Altitude gradient of daily minimum air temperature for each day of the year
     [°C/100m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -72,7 +71,7 @@ class GradTMax(snow_parameters.Parameter1D366):
     """Altitude gradient of daily maximum air temperature for each day of the year
     [°C/100m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -88,7 +87,7 @@ class CN1(parametertools.Parameter):
     """Temporal weighting coefficient for the snow pack's thermal state [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -97,7 +96,7 @@ class CN2(parametertools.Parameter):
     """Degree-day melt coefficient [mm/°C/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = True
     SPAN = (0.0, None)
 
@@ -106,7 +105,7 @@ class CN3(parametertools.Parameter):
     """Accumulation threshold [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -115,7 +114,7 @@ class CN4(parametertools.Parameter):
     """Fraction of annual snowfall defining the melt threshold [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -125,7 +124,7 @@ class Hysteresis(parametertools.Parameter):
     should be considered [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)
     INIT = False

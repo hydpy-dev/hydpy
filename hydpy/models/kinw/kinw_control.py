@@ -16,7 +16,7 @@ class Laen(parametertools.Parameter):
     """Flusslänge (channel length) [km]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -25,7 +25,7 @@ class Length(parametertools.Parameter):
     """Channel length [km]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -34,7 +34,7 @@ class Gef(parametertools.Parameter):
     """Sohlgefälle (channel slope) [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -54,7 +54,7 @@ class GTS(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -110,7 +110,7 @@ class HM(parametertools.Parameter):
     """Höhe Hauptgerinne (height of the main channel) [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -119,7 +119,7 @@ class BM(parametertools.Parameter):
     """Sohlbreite Hauptgerinne (bed width of the main channel) [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -128,7 +128,7 @@ class BNM(parametertools.Parameter):
     """Böschungsneigung Hauptgerinne (slope of both main channel embankments) [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -136,7 +136,7 @@ class BNM(parametertools.Parameter):
 class BV(parametertools.LeftRightParameter):
     """Sohlbreite Vorländer (bed widths of both forelands) [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -144,7 +144,7 @@ class BV(parametertools.LeftRightParameter):
 class BBV(parametertools.LeftRightParameter):
     """Breite Vorlandböschungen (width of both foreland embankments) [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -152,7 +152,7 @@ class BBV(parametertools.LeftRightParameter):
 class BNV(parametertools.LeftRightParameter):
     """Böschungsneigung Vorländer (slope of both foreland embankments) [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -160,7 +160,7 @@ class BNV(parametertools.LeftRightParameter):
 class BNVR(parametertools.LeftRightParameter):
     """Böschungsneigung Vorlandränder (slope of both outer embankments) [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -170,7 +170,7 @@ class SKM(parametertools.Parameter):
     [m^(1/3)/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -179,7 +179,7 @@ class SKV(parametertools.LeftRightParameter):
     """Rauigkeitsbeiwert Vorländer (roughness coefficient of both forelands)
     [m^(1/3)/s]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -188,7 +188,7 @@ class EKM(parametertools.Parameter):
     """Kalibrierfaktor Hauptgerinne (calibration factor for the main channel) [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -196,7 +196,7 @@ class EKM(parametertools.Parameter):
 class EKV(parametertools.LeftRightParameter):
     """Kalibrierfaktor Vorländer (calibration factor for both forelands) [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -206,7 +206,7 @@ class HR(parametertools.Parameter):
     for the water stage) [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -356,6 +356,6 @@ class EK(parametertools.Parameter):
     """Kalibrierfaktor (calibration factor) [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)

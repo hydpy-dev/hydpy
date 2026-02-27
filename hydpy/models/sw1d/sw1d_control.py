@@ -16,7 +16,7 @@ class NmbSegments(parametertools.Parameter):
     """The number of channel segments [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 
@@ -34,7 +34,7 @@ class Length(parametertools.Parameter):
     """The length of a single channel segment [km]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -43,7 +43,7 @@ class LengthUpstream(parametertools.Parameter):
     """The upstream channel segment's length [km]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -52,7 +52,7 @@ class LengthDownstream(parametertools.Parameter):
     """The downstream channel segment's length [km]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -61,7 +61,7 @@ class BottomLevel(parametertools.Parameter):
     """The channel bottom elevation [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -74,7 +74,7 @@ class StricklerCoefficient(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -84,7 +84,7 @@ class TimeStepFactor(parametertools.Parameter):
     stability [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -94,7 +94,7 @@ class DiffusionFactor(parametertools.Parameter):
     [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -108,7 +108,7 @@ class DampingRadius(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -117,7 +117,7 @@ class CrestHeight(parametertools.Parameter):
     """The weir crest height [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -126,7 +126,7 @@ class CrestWidth(parametertools.Parameter):
     """The weir crest width [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -140,7 +140,7 @@ class GateHeight(parametertools.CallbackParameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -149,7 +149,7 @@ class GateWidth(parametertools.Parameter):
     """The gate width [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -158,7 +158,7 @@ class FlowCoefficient(parametertools.Parameter):
     """The weir flow coefficient [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.62
@@ -168,7 +168,7 @@ class TargetWaterLevel1(parametertools.Parameter):
     """The lower target water level [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -194,7 +194,7 @@ class TargetWaterLevel2(parametertools.Parameter):
     """The upper target water level [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (None, None)
 
@@ -221,7 +221,6 @@ class BottomLowWaterThreshold(parametertools.SeasonalParameter):
     periods [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
     TIME = None
     SPAN = (None, None)
 
@@ -272,7 +271,6 @@ class UpperLowWaterThreshold(parametertools.SeasonalParameter):
     flow periods [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
     TIME = None
     SPAN = (None, None)
 
@@ -317,7 +315,6 @@ class BottomHighWaterThreshold(parametertools.SeasonalParameter):
     drainage during high flow periods [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
     TIME = None
     SPAN = (None, None)
 
@@ -362,7 +359,6 @@ class UpperHighWaterThreshold(parametertools.SeasonalParameter):
     during high flow periods [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = float
     TIME = None
     SPAN = (None, None)
 

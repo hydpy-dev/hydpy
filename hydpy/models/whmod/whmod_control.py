@@ -19,7 +19,7 @@ class Area(parametertools.Parameter):
     """Total area [m²]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (1e-10, None)
 
@@ -58,7 +58,7 @@ class NmbZones(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (1, None)
 
@@ -77,7 +77,7 @@ class NmbZones(parametertools.Parameter):
 class ZoneArea(whmod_parameters.LandTypeCompleteParameter):
     """Zone area [m²]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -158,7 +158,7 @@ class CisternSource(whmod_parameters.LandTypeNonWaterParameter):
     """A flag that indicates whether a zone's excess water (surface runoff or
     percolation) is channelled into the cistern [-].."""
 
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)
 
@@ -167,7 +167,7 @@ class CisternCapacity(parametertools.Parameter):
     """Maximum water amount that can be collected in the cistern [m³]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -175,7 +175,7 @@ class CisternCapacity(parametertools.Parameter):
 class InterceptionCapacity(parametertools.KeywordParameter2D):
     """Maximum interception storage [mm]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -188,7 +188,7 @@ class InterceptionCapacity(parametertools.KeywordParameter2D):
 class DegreeDayFactor(whmod_parameters.LandTypeNonWaterParameter):
     """Degree day factor for snow melting [mm/T/K]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = True
     SPAN = (0.0, None)
 
@@ -196,7 +196,6 @@ class DegreeDayFactor(whmod_parameters.LandTypeNonWaterParameter):
 class AvailableFieldCapacity(whmod_parameters.SoilTypeParameter):
     """Maximum relative soil moisture content [mm/m]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -204,7 +203,7 @@ class AvailableFieldCapacity(whmod_parameters.SoilTypeParameter):
 class RootingDepth(whmod_parameters.LandTypeSoilParameter):
     """Maximum rooting depth [m]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -212,7 +211,6 @@ class RootingDepth(whmod_parameters.LandTypeSoilParameter):
 class GroundwaterDepth(whmod_parameters.SoilTypeParameter):
     """Average groundwater depth [m]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -221,14 +219,13 @@ class WithCapillaryRise(parametertools.Parameter):
     """Flag to turn on/off capillary rise [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
 
 
 class CapillaryThreshold(whmod_parameters.SoilTypeParameter):
     """Relative soil moisture where the capillary rise starts [-]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -236,7 +233,6 @@ class CapillaryThreshold(whmod_parameters.SoilTypeParameter):
 class CapillaryLimit(whmod_parameters.SoilTypeParameter):
     """Relative soil moisture where the capillary rise reaches its maximum [-]."""
 
-    TYPE = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -244,7 +240,7 @@ class CapillaryLimit(whmod_parameters.SoilTypeParameter):
 class IrrigationTrigger(parametertools.KeywordParameter2D):
     """Relative soil moisture below which irrigation starts [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -298,7 +294,7 @@ class IrrigationTrigger(parametertools.KeywordParameter2D):
 class IrrigationTarget(parametertools.KeywordParameter2D):
     """Relative soil moisture content at which irrigation ends [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -353,14 +349,14 @@ class WithExternalIrrigation(parametertools.Parameter):
     """Flag to turn on/off external irrigation [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
 
 
 class BaseflowIndex(whmod_parameters.LandTypeGroundwaterParameter):
     """Baseflow index [-]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 
@@ -369,6 +365,6 @@ class RechargeDelay(parametertools.Parameter):
     """Delay between soil percolation and groundwater recharge [T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = False
     SPAN = (0.0, None)

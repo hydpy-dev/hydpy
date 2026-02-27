@@ -31,7 +31,7 @@ class DischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter related to |DischargeTolerance| [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -67,7 +67,7 @@ class DischargeSmoothPar(parametertools.Parameter):
 class VolumeSmoothPar(manager_parameters.ParameterSource):
     """Smoothing parameter related to |VolumeTolerance| [m³/s]."""
 
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
 
@@ -104,7 +104,6 @@ class VolumeSmoothPar(manager_parameters.ParameterSource):
 class MemoryLength(parametertools.NmbParameter):
     """Number of simulation steps to be covered by some log sequences [-]."""
 
-    TYPE = int
     TIME = None
     SPAN = (0, None)
 
@@ -133,7 +132,7 @@ class Adjacency(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[2]] = 2
-    TYPE = bool
+    TYPE: Final = bool
     TIME = None
     SPAN = (False, True)
 
@@ -318,7 +317,7 @@ class Order(parametertools.Parameter):
     """
 
     NDIM: Final[Literal[1]] = 1
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
 

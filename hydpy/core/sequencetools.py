@@ -1225,7 +1225,7 @@ class Sequence_(variabletools.Variable):
     3
     """
 
-    TYPE: TypeTYPE = float
+    TYPE: Final = float
     INIT: TypeINIT = 0.0
     NUMERIC: TypeNUMERIC
 

@@ -58,7 +58,6 @@ class CisternInflow(sequencetools.FluxSequence):
     """Inflow into the cistern [m³/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
     NUMERIC = False
 
 
@@ -66,7 +65,6 @@ class CisternOverflow(sequencetools.FluxSequence):
     """Overflow of the cistern due to limited storage capacity [m³/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
     NUMERIC = False
 
 
@@ -74,7 +72,6 @@ class CisternDemand(sequencetools.FluxSequence):
     """Irrigation water damanded from the cistern [m³/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
     NUMERIC = False
 
 
@@ -82,7 +79,6 @@ class CisternExtraction(sequencetools.FluxSequence):
     """Actual irrigation extraction from the cistern [m³/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
     NUMERIC = False
 
 

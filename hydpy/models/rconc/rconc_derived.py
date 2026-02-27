@@ -16,7 +16,7 @@ class KSC(parametertools.Parameter):
     """Coefficient of the individual storages of the linear storage cascade [1/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = True
     SPAN = (0.0, None)
 
@@ -52,7 +52,7 @@ class DT(parametertools.Parameter):
     """Relative length of each simulation step [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
 

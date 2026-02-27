@@ -15,7 +15,7 @@ class AbsErrorMax(parametertools.SolverParameter):
     """Absolute numerical error tolerance [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = 0.0001
@@ -51,7 +51,7 @@ class RelErrorMax(parametertools.SolverParameter):
     """Relative numerical error tolerance [1/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, None)
     INIT = numpy.nan
@@ -61,7 +61,7 @@ class RelDTMin(parametertools.SolverParameter):
     """Smallest relative integration time step size allowed [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 0.001
@@ -71,7 +71,7 @@ class RelDTMax(parametertools.SolverParameter):
     """Largest relative integration time step size allowed [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, 1.0)
     INIT = 1.0
@@ -82,7 +82,7 @@ class MaxEval(parametertools.SolverParameter):
     Sequence [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = int
+    TYPE: Final = int
     TIME = None
     SPAN = (0, None)
     INIT = 1000000
@@ -93,7 +93,7 @@ class MaxCFL(parametertools.SolverParameter):
     [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    TYPE = float
+    TYPE: Final = float
     TIME = None
     SPAN = (0.0, numpy.inf)
     INIT = numpy.inf

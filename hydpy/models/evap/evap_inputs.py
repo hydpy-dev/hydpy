@@ -10,7 +10,6 @@ class ReferenceEvapotranspiration(sequencetools.InputSequence):
     """Reference evapotranspiration [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.POTENTIAL_EVAPOTRANSPIRATION
 
 
@@ -18,7 +17,6 @@ class RelativeHumidity(sequencetools.InputSequence):
     """Relative humidity [%]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.RELATIVE_HUMIDITY
 
 
@@ -26,7 +24,6 @@ class WindSpeed(sequencetools.InputSequence):
     """Wind speed [m/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.WIND_SPEED
 
 
@@ -34,7 +31,6 @@ class AtmosphericPressure(sequencetools.InputSequence):
     """Atmospheric pressure [hPa]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.ATMOSPHERIC_PRESSURE
 
 
@@ -46,7 +42,6 @@ class NormalAirTemperature(sequencetools.InputSequence):
     """
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.NORMAL_AIR_TEMPERATURE
 
 
@@ -57,5 +52,4 @@ class NormalEvapotranspiration(sequencetools.InputSequence):
     """
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.NORMAL_EVAPOTRANSPIRATION

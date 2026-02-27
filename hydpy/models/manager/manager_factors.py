@@ -10,4 +10,3 @@ class Alertness(sequencetools.FactorSequence):
     """The current need for low water control [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False

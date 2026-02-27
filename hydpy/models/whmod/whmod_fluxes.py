@@ -58,28 +58,24 @@ class CisternInflow(sequencetools.FluxSequence):
     """Inflow into the cistern [m³/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class CisternOverflow(sequencetools.FluxSequence):
     """Overflow of the cistern due to limited storage capacity [m³/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class CisternDemand(sequencetools.FluxSequence):
     """Irrigation water damanded from the cistern [m³/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class CisternExtraction(sequencetools.FluxSequence):
     """Actual irrigation extraction from the cistern [m³/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class InternalIrrigation(whmod_sequences.Flux1DSoilSequence):
@@ -102,11 +98,9 @@ class ActualRecharge(sequencetools.FluxSequence):
     """Actual recharge [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class DelayedRecharge(sequencetools.FluxSequence):
     """Delayed recharge [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False

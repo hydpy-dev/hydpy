@@ -10,4 +10,3 @@ class Outputs(sequencetools.OutletSequence):
     """Outputs [?]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False

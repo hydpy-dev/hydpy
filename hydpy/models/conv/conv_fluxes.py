@@ -10,42 +10,36 @@ class Inputs(sequencetools.FluxSequence):
     """The (unmodified) values supplied by the input nodes [?]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class ActualConstant(sequencetools.FluxSequence):
     """The actual value for the constant of the linear regression model [?]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class ActualFactor(sequencetools.FluxSequence):
     """The actual value for the factor of the linear regression model [?]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class InputPredictions(sequencetools.FluxSequence):
     """The values of the input nodes predicted by a regression model [?]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class OutputPredictions(sequencetools.FluxSequence):
     """The values of the output nodes predicted by a regression model [?]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class InputResiduals(sequencetools.FluxSequence):
     """The exact residuals of a regression model calculated for the input nodes [?]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class OutputResiduals(sequencetools.FluxSequence):
@@ -53,11 +47,9 @@ class OutputResiduals(sequencetools.FluxSequence):
     [?]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class Outputs(sequencetools.FluxSequence):
     """The final interpolation results estimated for the output nodes [?]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False

@@ -25,7 +25,6 @@ class Inzp(lland_sequences.State1DSequence):
     simulation step of the new month.
     """
 
-    NUMERIC = False
     SPAN = (0.0, None)
     mask = lland_masks.Land()
 
@@ -34,7 +33,6 @@ class STInz(lland_sequences.State1DSequence):
     """Wasseräquivalent Trockenschnee im Interzeptionsspeicher (total water equivalent
     of the intercepted snow) [mm]."""
 
-    NUMERIC = False
     SPAN = (0.0, None)
     mask = lland_masks.Forest()
 
@@ -69,7 +67,6 @@ class SInz(lland_sequences.State1DSequence):
     """Wasseräquivalent Gesamtschnee im Interzeptionsspeicher (frozen water equivalent
     of the intercepted snow) [mm]."""
 
-    NUMERIC = False
     SPAN = (0.0, None)
     mask = lland_masks.Forest()
 
@@ -103,7 +100,6 @@ class SInz(lland_sequences.State1DSequence):
 class ESnowInz(lland_sequences.State1DSequence):
     """Kälteinhalt der Schneedecke des Interzeptionsspeichers [WT/m²]."""
 
-    NUMERIC = False
     SPAN = (None, None)
     mask = lland_masks.Forest()
 
@@ -115,7 +111,6 @@ class ASInz(lland_sequences.State1DSequence):
     If there is no intercepted snow, the value of |ASInz| is |numpy.nan|.
     """
 
-    NUMERIC = False
     SPAN = (0.0, None)
     mask = lland_masks.Forest()
 
@@ -124,7 +119,6 @@ class WATS(lland_sequences.State1DSequence):
     """Wasseräquivalent Trockenschnee auf der Bodenoberfläche (frozen water equivalent
     of the snow cover) [mm]."""
 
-    NUMERIC = False
     SPAN = (0.0, None)
     mask = lland_masks.Land()
 
@@ -159,7 +153,6 @@ class WAeS(lland_sequences.State1DSequence):
     """Wasseräquivalent Gesamtschnee auf der Bodenoberfläche (total water equivalent
     of the snow cover) [mm]."""
 
-    NUMERIC = False
     SPAN = (0.0, None)
     mask = lland_masks.Land()
 
@@ -195,7 +188,6 @@ class ESnow(lland_sequences.State1DSequence):
     """Thermischer Energieinhalt der Schneedecke bezogen auf 0°C (thermal
     energy content of the snow layer with respect to 0°C) [WT/m²]."""
 
-    NUMERIC = False
     SPAN = (None, None)
     mask = lland_masks.Land()
 
@@ -206,7 +198,6 @@ class TauS(lland_sequences.State1DSequence):
     If there is no snow-layer, the value of |TauS| is |numpy.nan|.
     """
 
-    NUMERIC = False
     SPAN = (0.0, None)
     mask = lland_masks.Land()
 
@@ -215,7 +206,6 @@ class EBdn(lland_sequences.State1DSequence):
     """Energiegehalt des Bodenwassers (energy content of the soil water)
     [WT/m²]."""
 
-    NUMERIC = False
     SPAN = (None, None)
     mask = lland_masks.Land()
 
@@ -223,7 +213,6 @@ class EBdn(lland_sequences.State1DSequence):
 class BoWa(lland_sequences.State1DSequence):
     """Bodenwasserspeicherung (soil water storage) [mm]."""
 
-    NUMERIC = False
     SPAN = (0.0, None)
     mask = lland_masks.Soil()
 
@@ -247,7 +236,6 @@ class SDG1(sequencetools.StateSequence):
     """Träger Direktabfluss-Gebietsspeicher (slow direct runoff storage) [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (None, None)
 
 
@@ -255,7 +243,6 @@ class SDG2(sequencetools.StateSequence):
     """Dynamischer Direktabfluss-Gebietsspeicher (fast direct runoff storage) [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (None, None)
 
 
@@ -263,7 +250,6 @@ class SIG1(sequencetools.StateSequence):
     """Erster Zwischenabfluss-Gebietsspeicher (first interflow storage) [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -271,7 +257,6 @@ class SIG2(sequencetools.StateSequence):
     """Zweiter Zwischenabfluss-Gebietsspeicher (second interflow storage) [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -279,7 +264,6 @@ class SBG(sequencetools.StateSequence):
     """Basisabfluss-Gebietsspeicher (base flow storage) [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (None, None)
 
     def trim(self, lower=None, upper=None) -> bool:

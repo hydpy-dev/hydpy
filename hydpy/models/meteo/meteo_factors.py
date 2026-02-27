@@ -12,84 +12,72 @@ class EarthSunDistance(sequencetools.FactorSequence):
     """The relative inverse distance between the Earth and the sun [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class SolarDeclination(sequencetools.FactorSequence):
     """Solar declination [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class SunsetHourAngle(sequencetools.FactorSequence):
     """Sunset hour angle [rad]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class SolarTimeAngle(sequencetools.FactorSequence):
     """Solar time angle [rad]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class TimeOfSunrise(sequencetools.FactorSequence):
     """Time of sunrise [h]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class TimeOfSunset(sequencetools.FactorSequence):
     """Time of sunset [h]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class PossibleSunshineDuration(sequencetools.FactorSequence):
     """Astronomically possible sunshine duration [h]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class DailyPossibleSunshineDuration(sequencetools.FactorSequence):
     """Astronomically possible daily sunshine duration [h/d]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class UnadjustedSunshineDuration(sequencetools.FactorSequence):
     """Unadjusted sunshine duration [h]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class SunshineDuration(sequencetools.FactorSequence):
     """Actual sunshine duration [h]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class DailySunshineDuration(sequencetools.FactorSequence):
     """Actual daily sunshine duration [h/d]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class PortionDailyRadiation(sequencetools.FactorSequence):
     """Portion of the daily radiation sum [%]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class Temperature(meteo_sequences.FactorSequence1D):
@@ -100,4 +88,3 @@ class MeanTemperature(sequencetools.FactorSequence):
     """Mean temperature [°C]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False

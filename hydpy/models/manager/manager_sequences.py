@@ -17,7 +17,6 @@ class MixinSource(sequencetools.ModelSequence):
     element."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         if isinstance(p, manager_control.Sources):
@@ -37,7 +36,6 @@ class MixinMemory(sequencetools.LogSequence):
     simulation step."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         if isinstance(p, manager_derived.MemoryLength):

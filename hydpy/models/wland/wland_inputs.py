@@ -10,7 +10,6 @@ class T(sequencetools.InputSequence):
     """Air temperature [°C]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.AIR_TEMPERATURE
 
 
@@ -18,7 +17,6 @@ class P(sequencetools.InputSequence):
     """Precipitation [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.PRECIPITATION
 
 
@@ -34,5 +32,4 @@ class FXS(sequencetools.InputSequence):
     """Surface water supply/extraction (normalised to |AT|) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.ARTIFICIAL_SURFACE_WATER_SUPPLY

@@ -11,11 +11,9 @@ class PossibleSunshineDuration(sequencetools.FactorSequence):
     duration) [h]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class SunshineDuration(sequencetools.FactorSequence):
     """Sonnenscheindauer (sunshine duration) [h]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False

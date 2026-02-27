@@ -10,5 +10,4 @@ class SC(sequencetools.StateSequence):
     """Storage cascade for runoff concentration [mm]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)

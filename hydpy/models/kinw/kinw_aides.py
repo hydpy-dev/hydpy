@@ -11,7 +11,6 @@ class WBM(sequencetools.AideSequence):
     channel) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -20,7 +19,6 @@ class WBLV(sequencetools.AideSequence):
     left foreland) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -29,7 +27,6 @@ class WBRV(sequencetools.AideSequence):
     right foreland) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -38,7 +35,6 @@ class WBLVR(sequencetools.AideSequence):
     the left outer embankment) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -47,7 +43,6 @@ class WBRVR(sequencetools.AideSequence):
     the right outer embankment) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -56,7 +51,6 @@ class WBG(sequencetools.AideSequence):
     the total cross section) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -65,7 +59,6 @@ class AM(sequencetools.AideSequence):
     main channel) [m²]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -74,7 +67,6 @@ class ALV(sequencetools.AideSequence):
     left foreland) [m²]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -83,7 +75,6 @@ class ARV(sequencetools.AideSequence):
     right foreland) [m²]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -92,7 +83,6 @@ class ALVR(sequencetools.AideSequence):
     left outer embankments) [m²]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -101,7 +91,6 @@ class ARVR(sequencetools.AideSequence):
     right outer embankments) [m²]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -109,7 +98,6 @@ class AG(sequencetools.AideSequence):
     """Durchflossene Fläche gesamt  (total wetted area) [m²]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -118,7 +106,6 @@ class UM(sequencetools.AideSequence):
     main channel) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -127,7 +114,6 @@ class ULV(sequencetools.AideSequence):
     left foreland) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -136,7 +122,6 @@ class URV(sequencetools.AideSequence):
     right foreland) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -145,7 +130,6 @@ class ULVR(sequencetools.AideSequence):
     left outer embankment) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -154,7 +138,6 @@ class URVR(sequencetools.AideSequence):
     right outer embankment) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -162,7 +145,6 @@ class QM(sequencetools.AideSequence):
     """Durchfluss Hauptgerinne (discharge of the main channel) [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -170,7 +152,6 @@ class QLV(sequencetools.AideSequence):
     """Durchfluss linkes Vorland (discharge of the left foreland) [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -178,7 +159,6 @@ class QRV(sequencetools.AideSequence):
     """Durchfluss rechtes Vorland (discharge of the right foreland) [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -186,7 +166,6 @@ class QVR(sequencetools.AideSequence):
     """Durchfluss Vorlandränder (discharge of both outer embankment) [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -195,7 +174,6 @@ class QLVR(sequencetools.AideSequence):
     embankment) [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -204,7 +182,6 @@ class QRVR(sequencetools.AideSequence):
     embankment) [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -213,7 +190,6 @@ class RHM(sequencetools.AideSequence):
     regularised with respect to the channel bottom) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -221,7 +197,6 @@ class RHMDH(sequencetools.AideSequence):
     """Ableitung von |RHM| (derivative of |RHM|) [m/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -231,7 +206,6 @@ class RHV(sequencetools.AideSequence):
     from the main channel to both forelands) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -239,7 +213,6 @@ class RHVDH(sequencetools.AideSequence):
     """Ableitung von |RHV| (derivative of |RHV|) [m/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -249,7 +222,6 @@ class RHLVR(sequencetools.AideSequence):
     transition from the left foreland to the left outer embankment) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -257,7 +229,6 @@ class RHLVRDH(sequencetools.AideSequence):
     """Ableitung von |RHLVR| (derivative of |RHLVR|) [m/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -267,7 +238,6 @@ class RHRVR(sequencetools.AideSequence):
     transition from the right foreland to the right outer embankment) [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -275,7 +245,6 @@ class RHRVRDH(sequencetools.AideSequence):
     """Ableitung von |RHRVR| (derivative of |RHRVR|) [m/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -283,7 +252,6 @@ class AMDH(sequencetools.AideSequence):
     """Ableitung von |AM| (derivative of |AM|) [m²/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -291,7 +259,6 @@ class ALVDH(sequencetools.AideSequence):
     """Ableitung von |ALV| (derivative of |ALV|) [m²/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -299,7 +266,6 @@ class ARVDH(sequencetools.AideSequence):
     """Ableitung von |ARV| (derivative of |ARV|) [m²/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -307,7 +273,6 @@ class ALVRDH(sequencetools.AideSequence):
     """Ableitung von |ALVR| (derivative of |ALVR|) [m²/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -315,7 +280,6 @@ class ARVRDH(sequencetools.AideSequence):
     """Ableitung von |ARVR| (derivative of |ARVR|) [m²/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -323,7 +287,6 @@ class UMDH(sequencetools.AideSequence):
     """Ableitung von |UM| (derivative of |UM|) [m/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -331,7 +294,6 @@ class ULVDH(sequencetools.AideSequence):
     """Ableitung von |ULV| (derivative of |ULV|) [m/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -339,7 +301,6 @@ class URVDH(sequencetools.AideSequence):
     """Ableitung von |URV| (derivative of |URV|) [m/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -347,7 +308,6 @@ class ULVRDH(sequencetools.AideSequence):
     """Ableitung von |ULVR| (derivative of |ULVR|) [m/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -355,7 +315,6 @@ class URVRDH(sequencetools.AideSequence):
     """Ableitung von |URVR| (derivative of |URVR|) [m/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -363,7 +322,6 @@ class QMDH(sequencetools.AideSequence):
     """Ableitung von |QM| (derivative of |QM|) [m³/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -371,7 +329,6 @@ class QLVDH(sequencetools.AideSequence):
     """Ableitung von |QLV| (derivative of |QLV|) [m³/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -379,7 +336,6 @@ class QRVDH(sequencetools.AideSequence):
     """Ableitung von |QRV| (derivative of |QRV|) [m³/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -387,7 +343,6 @@ class QLVRDH(sequencetools.AideSequence):
     """Ableitung von |QLVR| (derivative of |QLVR|) [m³/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -395,5 +350,4 @@ class QRVRDH(sequencetools.AideSequence):
     """Ableitung von |QRVR| (derivative of |QRVR|) [m³/m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)

@@ -10,4 +10,3 @@ class Y(sequencetools.SenderSequence):
     """Arbitrary kind of result data [?]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False

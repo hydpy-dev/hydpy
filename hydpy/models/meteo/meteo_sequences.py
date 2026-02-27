@@ -11,7 +11,6 @@ class FactorSequence1D(sequencetools.FactorSequence):
     """Base class for 1-dimensional flux sequences."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     mask = masktools.SubmodelIndexMask()
 
 
@@ -19,5 +18,4 @@ class FluxSequence1D(sequencetools.FluxSequence):
     """Base class for 1-dimensional flux sequences."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     mask = masktools.SubmodelIndexMask()

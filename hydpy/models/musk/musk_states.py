@@ -20,7 +20,6 @@ class CourantNumber(musk_sequences.StateSequence1D):
 class ReynoldsNumber(musk_sequences.StateSequence1D):
     """Cell Reynolds number [-]."""
 
-    NUMERIC = False
     SPAN = (None, None)
 
 

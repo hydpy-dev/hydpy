@@ -8,11 +8,9 @@ class Precipitation(sequencetools.InputSequence):
     """Precipitation [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class Temperature(sequencetools.InputSequence):
     """Air temperature [°C]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False

@@ -16,4 +16,3 @@ class MoistureChange(sequencetools.LogSequence):
     """
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False

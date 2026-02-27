@@ -12,7 +12,6 @@ class QZ(sequencetools.FluxSequence):
     [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -29,7 +28,6 @@ class Inflow(sequencetools.FluxSequence):
     """Flow into the first channel segment [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (None, None)
 
 
@@ -45,7 +43,6 @@ class InternalFlow(sequencetools.FluxSequence):
     """Flow between the channel segments [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (None, None)
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
@@ -64,7 +61,6 @@ class Outflow(sequencetools.FluxSequence):
     """Flow out of the last channel segment [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (None, None)
 
 

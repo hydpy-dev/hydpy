@@ -10,63 +10,54 @@ class LoggedAirTemperature(sequencetools.LogSequence):
     """Logged air temperature [°C]."""
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False
 
 
 class LoggedPrecipitation(sequencetools.LogSequence):
     """Logged precipitation [mm/T]."""
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False
 
 
 class LoggedWindSpeed2m(sequencetools.LogSequence):
     """Logged wind speed at 2 m above grass-like vegetation [m/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class LoggedRelativeHumidity(sequencetools.LogSequence):
     """Logged relative humidity [%]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class LoggedSunshineDuration(sequencetools.LogSequence):
     """Logged sunshine duration [h]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class LoggedPossibleSunshineDuration(sequencetools.LogSequence):
     """Logged astronomically possible sunshine duration [h]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class LoggedGlobalRadiation(sequencetools.LogSequence):
     """Logged global radiation [W/m²]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class LoggedClearSkySolarRadiation(sequencetools.LogSequence):
     """Logged clear sky radiation [W/m²]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class LoggedPotentialEvapotranspiration(sequencetools.LogSequence):
     """Logged (damped) potential evapotranspiration [mm/T]."""
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False
 
     @property
     def shape(self):
@@ -92,11 +83,9 @@ class LoggedWaterEvaporation(sequencetools.LogSequence):
     """Logged evaporation from water areas [mm/T]."""
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False
 
 
 class LoggedPotentialSoilEvapotranspiration(sequencetools.LogSequence):
     """Logged potential soil evapotranspiration [mm/T]."""
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False

@@ -10,4 +10,3 @@ class Inputs(sequencetools.InletSequence):
     """Inputs [?]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False

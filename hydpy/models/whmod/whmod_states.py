@@ -45,7 +45,6 @@ class CisternWater(sequencetools.StateSequence):
     """Amount of water that is collected in the cistern [m³]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)
 
     def trim(self, lower=None, upper=None) -> bool:
@@ -74,5 +73,4 @@ class DeepWater(sequencetools.StateSequence):
     """Amount of water that is (still) percolating through the vadose zone [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (None, None)

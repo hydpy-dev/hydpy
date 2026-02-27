@@ -21,13 +21,11 @@ class PE(wland_sequences.FluxSequence1DComplete):
     """Potential evaporation from the interception and the surface water storage
     [mm/T]."""
 
-    NUMERIC = False
 
 
 class PET(wland_sequences.FluxSequence1DSoil):
     """Potential evapotranspiration from the vadose zone [mm/T]."""
 
-    NUMERIC = False
 
 
 class TF(wland_sequences.FluxSequence1DLand):
@@ -61,7 +59,6 @@ class SF(wland_sequences.FluxSequence1DLand):
 class PM(wland_sequences.FluxSequence1DLand):
     """Potential snowmelt [mm/T]."""
 
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -133,7 +130,6 @@ class ET(sequencetools.FluxSequence):
     """Total actual evapotranspiration [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (None, None)
 
 
@@ -205,5 +201,4 @@ class R(sequencetools.FluxSequence):
     """Runoff [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)

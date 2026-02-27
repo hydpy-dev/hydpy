@@ -17,14 +17,12 @@ class QZ(sequencetools.FluxSequence):
     """Zufluss in das Teilgebiet (inflow into the subcatchment) [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QZH(sequencetools.FluxSequence):
     """Abflussspende in das Teilgebiet (inflow into the subcatchment) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 # meteorological input
@@ -34,34 +32,29 @@ class DailySunshineDuration(sequencetools.FluxSequence):
     """Daily sunshine duration [h]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class DailyPossibleSunshineDuration(sequencetools.FluxSequence):
     """Astronomically possible daily sunshine duration [h]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class GlobalRadiation(sequencetools.FluxSequence):
     """Globalstrahlung (global radiation) [W/m²]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class NKor(lland_sequences.Flux1DSequence):
     """Korrigierter Niederschlag (corrected precipitation) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
 class TKor(lland_sequences.Flux1DSequence):
     """Korrigierte Lufttemperatur (corrected air temperature) [°C]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
@@ -70,7 +63,6 @@ class ATKor(lland_sequences.Flux1DSequence):
     |AGGH| und |AGSH| (air temperature for calculating snowmelt above the "alpinity
     thresholds" |AGGH| and |AGSH|) [°C]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -78,20 +70,17 @@ class WindSpeed2m(sequencetools.FluxSequence):
     """Wind speed at a height of 2 m above the ground for grass [m/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class ReducedWindSpeed2m(lland_sequences.Flux1DSequence):
     """Land-use-specific wind speed at a height of 2 m above the ground [m/s]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
 class SaturationVapourPressure(lland_sequences.Flux1DSequence):
     """Saturation vapour pressure [hPa]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
@@ -100,35 +89,30 @@ class SaturationVapourPressureInz(lland_sequences.Flux1DSequence):
     Schnees (saturation vapour pressure directly above the surface of the intercepted
     snow) [hPa]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
 class SaturationVapourPressureSnow(lland_sequences.Flux1DSequence):
     """Saturation vapour pressure snow [hPa]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
 class SaturationVapourPressureSlope(lland_sequences.Flux1DSequence):
     """The slope of the saturation vapour pressure curve [hPa/K]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
 class ActualVapourPressure(lland_sequences.Flux1DSequence):
     """Actual vapour pressure [hPa]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
 class TZ(lland_sequences.Flux1DSequence):
     """Bodentemperatur in der Tiefe z (soil temperature at depth z) [°C]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -139,7 +123,6 @@ class WG(lland_sequences.Flux1DSequence):
     snow-layer.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -151,7 +134,6 @@ class NetShortwaveRadiationInz(lland_sequences.Flux1DSequence):
     snow, |NetShortwaveRadiationInz| is |numpy.nan|.
     """
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -162,7 +144,6 @@ class NetShortwaveRadiationSnow(lland_sequences.Flux1DSequence):
     With positive values, the soil gains heat from radiation.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -173,7 +154,6 @@ class NetLongwaveRadiationInz(lland_sequences.Flux1DSequence):
     With positive values, the snow-layer gains heat from radiation.
     """
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -183,7 +163,6 @@ class NetLongwaveRadiationSnow(lland_sequences.Flux1DSequence):
     With positive values, the snow-layer gains heat from radiation.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -194,7 +173,6 @@ class NetRadiationInz(lland_sequences.Flux1DSequence):
     With positive values, the soil gains heat from radiation.
     """
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -204,21 +182,18 @@ class NetRadiationSnow(lland_sequences.Flux1DSequence):
     With positive values, the snow-layer gains heat from radiation.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
 class NBes(lland_sequences.Flux1DSequence):
     """Gesamter Bestandsniederschlag (total stand precipitation) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
 class SBes(lland_sequences.Flux1DSequence):
     """Schneeanteil Bestandsniederschlag (frozen stand precipitation) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -226,7 +201,6 @@ class SnowIntMax(lland_sequences.Flux1DSequence):
     """Schneeinterzeptionsspeicherkapazität (capacity of the snow interception
     storage) [mm]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -234,7 +208,6 @@ class SnowIntRate(lland_sequences.Flux1DSequence):
     """Anteil des im Schneeinterzeptionsspeicher zurückgehaltenen Niederschlags
     (ratio between the snow interception rate and precipitation) [-]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -242,7 +215,6 @@ class NBesInz(lland_sequences.Flux1DSequence):
     """Gesamter Bestandsniederschlag, der den Schneeinterzeptionsspeicher erreicht
     (total stand precipitation reaching the snow interception storage) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -251,7 +223,6 @@ class SBesInz(lland_sequences.Flux1DSequence):
     (frozen amount of stand precipitation reaching the snow interception storage)
     [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -262,7 +233,6 @@ class WNiedInz(lland_sequences.Flux1DSequence):
     With positive values, the snow layer gains heat from precipitation.
     """
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -273,7 +243,6 @@ class ActualAlbedoInz(lland_sequences.Flux1DSequence):
     If there is no intercepted snow, the value of |ActualAlbedoInz| is |numpy.nan|.
     """
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -281,7 +250,6 @@ class WaDaInz(lland_sequences.Flux1DSequence):
     """Wasserdargebot des Schneeinterzeptionsspeichers (water leaving the snow
     interception storage) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -289,7 +257,6 @@ class SchmPotInz(lland_sequences.Flux1DSequence):
     """Potentielle Schmelze des interzepierten Schnees (potential amount of snow
     melting within the snow interception storage) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -297,7 +264,6 @@ class SchmInz(lland_sequences.Flux1DSequence):
     """Tatsächliche Schmelze des interzepierten Schnees (actual amount of snow
     melting within the snow cover) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -305,7 +271,6 @@ class GefrPotInz(lland_sequences.Flux1DSequence):
     """Potentielles Wiedergefrieren des interzipierten Schnees (potential amount
     of water refreezing within the snow interception storage) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -313,7 +278,6 @@ class GefrInz(lland_sequences.Flux1DSequence):
     """Tatsächliche Wiedergefrieren des interzipierten Schnees (actual amount of
     water refreezing within the snow interception storage) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -321,7 +285,6 @@ class EvSInz(lland_sequences.Flux1DSequence):
     """Tatsächliche Verdunstung des interzepierten Schnees (actual evaporation of
     the intercepted snow) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -329,7 +292,6 @@ class EvI(lland_sequences.Flux1DSequence):
     """Tatsächliche Verdunstung von Interzeptions- und permanenten Wasserflächen
     (actual  evaporation from interception storages and water areas) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
@@ -337,14 +299,12 @@ class EvB(lland_sequences.Flux1DSequence):
     """Tatsächliche Verdunstung von Bodenwasser (actual evaporation of soil
     water) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
 class EvS(lland_sequences.Flux1DSequence):
     """Tatsächliche Schneeverdunstung (actual evaporation of snow-water) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -357,7 +317,6 @@ class WGTF(lland_sequences.Flux1DSequence):
     from radiation.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -365,7 +324,6 @@ class USG(lland_sequences.Flux1DSequence):
     """Umwandlung Schnee in Gletschereis (transformation of snow into glacier ice
     [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Glets()
 
 
@@ -379,7 +337,6 @@ class AWGTF(lland_sequences.Flux1DSequence):
     from radiation.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -390,7 +347,6 @@ class WNied(lland_sequences.Flux1DSequence):
     With positive values, the snow layer gains heat from precipitation.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -403,7 +359,6 @@ class AWNied(lland_sequences.Flux1DSequence):
     With positive values, the snow layer gains heat from precipitation.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -415,7 +370,6 @@ class TempSSurface(lland_sequences.Flux1DSequence):
     snow-free surfaces.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -423,7 +377,6 @@ class ActualAlbedo(lland_sequences.Flux1DSequence):
     """Aktuelle Albedo der relevanten Oberfläche (the current albedo of
     the relevant surface) [-]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
@@ -431,14 +384,12 @@ class SchmPot(lland_sequences.Flux1DSequence):
     """Potentielle Schneeschmelze (potential amount of water melting within the
     snow cover) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
 class SchmPotGl(lland_sequences.Flux1DSequence):
     """Potentielle Gletscherschmelze (potential glacier melting) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Glets()
 
 
@@ -446,14 +397,12 @@ class Schm(lland_sequences.Flux1DSequence):
     """Tatsächliche Schneeschmelze (actual amount of water melting within the
     snow cover) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
 class SchmGl(lland_sequences.Flux1DSequence):
     """Tatsächliche Gletscherschmelze (actual glacier melting) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Glets()
 
 
@@ -461,7 +410,6 @@ class GefrPot(lland_sequences.Flux1DSequence):
     """Potentielles Schnee-Wiedergefrieren (potential amount of water
     refreezing within the snow cover) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -469,7 +417,6 @@ class Gefr(lland_sequences.Flux1DSequence):
     """Tatsächliche Schnee-Wiedergefrieren (actual amount of water
     refreezing within the snow cover) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -480,7 +427,6 @@ class WLatInz(lland_sequences.Flux1DSequence):
     With positive values, the snow-layer looses heat to the atmosphere.
     """
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -491,7 +437,6 @@ class WLatSnow(lland_sequences.Flux1DSequence):
     With positive values, the snow-layer looses heat to the atmosphere.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -502,7 +447,6 @@ class WSensInz(lland_sequences.Flux1DSequence):
     With positive values, the snow-layer looses heat to the atmosphere.
     """
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -513,7 +457,6 @@ class WSensSnow(lland_sequences.Flux1DSequence):
     With positive values, the snow-layer looses heat to the atmosphere.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -524,7 +467,6 @@ class WSurfInz(lland_sequences.Flux1DSequence):
     With positive values, the snow-layer looses heat to the atmosphere.
     """
 
-    NUMERIC = False
     mask = lland_masks.Forest()
 
 
@@ -535,7 +477,6 @@ class WSurf(lland_sequences.Flux1DSequence):
     With positive values, the snow-layer looses heat to the atmosphere.
     """
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -543,21 +484,18 @@ class SFF(lland_sequences.Flux1DSequence):
     """Relativer Anteil des gefrorenen Bodenwassers bis zu einer Tiefe von
     2z (relative proportion of frozen soil water) [-]."""
 
-    NUMERIC = False
     mask = lland_masks.Soil()
 
 
 class FVG(lland_sequences.Flux1DSequence):
     """Frostversiegelungsgrad (degree of frost sealing) [-]."""
 
-    NUMERIC = False
     mask = lland_masks.Soil()
 
 
 class WaDa(lland_sequences.Flux1DSequence):
     """Wasserdargebot (water reaching the soil routine) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Land()
 
 
@@ -565,7 +503,6 @@ class QDB(lland_sequences.Flux1DSequence):
     """Direktabfluss-Abgabe aus dem Bodenspeicher (direct runoff release
     from the soil storage) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
@@ -573,7 +510,6 @@ class QIB1(lland_sequences.Flux1DSequence):
     """Erste Komponente der Interflow-Abgabe aus dem Bodenspeicher (first
     component of the interflow release from the soil storage) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
@@ -581,7 +517,6 @@ class QIB2(lland_sequences.Flux1DSequence):
     """Zweite Komponente der Interflow-Abgabe aus dem Bodenspeicher (second
     component of the interflow release from the soil storage) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
@@ -589,7 +524,6 @@ class QBB(lland_sequences.Flux1DSequence):
     """Basisabfluss-Abgabe aus dem Bodenspeicher (base flow release
     from the soil storage) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
@@ -597,7 +531,6 @@ class QKap(lland_sequences.Flux1DSequence):
     """Kapillarer Aufstieg in den Bodenspeicher (capillary rise to soil
     storage) [mm/T]."""
 
-    NUMERIC = False
     mask = lland_masks.Complete()
 
 
@@ -606,7 +539,6 @@ class QDGZ(sequencetools.FluxSequence):
     direct runoff storages) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QDGZ1(sequencetools.FluxSequence):
@@ -614,7 +546,6 @@ class QDGZ1(sequencetools.FluxSequence):
     runoff storage) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QDGZ2(sequencetools.FluxSequence):
@@ -622,7 +553,6 @@ class QDGZ2(sequencetools.FluxSequence):
     direct runoff storage) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QIGZ1(sequencetools.FluxSequence):
@@ -630,7 +560,6 @@ class QIGZ1(sequencetools.FluxSequence):
     interflow storage) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QIGZ2(sequencetools.FluxSequence):
@@ -638,7 +567,6 @@ class QIGZ2(sequencetools.FluxSequence):
     interflow storage) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QBGZ(sequencetools.FluxSequence):
@@ -646,7 +574,6 @@ class QBGZ(sequencetools.FluxSequence):
     [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QDGA1(sequencetools.FluxSequence):
@@ -654,7 +581,6 @@ class QDGA1(sequencetools.FluxSequence):
     direct runoff storage) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QDGA2(sequencetools.FluxSequence):
@@ -662,7 +588,6 @@ class QDGA2(sequencetools.FluxSequence):
     fast direct runoff storage) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QIGA1(sequencetools.FluxSequence):
@@ -670,7 +595,6 @@ class QIGA1(sequencetools.FluxSequence):
     first interflow storage) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QIGA2(sequencetools.FluxSequence):
@@ -678,7 +602,6 @@ class QIGA2(sequencetools.FluxSequence):
     second interflow storage) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QBGA(sequencetools.FluxSequence):
@@ -686,18 +609,15 @@ class QBGA(sequencetools.FluxSequence):
     storage) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QAH(sequencetools.FluxSequence):
     """Abflussspende des Teilgebiets (runoff at the catchment outlet) [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QA(sequencetools.FluxSequence):
     """Abfluss des Teilgebiets (runoff at the catchment outlet) [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False

@@ -10,4 +10,3 @@ class A(sequencetools.ObserverSequence):
     """Externally requested additional water release [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False

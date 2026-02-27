@@ -37,4 +37,3 @@ class PNet(sequencetools.FluxSequence):
     """Net precipitation of the complete catchment [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False

@@ -29,7 +29,6 @@ class Factor1DSequence(sequencetools.FactorSequence):
     """
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
     @property
     def refweights(self):
@@ -60,7 +59,6 @@ class Factor2DSequence(sequencetools.FactorSequence):
     """
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False
 
     @property
     def refweights(self):
@@ -153,7 +151,6 @@ class Flux1DSequence(sequencetools.FluxSequence):
     """
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
     @property
     def refweights(self):
@@ -184,7 +181,6 @@ class Flux2DSequence(sequencetools.FluxSequence):
     """
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False
 
     @property
     def refweights(self):
@@ -278,7 +274,6 @@ class State1DSequence(sequencetools.StateSequence):
     """
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
     @property
     def refweights(self):
@@ -309,7 +304,6 @@ class State2DSequence(sequencetools.StateSequence):
     """
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False
 
     @property
     def refweights(self):

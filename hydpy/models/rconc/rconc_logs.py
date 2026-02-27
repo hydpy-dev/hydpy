@@ -44,7 +44,6 @@ shape (4...) into shape (3...)
     """
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
     def __call__(self, *args) -> None:

@@ -28,5 +28,4 @@ class StateSequence1D(sequencetools.StateSequence):
     """Base class for 1-dimensional state sequences."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     mask = masktools.SubmodelIndexMask()

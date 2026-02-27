@@ -10,7 +10,6 @@ class SNRatio(sequencetools.AideSequence):
     """Ratio of frozen precipitation to total precipitation [-]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class RLAtm(sequencetools.AideSequence):
@@ -18,7 +17,6 @@ class RLAtm(sequencetools.AideSequence):
     atmosphere) [W/m²]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class TempS(sequencetools.AideSequence):
@@ -29,7 +27,6 @@ class TempS(sequencetools.AideSequence):
     """
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class TempSInz(sequencetools.AideSequence):
@@ -40,4 +37,3 @@ class TempSInz(sequencetools.AideSequence):
     """
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False

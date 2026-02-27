@@ -10,4 +10,3 @@ class WaterLevel(sequencetools.SenderSequence):
     """The water level within the first channel segment [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False

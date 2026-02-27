@@ -10,7 +10,6 @@ class Precipitation(sequencetools.FluxSequence):
     """Precipitation [mm]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class AdjustedPrecipitation(sequencetools.FluxSequence):
@@ -24,14 +23,12 @@ class PotentialEvaporation(sequencetools.FluxSequence):
     """Potential evaporation [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class AdjustedEvaporation(sequencetools.FluxSequence):
     """Adjusted evaporation [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class ActualEvaporation(sequencetools.FluxSequence):
@@ -59,7 +56,6 @@ class TotalRemoteDischarge(sequencetools.FluxSequence):
     """Total discharge at a cross-section far downstream [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class NaturalRemoteDischarge(sequencetools.FluxSequence):
@@ -69,14 +65,12 @@ class NaturalRemoteDischarge(sequencetools.FluxSequence):
     """
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class RemoteDemand(sequencetools.FluxSequence):
     """Discharge demand at a cross-section far downstream [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class RemoteFailure(sequencetools.FluxSequence):
@@ -84,7 +78,6 @@ class RemoteFailure(sequencetools.FluxSequence):
     downstream [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class RequiredRemoteRelease(sequencetools.FluxSequence):
@@ -92,14 +85,12 @@ class RequiredRemoteRelease(sequencetools.FluxSequence):
     far downstream [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class AllowedRemoteRelief(sequencetools.FluxSequence):
     """Allowed discharge to relieve a dam during high flow conditions [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class RequiredRemoteSupply(sequencetools.FluxSequence):
@@ -107,7 +98,6 @@ class RequiredRemoteSupply(sequencetools.FluxSequence):
     [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class PossibleRemoteRelief(sequencetools.FluxSequence):
@@ -130,14 +120,12 @@ class RequiredRelease(sequencetools.FluxSequence):
     """Required water release for reducing drought events downstream [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class AdditionalRelease(sequencetools.FluxSequence):
     """Additional water release for reducing drought events downstream [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class TargetedRelease(sequencetools.FluxSequence):
@@ -146,7 +134,6 @@ class TargetedRelease(sequencetools.FluxSequence):
     [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class ActualRelease(sequencetools.FluxSequence):
@@ -160,7 +147,6 @@ class MissingRemoteRelease(sequencetools.FluxSequence):
     """Amount of the required remote demand not met by the actual release [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class ActualRemoteRelease(sequencetools.FluxSequence):
@@ -174,14 +160,12 @@ class SafeRelease(sequencetools.FluxSequence):
     """Water release that is considered safe in terms of flood protection [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class AimedRelease(sequencetools.FluxSequence):
     """Ideal controlled water release [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class UnavoidableRelease(sequencetools.FluxSequence):

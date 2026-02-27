@@ -145,14 +145,13 @@ class DischargeDerivatives(
     """Discharge change of each trapeze range with respect to a water level increase
     [m²/s]."""
 
-    NUMERIC, SPAN = False, (None, None)
+    SPAN = (None, None)
 
 
 class DischargeDerivative(sequencetools.FactorSequence):
     """Total discharge change with respect to a water level increase [m²/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (None, None)
 
 

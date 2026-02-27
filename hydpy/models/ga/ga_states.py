@@ -19,7 +19,6 @@ class Moisture(sequencetools.StateSequence):
     """
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False
     SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (ga_control.ResidualMoisture, ga_control.SaturationMoisture)
@@ -62,7 +61,6 @@ class FrontDepth(sequencetools.StateSequence):
     """
 
     NDIM: Final[Literal[2]] = 2
-    NUMERIC = False
     SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (ga_control.SoilDepth,)

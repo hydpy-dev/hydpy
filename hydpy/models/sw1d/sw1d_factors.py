@@ -11,7 +11,6 @@ class MaxTimeStep(sequencetools.FactorSequence):
     considerations [s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -19,7 +18,6 @@ class TimeStep(sequencetools.FactorSequence):
     """The actual computation step according to global stability considerations [s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -30,7 +28,6 @@ class WaterDepth(sequencetools.FactorSequence):
     """
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -41,49 +38,42 @@ class WaterLevel(sequencetools.FactorSequence):
     """
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class WaterLevels(sequencetools.FactorSequence):
     """The water level within all segments of a channel [m]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
 
 class WaterLevelUpstream(sequencetools.FactorSequence):
     """The upstream channel segment's water level [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class WaterLevelDownstream(sequencetools.FactorSequence):
     """The downstream channel segment's water level [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class WaterVolumeUpstream(sequencetools.FactorSequence):
     """The upstream channel segment's water volume [1000 m³]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class WaterVolumeDownstream(sequencetools.FactorSequence):
     """The downstream channel segment's water volume [1000 m³]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class WettedArea(sequencetools.FactorSequence):
     """The channel wetted area [m²]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)
 
 
@@ -91,5 +81,4 @@ class WettedPerimeter(sequencetools.FactorSequence):
     """The channel wetted perimeter [m]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)

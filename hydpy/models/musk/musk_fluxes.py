@@ -12,7 +12,6 @@ class Inflow(sequencetools.FluxSequence):
     """Inflow [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (None, None)
 
 
@@ -26,5 +25,4 @@ class Outflow(sequencetools.FluxSequence):
     """Outflow [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (None, None)

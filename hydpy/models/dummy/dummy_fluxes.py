@@ -10,5 +10,4 @@ class Q(sequencetools.FluxSequence):
     """Abfluss [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, None)

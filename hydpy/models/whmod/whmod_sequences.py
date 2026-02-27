@@ -10,7 +10,6 @@ class Mixin1DSequence(sequencetools.Sequence_):
     """Mixin class for all 1-dimensional sequences."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
 
     @property
     def refweights(self):

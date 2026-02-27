@@ -113,14 +113,12 @@ class InUZ(sequencetools.FluxSequence):
     """Inflow to the upper zone layer [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class Perc(sequencetools.FluxSequence):
     """Percolation from the upper to the lower zone layer [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class DP(hland_sequences.Flux1DSequence):
@@ -138,7 +136,6 @@ class Q0(sequencetools.FluxSequence):
     """Outflow from the upper zone layer [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QVs1(hland_sequences.Flux1DSequence):
@@ -187,7 +184,6 @@ class Q1(sequencetools.FluxSequence):
     """Outflow from the lower zone layer [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class RS(hland_sequences.Flux1DSequence):
@@ -218,67 +214,57 @@ class GR2(sequencetools.FluxSequence):
     """Recharge into the first-order slow response groundwater reservoir [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class RG2(sequencetools.FluxSequence):
     """Discharge from the first-order slow response groundwater reservoir [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class GR3(sequencetools.FluxSequence):
     """Recharge into the second-order slow response groundwater reservoir [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class RG3(sequencetools.FluxSequence):
     """Discharge from the second-order slow response groundwater reservoir [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class InRC(sequencetools.FluxSequence):
     """Input of the runoff concentration submodel [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class OutRC(sequencetools.FluxSequence):
     """Output of the runoff concentration submodel [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class RO(sequencetools.FluxSequence):
     """Sum of all flow components [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class RA(sequencetools.FluxSequence):
     """Actual abstraction from runoff [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class RT(sequencetools.FluxSequence):
     """Total model outflow [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class QT(sequencetools.FluxSequence):
     """Total model outflow [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False

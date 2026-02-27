@@ -27,7 +27,6 @@ class WaterVolume(sequencetools.StateSequence):
     """Water volume [million m³]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False
     SPAN = (0.0, None)
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:

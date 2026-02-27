@@ -1227,7 +1227,7 @@ class Sequence_(variabletools.Variable):
 
     TYPE: Final = float
     INIT: TypeINIT = 0.0
-    NUMERIC: TypeNUMERIC
+    NUMERIC: TypeNUMERIC = False
 
     subvars: (
         SubSequences[modeltools.Model, Sequences, Sequence_, variabletools.FastAccess]
@@ -2512,7 +2512,6 @@ step is `1d`.
         >>> from hydpy.core.sequencetools import StateSequence, StateSequences
         >>> class Seq(StateSequence):
         ...     NDIM = 0
-        ...     NUMERIC = False
         >>> class StateSequences(StateSequences):
         ...     CLASSES = (Seq,)
         >>> seq = Seq(StateSequences(None))
@@ -2647,7 +2646,6 @@ its series to a 2-dimensional matrix.
         >>> from hydpy.core.sequencetools import StateSequence, StateSequences
         >>> class SoilMoisture(StateSequence):
         ...     NDIM = 0
-        ...     NUMERIC = False
         >>> class StateSequences(StateSequences):
         ...     CLASSES = (SoilMoisture,)
         >>> sm = SoilMoisture(StateSequences(None))

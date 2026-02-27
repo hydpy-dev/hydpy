@@ -11,4 +11,3 @@ class Q(sequencetools.InletSequence):
     """Abfluss (runoff) [m³/s]."""
 
     NDIM: Final[Literal[1]] = 1
-    NUMERIC = False

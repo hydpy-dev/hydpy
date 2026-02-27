@@ -13,7 +13,6 @@ class DemandTarget(sequencetools.FluxSequence):
     """The demand for additional water release at the target location [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class FreeDischarge(sequencetools.FluxSequence):
@@ -21,7 +20,6 @@ class FreeDischarge(sequencetools.FluxSequence):
     additional water releases [m³/s]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class DemandSources(manager_sequences.MixinSource, sequencetools.FluxSequence):

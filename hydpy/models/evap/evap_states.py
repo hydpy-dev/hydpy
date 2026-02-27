@@ -12,7 +12,6 @@ class CloudCoverage(sequencetools.StateSequence):
     """Degree of cloud coverage [-]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
     SPAN = (0.0, 1.0)
 
 

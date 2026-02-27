@@ -10,11 +10,9 @@ class Inflow(sequencetools.FluxSequence):
     """Inflow [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False
 
 
 class Outflow(sequencetools.FluxSequence):
     """Outflow [mm/T]."""
 
     NDIM: Final[Literal[0]] = 0
-    NUMERIC = False

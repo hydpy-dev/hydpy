@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 # ...from manager
 from hydpy.models.manager import manager_sequences
@@ -11,7 +12,7 @@ from hydpy.models.manager import manager_sequences
 class DemandTarget(sequencetools.FluxSequence):
     """The demand for additional water release at the target location [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
 
 
@@ -19,7 +20,7 @@ class FreeDischarge(sequencetools.FluxSequence):
     """The discharge at the target location that would have occurred without requesting
     additional water releases [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
 
 

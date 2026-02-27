@@ -14,7 +14,7 @@ from hydpy.models.evap import evap_parameters
 class NmbHRU(parametertools.Parameter):
     """The number of separately modelled hydrological response units [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -43,7 +43,6 @@ class NmbHRU(parametertools.Parameter):
 class HRUType(parametertools.NameParameter):
     """Hydrological response unit type [-]."""
 
-    NDIM = 1
     TYPE = int
     TIME = None
     SPAN = (None, None)
@@ -105,7 +104,7 @@ class Conifer(evap_parameters.ZipParameter1D):
 class HRUArea(parametertools.Parameter):
     """The area of each hydrological response unit [km²]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -123,7 +122,7 @@ class HRUAltitude(evap_parameters.ZipParameter1D):
 class MeasuringHeightWindSpeed(parametertools.Parameter):
     """The height above ground of the wind speed measurements [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0, None)
@@ -218,7 +217,7 @@ class CloudTypeFactor(parametertools.Parameter):
     """Cloud type-specific factor for calculating atmospheric longwave counter radiation
     [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -229,7 +228,7 @@ class NightCloudFactor(parametertools.Parameter):
     """Factor for adjusting daytime estimates of the cloud coverage degree to nighttime
     [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -239,7 +238,7 @@ class NightCloudFactor(parametertools.Parameter):
 class Emissivity(parametertools.Parameter):
     """The emissivity of the land surface [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -249,7 +248,6 @@ class Emissivity(parametertools.Parameter):
 class AverageSoilHeatFlux(parametertools.MonthParameter):
     """Monthly averages of the soil heat flux [W/m²]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -318,7 +316,6 @@ class MonthFactor(parametertools.MonthParameter):
     (usually grass reference evapotranspiration) to month-specific potential
     evaporation or evapotranspiration [-]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -329,7 +326,6 @@ class LandMonthFactor(evap_parameters.LandMonthParameter):
     (usually grass reference evapotranspiration) to land-use- and month-specific
     potential evaporation or evapotranspiration [-]."""
 
-    NDIM = 2
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -340,7 +336,6 @@ class AltitudeFactor(evap_parameters.ZipParameter1D):
 
     In the terminology of HBV96: ECAlt."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -353,7 +348,6 @@ class PrecipitationFactor(evap_parameters.ZipParameter1D):
     In the terminology of HBV96: EPF.
     """
 
-    NDIM = 1
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -367,7 +361,6 @@ class AirTemperatureFactor(evap_parameters.ZipParameter1D):
     In the terminology of HBV96: ETF.
     """
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -378,7 +371,6 @@ class DampingFactor(evap_parameters.ZipParameter1D):
     """Damping factor (temporal weighting factor) for potential evapotranspiration
     [-]."""
 
-    NDIM = 1
     TYPE = float
     TIME = True
     SPAN = (0.0, 1.0)
@@ -391,7 +383,6 @@ class TemperatureThresholdIce(evap_parameters.WaterParameter1D):
     In the terminology of HBV96: TTIce.
     """
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -403,7 +394,6 @@ class MaxSoilWater(evap_parameters.SoilParameter1D):
     In the terminology of HBV96: FC.
     """
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -418,7 +408,6 @@ class SoilMoistureLimit(evap_parameters.SoilParameter1D):
     In the terminology of MORECS: `PY`. Typical value: 0.6.
     """
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -431,7 +420,6 @@ class ExcessReduction(evap_parameters.SoilParameter1D):
     In the terminology of HBV96: ERED.
     """
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -447,7 +435,6 @@ class DisseFactor(evap_parameters.SoilParameter1D):
     In the terminology of LARSIM: GRASREF_R.
     """
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

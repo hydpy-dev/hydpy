@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class Rainfall(sequencetools.InputSequence):
     """Rainfall [mm/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.PRECIPITATION
 
@@ -16,7 +17,7 @@ class Rainfall(sequencetools.InputSequence):
 class CapillaryRise(sequencetools.InputSequence):
     """Capillary rise [mm/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.CAPILLARY_RISE
 
@@ -24,6 +25,6 @@ class CapillaryRise(sequencetools.InputSequence):
 class Evaporation(sequencetools.InputSequence):
     """Evaporation [mm/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.EVAPOTRANSPIRATION

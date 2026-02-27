@@ -35,7 +35,7 @@ else:
 class Area(parametertools.Parameter):
     """Subbasin area [km²]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (1e-10, None)
@@ -94,7 +94,7 @@ can only be retrieved after it has been defined.
     (2, 4)
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -168,7 +168,7 @@ can only be retrieved after it has been defined.
     (2,)
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -211,7 +211,6 @@ class ZoneType(parametertools.NameParameter):
 class ZoneArea(hland_parameters.ParameterComplete):
     """Zone area [km²]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -271,7 +270,7 @@ class ZoneArea(hland_parameters.ParameterComplete):
 class Psi(parametertools.Parameter):
     """Fraction of the actual sealing of zones classified as |SEALED| [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.01, 1.0)
@@ -281,7 +280,6 @@ class Psi(parametertools.Parameter):
 class ZoneZ(hland_parameters.ParameterComplete):
     """Zone elevation [100m]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -290,7 +288,6 @@ class ZoneZ(hland_parameters.ParameterComplete):
 class PCorr(hland_parameters.ParameterComplete):
     """General precipitation correction factor [-]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -300,7 +297,6 @@ class PCorr(hland_parameters.ParameterComplete):
 class PCAlt(hland_parameters.ParameterComplete):
     """Elevation correction factor for precipitation [1/100m]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -310,7 +306,6 @@ class PCAlt(hland_parameters.ParameterComplete):
 class RfCF(hland_parameters.ParameterComplete):
     """Rainfall correction factor [-]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -320,7 +315,6 @@ class RfCF(hland_parameters.ParameterComplete):
 class SfCF(hland_parameters.ParameterComplete):
     """Snowfall correction factor [-]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -330,7 +324,6 @@ class SfCF(hland_parameters.ParameterComplete):
 class TCorr(hland_parameters.ParameterNoGlacier):
     """General temperature correction addend [-]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -340,7 +333,6 @@ class TCorr(hland_parameters.ParameterNoGlacier):
 class TCAlt(hland_parameters.ParameterComplete):
     """Elevation correction factor for temperature [-1°C/100m]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -350,7 +342,6 @@ class TCAlt(hland_parameters.ParameterComplete):
 class IcMax(hland_parameters.ParameterInterception):
     """Maximum interception storage [mm]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -486,7 +477,7 @@ be set based on the given keyword arguments.
 arguments are given, which is ambiguous.
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -531,7 +522,6 @@ arguments are given, which is ambiguous.
 class SMax(hland_parameters.ParameterLand):
     """Maximum snow water equivalent [mm]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -885,7 +875,7 @@ argument but 2 are given.
 arguments are given, which is ambiguous.
     """
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1096,7 +1086,6 @@ arguments are given, which is ambiguous.
 class TT(hland_parameters.ParameterComplete):
     """Temperature threshold for snow/rain [°C]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -1106,7 +1095,6 @@ class TT(hland_parameters.ParameterComplete):
 class TTInt(hland_parameters.ParameterComplete):
     """Temperature interval with a mixture of snow and rain [°C]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1116,7 +1104,6 @@ class TTInt(hland_parameters.ParameterComplete):
 class DTTM(hland_parameters.ParameterLand):
     """Difference between |TTM| and |TT| [°C]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -1126,7 +1113,6 @@ class DTTM(hland_parameters.ParameterLand):
 class CFMax(hland_parameters.ParameterLand):
     """Average degree day factor for snow (on glaciers or not) [mm/°C/T]."""
 
-    NDIM = 1
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -1140,7 +1126,6 @@ class CFVar(hland_parameters.ParameterLand):
     hemisphere.
     """
 
-    NDIM = 1
     TYPE = float
     TIME = True
     SPAN = (None, None)
@@ -1150,7 +1135,6 @@ class CFVar(hland_parameters.ParameterLand):
 class GMelt(hland_parameters.ParameterGlacier):
     """Degree day factor for glacial ice [mm/°C/T]."""
 
-    NDIM = 1
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -1164,7 +1148,6 @@ class GVar(hland_parameters.ParameterGlacier):
     hemisphere.
     """
 
-    NDIM = 1
     TYPE = float
     TIME = True
     SPAN = (None, None)
@@ -1174,7 +1157,6 @@ class GVar(hland_parameters.ParameterGlacier):
 class CFR(hland_parameters.ParameterLand):
     """Refreezing factor for water stored within the snow layer [-]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1184,7 +1166,6 @@ class CFR(hland_parameters.ParameterLand):
 class WHC(hland_parameters.ParameterLand):
     """Relative water holding capacity of the snow layer [-]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1194,7 +1175,6 @@ class WHC(hland_parameters.ParameterLand):
 class FC(hland_parameters.ParameterSoil):
     """Maximum soil moisture content (field capacity) [mm]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1204,7 +1184,6 @@ class FC(hland_parameters.ParameterSoil):
 class Beta(hland_parameters.ParameterSoil):
     """Nonlinearity parameter of the soil routine [-]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1214,7 +1193,7 @@ class Beta(hland_parameters.ParameterSoil):
 class PercMax(parametertools.Parameter):
     """Maximum percolation rate [mm/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -1223,7 +1202,6 @@ class PercMax(parametertools.Parameter):
 class CFlux(hland_parameters.ParameterSoil):
     """Capacity (maximum) of the capillary return flux [mm/T]."""
 
-    NDIM = 1
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -1233,7 +1211,7 @@ class CFlux(hland_parameters.ParameterSoil):
 class RespArea(parametertools.Parameter):
     """Flag to enable the contributing area approach [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = bool
     TIME = None
     SPAN = (None, None)
@@ -1253,7 +1231,7 @@ class RecStep(parametertools.Parameter):
     recstep(4.0)
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = True
     SPAN = (1, None)
@@ -1263,7 +1241,7 @@ class RecStep(parametertools.Parameter):
 class Alpha(parametertools.Parameter):
     """Nonlinearity parameter of the upper zone layer [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1346,7 +1324,7 @@ must be defined beforehand.
         k(0.009633)
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -1390,7 +1368,6 @@ must be defined beforehand.
 class SGR(hland_parameters.ParameterUpperZone):
     """Threshold content of |SUZ| for the generation of surface runoff [mm]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1399,7 +1376,6 @@ class SGR(hland_parameters.ParameterUpperZone):
 class K0(hland_parameters.ParameterUpperZone):
     """Storage time for surface runoff [T]."""
 
-    NDIM = 1
     TYPE = float
     TIME = False
     SPAN = (None, None)
@@ -1437,7 +1413,6 @@ class K0(hland_parameters.ParameterUpperZone):
 class H1(hland_parameters.ParameterUpperZone):
     """Outlet level of the reservoir for simulating surface flow [mm]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1446,7 +1421,6 @@ class H1(hland_parameters.ParameterUpperZone):
 class TAb1(hland_parameters.ParameterUpperZone):
     """Recession coefficient for simulating surface flow [T]."""
 
-    NDIM = 1
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -1456,7 +1430,6 @@ class TVs1(hland_parameters.ParameterUpperZone):
     """Recession coefficient for simulating percolation from the surface flow module
     [T]."""
 
-    NDIM = 1
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -1465,7 +1438,6 @@ class TVs1(hland_parameters.ParameterUpperZone):
 class K1(hland_parameters.ParameterUpperZone):
     """Storage time for interflow [T]."""
 
-    NDIM = 1
     TYPE = float
     TIME = False
     SPAN = (None, None)
@@ -1517,7 +1489,6 @@ class K1(hland_parameters.ParameterUpperZone):
 class SG1Max(hland_parameters.ParameterUpperZone):
     """Maximum content of the fast response groundwater reservoir |SG1| [mm]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1526,7 +1497,6 @@ class SG1Max(hland_parameters.ParameterUpperZone):
 class H2(hland_parameters.ParameterUpperZone):
     """Outlet level of the reservoir for simulating interflow [mm]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1535,7 +1505,6 @@ class H2(hland_parameters.ParameterUpperZone):
 class TAb2(hland_parameters.ParameterUpperZone):
     """Recession coefficient for simulating interflow [T]."""
 
-    NDIM = 1
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -1545,7 +1514,6 @@ class TVs2(hland_parameters.ParameterUpperZone):
     """Recession coefficient for simulating percolation from the interflow module
     [T]."""
 
-    NDIM = 1
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -1554,7 +1522,7 @@ class TVs2(hland_parameters.ParameterUpperZone):
 class K4(parametertools.Parameter):
     """Recession coefficient of the lower zone layer [1/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -1564,7 +1532,6 @@ class K4(parametertools.Parameter):
 class K2(hland_parameters.ParameterUpperZone):
     """Storage time for quick response baseflow [T]."""
 
-    NDIM = 1
     TYPE = float
     TIME = False
     SPAN = (None, None)
@@ -1608,7 +1575,7 @@ class K2(hland_parameters.ParameterUpperZone):
 class K3(parametertools.Parameter):
     """Storage time for delayed baseflow [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (1.0, None)
@@ -1654,7 +1621,7 @@ class K3(parametertools.Parameter):
 class Gamma(parametertools.Parameter):
     """Nonlinearity parameter of the lower zone layer [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -1663,7 +1630,7 @@ class Gamma(parametertools.Parameter):
 class MaxBaz(parametertools.Parameter):
     """Base length of the triangle unit hydrograph [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)

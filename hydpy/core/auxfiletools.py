@@ -390,7 +390,7 @@ class SubAuxfiler:
         self,
         parameter: parametertools.Parameter,
         filename: str,
-        keywordarguments: parametertools.KeywordArguments[T] | None = None,
+        keywordarguments: parametertools.KeywordArguments[T_inv] | None = None,
     ) -> None:
         """Add a single |Parameter| to the actual |SubAuxfiler| object.
 
@@ -587,7 +587,7 @@ handled by the actual `SubAuxfiler` object.
         filename2reference: dict[str, Reference],
         parameter: parametertools.Parameter,
         filename: str,
-        keywordarguments: parametertools.KeywordArguments[T] | None,
+        keywordarguments: parametertools.KeywordArguments[T_inv] | None,
     ) -> None:
         for fn, ref in filename2reference.items():
             if fn != filename:

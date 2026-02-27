@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from snow
 from hydpy.models.snow import snow_parameters
@@ -11,7 +12,6 @@ from hydpy.models.snow import snow_parameters
 class NLayers(parametertools.NmbParameter):
     """Number of snow layers  [-]."""
 
-    NDIM = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -43,7 +43,7 @@ class LayerArea(snow_parameters.Parameter1DLayers):
 class GradP(parametertools.Parameter):
     """Altitude gradient of precipitation [1/m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -54,7 +54,6 @@ class GradTMean(snow_parameters.Parameter1D366):
     """Altitude gradient of daily mean air temperature for each day of the year
     [°C/100m]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -64,7 +63,6 @@ class GradTMin(snow_parameters.Parameter1D366):
     """Altitude gradient of daily minimum air temperature for each day of the year
     [°C/100m]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -74,7 +72,6 @@ class GradTMax(snow_parameters.Parameter1D366):
     """Altitude gradient of daily maximum air temperature for each day of the year
     [°C/100m]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -90,7 +87,7 @@ class MeanAnSolidPrecip(snow_parameters.Parameter1DLayers):
 class CN1(parametertools.Parameter):
     """Temporal weighting coefficient for the snow pack's thermal state [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -99,7 +96,7 @@ class CN1(parametertools.Parameter):
 class CN2(parametertools.Parameter):
     """Degree-day melt coefficient [mm/°C/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -108,7 +105,7 @@ class CN2(parametertools.Parameter):
 class CN3(parametertools.Parameter):
     """Accumulation threshold [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -117,7 +114,7 @@ class CN3(parametertools.Parameter):
 class CN4(parametertools.Parameter):
     """Fraction of annual snowfall defining the melt threshold [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -127,7 +124,7 @@ class Hysteresis(parametertools.Parameter):
     """Flag that indicates whether hysteresis of build-up and melting of the snow cover
     should be considered [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = bool
     TIME = None
     SPAN = (False, True)

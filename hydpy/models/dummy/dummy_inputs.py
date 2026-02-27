@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class InterceptedWater(sequencetools.InputSequence):
     """Intercepted water [mm]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
     STANDARD_NAME = sequencetools.StandardInputNames.INTERCEPTED_WATER_HRU
@@ -17,7 +18,7 @@ class InterceptedWater(sequencetools.InputSequence):
 class SoilWater(sequencetools.InputSequence):
     """Soil water content [mm]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
     STANDARD_NAME = sequencetools.StandardInputNames.SOIL_WATER_HRU
@@ -26,7 +27,7 @@ class SoilWater(sequencetools.InputSequence):
 class SnowCover(sequencetools.InputSequence):
     """Snow cover degree [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
     STANDARD_NAME = sequencetools.StandardInputNames.SNOW_COVER_DEGREE_HRU
@@ -36,7 +37,7 @@ class SnowyCanopy(sequencetools.InputSequence):
     """Snow cover degree in the canopies of tree-like vegetation (is |numpy.nan| for
     non-tree-like vegetation) [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
     STANDARD_NAME = sequencetools.StandardInputNames.SNOW_COVER_DEGREE_CANOPY_HRU
@@ -45,7 +46,7 @@ class SnowyCanopy(sequencetools.InputSequence):
 class SnowAlbedo(sequencetools.InputSequence):
     """Snow albedo [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, 1.0)
     STANDARD_NAME = sequencetools.StandardInputNames.ALBEDO_HRU

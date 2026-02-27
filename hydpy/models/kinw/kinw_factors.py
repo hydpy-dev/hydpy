@@ -4,12 +4,13 @@
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class WaterDepth(sequencetools.FactorSequence):
     """Water depth [m]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
 

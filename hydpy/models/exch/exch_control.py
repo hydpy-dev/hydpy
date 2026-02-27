@@ -11,6 +11,7 @@ from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.auxs import interptools
 
 # ...from exch
@@ -20,7 +21,7 @@ from hydpy.models.exch import exch_observers
 class CrestHeight(parametertools.Parameter):
     """Crest height [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -29,7 +30,7 @@ class CrestHeight(parametertools.Parameter):
 class CrestWidth(parametertools.Parameter):
     """Crest width [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -38,7 +39,7 @@ class CrestWidth(parametertools.Parameter):
 class FlowCoefficient(parametertools.Parameter):
     """Flow coefficient [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -48,7 +49,7 @@ class FlowCoefficient(parametertools.Parameter):
 class FlowExponent(parametertools.Parameter):
     """Flow exponent [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -58,7 +59,7 @@ class FlowExponent(parametertools.Parameter):
 class AllowedExchange(parametertools.Parameter):
     """The highest water exchange allowed [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -77,7 +78,7 @@ class Delta(parametertools.MonthParameter):
 class Minimum(parametertools.Parameter):
     """The allowed minimum value of the adjusted input [e.g. m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -110,7 +111,7 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
 3.0`.
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -218,7 +219,7 @@ during runtime.  If you really need to do this, first initialise a new "branched
 sequence and connect it to the respective outlet nodes properly.
     """
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -325,7 +326,7 @@ relevant observation nodes, but the first given value is of type `int`.
     2
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)

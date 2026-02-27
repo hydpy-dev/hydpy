@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 # ...from hland
 from hydpy.models.hland import hland_masks
@@ -54,4 +55,4 @@ class GAct(hland_sequences.Factor1DSequence):
 class ContriArea(sequencetools.FactorSequence):
     """Fraction of the "soil area" contributing to runoff generation [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0

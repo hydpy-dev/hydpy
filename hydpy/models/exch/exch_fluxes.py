@@ -4,40 +4,41 @@
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class PotentialExchange(sequencetools.FluxSequence):
     """The potential bidirectional water exchange [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
 
 
 class ActualExchange(sequencetools.FluxSequence):
     """The actual bidirectional water exchange [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
 
 
 class OriginalInput(sequencetools.FluxSequence):
     """Unadjusted total input [e.g. m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
 
 
 class AdjustedInput(sequencetools.FluxSequence):
     """Adjusted total input [e.g. m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
 
 
 class Outputs(sequencetools.FluxSequence):
     """Branched outputs [e.g. m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
     def __repr__(self) -> str:

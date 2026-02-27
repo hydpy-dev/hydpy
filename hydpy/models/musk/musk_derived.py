@@ -3,6 +3,8 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.models.musk import musk_control
 
 
@@ -13,7 +15,7 @@ class Seconds(parametertools.SecondsParameter):
 class SegmentLength(parametertools.Parameter):
     """The length of each channel segments [km]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

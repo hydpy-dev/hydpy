@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 # ...from wq
 from hydpy.models.wq import wq_variables
@@ -11,27 +12,28 @@ from hydpy.models.wq import wq_variables
 class WaterDepth(sequencetools.FactorSequence):
     """Water depth [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, None)
 
 
 class WaterLevel(sequencetools.FactorSequence):
     """Water level [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     SPAN = (None, None)
 
 
 class WettedAreas(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
     """Wetted area of each trapeze range [m²]."""
 
+    NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
 
 
 class WettedArea(sequencetools.FactorSequence):
     """Total wetted area [m²]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, None)
 
 
@@ -46,7 +48,7 @@ class FlowArea(sequencetools.FactorSequence):
     """The total wetted area of those subareas of the cross section involved in water
     routing [m²]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, None)
 
 
@@ -59,13 +61,14 @@ class TotalAreas(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSequen
 class TotalArea(sequencetools.FactorSequence):
     """The total wetted area of the total cross section [m²]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, None)
 
 
 class WettedPerimeters(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
     """Wetted perimeter of each trapeze range [m]."""
 
+    NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
 
 
@@ -79,7 +82,7 @@ class FlowPerimeters(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSe
 class WettedPerimeter(sequencetools.FactorSequence):
     """Total wetted perimeter [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, None)
 
 
@@ -89,6 +92,7 @@ class WettedPerimeterDerivatives(
     """Change in the wetted perimeter of each trapeze range with respect to a water
     level increase [-]."""
 
+    NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
 
 
@@ -104,13 +108,14 @@ class FlowPerimeterDerivatives(
 class SurfaceWidths(wq_variables.MixinTrapezes, sequencetools.FactorSequence):
     """Surface width of each trapeze range [m]."""
 
+    NDIM: Final[Literal[1]] = 1
     SPAN = (0.0, None)
 
 
 class SurfaceWidth(sequencetools.FactorSequence):
     """Total surface width [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, None)
 
 
@@ -130,7 +135,7 @@ class TotalWidths(wq_variables.MixinTrapezesOrSectors, sequencetools.FactorSeque
 class TotalWidth(sequencetools.FactorSequence):
     """The total width of the total cross section [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, None)
 
 
@@ -146,7 +151,7 @@ class DischargeDerivatives(
 class DischargeDerivative(sequencetools.FactorSequence):
     """Total discharge change with respect to a water level increase [m²/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (None, None)
 
@@ -154,5 +159,5 @@ class DischargeDerivative(sequencetools.FactorSequence):
 class Celerity(sequencetools.FactorSequence):
     """Kinematic celerity (wave speed) [m/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     SPAN = (None, None)

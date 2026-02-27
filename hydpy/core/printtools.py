@@ -118,7 +118,7 @@ def print_progress(
         _printprogress_indentation -= 4
 
 
-def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
+def progressbar(iterable: Iterable[T_inv], length: int = 23) -> Iterator[T_inv]:
     """Print a simple progress bar while processing the given iterable.
 
     Function |progressbar| does print the progress bar when option `printprogress` is

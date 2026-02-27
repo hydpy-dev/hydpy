@@ -4,12 +4,13 @@
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class H(sequencetools.StateSequence):
     """Wasserstand (water stage) [m]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = True
     SPAN = (None, None)
 
@@ -17,7 +18,7 @@ class H(sequencetools.StateSequence):
 class VG(sequencetools.StateSequence):
     """Wasservolumen (water volume) [million m³]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = True
     SPAN = (None, None)
 
@@ -25,7 +26,7 @@ class VG(sequencetools.StateSequence):
 class WaterVolume(sequencetools.StateSequence):
     """Water volume [million m³]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
 

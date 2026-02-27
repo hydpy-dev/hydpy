@@ -8,6 +8,7 @@ import numpy
 # ...from HydPy
 import hydpy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.auxs import smoothtools
 
 # ...from lland
@@ -22,7 +23,7 @@ class MOY(parametertools.MOYParameter):
 class NUL(parametertools.Parameter):
     r"""Number of land-related hydrological response units [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -46,7 +47,7 @@ class NUGE(parametertools.Parameter):
     r"""Number of groundwater-affected hydrological response units in the elevated
     region [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -78,7 +79,7 @@ class NUG(parametertools.Parameter):
     r"""Number of groundwater-affected hydrological response units in the lowland
     region [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -109,7 +110,7 @@ class NUG(parametertools.Parameter):
 class ALR(parametertools.Parameter):
     r"""Relative land area [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -134,7 +135,7 @@ class ALR(parametertools.Parameter):
 class ASR(parametertools.Parameter):
     r"""Relative surface water area fraction [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -159,7 +160,7 @@ class ASR(parametertools.Parameter):
 class AGRE(parametertools.Parameter):
     r"""Relative groundwater area in the elevated region [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -188,7 +189,7 @@ class AGRE(parametertools.Parameter):
 class AGR(parametertools.Parameter):
     r"""Relative groundwater area in the lowland region [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -217,7 +218,7 @@ class AGR(parametertools.Parameter):
 class QF(parametertools.Parameter):
     r"""Factor for converting mm/T to m³/s [T m³ / mm s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -242,7 +243,7 @@ class QF(parametertools.Parameter):
 class CD(parametertools.Parameter):
     """Channel depth [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -268,7 +269,7 @@ class RH1(parametertools.Parameter):
     """Regularisation parameter related to the height of water columns used when
     applying regularisation function |smooth_logistic1| [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -302,7 +303,7 @@ class RH2(parametertools.Parameter):
     """Regularisation parameter related to the height of water columns used when
     applying regularisation function |smooth_logistic2| [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -336,7 +337,7 @@ class RT2(parametertools.Parameter):
     """Regularisation parameter related to temperature for applying regularisation
     function |smooth_logistic2|) [°C]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

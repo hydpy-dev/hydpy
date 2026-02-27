@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 # ...from lland
 from hydpy.models.wland import wland_control
@@ -13,6 +14,7 @@ class BaseFluxSequence1D(sequencetools.FluxSequence):
     """Base class for |FluxSequence1DComplete| and |FluxSequence1DLand| that supports
     aggregation with respect to |AUR|."""
 
+    NDIM: Final[Literal[1]] = 1
     CONTROLPARAMETERS = (wland_control.AUR,)
 
     @property

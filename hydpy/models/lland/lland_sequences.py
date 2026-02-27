@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 # ...from lland
 from hydpy.models.lland import lland_derived
@@ -27,6 +28,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     2.5
     """
 
+    NDIM: Final[Literal[1]] = 1
     DERIVEDPARAMETERS = (lland_derived.AbsFHRU,)
 
     @property
@@ -58,6 +60,7 @@ class State1DSequence(sequencetools.StateSequence):
     30.0
     """
 
+    NDIM: Final[Literal[1]] = 1
     DERIVEDPARAMETERS = (lland_derived.AbsFHRU,)
 
     @property

@@ -6,6 +6,8 @@ import numpy
 
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.auxs import smoothtools
 from hydpy.models.kinw import kinw_control
 
@@ -22,7 +24,6 @@ class Seconds(parametertools.SecondsParameter):
 class HV(parametertools.LeftRightParameter):
     """Höhe Vorländer (height of both forelands) [m]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -58,7 +59,7 @@ class MFM(parametertools.Parameter):
     Hauptgerinne (product of the time-constant terms of the Manning-Strickler
     equation, calculated for the main channel) [m^(1/3)/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -87,7 +88,6 @@ class MFV(parametertools.LeftRightParameter):
     beide Vorländer (product of the time-constant terms of the Manning-Strickler
     equation, calculated for both forelands) [m^(1/3)/s]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -116,7 +116,7 @@ class BNMF(parametertools.Parameter):
     Hauptgerinne (auxiliary term for the calculation of the wetted
     perimeter of the slope of the main channel) [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -142,7 +142,6 @@ class BNVF(parametertools.LeftRightParameter):
     (auxiliary term for the calculation of the wetted perimeter of the slope
     of both forelands) [m]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -168,7 +167,6 @@ class BNVRF(parametertools.LeftRightParameter):
     Vorlandränder (auxiliary term for the calculation of the wetted
     perimeter of the slope of both outer embankments) [m]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -195,7 +193,7 @@ class HRP(parametertools.Parameter):
     for water stage to be used when applying regularisation function
     |smooth_logistic2|) [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -228,7 +226,7 @@ class HRP(parametertools.Parameter):
 class NmbDiscontinuities(parametertools.Parameter):
     """Number of points of discontinuity in the rating curve [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -258,7 +256,7 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
     according to the implicit Euler method for each point of discontinuity in the
     rating curve [m and million m³]."""
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

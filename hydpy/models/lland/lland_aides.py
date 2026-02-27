@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class SNRatio(sequencetools.AideSequence):
     """Ratio of frozen precipitation to total precipitation [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
 
@@ -16,7 +17,7 @@ class RLAtm(sequencetools.AideSequence):
     """Atmosphärische Gegenstrahlung (longwave radiation emitted from the
     atmosphere) [W/m²]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
 
@@ -27,7 +28,7 @@ class TempS(sequencetools.AideSequence):
     surfaces.
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
 
@@ -38,5 +39,5 @@ class TempSInz(sequencetools.AideSequence):
     snow.
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False

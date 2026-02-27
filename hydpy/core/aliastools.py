@@ -54,7 +54,7 @@ class LazyInOutSequenceImport:
     >>> hland_inputs_T.__name__
     'T'
     >>> type(hland_inputs_T)
-    <class 'type'>
+    <class 'abc.ABCMeta'>
 
     Due to Python's `special method lookup`_, we must explicitly define the relevant
     ones.  The following examples list all considered methods:

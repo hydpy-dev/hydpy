@@ -7,6 +7,7 @@ import inflect
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from manager
 from hydpy.models.manager import manager_parameters
@@ -19,7 +20,7 @@ class Commission(parametertools.DateParameter):
 class DischargeThreshold(parametertools.Parameter):
     """Discharge threshold for estimating release requests [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -28,7 +29,7 @@ class DischargeThreshold(parametertools.Parameter):
 class DischargeTolerance(parametertools.Parameter):
     """Discharge tolerance for estimating release requests [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -38,7 +39,7 @@ class TimeDelay(parametertools.Parameter):
     """Time delay (in terms of simulation steps) between the release of additional
     water and its effect on the target cross-section [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -48,7 +49,7 @@ class TimeWindow(parametertools.Parameter):
     """Time window (in terms of simulation steps) used for calculating multiple "free
     discharge" estimates [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -197,7 +198,6 @@ class ReleaseMax(manager_parameters.ParameterSource):
     different ways to set source-specific values.
     """
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

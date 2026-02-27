@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from snow
 from hydpy.models.snow import snow_parameters
@@ -44,7 +45,7 @@ class GThresh(snow_parameters.Parameter1DLayers):
 class ZMean(parametertools.Parameter):
     """Mean elevation of all layer [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)

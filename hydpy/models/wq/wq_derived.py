@@ -11,6 +11,7 @@ import numpy
 
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.auxs import smoothtools
 
 # ...from wq
@@ -21,6 +22,7 @@ from hydpy.models.wq import wq_variables
 class BottomDepths(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The cumulated depth of a trapeze and its lower neighbours [m]."""
 
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -49,6 +51,7 @@ class TrapezeHeights(wq_variables.MixinTrapezes, parametertools.Parameter):
     The highest trapeze has no upper neighbour and is thus infinitely high.
     """
 
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -78,6 +81,7 @@ class SlopeWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
     potentially infinitely wide.
     """
 
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -110,6 +114,7 @@ class TrapezeAreas(wq_variables.MixinTrapezes, parametertools.Parameter):
     The highest trapeze has no upper neighbour and is thus infinitely large.
     """
 
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -146,6 +151,7 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
     within the trapeze's range [-].
     """
 
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -430,7 +436,7 @@ class CrestHeightRegularisation(parametertools.Parameter):
     """Regularisation parameter related to the difference between the water depth and
     the crest height [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

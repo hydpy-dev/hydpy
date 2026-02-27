@@ -1615,7 +1615,10 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> pub.sequencemanager = SequenceManager()
 
         >>> from hydpy.core.sequencetools import InputSequence
-        >>> inputsequence = InputSequence(None)
+        >>> class I(InputSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> inputsequence = I(None)
         >>> inputsequence.filetype
         'asc'
 
@@ -1642,9 +1645,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> inputsequence.filetype
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Sequence `inputsequence` does \
-not know its file type.  Either set it manually or prepare `pub.sequencemanager` \
-correctly.
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `i` does not know its \
+file type.  Either set it manually or prepare `pub.sequencemanager` correctly.
         """
         try:
             return cast(SeriesFileType, hydpy.pub.sequencemanager.filetype)
@@ -1667,7 +1669,10 @@ correctly.
         >>> pub.sequencemanager = SequenceManager()
 
         >>> from hydpy.core.sequencetools import FluxSequence
-        >>> fluxsequence = FluxSequence(None)
+        >>> class F(FluxSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> fluxsequence = F(None)
         >>> fluxsequence.aggregation
         'none'
 
@@ -1691,9 +1696,8 @@ correctly.
         >>> fluxsequence.aggregation
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Sequence `fluxsequence` does not \
-know its aggregation mode.  Either set it manually or prepare `pub.sequencemanager` \
-correctly.
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `f` does not know its \
+aggregation mode.  Either set it manually or prepare `pub.sequencemanager` correctly.
         """
         try:
             return cast(SeriesAggregationType, hydpy.pub.sequencemanager.aggregation)
@@ -1717,7 +1721,10 @@ correctly.
         >>> pub.sequencemanager = SequenceManager()
 
         >>> from hydpy.core.sequencetools import FluxSequence
-        >>> fluxsequence = FluxSequence(None)
+        >>> class F(FluxSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> fluxsequence = F(None)
         >>> fluxsequence.overwrite
         0
 
@@ -1741,9 +1748,8 @@ correctly.
         >>> fluxsequence.overwrite
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Sequence `fluxsequence` does not \
-know its overwrite flag.  Either set it manually or prepare `pub.sequencemanager` \
-correctly.
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `f` does not know its \
+overwrite flag.  Either set it manually or prepare `pub.sequencemanager` correctly.
         """
         try:
             return bool(hydpy.pub.sequencemanager.overwrite)
@@ -1764,6 +1770,8 @@ correctly.
 
         >>> from hydpy.core.sequencetools import StateSequence
         >>> class S(StateSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
         ...     descr_device = "device"
         ...     descr_sequence = "group_sequence"
         ...     filetype = "npy"
@@ -1810,7 +1818,10 @@ correctly.
         ...     currentpath = "temp"
         >>> pub.sequencemanager = SM()
         >>> from hydpy.core.sequencetools import StateSequence
-        >>> repr_(StateSequence(None).dirpath)
+        >>> class S(StateSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> repr_(S(None).dirpath)
         'temp'
         """
         return hydpy.pub.sequencemanager.currentpath
@@ -1823,7 +1834,10 @@ correctly.
         |IOSequence.filename|:
 
         >>> from hydpy.core.sequencetools import StateSequence
-        >>> seq = StateSequence(None)
+        >>> class S(StateSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> seq = S(None)
         >>> seq.dirpath = "path"
         >>> seq.filename = "file.npy"
         >>> from hydpy import repr_
@@ -1986,6 +2000,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> for reading in (False, True):
         ...     for writing in (False, True):
         ...         class S(StateSequence):
+        ...             NDIM = 1
+        ...             TYPE = float
         ...             diskflag_reading = reading
         ...             diskflag_writing = writing
         ...         print(reading, writing, S(None).diskflag)
@@ -2005,6 +2021,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> for ram in (False, True):
         ...     for disk in (False, True):
         ...         class S(StateSequence):
+        ...             NDIM = 1
+        ...             TYPE = float
         ...             ramflag = ram
         ...             diskflag = disk
         ...         print(ram, disk, S(None).memoryflag)
@@ -2204,12 +2222,15 @@ during a simulation run is not supported but tried for sequence `t` of element \
             >>> del pub.sequencemanager
 
         >>> from hydpy.core.sequencetools import StateSequence
-        >>> StateSequence(None).load_series()
+        >>> class S(StateSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> S(None).load_series()
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to load the time \
-series data of `statesequence`, the following error occurred: Attribute \
-sequencemanager of module `pub` is not defined at the moment.
+series data of `s`, the following error occurred: Attribute sequencemanager of module \
+`pub` is not defined at the moment.
         """
         try:
             sequencemanager = hydpy.pub.sequencemanager
@@ -2539,12 +2560,15 @@ step is `1d`.
             >>> del pub.sequencemanager
 
         >>> from hydpy.core.sequencetools import StateSequence
-        >>> StateSequence(None).save_series()
+        >>> class S(StateSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> S(None).save_series()
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to save the time \
-series data of `statesequence`, the following error occurred: Attribute \
-sequencemanager of module `pub` is not defined at the moment.
+series data of `s`, the following error occurred: Attribute sequencemanager of module \
+`pub` is not defined at the moment.
         """
         try:
             sequencemanager = hydpy.pub.sequencemanager
@@ -2646,6 +2670,7 @@ its series to a 2-dimensional matrix.
         >>> from hydpy.core.parametertools import Parameter
         >>> class Area(Parameter):
         ...     NDIM = 1
+        ...     TYPE = float
         ...     shape = (3,)
         ...     value = numpy.array([1.0, 1.0, 2.0])
         >>> area = Area(None)
@@ -3708,7 +3733,7 @@ class LogSequence(ConditionSequence):
 class LogSequenceFixed(LogSequence):
     """Base class for log sequences with a fixed shape."""
 
-    NDIM: TypeNDIM = 1
+    NDIM: Final[Literal[1]] = 1
     SHAPE: int
 
     def _finalise_connections(self):

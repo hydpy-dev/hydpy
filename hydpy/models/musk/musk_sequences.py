@@ -17,7 +17,7 @@ from hydpy.core import sequencetools
 class MixinSequence1D:
     """Mixin class for the 1-dimensional sequences."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
     subseqs: sequencetools.ModelIOSequences

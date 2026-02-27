@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 # ...from snow
 from hydpy.models.snow import snow_sequences
@@ -35,5 +36,5 @@ class PNetLayer(snow_sequences.Flux1DNLayers):
 class PNet(sequencetools.FluxSequence):
     """Net precipitation of the complete catchment [mm/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False

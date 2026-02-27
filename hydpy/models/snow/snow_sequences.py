@@ -4,10 +4,13 @@
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class Sequence1DNLayers(sequencetools.ModelSequence):
     """Base class for sequences with different values for individual layers."""
+
+    NDIM: Final[Literal[1]] = 1
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         self.__hydpy__change_shape_if_necessary__((p.value,))
@@ -35,7 +38,6 @@ class Factor1DNLayers(Sequence1DNLayers, sequencetools.FactorSequence):
     2.5
     """
 
-    NDIM = 1
     NUMERIC = False
 
 
@@ -55,7 +57,6 @@ class Flux1DNLayers(Sequence1DNLayers, sequencetools.FluxSequence):
     2.5
     """
 
-    NDIM = 1
     NUMERIC = False
 
 
@@ -75,7 +76,6 @@ class State1DNLayers(Sequence1DNLayers, sequencetools.StateSequence):
     2.5
     """
 
-    NDIM = 1
     NUMERIC = False
 
 
@@ -95,5 +95,4 @@ class Log1DNLayers(Sequence1DNLayers, sequencetools.LogSequence):
     2.5
     """
 
-    NDIM = 1
     NUMERIC = False

@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class ZThreshold(parametertools.FixedParameter):
     """Altitude threshold for constant precipitation [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -18,7 +19,7 @@ class ZThreshold(parametertools.FixedParameter):
 class MinMelt(parametertools.FixedParameter):
     """Minimum ratio of actual to potential melt [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -28,7 +29,7 @@ class MinMelt(parametertools.FixedParameter):
 class TThreshSnow(parametertools.FixedParameter):
     """Temperature below which all precipitation falls as snow [°C]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -38,7 +39,7 @@ class TThreshSnow(parametertools.FixedParameter):
 class TThreshRain(parametertools.FixedParameter):
     """Temperature above which all precipitation falls as rain [°C]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -48,7 +49,7 @@ class TThreshRain(parametertools.FixedParameter):
 class MinG(parametertools.FixedParameter):
     """Amount of snow below which actual melt can be equal to potential melt [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)

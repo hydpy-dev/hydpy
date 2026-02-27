@@ -3,13 +3,15 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
+
 from hydpy.models.evap import evap_sequences
 
 
 class CloudCoverage(sequencetools.StateSequence):
     """Degree of cloud coverage [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (0.0, 1.0)
 

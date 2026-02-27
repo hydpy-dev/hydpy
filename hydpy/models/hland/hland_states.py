@@ -6,6 +6,8 @@ import numpy
 
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
+
 from hydpy.models.hland import hland_control
 from hydpy.models.hland import hland_masks
 from hydpy.models.hland import hland_sequences
@@ -128,7 +130,7 @@ class SM(hland_sequences.State1DSequence):
 class UZ(sequencetools.StateSequence):
     """Storage in the upper zone layer [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (0.0, None)
 
@@ -166,7 +168,7 @@ class LZ(sequencetools.StateSequence):
     `LZ`.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (None, None)
 
@@ -225,7 +227,7 @@ class SG1(hland_sequences.State1DSequence):
 class SG2(sequencetools.StateSequence):
     """First-order slow response groundwater reservoir [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (None, None)
 
@@ -233,7 +235,7 @@ class SG2(sequencetools.StateSequence):
 class SG3(sequencetools.StateSequence):
     """Second-order slow response groundwater reservoir [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (None, None)
 
@@ -241,6 +243,6 @@ class SG3(sequencetools.StateSequence):
 class SC(sequencetools.StateSequence):
     """Storage cascade for runoff concentration [mm]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)

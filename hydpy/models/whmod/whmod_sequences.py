@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring
 
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 from hydpy.models.whmod import whmod_masks
 
@@ -8,7 +9,7 @@ from hydpy.models.whmod import whmod_masks
 class Mixin1DSequence(sequencetools.Sequence_):
     """Mixin class for all 1-dimensional sequences."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
     @property

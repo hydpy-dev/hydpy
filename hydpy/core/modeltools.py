@@ -136,7 +136,7 @@ class ReusableMethod(Method):
 abstractmodelmethods: set[Callable[..., Any]] = set()
 
 
-def abstractmodelmethod(method: Callable[P_, T]) -> Callable[P_, T]:
+def abstractmodelmethod(method: Callable[P_, T_inv]) -> Callable[P_, T_inv]:
     """Alternative for Python's |abc.abstractmethod|.
 
     We currently use it to mark abstract methods in submodel interfaces that are not
@@ -935,7 +935,7 @@ class SubmodelTypeIDProperty:
             setattr(cymodel, self._name, value)
 
 
-class SharedProperty(Generic[T]):
+class SharedProperty(Generic[T_inv]):
     """Base class for descriptors that handle model properties which need
     synchronisation between the Python and the Cython world."""
 
@@ -945,19 +945,19 @@ class SharedProperty(Generic[T]):
         self.name = name.lower()
 
     @overload
-    def __get__(self, obj: Model, objtype: type[Model]) -> T: ...
+    def __get__(self, obj: Model, objtype: type[Model]) -> T_inv: ...
 
     @overload
     def __get__(self, obj: None, objtype: type[Model]) -> Self: ...
 
-    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | T:
+    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | T_inv:
         if obj is None:
             return self
         if obj.cymodel:
             return getattr(obj.cymodel, self.name)
         return vars(obj).get(self.name, 0)
 
-    def __set__(self, obj: Model, value: T) -> None:
+    def __set__(self, obj: Model, value: T_inv) -> None:
         if obj.cymodel:
             setattr(obj.cymodel, self.name, value)
         else:

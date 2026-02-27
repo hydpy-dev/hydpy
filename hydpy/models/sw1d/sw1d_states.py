@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class WaterVolume(sequencetools.StateSequence):
@@ -14,7 +15,7 @@ class WaterVolume(sequencetools.StateSequence):
     :ref:`sw1d_channel_excessive_water_withdrawal`).
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (None, None)
 
@@ -22,5 +23,5 @@ class WaterVolume(sequencetools.StateSequence):
 class Discharge(sequencetools.StateSequence):
     """Discharge [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False

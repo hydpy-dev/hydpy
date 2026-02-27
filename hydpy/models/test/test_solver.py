@@ -6,12 +6,13 @@ import numpy
 
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class AbsErrorMax(parametertools.SolverParameter):
     """Absolute numerical error tolerance [mm/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -21,7 +22,7 @@ class AbsErrorMax(parametertools.SolverParameter):
 class RelErrorMax(parametertools.SolverParameter):
     """Relative numerical error tolerance [1/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -31,7 +32,7 @@ class RelErrorMax(parametertools.SolverParameter):
 class RelDTMin(parametertools.SolverParameter):
     """Smallest relative integration time step size allowed [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -41,7 +42,7 @@ class RelDTMin(parametertools.SolverParameter):
 class RelDTMax(parametertools.SolverParameter):
     """Largest relative integration time step size allowed [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)

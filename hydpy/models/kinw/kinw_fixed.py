@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class WBMin(parametertools.FixedParameter):
@@ -15,7 +16,7 @@ class WBMin(parametertools.FixedParameter):
     river section is dry.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -26,7 +27,7 @@ class WBReg(parametertools.FixedParameter):
     """Auf |WBMin| bezogener effektiver Glättungsparameter (effectiv smoothing
     parameter related to |WBMin|) [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

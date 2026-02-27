@@ -4,6 +4,7 @@
 # ...from HydPy
 import hydpy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from gland
 from hydpy.models.gland import gland_control
@@ -16,7 +17,7 @@ class DOY(parametertools.DOYParameter):
 class Beta(parametertools.Parameter):
     """Percolation factor [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -83,7 +84,7 @@ class Beta(parametertools.Parameter):
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

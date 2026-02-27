@@ -43,7 +43,7 @@ shape (4...) into shape (3...)
     quh(3.0, 3.0, 0.0)
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
 

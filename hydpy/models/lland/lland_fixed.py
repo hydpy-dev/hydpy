@@ -5,13 +5,14 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class CPWasser(parametertools.FixedParameter):
     """Spezifische Wärmekapazität von Wasser (specific heat capacity of water)
     [WT/kg/K]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -22,7 +23,7 @@ class CPEis(parametertools.FixedParameter):
     """Spezifische Wärmekapazität von Eis bei 0 °C (specific heat capacity of ice at a
     temperature of 0 °C) [WT/kg/K]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -32,7 +33,7 @@ class CPEis(parametertools.FixedParameter):
 class RSchmelz(parametertools.FixedParameter):
     """Spezifische Schmelzwärme von Wasser (specific melt heat of water) [WT/kg]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -42,7 +43,7 @@ class RSchmelz(parametertools.FixedParameter):
 class Pi(parametertools.FixedParameter):
     """π [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -54,7 +55,7 @@ class Z(parametertools.FixedParameter):
     half thickness of the surface soil layer relevant for modelling soil temperature)
     [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -65,7 +66,7 @@ class BoWa2Z(parametertools.FixedParameter):
     """Bodenwassergehalt der Bodenschicht bis zu einer Tiefe 2z (soil water content of
     the soil layer down two a depth of 2z) [mm]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0, None)
@@ -76,7 +77,7 @@ class LambdaG(parametertools.FixedParameter):
     """Wärmeleitfähigkeit des Bodens (thermal conductivity of the top soil layer)
     [W/m/K]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -86,7 +87,7 @@ class LambdaG(parametertools.FixedParameter):
 class Sigma(parametertools.FixedParameter):
     """Stefan-Boltzmann-Konstante (Stefan-Boltzmann constant) [W/m²/K]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -117,7 +118,7 @@ class LWE(parametertools.FixedParameter):
     30.873264
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -128,7 +129,7 @@ class PsyInv(parametertools.FixedParameter):
     """Kehrwert der Psychrometerkonstante über Schnee und Eis bei 0°C (inverse
     psychrometric constant for ice and snow at 0°C) [K/hPa]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -138,7 +139,7 @@ class PsyInv(parametertools.FixedParameter):
 class Z0(parametertools.FixedParameter):
     """Rauhigkeitslänge für Wiese (roughness length for short grass) [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -149,7 +150,7 @@ class FrAtm(parametertools.FixedParameter):
     """Empirischer Faktor zur Berechnung der atmosphärischen Gegenstrahlung (empirical
     factor for the calculation of atmospheric radiation) [-]"""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -160,7 +161,7 @@ class CG(parametertools.FixedParameter):
     """Volumetrische Wärmekapazität des Bodens (volumetric heat capacity of soil)
     [WT/m³/K]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (None, None)

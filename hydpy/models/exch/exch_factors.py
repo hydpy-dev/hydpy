@@ -3,6 +3,7 @@
 # ...from HydPy
 from hydpy.core import sequencetools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 
 
 class WaterLevels(variabletools.MixinFixedShape, sequencetools.FactorSequence):
@@ -12,7 +13,7 @@ class WaterLevels(variabletools.MixinFixedShape, sequencetools.FactorSequence):
     the value of the |LoggedWaterLevels| of the previous simulation step.
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     SHAPE = (2,)
 
 
@@ -23,16 +24,16 @@ class DeltaWaterLevel(sequencetools.FactorSequence):
     of the |LoggedWaterLevels| of the previous simulation step.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
 
 
 class X(sequencetools.FactorSequence):
     """Arbitrary kind of input data [?]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
 
 
 class Y(sequencetools.FactorSequence):
     """Arbitrary kind of result data [?]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0

@@ -3,19 +3,20 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class LoggedTotalRemoteDischarge(sequencetools.LogSequence):
     """Logged discharge values from somewhere else [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
 
 class LoggedOutflow(sequencetools.LogSequence):
     """Logged discharge values from the dam itself [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
 

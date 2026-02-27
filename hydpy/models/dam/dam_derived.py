@@ -7,6 +7,8 @@ import numpy
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.auxs import smoothtools
+from hydpy.core.typingtools import *
+
 from hydpy.models.dam import dam_control
 
 
@@ -22,7 +24,7 @@ class Seconds(parametertools.SecondsParameter):
 class InputFactor(parametertools.Parameter):
     """Factor for converting meteorological input from mm/T to million m³/s."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -48,7 +50,7 @@ class InputFactor(parametertools.Parameter):
 class RemoteDischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |RemoteDischargeSafety| [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -84,7 +86,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold| for
     smoothing kernel |smooth_logistic1| [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -120,7 +122,7 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold| for
     smoothing kernel |smooth_logistic2| [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -156,7 +158,7 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMinimumTolerance| for
     smoothing kernel |smooth_logistic1| [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -190,7 +192,7 @@ class WaterLevelMaximumSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMaximumTolerance| for
     smoothing kernel |smooth_logistic1| [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -224,7 +226,7 @@ class RemoteWaterLevelMaximumSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |RemoteWaterLevelMaximumTolerance| for
     smoothing kernel |smooth_logistic1| [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -258,7 +260,7 @@ class SmoothParEvaporation(parametertools.Parameter):
     """Smoothing parameter to be derived from |ToleranceEvaporation| for smoothing
     kernel |smooth_logistic1| [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -291,7 +293,7 @@ class SmoothParEvaporation(parametertools.Parameter):
 class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMinimumRemoteTolerance| [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -326,7 +328,7 @@ class WaterLevelReliefSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelReliefTolerance| for smoothing
     kernel |smooth_logistic1| [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -362,7 +364,7 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelSupplyTolerance| for smoothing
     kernel |smooth_logistic1| [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -398,7 +400,7 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |HighestRemoteTolerance| for smoothing
     kernel |smooth_min1| [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -467,7 +469,7 @@ class VolumeSmoothParLog1(parametertools.Parameter):
     """Smoothing parameter to be derived from |VolumeTolerance| for smoothing kernel
     |smooth_logistic1| [million m³]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -501,7 +503,7 @@ class VolumeSmoothParLog2(parametertools.Parameter):
     """Smoothing parameter to be derived from |VolumeTolerance| for smoothing kernel
     |smooth_logistic2| [million m³]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -535,7 +537,7 @@ class DischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |DischargeTolerance| for smoothing
     kernels |smooth_logistic2|, |smooth_min1|, and |smooth_max1| [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -573,7 +575,7 @@ class CrestLevelSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |CrestLevelTolerance| for smoothing
     kernel |smooth_max1| [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

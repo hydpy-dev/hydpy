@@ -73,7 +73,7 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
 Node("in3", variable="Q"))
     """
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -180,7 +180,7 @@ variable `inputheights` can only be retrieved after it has been defined.
 Node("in3", variable="Q"))
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -252,7 +252,7 @@ class MaxNmbInputs(parametertools.Parameter):
     maxnmbinputs(2)
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -291,7 +291,7 @@ element `?` is not valid.
 class MinNmbInputs(parametertools.Parameter):
     """The minimum number of inputs for performing a statistical analysis [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (2, None)
@@ -300,7 +300,7 @@ class MinNmbInputs(parametertools.Parameter):
 class DefaultConstant(parametertools.Parameter):
     """Default or fallback value for the constant of the linear regression model [?]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -309,7 +309,7 @@ class DefaultConstant(parametertools.Parameter):
 class DefaultFactor(parametertools.Parameter):
     """Default or fallback value for the factor of the linear regression model [?]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (-1.0, 1.0)
@@ -318,7 +318,7 @@ class DefaultFactor(parametertools.Parameter):
 class Power(parametertools.Parameter):
     """Power parameter for calculating inverse distance weights [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0, None)

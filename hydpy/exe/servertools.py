@@ -1867,7 +1867,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         self._outputs["lastdate_init"] = tg.lastdate.to_string("iso1", utc)
         self._outputs["stepsize"] = tg.stepsize
 
-    def _get_registered_content(self, dict_: dict[ID, T]) -> T:
+    def _get_registered_content(self, dict_: dict[ID, T_inv]) -> T_inv:
         try:
             return dict_[self._id]
         except KeyError:

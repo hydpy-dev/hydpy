@@ -3,6 +3,8 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
+
 from hydpy.models.ga import ga_control
 
 
@@ -16,7 +18,7 @@ class Moisture(sequencetools.StateSequence):
     ToDo: What is the reason behind this behaviour? Can we change it?
     """
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     NUMERIC = False
     SPAN = (0.0, 1.0)
 
@@ -59,7 +61,7 @@ class FrontDepth(sequencetools.StateSequence):
     does not necessarily mean a bin is inactive.
     """
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     NUMERIC = False
     SPAN = (0.0, None)
 

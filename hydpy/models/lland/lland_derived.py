@@ -9,6 +9,7 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from lland
 from hydpy.models.lland import lland_control
@@ -36,7 +37,7 @@ class Days(parametertools.DaysParameter):
 class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for a memory duration of 24 hours [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -112,7 +113,6 @@ determined for a the current simulation step size.  The fraction of the memory p
 class AbsFHRU(lland_parameters.ParameterComplete):
     """Flächen der Hydrotope (areas of the respective HRUs) [km²]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -139,7 +139,6 @@ class AbsFHRU(lland_parameters.ParameterComplete):
 class MGH(lland_parameters.ParameterComplete):
     """Mittlere Gebietshöhe (average elevation) [m]."""
 
-    NDIM = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -167,7 +166,6 @@ class KInz(lland_parameters.LanduseMonthParameter):
     """Interzeptionskapazität bezogen auf die Bodenoberfläche (interception
     capacity normalized to the soil surface area) [mm]."""
 
-    NDIM = 2
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -198,7 +196,6 @@ class KInz(lland_parameters.LanduseMonthParameter):
 class HeatOfFusion(lland_parameters.ParameterLand):
     """Heat which is necessary to melt the frozen soil water content [WT]."""
 
-    NDIM = 1
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -234,7 +231,6 @@ class Fr(lland_parameters.LanduseMonthParameter):
     long wave radiation) :cite:t:`ref-LARSIM` (based on :cite:t:`ref-LUBWLUWG2015`)
     [-]."""
 
-    NDIM = 2
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -287,7 +283,7 @@ class KB(parametertools.Parameter):
     """Konzentrationszeit des Basisabflusses (concentration time of the baseflow
     storage) [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -314,7 +310,7 @@ class KI1(parametertools.Parameter):
     """Konzentrationszeit des "unteren" Zwischenabflusses (concentration time of the
     first interflow storage) [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -341,7 +337,7 @@ class KI2(parametertools.Parameter):
     """Konzentrationszeit des "oberen" Zwischenabflusses" (concentration time of the
     second interflow storage) [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -368,7 +364,7 @@ class KD1(parametertools.Parameter):
     """Konzentrationszeit des "langsamen" Direktabflusses (concentration time of the
     slow direct runoff storage) [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -395,7 +391,7 @@ class KD2(parametertools.Parameter):
     """Konzentrationszeit des "schnellen" Direktabflusses (concentration time of the
     fast direct runoff storage) [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -421,7 +417,7 @@ class KD2(parametertools.Parameter):
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/T to m³/s."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

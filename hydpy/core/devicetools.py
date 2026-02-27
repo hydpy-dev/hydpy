@@ -3669,8 +3669,8 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         focus: bool,
     ) -> pyplot.Figure:
         def _prepare_tuple(
-            input_: T | tuple[T, ...] | None, nmb_entries: int
-        ) -> tuple[T | None, ...]:
+            input_: T_inv | tuple[T_inv, ...] | None, nmb_entries: int
+        ) -> tuple[T_inv | None, ...]:
             if isinstance(input_, tuple):
                 return input_
             return nmb_entries * (input_,)

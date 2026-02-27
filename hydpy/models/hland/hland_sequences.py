@@ -28,7 +28,7 @@ class Factor1DSequence(sequencetools.FactorSequence):
     2.75
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
     @property
@@ -59,7 +59,7 @@ class Factor2DSequence(sequencetools.FactorSequence):
     22.5
     """
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     NUMERIC = False
 
     @property
@@ -152,7 +152,7 @@ class Flux1DSequence(sequencetools.FluxSequence):
     2.75
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
     @property
@@ -183,7 +183,7 @@ class Flux2DSequence(sequencetools.FluxSequence):
     22.5
     """
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     NUMERIC = False
 
     @property
@@ -277,7 +277,7 @@ class State1DSequence(sequencetools.StateSequence):
     30.0
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
     @property
@@ -308,7 +308,7 @@ class State2DSequence(sequencetools.StateSequence):
     22.5
     """
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     NUMERIC = False
 
     @property

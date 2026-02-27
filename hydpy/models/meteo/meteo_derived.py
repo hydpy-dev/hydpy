@@ -9,6 +9,8 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.models.meteo import meteo_fixed
 from hydpy.models.meteo import meteo_control
 
@@ -40,7 +42,7 @@ class SCT(parametertools.SCTParameter):
 class HRUAreaFraction(parametertools.Parameter):
     """The area fraction of each hydrological response unit [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -66,7 +68,7 @@ class HRUAreaFraction(parametertools.Parameter):
 class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for memorising one day's data [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -139,7 +141,7 @@ class UTCLongitude(parametertools.UTCLongitudeParameter):
 class LatitudeRad(parametertools.Parameter):
     """The latitude [rad]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (-1.5708, 1.5708)

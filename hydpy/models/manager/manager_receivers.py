@@ -3,17 +3,18 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class Q(sequencetools.ReceiverSequence):
     """Discharge at the target location [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
 
 
 class WaterVolume(sequencetools.ReceiverSequence):
     """The current water volume of the individual sources [million m³]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False

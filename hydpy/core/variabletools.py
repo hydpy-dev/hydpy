@@ -532,7 +532,7 @@ class FastAccess:
     del __setattr__
 
 
-class Variable:
+class Variable(abc.ABC):
     """Base class for |Parameter| and |Sequence_|.
 
     The subclasses are required to provide the class attributes `NDIM`
@@ -1002,10 +1002,15 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     '?'
     """
 
-    # Subclasses need to define...
-    NDIM: TypeNDIM
+    @property
+    @abc.abstractmethod
+    def NDIM(self) -> TypeNDIM:
+        """Number of dimensions of the values handled by the respective subclass.
+
+        Please override it with a class attribute.
+        """
+
     TYPE: TypeTYPE
-    # ...and optionally...
     SPAN: TypeSPAN = (None, None)
     INIT: TypeINIT = None
 
@@ -1053,6 +1058,8 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
         >>> from hydpy.core.variabletools import FastAccess, Variable
         >>> class Var1(Variable):
+        ...     NDIM = 1
+        ...     TYPE = float
         ...     initinfo = 0.0, True
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
         >>> class Var2(Variable):
@@ -1526,6 +1533,7 @@ as `var` can only be `()`, but `(2,)` is given.
 
         >>> from hydpy.core.variabletools import FastAccess, Variable
         >>> class Var(Variable):
+        ...     NDIM = 0
         ...     TYPE = float
         ...     initinfo = 0.0, False
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
@@ -1533,7 +1541,6 @@ as `var` can only be `()`, but `(2,)` is given.
 
         0-dimensional variables always handle precisely one value:
 
-        >>> Var.NDIM = 0
         >>> var = Var(None)
         >>> var.shape = ()
         >>> var.numberofvalues
@@ -1735,6 +1742,7 @@ any weighting coefficients.
 
         >>> class Area(Variable):
         ...     NDIM = 1
+        ...     TYPE = float
         ...     shape = (3,)
         ...     value = numpy.array([1.0, 1.0, 2.0])
         ...     initinfo = None
@@ -2283,13 +2291,13 @@ def sort_variables(
 
 @overload
 def sort_variables(
-    values: Iterable[tuple[type[TypeVariable_co], T]],
-) -> tuple[tuple[type[TypeVariable_co], T], ...]: ...
+    values: Iterable[tuple[type[TypeVariable_co], T_inv]],
+) -> tuple[tuple[type[TypeVariable_co], T_inv], ...]: ...
 
 
 def sort_variables(
-    values: Iterable[type[TypeVariable] | tuple[type[TypeVariable], T]],
-) -> tuple[type[TypeVariable] | tuple[type[TypeVariable], T], ...]:
+    values: Iterable[type[TypeVariable] | tuple[type[TypeVariable], T_inv]],
+) -> tuple[type[TypeVariable] | tuple[type[TypeVariable], T_inv], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order

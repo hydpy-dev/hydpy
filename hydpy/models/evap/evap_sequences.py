@@ -13,20 +13,20 @@ if TYPE_CHECKING:
 class FactorSequence1D(sequencetools.FactorSequence):
     """Base class for 1-dimensional factor sequences."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     mask = masktools.SubmodelIndexMask()
 
 
 class FluxSequence1D(sequencetools.FluxSequence):
     """Base class for 1-dimensional flux sequences."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     mask = masktools.SubmodelIndexMask()
 
 
 class StateSequence1D(sequencetools.StateSequence):
     """Base class for 1-dimensional state sequences."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     mask = masktools.SubmodelIndexMask()

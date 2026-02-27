@@ -12,7 +12,7 @@ from hydpy.core.typingtools import *
 class CatchmentArea(parametertools.Parameter):
     """Size of the catchment draining into the channel [km²]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -82,7 +82,7 @@ class NmbSegments(parametertools.Parameter):
     discharge(1.0, 2.0, 3.0)
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -275,7 +275,7 @@ with value `1.0` needed to be trimmed to `0.0`.
     0.5, 0.5, 0.0
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -325,7 +325,7 @@ with value `1.0` needed to be trimmed to `0.0`.
 class Length(parametertools.Parameter):
     """The total length of channel [km]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -337,7 +337,7 @@ class BottomSlope(parametertools.Parameter):
     :math:`BottomSlope = \frac{elevation_{start} - elevation_{end}}{Length}`
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

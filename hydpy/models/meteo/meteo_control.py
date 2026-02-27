@@ -7,6 +7,8 @@ import numpy
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.models.meteo import meteo_parameters
 
 
@@ -41,7 +43,7 @@ class NmbHRU(parametertools.Parameter):
     precipitationfactor(2.0)
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -64,7 +66,7 @@ class NmbHRU(parametertools.Parameter):
 class HRUArea(parametertools.Parameter):
     """The area of each hydrological response unit [km²]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -73,7 +75,7 @@ class HRUArea(parametertools.Parameter):
 class Latitude(parametertools.Parameter):
     """The latitude [decimal degrees]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (-90.0, 90.0)
@@ -82,7 +84,7 @@ class Latitude(parametertools.Parameter):
 class Longitude(parametertools.Parameter):
     """The longitude [decimal degrees]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (-180.0, 180.0)

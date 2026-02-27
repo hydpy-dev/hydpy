@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class ReferenceEvapotranspiration(sequencetools.InputSequence):
     """Reference evapotranspiration [mm/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.POTENTIAL_EVAPOTRANSPIRATION
 
@@ -16,7 +17,7 @@ class ReferenceEvapotranspiration(sequencetools.InputSequence):
 class RelativeHumidity(sequencetools.InputSequence):
     """Relative humidity [%]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.RELATIVE_HUMIDITY
 
@@ -24,7 +25,7 @@ class RelativeHumidity(sequencetools.InputSequence):
 class WindSpeed(sequencetools.InputSequence):
     """Wind speed [m/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.WIND_SPEED
 
@@ -32,7 +33,7 @@ class WindSpeed(sequencetools.InputSequence):
 class AtmosphericPressure(sequencetools.InputSequence):
     """Atmospheric pressure [hPa]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.ATMOSPHERIC_PRESSURE
 
@@ -44,7 +45,7 @@ class NormalAirTemperature(sequencetools.InputSequence):
     In the terminology of HBV96: TN.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.NORMAL_AIR_TEMPERATURE
 
@@ -55,6 +56,6 @@ class NormalEvapotranspiration(sequencetools.InputSequence):
     In the terminology of HBV96: EPN.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.NORMAL_EVAPOTRANSPIRATION

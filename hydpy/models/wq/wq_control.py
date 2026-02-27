@@ -8,6 +8,7 @@ from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 
 # ...from wq
 from hydpy.models.wq import wq_variables
@@ -219,7 +220,7 @@ not strictly rising (1, 4, and 4).
     transitions(-999999)
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -288,6 +289,7 @@ class BottomWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
     right sides of the first trapeze.
     """
 
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -301,6 +303,7 @@ class SideSlopes(wq_variables.MixinTrapezes, parametertools.Parameter):
     trapeze's centre.
     """
 
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -362,7 +365,7 @@ class BottomSlope(parametertools.Parameter):
     :math:`BottomSlope = \frac{elevation_{start} - elevation_{end}}{length}`
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -371,7 +374,7 @@ class BottomSlope(parametertools.Parameter):
 class ChannelDepth(parametertools.Parameter):
     """Channel depth [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -383,7 +386,7 @@ class CrestHeight(parametertools.Parameter):
     Set |CrestHeight| to zero for channels without weirs.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -393,7 +396,7 @@ class CrestHeightTolerance(parametertools.Parameter):
     """Smoothing parameter related to the difference between the water depth and the
     crest height [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -402,7 +405,7 @@ class CrestHeightTolerance(parametertools.Parameter):
 class BankfullDischarge(parametertools.Parameter):
     """Bankfull discharge [mm/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -411,7 +414,7 @@ class BankfullDischarge(parametertools.Parameter):
 class DischargeExponent(parametertools.Parameter):
     """Exponent of the water depth-discharge relation [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

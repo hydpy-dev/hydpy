@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class Area(parametertools.Parameter):
     """Subbasin area [km²]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (1e-10, None)
@@ -17,7 +18,7 @@ class Area(parametertools.Parameter):
 class IMax(parametertools.Parameter):
     """Interception store capacity [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -26,7 +27,7 @@ class IMax(parametertools.Parameter):
 class X1(parametertools.Parameter):
     """Maximum capacity of the production storage [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -36,7 +37,7 @@ class X2(parametertools.Parameter):
     """Groundwater exchange coefficient (positive for water imports, negative for
     exports) [mm/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = True
     SPAN = (None, None)
@@ -66,7 +67,7 @@ class X2(parametertools.Parameter):
 class X3(parametertools.Parameter):
     """One timestep ahead maximum capacity of the routing store [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -96,7 +97,7 @@ class X3(parametertools.Parameter):
 class X5(parametertools.Parameter):
     """Intercatchment exchange threshold [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -105,7 +106,7 @@ class X5(parametertools.Parameter):
 class X6(parametertools.Parameter):
     """Coefficient for emptying the exponential store [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

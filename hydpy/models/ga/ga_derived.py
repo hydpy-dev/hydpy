@@ -6,13 +6,15 @@ import numpy
 
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.models.ga import ga_control
 
 
 class NmbSubsteps(parametertools.Parameter):
     """The number of numerical substeps in each simulation step [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, numpy.inf)
@@ -36,7 +38,7 @@ class NmbSubsteps(parametertools.Parameter):
 class SoilAreaFraction(parametertools.Parameter):
     """The area fraction of each soil compartment [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -63,7 +65,7 @@ class EffectiveCapillarySuction(parametertools.Parameter):
     """The effective capillary suction according to the Brooks-Corey soil moisture
     characteristic model :cite:p:`ref-Brooks1966` [mm]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

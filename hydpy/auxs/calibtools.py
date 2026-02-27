@@ -3435,7 +3435,7 @@ via argument `selections`.
             uppers = calibspecs.uppers
         if parametersteps is None:
             parametersteps = calibspecs.parametersteps
-    parameters_ = tuple(
+    parameters_: tuple[parametertools.Parameter | str, ...] = tuple(
         objecttools.extract(values=parameters, types_=(parametertools.Parameter, str))
     )
     if isinstance(parametersteps, str) or not isinstance(parametersteps, Sequence):

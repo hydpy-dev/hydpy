@@ -1349,7 +1349,7 @@ class TestIO:
             pass
 
 
-def make_abc_testable(abstract: type[T]) -> type[T]:
+def make_abc_testable(abstract: type[T_inv]) -> type[T_inv]:
     """Return a concrete version of the given abstract base class for testing purposes.
 
     Abstract base classes cannot be (and, at least in production code, should not be)

@@ -9,6 +9,7 @@ import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from evap
 from hydpy.models.evap import evap_parameters
@@ -24,7 +25,7 @@ class MOY(parametertools.MOYParameter):
 class HRUAreaFraction(parametertools.Parameter):
     """The area fraction of each hydrological response unit [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -50,7 +51,7 @@ class HRUAreaFraction(parametertools.Parameter):
 class Altitude(parametertools.Parameter):
     """Average (reference) subbasin altitude [100m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -90,7 +91,7 @@ class Days(parametertools.DaysParameter):
 class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for a memory duration of 24 hours [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)

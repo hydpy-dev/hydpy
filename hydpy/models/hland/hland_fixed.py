@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class Pi(parametertools.FixedParameter):
     """π [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -19,7 +20,7 @@ class FSG(parametertools.FixedParameter):
     """Fraction between the spatial extents of the first-order and the second-order
     slow response groundwater reservoir [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -44,7 +45,7 @@ class K1L(parametertools.FixedParameter):
     1.0
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

@@ -4,13 +4,14 @@
 # ...from HydPy
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class QZ(sequencetools.FluxSequence):
     """Mittlerer Zufluss in Gerinnestrecke (average inflow into the channel)
     [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (0.0, None)
 
@@ -19,7 +20,7 @@ class QZA(sequencetools.FluxSequence):
     """Aktueller Zufluss in Gerinnestrecke (current inflow into the channel)
     [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = True
     SPAN = (0.0, None)
 
@@ -27,7 +28,7 @@ class QZA(sequencetools.FluxSequence):
 class Inflow(sequencetools.FluxSequence):
     """Flow into the first channel segment [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (None, None)
 
@@ -35,7 +36,7 @@ class Inflow(sequencetools.FluxSequence):
 class QG(sequencetools.FluxSequence):
     """Durchfluss gesamt (total discharge) [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = True
     SPAN = (0.0, None)
 
@@ -43,7 +44,7 @@ class QG(sequencetools.FluxSequence):
 class InternalFlow(sequencetools.FluxSequence):
     """Flow between the channel segments [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (None, None)
 
@@ -54,7 +55,7 @@ class InternalFlow(sequencetools.FluxSequence):
 class QA(sequencetools.FluxSequence):
     """Abfluss aus Gerinnestrecke (outflow out of the channel) [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = True
     SPAN = (0.0, None)
 
@@ -62,7 +63,7 @@ class QA(sequencetools.FluxSequence):
 class Outflow(sequencetools.FluxSequence):
     """Flow out of the last channel segment [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (None, None)
 
@@ -70,6 +71,6 @@ class Outflow(sequencetools.FluxSequence):
 class DH(sequencetools.FluxSequence):
     """Wasserstandänderung (temporal change of the water stage) [m/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = True
     SPAN = (0.0, None)

@@ -5,6 +5,7 @@
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 # ...from manager
 from hydpy.models.manager import manager_control
@@ -15,7 +16,7 @@ class MixinSource(sequencetools.ModelSequence):
     """Mixin class for 1-dimensional sequences that handle one value per source
     element."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
@@ -35,7 +36,7 @@ class MixinMemory(sequencetools.LogSequence):
     """Mixin class for 1-dimensional sequences that handle one value per memorised
     simulation step."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:

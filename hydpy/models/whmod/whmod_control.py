@@ -7,6 +7,7 @@ import numpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_constants
@@ -17,7 +18,7 @@ from hydpy.models.whmod import whmod_parameters
 class Area(parametertools.Parameter):
     """Total area [m²]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (1e-10, None)
@@ -56,7 +57,7 @@ class NmbZones(parametertools.Parameter):
     availablefieldcapacity(2.0)
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -165,7 +166,7 @@ class CisternSource(whmod_parameters.LandTypeNonWaterParameter):
 class CisternCapacity(parametertools.Parameter):
     """Maximum water amount that can be collected in the cistern [m³]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -219,7 +220,7 @@ class GroundwaterDepth(whmod_parameters.SoilTypeParameter):
 class WithCapillaryRise(parametertools.Parameter):
     """Flag to turn on/off capillary rise [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = bool
     TIME = None
 
@@ -351,7 +352,7 @@ class IrrigationTarget(parametertools.KeywordParameter2D):
 class WithExternalIrrigation(parametertools.Parameter):
     """Flag to turn on/off external irrigation [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = bool
     TIME = None
 
@@ -367,7 +368,7 @@ class BaseflowIndex(whmod_parameters.LandTypeGroundwaterParameter):
 class RechargeDelay(parametertools.Parameter):
     """Delay between soil percolation and groundwater recharge [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)

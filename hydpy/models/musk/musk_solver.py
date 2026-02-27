@@ -7,6 +7,8 @@ import numpy
 
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.models.musk import musk_control
 
 
@@ -18,7 +20,7 @@ class NmbRuns(parametertools.SolverParameter):
     suitable `INIT` value.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
 
@@ -26,7 +28,7 @@ class NmbRuns(parametertools.SolverParameter):
 class ToleranceWaterDepth(parametertools.SolverParameter):
     """Acceptable water depth error for determining the reference water depth [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -36,7 +38,7 @@ class ToleranceWaterDepth(parametertools.SolverParameter):
 class ToleranceDischarge(parametertools.SolverParameter):
     """Acceptable discharge error for determining the reference water depth [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -75,7 +77,7 @@ class ToleranceDischarge(parametertools.SolverParameter):
 class ToleranceNegativeInflow(parametertools.SolverParameter):
     """Threshold for setting negative inflow values to zero or |numpy.nan| [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, -numpy.inf)

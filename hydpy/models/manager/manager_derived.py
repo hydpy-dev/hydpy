@@ -14,6 +14,7 @@ from hydpy.core import devicetools
 from hydpy.core import hydpytools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.auxs import smoothtools
 
 from hydpy.models.manager import manager_parameters
@@ -29,7 +30,7 @@ class Seconds(parametertools.SecondsParameter):
 class DischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter related to |DischargeTolerance| [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -103,7 +104,6 @@ class VolumeSmoothPar(manager_parameters.ParameterSource):
 class MemoryLength(parametertools.NmbParameter):
     """Number of simulation steps to be covered by some log sequences [-]."""
 
-    NDIM = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -132,7 +132,7 @@ class Adjacency(parametertools.Parameter):
     See method |Adjacency.update| for more information.
     """
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = bool
     TIME = None
     SPAN = (False, True)
@@ -317,7 +317,7 @@ class Order(parametertools.Parameter):
     See method |Order.update| for more information.
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = int
     TIME = None
     SPAN = (0, None)

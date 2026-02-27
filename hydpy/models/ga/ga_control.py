@@ -5,12 +5,13 @@
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class NmbSoils(parametertools.Parameter):
     """The number of separately modelled soil compartments in the subbasin [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -48,7 +49,7 @@ class NmbBins(parametertools.Parameter):
     and depth.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (2, None)
@@ -69,7 +70,7 @@ class NmbBins(parametertools.Parameter):
 class DT(parametertools.Parameter):
     """The length of the numerical substeps [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (None, None)
@@ -128,7 +129,7 @@ class DT(parametertools.Parameter):
 class Sealed(parametertools.Parameter):
     """Flag indicating if a (soil) compartment is sealed for infiltration [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = bool
     TIME = None
     SPAN = (False, True)
@@ -137,7 +138,7 @@ class Sealed(parametertools.Parameter):
 class SoilArea(parametertools.Parameter):
     """The area of each soil compartment [km²]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -146,7 +147,7 @@ class SoilArea(parametertools.Parameter):
 class SoilDepth(parametertools.Parameter):
     """Depth of the considered soil domains [mm]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -155,7 +156,7 @@ class SoilDepth(parametertools.Parameter):
 class ResidualMoisture(parametertools.Parameter):
     """Relative residual water content [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -186,7 +187,7 @@ class ResidualMoisture(parametertools.Parameter):
 class SaturationMoisture(parametertools.Parameter):
     """Relative saturation water content [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -217,7 +218,7 @@ class SaturationMoisture(parametertools.Parameter):
 class SaturatedConductivity(parametertools.Parameter):
     """Saturated hydraulic conductivity [mm/T]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -226,7 +227,7 @@ class SaturatedConductivity(parametertools.Parameter):
 class PoreSizeDistribution(parametertools.Parameter):
     """Pore-size distribution parameter [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -235,7 +236,7 @@ class PoreSizeDistribution(parametertools.Parameter):
 class AirEntryPotential(parametertools.Parameter):
     """Air entry potential [mm]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

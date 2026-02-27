@@ -6,6 +6,7 @@ import numpy
 
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from evap
 from hydpy.models.rconc import rconc_control
@@ -14,7 +15,7 @@ from hydpy.models.rconc import rconc_control
 class KSC(parametertools.Parameter):
     """Coefficient of the individual storages of the linear storage cascade [1/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = True
     SPAN = (0.0, None)
@@ -50,7 +51,7 @@ class KSC(parametertools.Parameter):
 class DT(parametertools.Parameter):
     """Relative length of each simulation step [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)

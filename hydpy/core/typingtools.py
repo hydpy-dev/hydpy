@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     from hydpy.core import modeltools
     from hydpy.core import parametertools
 
-T = TypeVar("T")
+T_inv = TypeVar("T_inv")
 T_co = TypeVar("T_co", covariant=True)
 T_contra = TypeVar("T_contra", contravariant=True)
 T1 = TypeVar("T1")
@@ -62,18 +62,18 @@ Name = NewType("Name", str)
 Name.__doc__ = """Type for strings that represent names."""
 
 
-Mayberable1: TypeAlias = Union[T, Iterable[T]]
+Mayberable1: TypeAlias = Union[T_inv, Iterable[T_inv]]
 Mayberable2: TypeAlias = Union[T1, T2, Iterable[T1 | T2]]
 Mayberable3: TypeAlias = Union[T1, T2, T3, Iterable[T1 | T2 | T3]]
-MayNonerable1: TypeAlias = Optional[Union[T, Iterable[T]]]
+MayNonerable1: TypeAlias = Optional[Union[T_inv, Iterable[T_inv]]]
 MayNonerable2: TypeAlias = Optional[Union[T1, T2, Iterable[T1 | T2]]]
 MayNonerable3: TypeAlias = Optional[Union[T1, T2, T3, Iterable[T1 | T2 | T3]]]
 
-Collection1: TypeAlias = Union[T, Collection[T]]
+Collection1: TypeAlias = Union[T_inv, Collection[T_inv]]
 Collection2: TypeAlias = Union[T1, T2, Collection[T1 | T2]]
 Collection3: TypeAlias = Union[T1, T2, T3, Collection[T1 | T2 | T3]]
 
-Sequence1: TypeAlias = Union[T, Sequence[T]]
+Sequence1: TypeAlias = Union[T_inv, Sequence[T_inv]]
 Sequence2: TypeAlias = Union[T1, T2, Sequence[T1 | T2]]
 Sequence3: TypeAlias = Union[T1, T2, T3, Sequence[T1 | T2 | T3]]
 
@@ -86,35 +86,35 @@ NDArrayFloat: TypeAlias = NDArray[numpy.float64]
 NDArrayInt: TypeAlias = NDArray[numpy.int64]
 NDArrayBool: TypeAlias = NDArray[numpy.bool_]
 
-Vector: TypeAlias = NDArray[T]
+Vector: TypeAlias = NDArray[T_inv]
 VectorObject: TypeAlias = NDArray[numpy.generic]
 VectorFloat: TypeAlias = NDArray[numpy.float64]
 VectorInt: TypeAlias = NDArray[numpy.int64]
 VectorBool: TypeAlias = NDArray[numpy.bool_]
-VectorInput: TypeAlias = Union[Sequence[T], Vector[T]]
+VectorInput: TypeAlias = Union[Sequence[T_inv], Vector[T_inv]]
 VectorInputObject: TypeAlias = Union[Sequence[object], VectorObject]
 VectorInputFloat: TypeAlias = Union[Sequence[float], VectorFloat]
 VectorInputInt: TypeAlias = Union[Sequence[int], VectorInt]
 VectorInputBool: TypeAlias = Union[Sequence[bool], VectorBool]
 
-Matrix: TypeAlias = NDArray[T]
+Matrix: TypeAlias = NDArray[T_inv]
 MatrixObject: TypeAlias = NDArray[numpy.generic]
 MatrixFloat: TypeAlias = NDArray[numpy.float64]
 MatrixInt: TypeAlias = NDArray[numpy.int64]
 MatrixBool: TypeAlias = NDArray[numpy.bool_]
 MatrixBytes: TypeAlias = NDArray[numpy.bytes_]
-MatrixInput: TypeAlias = Union[Sequence[Sequence[T]], Matrix[T]]
+MatrixInput: TypeAlias = Union[Sequence[Sequence[T_inv]], Matrix[T_inv]]
 MatrixInputObject: TypeAlias = Union[Sequence[VectorInputObject], MatrixObject]
 MatrixInputFloat: TypeAlias = Union[Sequence[VectorInputFloat], MatrixFloat]
 MatrixInputInt: TypeAlias = Union[Sequence[VectorInputInt], MatrixInt]
 MatrixInputBool: TypeAlias = Union[Sequence[VectorBool], MatrixBool]
 
-Tensor: TypeAlias = NDArray[T]
+Tensor: TypeAlias = NDArray[T_inv]
 TensorObject: TypeAlias = NDArray[numpy.generic]
 TensorFloat: TypeAlias = NDArray[numpy.float64]
 TensorInt: TypeAlias = NDArray[numpy.int64]
 TensorBool: TypeAlias = NDArray[numpy.bool_]
-TensorInput: TypeAlias = Union[Sequence[Sequence[Sequence[T]]], Tensor[T]]
+TensorInput: TypeAlias = Union[Sequence[Sequence[Sequence[T_inv]]], Tensor[T_inv]]
 TensorInputObject: TypeAlias = Union[Sequence[MatrixInputObject], TensorObject]
 TensorInputFloat: TypeAlias = Union[Sequence[MatrixInputFloat], TensorFloat]
 TensorInputInt: TypeAlias = Union[Sequence[MatrixInputInt], TensorInt]
@@ -320,7 +320,7 @@ __all__ = [
     "SharableConfiguration",
     "Sized",
     "StepSize",
-    "T",
+    "T_inv",
     "T_co",
     "T_contra",
     "T1",

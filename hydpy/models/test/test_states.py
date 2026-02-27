@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class S(sequencetools.StateSequence):
     """Storage content [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = True
     SPAN = (0.0, None)
 
@@ -16,6 +17,6 @@ class S(sequencetools.StateSequence):
 class SV(sequencetools.StateSequence):
     """Storage content vector[mm]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = True
     SPAN = (0.0, None)

@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class Pi(parametertools.FixedParameter):
     """π [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -18,7 +19,7 @@ class Pi(parametertools.FixedParameter):
 class SolarConstant(parametertools.FixedParameter):
     """Solar constant [W/m²]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

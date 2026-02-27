@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class WaterLevel(sequencetools.FactorSequence):
@@ -12,19 +13,19 @@ class WaterLevel(sequencetools.FactorSequence):
     of the state sequence |WaterVolume| for the end of the simulation step.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
 
 
 class OuterWaterLevel(sequencetools.FactorSequence):
     """The water level directly below the dam [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
 
 
 class RemoteWaterLevel(sequencetools.FactorSequence):
     """The water level at a remote location [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
 
 
 class WaterLevelDifference(sequencetools.FactorSequence):
@@ -33,7 +34,7 @@ class WaterLevelDifference(sequencetools.FactorSequence):
     The inner water level is above the outer water level for positive values.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
 
 
 class EffectiveWaterLevelDifference(sequencetools.FactorSequence):
@@ -43,4 +44,4 @@ class EffectiveWaterLevelDifference(sequencetools.FactorSequence):
     (where the actual water exchange takes place).
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0

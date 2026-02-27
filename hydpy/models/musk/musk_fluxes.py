@@ -3,13 +3,15 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
+
 from hydpy.models.musk import musk_sequences
 
 
 class Inflow(sequencetools.FluxSequence):
     """Inflow [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (None, None)
 
@@ -23,6 +25,6 @@ class ReferenceDischarge(musk_sequences.FluxSequence1D):
 class Outflow(sequencetools.FluxSequence):
     """Outflow [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (None, None)

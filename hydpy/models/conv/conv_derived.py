@@ -8,6 +8,8 @@ import numpy
 # ...from HydPy
 from hydpy import config
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.models.conv import conv_control
 from hydpy.models.conv import conv_fluxes
 
@@ -15,7 +17,7 @@ from hydpy.models.conv import conv_fluxes
 class NmbInputs(parametertools.Parameter):
     """The number of inlet nodes [-]"""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -64,7 +66,7 @@ class NmbInputs(parametertools.Parameter):
 class NmbOutputs(parametertools.Parameter):
     """The number of outlet nodes [-]"""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -113,7 +115,7 @@ class NmbOutputs(parametertools.Parameter):
 class Distances(parametertools.Parameter):
     """Distances of the inlet nodes to each outlet node [?]."""
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -157,7 +159,7 @@ class ProximityOrder(parametertools.Parameter):
     """Indices of the inlet nodes in the order of their proximity to each
     outlet node [-]."""
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = int
     TIME = None
     SPAN = (None, None)
@@ -216,7 +218,7 @@ class Weights(parametertools.Parameter):
     """Weighting coefficients of the inlet nodes corresponding to their
     proximity to each outlet node and parameter |Power| [-]."""
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = float
     TIME = None
     SPAN = (None, None)

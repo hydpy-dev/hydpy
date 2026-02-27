@@ -7,6 +7,7 @@ import numpy
 # ...from HydPy
 from hydpy import config
 from hydpy.core.typingtools import *
+
 from hydpy.models.musk import musk_sequences
 
 
@@ -19,7 +20,6 @@ class CourantNumber(musk_sequences.StateSequence1D):
 class ReynoldsNumber(musk_sequences.StateSequence1D):
     """Cell Reynolds number [-]."""
 
-    NDIM = 1
     NUMERIC = False
     SPAN = (None, None)
 

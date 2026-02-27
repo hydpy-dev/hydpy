@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class QIn(sequencetools.FluxSequence):
     """Total inflow [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (0.0, None)
 
@@ -16,7 +17,7 @@ class QIn(sequencetools.FluxSequence):
 class QPIn(sequencetools.FluxSequence):
     """Inflow portions corresponding to the different thresholds [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
 
@@ -24,7 +25,7 @@ class QPIn(sequencetools.FluxSequence):
 class QMA(sequencetools.FluxSequence):
     """MA result for the different thresholds [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
 
@@ -32,7 +33,7 @@ class QMA(sequencetools.FluxSequence):
 class QAR(sequencetools.FluxSequence):
     """AR result for the different thresholds [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
 
@@ -40,7 +41,7 @@ class QAR(sequencetools.FluxSequence):
 class QPOut(sequencetools.FluxSequence):
     """Outflow portions corresponding to the different thresholds [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
     SPAN = (0.0, None)
 
@@ -48,6 +49,6 @@ class QPOut(sequencetools.FluxSequence):
 class QOut(sequencetools.FluxSequence):
     """Total outflow [m³/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (0.0, None)

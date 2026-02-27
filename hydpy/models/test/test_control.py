@@ -3,6 +3,7 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class K(parametertools.Parameter):
@@ -13,7 +14,7 @@ class K(parametertools.Parameter):
     the actual parameter time step.
     """
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -22,7 +23,7 @@ class K(parametertools.Parameter):
 class N(parametertools.Parameter):
     """Number of storages [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)

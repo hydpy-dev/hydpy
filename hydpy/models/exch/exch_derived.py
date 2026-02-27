@@ -3,6 +3,8 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.models.exch import exch_control
 
 
@@ -13,7 +15,7 @@ class MOY(parametertools.MOYParameter):
 class NmbBranches(parametertools.Parameter):
     """The number of branches [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (1, None)
@@ -29,7 +31,7 @@ class NmbBranches(parametertools.Parameter):
 class NmbPoints(parametertools.Parameter):
     """The number of supporting points for linear interpolation [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (2, None)

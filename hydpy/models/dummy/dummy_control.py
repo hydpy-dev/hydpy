@@ -4,12 +4,13 @@
 # ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class NmbZones(parametertools.Parameter):
     """The number of separately modelled zones [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)

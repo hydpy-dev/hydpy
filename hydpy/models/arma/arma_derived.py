@@ -6,13 +6,15 @@ import numpy
 
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.models.arma import arma_control
 
 
 class Nmb(parametertools.Parameter):
     """Number of response functions [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -54,7 +56,7 @@ class Nmb(parametertools.Parameter):
 class MaxQ(parametertools.Parameter):
     """Maximum discharge values of the respective ARMA models [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0, None)
@@ -79,7 +81,7 @@ class MaxQ(parametertools.Parameter):
 class DiffQ(parametertools.Parameter):
     """Differences between the values of |MaxQ| [m³/s]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0, None)
@@ -108,7 +110,7 @@ class DiffQ(parametertools.Parameter):
 class AR_Order(parametertools.Parameter):
     """Number of AR coefficients of the different responses [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -133,7 +135,7 @@ class AR_Order(parametertools.Parameter):
 class MA_Order(parametertools.Parameter):
     """Number of MA coefficients of the different responses [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -158,7 +160,7 @@ class MA_Order(parametertools.Parameter):
 class AR_Coefs(parametertools.Parameter):
     """AR coefficients of the different responses [-]."""
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -193,7 +195,7 @@ class AR_Coefs(parametertools.Parameter):
 class MA_Coefs(parametertools.Parameter):
     """MA coefficients of the different responses [-]."""
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = float
     TIME = None
     SPAN = (None, None)

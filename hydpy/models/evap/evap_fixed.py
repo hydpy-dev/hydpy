@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class StefanBoltzmannConstant(parametertools.FixedParameter):
     """Stefan-Boltzmann constant [W/m²/K]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -18,7 +19,7 @@ class StefanBoltzmannConstant(parametertools.FixedParameter):
 class FactorCounterRadiation(parametertools.FixedParameter):
     """A factor for adjusting the atmospheric counter radiation [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -28,7 +29,7 @@ class FactorCounterRadiation(parametertools.FixedParameter):
 class GasConstantDryAir(parametertools.FixedParameter):
     """Gas constant for dry air [J/kg/K]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -38,7 +39,7 @@ class GasConstantDryAir(parametertools.FixedParameter):
 class GasConstantWaterVapour(parametertools.FixedParameter):
     """Gas constant for water vapour [J/kg/K]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -48,7 +49,7 @@ class GasConstantWaterVapour(parametertools.FixedParameter):
 class HeatCapacityAir(parametertools.FixedParameter):
     """Specific heat capacity of air [J/kg/K]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -58,7 +59,7 @@ class HeatCapacityAir(parametertools.FixedParameter):
 class HeatOfCondensation(parametertools.FixedParameter):
     """Latent condensation heat of water at 15°C [WT/kg]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -68,7 +69,7 @@ class HeatOfCondensation(parametertools.FixedParameter):
 class RoughnessLengthGrass(parametertools.FixedParameter):
     """Roughness length for short grass [m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -78,7 +79,7 @@ class RoughnessLengthGrass(parametertools.FixedParameter):
 class PsychrometricConstant(parametertools.FixedParameter):
     """Psychrometric constant [hPa/K]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -88,7 +89,7 @@ class PsychrometricConstant(parametertools.FixedParameter):
 class AerodynamicResistanceFactorMinimum(parametertools.FixedParameter):
     """The lowest allowed factor for calculating aerodynamic resistance [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

@@ -12,6 +12,7 @@ import numpy
 import hydpy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from hland
 from hydpy.models.hland import hland_parameters
@@ -29,7 +30,6 @@ class DOY(parametertools.DOYParameter):
 class RelZoneAreas(hland_parameters.ParameterComplete):
     """Relative area of all zones [-]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -123,7 +123,7 @@ class RelZoneAreas(hland_parameters.ParameterComplete):
 class RelSoilArea(parametertools.Parameter):
     """Relative area of all |FIELD| and |FOREST| zones [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -154,7 +154,7 @@ class RelSoilArea(parametertools.Parameter):
 class RelLandArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, |GLACIER|, and |SEALED| zones [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -182,7 +182,7 @@ class RelLandArea(parametertools.Parameter):
 class RelUpperZoneArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, and |GLACIER| zones [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -212,7 +212,7 @@ class RelUpperZoneArea(parametertools.Parameter):
 class RelLowerZoneArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, |GLACIER|, and |ILAKE| zones [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -240,7 +240,7 @@ class RelLowerZoneArea(parametertools.Parameter):
 class ZoneAreaRatios(parametertools.Parameter):
     """Ratios of all zone combinations [-]."""
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -267,7 +267,7 @@ class ZoneAreaRatios(parametertools.Parameter):
 class IndicesZoneZ(parametertools.Parameter):
     """Indices of the zones sorted by altitude [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -291,7 +291,7 @@ class IndicesZoneZ(parametertools.Parameter):
 class Z(parametertools.Parameter):
     """Average (reference) subbasin elevation [100m]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -325,7 +325,7 @@ class Z(parametertools.Parameter):
 class SRedOrder(parametertools.Parameter):
     """Processing order for the snow redistribution routine [-]."""
 
-    NDIM = 2
+    NDIM: Final[Literal[2]] = 2
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -419,7 +419,7 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
 class SRedEnd(parametertools.Parameter):
     """Flags that indicate the "dead ends" of snow redistribution within a subbasin."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = int
     TIME = None
     SPAN = (False, True)
@@ -455,7 +455,7 @@ class SRedEnd(parametertools.Parameter):
 class SRedNumber(parametertools.Parameter):
     """The total number of snow redistribution paths [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = int
     TIME = None
     SPAN = (0, None)
@@ -479,7 +479,6 @@ class SRedNumber(parametertools.Parameter):
 class TTM(hland_parameters.ParameterLand):
     """Threshold temperature for snow melting and refreezing [°C]."""
 
-    NDIM = 1
     TYPE = float
     TIME = None
     SPAN = (None, None)
@@ -506,7 +505,7 @@ class TTM(hland_parameters.ParameterLand):
 class DT(parametertools.Parameter):
     """Relative time step length for the upper zone layer calculations [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -541,7 +540,7 @@ class DT(parametertools.Parameter):
 class W0(parametertools.Parameter):
     """Weight for calculating surface runoff [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -571,7 +570,7 @@ class W0(parametertools.Parameter):
 class W1(parametertools.Parameter):
     """Weight for calculating interflow [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -601,7 +600,7 @@ class W1(parametertools.Parameter):
 class W2(parametertools.Parameter):
     """Weight for calculating the quick response base flow [-]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -632,7 +631,7 @@ class W3(parametertools.Parameter):
     """Weight for calculating the response of the first-order groundwater reservoir
     [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -661,7 +660,7 @@ class W3(parametertools.Parameter):
 class K4(parametertools.Parameter):
     """Storage time for very delayed baseflow [T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = False
     SPAN = (0.0, None)
@@ -689,7 +688,7 @@ class W4(parametertools.Parameter):
     """Weight for calculating the response of the second-order groundwater reservoir
     [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -718,7 +717,7 @@ class W4(parametertools.Parameter):
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

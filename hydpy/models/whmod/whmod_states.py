@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring
 
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 from hydpy.models.whmod import whmod_sequences
 from hydpy.models.whmod import whmod_derived
@@ -43,7 +44,7 @@ class SoilMoisture(whmod_sequences.State1DSoilSequence):
 class CisternWater(sequencetools.StateSequence):
     """Amount of water that is collected in the cistern [m³]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (0.0, None)
 
@@ -72,6 +73,6 @@ class CisternWater(sequencetools.StateSequence):
 class DeepWater(sequencetools.StateSequence):
     """Amount of water that is (still) percolating through the vadose zone [mm]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     SPAN = (None, None)

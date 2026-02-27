@@ -3,6 +3,8 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.models.sw1d import sw1d_control
 
 
@@ -19,7 +21,7 @@ class WeightUpstream(parametertools.Parameter):
     """A weighting coefficient for interpolating the water level from the centroids of
     two adjacent segments to their shared edge [-]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, 1.0)
@@ -46,7 +48,7 @@ class LengthMin(parametertools.Parameter):
     """The minimum length of the segments upstream and downstream of the relevant
     routing model [km]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)
@@ -72,7 +74,7 @@ class LengthMean(parametertools.Parameter):
     """The mean length of the segments upstream and downstream of the relevant routing
     model [km]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (0.0, None)

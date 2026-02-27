@@ -205,7 +205,7 @@ the same threshold value(s) twice.
 
     _coefs: dict[str, tuple[tuple[float, ...], tuple[float, ...]]]
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE = float
     TIME = None
     SPAN = (None, None)

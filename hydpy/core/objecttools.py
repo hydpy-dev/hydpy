@@ -366,7 +366,7 @@ def decorator(wrapper: Callable[..., Any]) -> Callable[[F], F]:
 
 def excmessage_decorator(
     description_: str,
-) -> Callable[[Callable[P_, T]], Callable[P_, T]]:
+) -> Callable[[Callable[P_, T_inv]], Callable[P_, T_inv]]:
     """Wrap a function with |augment_excmessage|.
 
     Function |excmessage_decorator| is a means to apply function |augment_excmessage|
@@ -620,7 +620,7 @@ class ResetAttrFuncs:
                 delattr(self.cls, name_)
 
 
-def copy_(self: T) -> T:
+def copy_(self: T_inv) -> T_inv:
     """Copy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
@@ -629,7 +629,7 @@ def copy_(self: T) -> T:
         return copy.copy(self)
 
 
-def deepcopy_(self: T, memo: dict[int, object] | None) -> T:
+def deepcopy_(self: T_inv, memo: dict[int, object] | None) -> T_inv:
     """Deepcopy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
@@ -1776,8 +1776,8 @@ classes: str and int.
 
 
 def enumeration(
-    values: Iterable[T],
-    converter: Callable[[T], str] = str,
+    values: Iterable[T_inv],
+    converter: Callable[[T_inv], str] = str,
     default: str = "",
     conjunction: str = "and",
 ) -> str:

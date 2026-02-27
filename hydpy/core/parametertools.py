@@ -60,7 +60,10 @@ def trim_kwarg(
     size of pure precision-related artefacts:
 
     >>> from hydpy.core.parametertools import Parameter, trim_kwarg
-    >>> parameter = Parameter(None)
+    >>> class Par(Parameter):
+    ...     NDIM = 0
+    ...     TYPE = float
+    >>> parameter = Par(None)
 
     >>> trim_kwarg(parameter, "x", 1.0) == 1.0
     True
@@ -69,14 +72,14 @@ def trim_kwarg(
     >>> with warn_later():
     ...     trim_kwarg(parameter, "x", 0.0, lower=1.0) == 1.0
     True
-    UserWarning: For parameter `parameter` of element `?` the keyword argument `x` \
-with value `0.0` needed to be trimmed to `1.0`.
+    UserWarning: For parameter `par` of element `?` the keyword argument `x` with \
+value `0.0` needed to be trimmed to `1.0`.
 
     >>> with warn_later():
     ...     trim_kwarg(parameter, "x", 2.0, upper=1.0) == 1.0
     True
-    UserWarning: For parameter `parameter` of element `?` the keyword argument `x` \
-with value `2.0` needed to be trimmed to `1.0`.
+    UserWarning: For parameter `par` of element `?` the keyword argument `x` with \
+value `2.0` needed to be trimmed to `1.0`.
 
     >>> x = 1.0 - 1e-15
     >>> x == 1.0
@@ -567,7 +570,7 @@ class KeywordArgumentsError(RuntimeError):
     """A specialised |RuntimeError| raised by class |KeywordArguments|."""
 
 
-class KeywordArguments(Generic[T]):
+class KeywordArguments(Generic[T_inv]):
     """A handler for the keyword arguments of the instances of specific |Parameter|
     subclasses.
 
@@ -704,13 +707,13 @@ under the keyword `laubw`.'
 
     valid: bool
     """Flag indicating whether the actual |KeywordArguments| object is valid or not."""
-    _name2value: dict[str, T]
+    _name2value: dict[str, T_inv]
 
-    def __init__(self, __valid: bool = True, **keywordarguments: T) -> None:
+    def __init__(self, __valid: bool = True, **keywordarguments: T_inv) -> None:
         self.valid = __valid
         self._name2value = copy.deepcopy(keywordarguments)
 
-    def add(self, name: str, value: T) -> None:
+    def add(self, name: str, value: T_inv) -> None:
         """Add a keyword argument.
 
         Method |KeywordArguments.add| works both for valid and invalid
@@ -752,7 +755,7 @@ the unequal argument `1` under the keyword `one`.
         else:
             self._name2value[name] = value
 
-    def subset_of(self, other: KeywordArguments[T]) -> bool:
+    def subset_of(self, other: KeywordArguments[T_inv]) -> bool:
         """Check if the actual |KeywordArguments| object is a subset of the given one.
 
         First, we define the following (valid) |KeywordArguments| objects:
@@ -954,7 +957,7 @@ raise_exception=False)
         """
         self._name2value.clear()
 
-    def __getitem__(self, key: str) -> T:
+    def __getitem__(self, key: str) -> T_inv:
         try:
             return self._name2value[key]
         except KeyError:
@@ -963,7 +966,7 @@ raise_exception=False)
                 f"argument under the keyword `{key}`."
             ) from None
 
-    def __setitem__(self, key: str, value: T) -> None:
+    def __setitem__(self, key: str, value: T_inv) -> None:
         self._name2value[key] = value
 
     def __delitem__(self, key: str) -> None:
@@ -975,7 +978,7 @@ raise_exception=False)
                 f"argument under the keyword `{key}`."
             ) from None
 
-    def __contains__(self, item: tuple[str, T]) -> bool:
+    def __contains__(self, item: tuple[str, T_inv]) -> bool:
         if not self.valid:
             raise KeywordArgumentsError(
                 f"Cannot check if an item is defined by an invalid "
@@ -988,7 +991,7 @@ raise_exception=False)
     def __len__(self) -> int:
         return len(self._name2value)
 
-    def __iter__(self) -> Iterator[tuple[str, T]]:
+    def __iter__(self) -> Iterator[tuple[str, T_inv]]:
         if not self.valid:
             raise KeywordArgumentsError(
                 f"Cannot iterate an invalid `{type(self).__name__}` object."
@@ -1636,7 +1639,10 @@ parameter and a simulation time step size first.
         |KeywordArguments| objects:
 
         >>> from hydpy.core.parametertools import Keyword, KeywordArguments, Parameter
-        >>> par = Parameter(None)
+        >>> class Par(Parameter):
+        ...     NDIM = 0
+        ...     TYPE = float
+        >>> par = Par(None)
         >>> kwa = par.keywordarguments
         >>> kwa
         KeywordArguments()
@@ -1873,7 +1879,7 @@ class NmbParameter(Parameter):
     (0,)
     """
 
-    NDIM: TypeNDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE: TypeTYPE = int
     TIME: TypeTIME = None
 
@@ -1952,7 +1958,7 @@ class NameParameter(_MixinModifiableParameter, Parameter):
              SOIL, GLACIER)
     """
 
-    NDIM: TypeNDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE: TypeTYPE = int
     TIME: TypeTIME = None
     SPAN: TypeSPAN = (None, None)
@@ -2258,7 +2264,7 @@ related to the special attribute `soil`, the following error occurred: could not
 convert string to float: 'test'
     """
 
-    NDIM: TypeNDIM = 1
+    NDIM: Final[Literal[1]] = 1
     constants: dict[str, int]
     """Mapping of the constants' names and values."""
     refindices: NameParameter | None = None
@@ -3298,7 +3304,7 @@ bounds for axis 0 with size 1
 for axis 0 with size 1
     """
 
-    NDIM: TypeNDIM = 1
+    NDIM: Final[Literal[1]] = 1
     entrynames: tuple[str, ...]
     entrymin: int = 0
 
@@ -3667,7 +3673,7 @@ attribute nor a row or column related attribute named `wrong`.
                   False, False])
     """
 
-    NDIM: TypeNDIM = 2
+    NDIM: Final[Literal[2]] = 2
     rownames: tuple[str, ...]
     columnnames: tuple[str, ...]
     rowmin: int = 0
@@ -4032,7 +4038,7 @@ given, but is not.
     floodplainwidth(left=3.0, right=4.0)
     """
 
-    NDIM: TypeNDIM = 1
+    NDIM: Final[Literal[1]] = 1
     SHAPE = (2,)
     strict_valuehandling: bool = False
 
@@ -4109,7 +4115,7 @@ sorted in increasing order (0.333333, 0.0, and 0.666667).
     heights(0.333333, 0.666667, 0.666667)
     """
 
-    NDIM: TypeNDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TYPE: TypeTYPE = float
 
     def __call__(self, *args, **kwargs) -> None:
@@ -4356,7 +4362,7 @@ solver parameter `tol` of element `?` has been defined so far.
 class SecondsParameter(Parameter):
     """The length of the actual simulation step size in seconds [s]."""
 
-    NDIM: TypeNDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE: TypeTYPE = float
     TIME: TypeTIME = None
     SPAN: TypeSPAN = (0.0, None)
@@ -4379,7 +4385,7 @@ class SecondsParameter(Parameter):
 class HoursParameter(Parameter):
     """The length of the actual simulation step size in hours [h]."""
 
-    NDIM: TypeNDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE: TypeTYPE = float
     TIME: TypeTIME = None
     SPAN: TypeSPAN = (0.0, None)
@@ -4402,7 +4408,7 @@ class HoursParameter(Parameter):
 class DaysParameter(Parameter):
     """The length of the actual simulation step size in days [d]."""
 
-    NDIM: TypeNDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TYPE: TypeTYPE = float
     TIME: TypeTIME = None
     SPAN: TypeSPAN = (0.0, None)
@@ -4519,7 +4525,7 @@ class IndexParameter(Parameter):
     reference an index array provided by the instance of class|Indexer| available in
     module |pub|."""
 
-    NDIM: TypeNDIM = 1
+    NDIM: Final[Literal[1]] = 1
     TIME: TypeTIME = None
 
     def compress_repr(self) -> str | None:
@@ -4690,7 +4696,6 @@ class UTCLongitudeParameter(IndexParameter):
     """References the current "UTC longitude" defined by option
     |Options.utclongitude|."""
 
-    NDIM: TypeNDIM = 0
     TYPE: TypeTYPE = int
     TIME: TypeTIME = None
     SPAN: TypeSPAN = (-180, 180)

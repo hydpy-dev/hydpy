@@ -14,7 +14,7 @@ from hydpy.core.typingtools import *
 class X(sequencetools.ObserverSequence):
     """Arbitrary kind of input data [?]."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     NUMERIC = False
 
     _observernodes: tuple[str, ...] | None = None

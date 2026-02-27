@@ -8,6 +8,7 @@ import numpy
 # ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from managers
 from hydpy.models.manager import manager_control
@@ -108,7 +109,7 @@ the following error occurred: The following source is unknown: d
 the following error occurred: The following sources are unknown: d and e
     """
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         if isinstance(p, manager_control.Sources):

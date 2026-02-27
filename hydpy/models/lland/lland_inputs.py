@@ -3,12 +3,13 @@
 # import...
 # ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class Nied(sequencetools.InputSequence):
     """Niederschlag (precipitation) [mm/T]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.PRECIPITATION
 
@@ -16,7 +17,7 @@ class Nied(sequencetools.InputSequence):
 class TemL(sequencetools.InputSequence):
     """Lufttemperatur (air temperature) [°C]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.AIR_TEMPERATURE
 
@@ -24,7 +25,7 @@ class TemL(sequencetools.InputSequence):
 class RelativeHumidity(sequencetools.InputSequence):
     """Relative humidity [%]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.RELATIVE_HUMIDITY
 
@@ -32,6 +33,6 @@ class RelativeHumidity(sequencetools.InputSequence):
 class WindSpeed(sequencetools.InputSequence):
     """Windgeschwindigkeit (wind speed) [m/s]."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     NUMERIC = False
     STANDARD_NAME = sequencetools.StandardInputNames.WIND_SPEED

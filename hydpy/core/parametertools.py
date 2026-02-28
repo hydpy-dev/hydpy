@@ -2079,10 +2079,7 @@ valid.
         string = super().compress_repr()
         if string in ("?", "[]"):
             return f"{self.name}({string})"
-        if string is None:
-            values = self.values
-        else:
-            values = [int(string)]
+        values = self.values if string is None else [int(string)]
         get = self.constants.value2name.get
         repr_ = objecttools.repr_
         names = tuple(get(value, repr_(value)) for value in values)

@@ -65,7 +65,7 @@ class LengthMin(parametertools.Parameter):
         lengthmin(2.0)
         """
         con = self.subpars.pars.control
-        self.value = min(con.lengthupstream, con.lengthdownstream)
+        self.value = min(con.lengthupstream.value, con.lengthdownstream.value)
 
 
 class LengthMean(parametertools.Parameter):

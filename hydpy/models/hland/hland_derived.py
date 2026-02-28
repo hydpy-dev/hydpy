@@ -403,14 +403,14 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
             except networkx.NetworkXNoCycle:
                 self.values = tuple(networkx.topological_sort(networkx.line_graph(dg)))
         else:
-            self.values = 0.0
+            self.values = 0
 
 
 class SRedEnd(parametertools.Parameter):
     """Flags that indicate the "dead ends" of snow redistribution within a subbasin."""
 
     NDIM: Final[Literal[1]] = 1
-    TYPE: Final = int
+    TYPE: Final = bool
     SPAN = (False, True)
 
     CONTROLPARAMETERS = (hland_control.NmbZones,)
@@ -419,7 +419,7 @@ class SRedEnd(parametertools.Parameter):
     def update(self) -> None:
         """Update the dead-end flags based on parameter |SRedOrder|.
 
-        >>> from hydpy.models.hland_96 import *
+        >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> nmbzones(6)
         >>> derived.sredorder.shape = 9, 2
@@ -434,7 +434,7 @@ class SRedEnd(parametertools.Parameter):
         ...                    [3, 5]])
         >>> derived.sredend.update()
         >>> derived.sredend
-        sredend(0, 0, 0, 0, 1, 1)
+        sredend(False, False, False, False, True, True)
         """
         nmbzones = self.subpars.pars.control.nmbzones.value
         sredorder = self.subpars.sredorder.values

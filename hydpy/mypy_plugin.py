@@ -11,7 +11,7 @@ from warnings import warn
 
 from mypy.checker import TypeChecker
 from mypy.errorcodes import ARG_TYPE, ATTR_DEFINED
-from mypy.nodes import Decorator, MemberExpr, MypyFile, TypeInfo
+from mypy.nodes import Decorator, MemberExpr, MypyFile, TypeAlias, TypeInfo
 from mypy.options import Options
 from mypy.plugin import AttributeContext, FunctionContext, Plugin
 from mypy.typeops import bind_self
@@ -20,6 +20,7 @@ from mypy.types import (
     CallableType,
     get_proper_type,
     LiteralType,
+    Overloaded,
     Instance,
     Type,
     TypeOfAny,
@@ -53,6 +54,16 @@ SUBVARS = set(
         "hydpy.core.sequencetools.Sequences.aides",
         "hydpy.core.sequencetools.Sequences.outlets",
         "hydpy.core.sequencetools.Sequences.senders",
+    ]
+)
+VALUES = set(
+    [
+        "hydpy.core.variabletools.Variable.value",
+        "hydpy.core.variabletools.Variable.values",
+        "hydpy.core.parametertools.Parameter.value",
+        "hydpy.core.parametertools.Parameter.values",
+        "hydpy.core.sequencetools.Sequence_.value",
+        "hydpy.core.sequencetools.Sequence_.values",
     ]
 )
 
@@ -219,6 +230,67 @@ def variable_hook(context: AttributeContext) -> Type:
     return context.default_attr_type
 
 
+def _get_ndim_type_module(
+    context: AttributeContext,
+) -> tuple[LiteralType, CallableType, MypyFile] | None:
+    if (
+        isinstance(api := context.api, TypeChecker)
+        and isinstance(var_inst := context.type, Instance)
+        and (ndim_sym := var_inst.type.get("NDIM"))
+        and isinstance(ndim_type := get_proper_type(ndim_sym.type), LiteralType)
+        and (type_sym := var_inst.type.get("TYPE"))
+        and isinstance(
+            type_type := get_proper_type(type_sym.type), (CallableType, Overloaded)
+        )
+        and (typingtools_module := api.modules.get("hydpy.core.typingtools"))
+    ):
+        if isinstance(type_type, Overloaded):
+            type_type = type_type.items[0]
+        return ndim_type, type_type, typingtools_module
+    return None
+
+
+def values_hook(context: AttributeContext) -> Type:
+    """
+    `ParameterX.value(s) -> Any`
+    -->
+    `ParameterX.value(s) -> float`
+    `ParameterX.value(s) -> ndarray[int]`
+    ...
+
+    `ParameterX.value(s) <- Any
+    -->
+    `ParameterX.value(s) <- float
+    `ParameterX.value(s) <- int | [int] | ndarray[int]
+    ...
+    """
+    data = _get_ndim_type_module(context)
+    if data is None:
+        return context.default_attr_type
+    ndim_type, type_type, typingtools_module = data
+    match ndim_type.value:
+        case 0:
+            return type_type.ret_type
+        case 1:
+            prefix = "Vector"
+        case 2:
+            prefix = "Matrix"
+        case 3:
+            prefix = "Tensor"
+        case _:
+            return context.default_attr_type
+    middle = "InputComplete" if context.is_lvalue else ""
+    if not isinstance(ret_inst := get_proper_type(type_type.ret_type), Instance):
+        return context.default_attr_type
+    suffix = ret_inst.type.fullname.split(".")[-1].capitalize()
+    attr_name = f"{prefix}{middle}{suffix}"
+    if (attr_sym := typingtools_module.names.get(attr_name)) and isinstance(
+        attr_node := attr_sym.node, TypeAlias
+    ):
+        return attr_node.target
+    return context.default_attr_type
+
+
 class MypyPlugin(Plugin):
     """Mypy plugin for HydPy."""
 
@@ -250,7 +322,9 @@ class MypyPlugin(Plugin):
     def get_additional_deps(self, file: MypyFile) -> list[tuple[int, str, int]]:
         """Add all model main modules and variable modules the dependencies."""
         if any(file.fullname.startswith(s) for s in self.relevant_sources):
-            return [(10, m, -1) for m in MODEL_MAP]
+            return [(10, "hydpy.core.typingtools", -1)] + [
+                (10, m, -1) for m in MODEL_MAP
+            ]
         return []
 
     def get_function_hook(
@@ -265,6 +339,8 @@ class MypyPlugin(Plugin):
         self, fullname: str
     ) -> Callable[[AttributeContext], Type] | None:
         """Hooks for refining attribute types."""
+        if fullname in VALUES:
+            return values_hook
         if fullname in VARS1:
             return variables_hook1
         if fullname in VARS2:

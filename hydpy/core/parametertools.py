@@ -4493,7 +4493,7 @@ properly alligned on the indexed timegrid `Timegrid("2000-01-01 00:00:00", \
 
 class IndexParameter(Parameter):
     """Base class for parameters that do not allocate RAM for handling their data but
-    reference an index array provided by the instance of class|Indexer| available in
+    reference an index array provided by the instance of class |Indexer| available in
     module |pub|."""
 
     NDIM: Final[Literal[1]] = 1
@@ -4662,12 +4662,12 @@ class SCTParameter(IndexParameter):
         self._shapeready, self._valueready = True, True
 
 
-class UTCLongitudeParameter(IndexParameter):
+class UTCLongitudeParameter(Parameter):
     """References the current "UTC longitude" defined by option
     |Options.utclongitude|."""
 
+    NDIM: Final[Literal[0]] = 0
     TYPE: Final = int
-
     SPAN: TypeSPAN = (-180, 180)
 
     def update(self):

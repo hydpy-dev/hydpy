@@ -1155,7 +1155,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self.values = args
 
     @property
-    def value(self):
+    def value(self) -> Any:
         """The actual parameter or sequence value(s).
 
         First, we prepare a simple (not fully functional) |Variable| subclass:
@@ -1278,7 +1278,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         return value
 
     @value.setter
-    def value(self, value) -> None:
+    def value(self, value: Any) -> None:
         try:
             value = self._prepare_setvalue(value)
             setattr(self.fastaccess, self.name, value)
@@ -1328,12 +1328,12 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         return value
 
     @property
-    def values(self):
+    def values(self) -> Any:
         """Alias for |Variable.value|."""
         return self.value
 
     @values.setter
-    def values(self, values):
+    def values(self, values: Any) -> None:
         self.value = values
 
     @property

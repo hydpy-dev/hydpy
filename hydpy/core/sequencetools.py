@@ -4114,7 +4114,8 @@ class NodeSequence(IOSequence):
         setattr(self.fastaccess, self.name, pointerutils.Double(0.0))
         setattr(self.fastaccess, "_reset_obsdata", False)
 
-    def _get_value(self):
+    @property
+    def value(self) -> Any:
         """The actual sequence value.
 
         For framework users, the property |NodeSequence.value| of class |NodeSequence|
@@ -4146,7 +4147,7 @@ class NodeSequence(IOSequence):
 
         Node sequences return errors like the following if they receive misspecified
         values or are ill-configured:
-
+-
         >>> sim.value = 1.0, 2.0  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...
@@ -4173,7 +4174,8 @@ the following error occurred: ...attribute name must be string...
                 f"{objecttools.nodephrase(self)}"
             )
 
-    def _set_value(self, value):
+    @value.setter
+    def value(self, value: Any) -> None:
         try:
             getattr(self.fastaccess, self.name)[0] = float(value)
         except BaseException:
@@ -4181,8 +4183,6 @@ the following error occurred: ...attribute name must be string...
                 f"While trying to assign the value `{value}` to sequence "
                 f"{objecttools.nodephrase(self)}"
             )
-
-    value = property(fget=_get_value, fset=_set_value)
 
     @property
     def seriescomplete(self) -> bool:

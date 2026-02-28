@@ -4903,7 +4903,7 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
         return super().value
 
     @value.setter
-    def value(self, value) -> None:
+    def value(self, value: Any) -> None:
         self._init_callback()
         self._has_callback = False
         Parameter.value.fset(self, value)  # type: ignore[attr-defined]

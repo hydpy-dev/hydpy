@@ -134,10 +134,12 @@ class AbsFHRU(lland_parameters.ParameterComplete):
         self.value = control.ft * control.fhru
 
 
-class MGH(lland_parameters.ParameterComplete):
+class MGH(parametertools.Parameter):
     """Mittlere Gebietshöhe (average elevation) [m]."""
 
+    NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.GH, lland_control.FHRU)
 

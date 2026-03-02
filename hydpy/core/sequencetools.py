@@ -2107,7 +2107,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
         seriesshape.extend(self.shape)
         return tuple(seriesshape)
 
-    def _get_series(self) -> InfoArray:
+    @property
+    def series(self) -> Any:
         """The complete time series data of the current |IOSequence| object within an
         |InfoArray| covering the whole initialisation period (defined by the
         |Timegrids.init| |Timegrid| of the global |Timegrids| object available in
@@ -2120,7 +2121,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
             f"time series data available."
         )
 
-    def _set_series(self, values) -> None:
+    @series.setter
+    def series(self, values: Any) -> None:
         if self.ramflag:
             self.__set_array(
                 numpy.full(self.seriesshape, values, dtype=config.NP_FLOAT)
@@ -2132,14 +2134,14 @@ during a simulation run is not supported but tried for sequence `t` of element \
                 f"any time series data available."
             )
 
-    def _del_series(self) -> None:
+    @series.deleter
+    def series(self) -> None:
         if self.ramflag:
             self.__hydpy__set_fastaccessattribute__("array", None)
             self.__hydpy__set_fastaccessattribute__("ramflag", False)
 
-    series = property(_get_series, _set_series, _del_series)
-
-    def _get_simseries(self) -> InfoArray:
+    @property
+    def simseries(self) -> Any:
         """Read and write access to the subset of the data of property
         |IOSequence.series| covering the actual simulation period (defined by the
         |Timegrids.sim| |Timegrid| of the global |Timegrids| object available in module
@@ -2167,13 +2169,13 @@ during a simulation run is not supported but tried for sequence `t` of element \
         idx0, idx1 = hydpy.pub.timegrids.simindices
         return self.series[idx0:idx1]
 
-    def _set_simseries(self, values) -> None:
+    @simseries.setter
+    def simseries(self, values: Any) -> None:
         idx0, idx1 = hydpy.pub.timegrids.simindices
         self.series[idx0:idx1] = values
 
-    simseries = property(_get_simseries, _set_simseries)
-
-    def _get_evalseries(self) -> InfoArray:
+    @property
+    def evalseries(self) -> Any:
         """Read and write access to the subset of the data of property |
         IOSequence.series| covering the actual evaluation period (defined by the
         |Timegrids.eval_| |Timegrid| of the global |Timegrids| object available in
@@ -2201,11 +2203,10 @@ during a simulation run is not supported but tried for sequence `t` of element \
         idx0, idx1 = hydpy.pub.timegrids.evalindices
         return self.series[idx0:idx1]
 
-    def _set_evalseries(self, values) -> None:
+    @evalseries.setter
+    def evalseries(self, values: Any) -> None:
         idx0, idx1 = hydpy.pub.timegrids.evalindices
         self.series[idx0:idx1] = values
-
-    evalseries = property(_get_evalseries, _set_evalseries)
 
     def load_series(self) -> None:
         """Read time series data from a file.

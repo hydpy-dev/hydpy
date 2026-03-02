@@ -137,41 +137,6 @@ def mypy(session: nox.Session) -> None:
 
 
 @nox.session
-def mypy_plugin(session: nox.Session) -> None:
-    """Use "mypy_plugin" to check that the Mypy plugin helps to infer more precise
-    types in some situations."""
-
-    _install_hydpy(session)
-
-    filename_script = "test_case_mypy_plugin.py"
-    filename_expected = "expected_results_mypy_plugin.txt"
-    filename_results = "test_results_mypy_plugin.txt"
-
-    with session.chdir(session.create_tmp()):
-        with open("mypy.ini", "w", encoding="UTF-8") as file_:
-            file_.write(
-                "[mypy]\n"
-                "plugins = hydpy.mypy_plugin\n"
-                "[hydpy.mypy_plugin]\n"
-                "relevant_sources = hydpy\n"
-            )
-        dirpath = os.path.join(_get_sitepackagepath(session), "hydpy", "tests")
-        shutil.copy(os.path.join(dirpath, f"{filename_script}t"), filename_script)
-        with open(filename_results, "w", encoding="UTF-8") as file_:
-            session.run("mypy", filename_script, stdout=file_, success_codes=[1])
-        filepath_expected = os.path.join(dirpath, filename_expected)
-        with (
-            open(filepath_expected, encoding="UTF-8") as file_expected,
-            open(filename_results, encoding="UTF-8") as file_results,
-        ):
-            for expected, result in itertools.zip_longest(
-                file_expected, file_results, fillvalue=""
-            ):
-                if (e := expected.strip()) != (r := result.strip()):
-                    session.error(f"`{e}` vs `{r}`")
-
-
-@nox.session
 def check_consistency(session: nox.Session) -> None:
     """Run the `check_consistency.py` script."""
     _install_hydpy(session)

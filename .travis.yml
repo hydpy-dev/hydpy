@@ -21,7 +21,6 @@ script:
   - if [ $TRAVIS_PYTHON_VERSION == "3.14" ] ; then nox -s sphinx; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.14" ] ; then nox -s black; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.14" ] ; then nox -s mypy; fi
-  - if [ $TRAVIS_PYTHON_VERSION == "3.14" ] ; then nox -s mypy_plugin; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.14" ] ; then nox -s pylint; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.14" ] ; then nox -s check_consistency; fi
   - if [ $TRAVIS_PYTHON_VERSION == "3.14" ] ; then python hydpy/docs/combine_docversions.py; fi

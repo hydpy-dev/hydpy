@@ -31,8 +31,9 @@ VARS1 = set(
 VARS2 = set(
     [
         "hydpy.core.variabletools.SubVariables.vars",
-        "hydpy.core.parametertools.SubParameters.pars",
-        "hydpy.core.sequencetools.SubSequences.seqs",
+        "hydpy.core.parametertools.SubVariables.pars",
+        "hydpy.core.sequencetools.IOSequences.seqs",
+        "hydpy.core.sequencetools.ModelSequences.seqs",
     ]
 )
 SUBVARS = set(
@@ -76,7 +77,10 @@ def prepare_model_hook(context: FunctionContext) -> Type:
         and isinstance(arg_type := get_proper_type(arg_types[0][0]), Instance)
         and isinstance(literal := arg_type.last_known_value, LiteralType)
     ):
-        if (module_name := f"hydpy.models.{literal.value}") in MODEL_MAP:
+        arg = literal.value
+        if ((module_name := f"hydpy.models.{arg}") in MODEL_MAP) or (
+            (module_name := f"hydpy.models.{arg}.{arg}_model") in MODEL_MAP
+        ):
             if (module_type := api.modules.get(module_name)) is None:
                 return context.default_return_type
             if (model_type := module_type.names.get("Model")) is None:
@@ -110,13 +114,19 @@ def method_hook(context: AttributeContext) -> Type:
             module_name, method_name = model_map[attr_name]
             if (module_type := api.modules.get(module_name)) is None:
                 return context.default_attr_type
-            method_info = module_type.names[method_name].node
-            assert isinstance(method_info, TypeInfo)
-            assert isinstance(dec_node := method_info.names["__call__"].node, Decorator)
-            assert isinstance(
-                call_type := get_proper_type(dec_node.var.type), CallableType
-            )
-            return bind_self(call_type, model_inst)
+            if (
+                isinstance(method_info := module_type.names[method_name].node, TypeInfo)
+                and ((call_sym := method_info.get("__call__")) is not None)
+                and isinstance(call_node := call_sym.node, Decorator)
+                and isinstance(
+                    call_type := get_proper_type(call_node.var.type), CallableType
+                )
+            ):
+                if method_info.has_base("hydpy.core.modeltools.AutoMethod"):
+                    return bind_self(
+                        bind_self(call_type, is_classmethod=True), model_inst
+                    )
+                return bind_self(call_type, model_inst)
         context.api.msg.report(
             msg=f"Model `{model_inst.type.fullname}` has no method `{attr_name}`.",
             context=member_expr,
@@ -181,10 +191,12 @@ def variable_hook(context: AttributeContext) -> Type:
         and (len(args := subvars_inst.args) > 0)
         and isinstance(model_inst := get_proper_type(args[0]), Instance)
         and (model_map := VAR_MAP.get(model_inst.type.fullname))
-        and (subvars_map := model_map.get(subvars_inst.type.fullname))
         and isinstance(member_expr := context.context, MemberExpr)
     ):
-        if (attr_name := member_expr.name) in subvars_map:
+        attr_name = member_expr.name
+        if (subvars_map := model_map.get(subvars_inst.type.fullname)) and (
+            attr_name in subvars_map
+        ):
             module_name, var_name = subvars_map[attr_name]
             if (module_type := api.modules.get(module_name)) is None:
                 return context.default_attr_type
@@ -203,6 +215,7 @@ def variable_hook(context: AttributeContext) -> Type:
             severity="error",
             code=ATTR_DEFINED,
         )
+        return AnyType(type_of_any=TypeOfAny.from_error)
     return context.default_attr_type
 
 

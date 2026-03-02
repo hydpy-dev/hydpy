@@ -965,7 +965,7 @@ class ModelSequences(
 ):
     """Base class for handling model-related subgroups of sequences."""
 
-    seqs: Sequences
+    seqs: Sequences[TM_co]
     _cymodel: CyModelProtocol | None
 
     def __init__(

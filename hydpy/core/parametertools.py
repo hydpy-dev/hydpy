@@ -496,7 +496,7 @@ class SubParameters(
     'ControlParameters'
     '''
 
-    pars: Parameters
+    pars: Parameters[TM_co]
     _cymodel: CyModelProtocol | None
     _CLS_FASTACCESS_PYTHON = FastAccessParameter
 

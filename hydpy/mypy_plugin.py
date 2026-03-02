@@ -66,6 +66,13 @@ VALUES = set(
         "hydpy.core.sequencetools.Sequence_.values",
     ]
 )
+SERIES = set(
+    [
+        "hydpy.core.sequencetools.IOSequence.series",
+        "hydpy.core.sequencetools.IOSequence.simseries",
+        "hydpy.core.sequencetools.IOSequence.evalseries",
+    ]
+)
 
 DIRPATH = split(__file__)[0]
 
@@ -232,7 +239,7 @@ def variable_hook(context: AttributeContext) -> Type:
 
 def _get_ndim_type_module(
     context: AttributeContext,
-) -> tuple[LiteralType, CallableType, MypyFile] | None:
+) -> tuple[int, Type, MypyFile] | None:
     if (
         isinstance(api := context.api, TypeChecker)
         and isinstance(var_inst := context.type, Instance)
@@ -243,11 +250,40 @@ def _get_ndim_type_module(
             type_type := get_proper_type(type_sym.type), (CallableType, Overloaded)
         )
         and (typingtools_module := api.modules.get("hydpy.core.typingtools"))
+        and isinstance(ndim_value := ndim_type.value, int)
     ):
         if isinstance(type_type, Overloaded):
             type_type = type_type.items[0]
-        return ndim_type, type_type, typingtools_module
+        return ndim_value, type_type.ret_type, typingtools_module
     return None
+
+
+def _get_values_or_series(context: AttributeContext, series: bool) -> Type:
+    data = _get_ndim_type_module(context)
+    if data is None:
+        return context.default_attr_type
+    ndim, ret_type, typingtools_module = data
+    match ndim + series:
+        case 0:
+            return ret_type
+        case 1:
+            prefix = "Vector"
+        case 2:
+            prefix = "Matrix"
+        case 3:
+            prefix = "Tensor"
+        case _:
+            return context.default_attr_type
+    middle = "InputComplete" if context.is_lvalue else ""
+    if not isinstance(ret_inst := get_proper_type(ret_type), Instance):
+        return context.default_attr_type
+    suffix = ret_inst.type.fullname.split(".")[-1].capitalize()
+    attr_name = f"{prefix}{middle}{suffix}"
+    if (attr_sym := typingtools_module.names.get(attr_name)) and isinstance(
+        attr_node := attr_sym.node, TypeAlias
+    ):
+        return attr_node.target
+    return context.default_attr_type
 
 
 def values_hook(context: AttributeContext) -> Type:
@@ -264,31 +300,23 @@ def values_hook(context: AttributeContext) -> Type:
     `ParameterX.value(s) <- int | [int] | ndarray[int]
     ...
     """
-    data = _get_ndim_type_module(context)
-    if data is None:
-        return context.default_attr_type
-    ndim_type, type_type, typingtools_module = data
-    match ndim_type.value:
-        case 0:
-            return type_type.ret_type
-        case 1:
-            prefix = "Vector"
-        case 2:
-            prefix = "Matrix"
-        case 3:
-            prefix = "Tensor"
-        case _:
-            return context.default_attr_type
-    middle = "InputComplete" if context.is_lvalue else ""
-    if not isinstance(ret_inst := get_proper_type(type_type.ret_type), Instance):
-        return context.default_attr_type
-    suffix = ret_inst.type.fullname.split(".")[-1].capitalize()
-    attr_name = f"{prefix}{middle}{suffix}"
-    if (attr_sym := typingtools_module.names.get(attr_name)) and isinstance(
-        attr_node := attr_sym.node, TypeAlias
-    ):
-        return attr_node.target
-    return context.default_attr_type
+    return _get_values_or_series(context=context, series=False)
+
+
+def series_hook(context: AttributeContext) -> Type:
+    """
+    `SequenceX.series -> Any`
+    -->
+    `SequenceX.series -> ndarray[int]`
+    ...
+
+    `SequenceX.series <- Any
+    -->
+    `SequenceX.series <- float
+    `SequenceX.series <- int | [int] | ndarray[int]
+    ...
+    """
+    return _get_values_or_series(context=context, series=True)
 
 
 class MypyPlugin(Plugin):
@@ -341,6 +369,8 @@ class MypyPlugin(Plugin):
         """Hooks for refining attribute types."""
         if fullname in VALUES:
             return values_hook
+        if fullname in SERIES:
+            return series_hook
         if fullname in VARS1:
             return variables_hook1
         if fullname in VARS2:

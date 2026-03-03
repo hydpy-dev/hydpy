@@ -100,6 +100,7 @@ from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
+    from matplotlib import figure
     from matplotlib import pyplot
     import pandas
     from hydpy.core import auxfiletools
@@ -2470,7 +2471,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         linewidths: int | tuple[int, int] | None = None,
         focus: bool = False,
         stepsize: StepSize | None = None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the |IOSequence.series| data of both the |Sim| and the |Obs| sequence
         object.
 
@@ -2586,7 +2587,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         linewidth: int | None = None,
         focus: bool = False,
         stepsize: StepSize | None = None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
         See method |Node.plot_allseries| for further information.
@@ -2610,7 +2611,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         linewidth: int | None = None,
         focus: bool = False,
         stepsize: StepSize | None = None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the |IOSequence.series| of the |Obs| sequence object.
 
         See method |Node.plot_allseries| for further information.
@@ -2635,7 +2636,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         linewidths: Iterable[int | None],
         focus: bool = False,
         stepsize: StepSize | None = None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         try:
             idx0, idx1 = hydpy.pub.timegrids.evalindices
             for sequence, label, color, linestyle, linewidth in zip(
@@ -2673,7 +2674,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         linestyles: LineStyle | tuple[LineStyle, LineStyle] | None = None,
         linewidths: int | tuple[int, int] | None = None,
         logscale: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the |IOSequence.evalseries| of both the |Sim| and the |Obs| sequence
         in the form of a (flow) duration curve.
 
@@ -2767,7 +2768,7 @@ the following error occurred: '.' is not a valid value for ls; supported values 
         linestyle: LineStyle | None = None,
         linewidth: int | None = None,
         logscale: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
         See method |Node.plot_allseries| for further information.
@@ -2789,7 +2790,7 @@ the following error occurred: '.' is not a valid value for ls; supported values 
         linestyle: LineStyle | None = None,
         linewidth: int | None = None,
         logscale: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the duration curve of the |IOSequence.series| of the |Obs| sequence
         object.
 
@@ -2813,7 +2814,7 @@ the following error occurred: '.' is not a valid value for ls; supported values 
         linestyles: Iterable[str | None],
         linewidths: Iterable[int | None],
         logscale: bool,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         try:
             fig = pyplot.gcf()
             ax = fig.gca()
@@ -3667,7 +3668,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         linestyles: LineStyle | tuple[LineStyle, ...] | None,
         linewidths: int | tuple[int, ...] | None,
         focus: bool,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         def _prepare_tuple(
             input_: T_inv | tuple[T_inv, ...] | None, nmb_entries: int
         ) -> tuple[T_inv | None, ...]:
@@ -3786,7 +3787,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
         linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot (the selected) |InputSequence| |IOSequence.series| values.
 
         We demonstrate the functionalities of method |Element.plot_inputseries| based
@@ -3890,7 +3891,7 @@ sequence named `xy`.
         linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
         linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the `factor` series of the handled model.
 
         See the documentation on method |Element.plot_inputseries| for additional
@@ -3916,7 +3917,7 @@ sequence named `xy`.
         linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
         linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the `flux` series of the handled model.
 
         See the documentation on method |Element.plot_inputseries| for additional
@@ -3942,7 +3943,7 @@ sequence named `xy`.
         linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
         linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the `state` series of the handled model.
 
         See the documentation on method |Element.plot_inputseries| for additional

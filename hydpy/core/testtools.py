@@ -52,6 +52,7 @@ from hydpy.tests import iotesting
 
 if TYPE_CHECKING:
     import matplotlib
+    from matplotlib import figure
     from matplotlib import pyplot
     import pandas
     import plotly
@@ -2101,7 +2102,7 @@ result sequences of any of its predecessors: NKor
     return "\n".join(results)
 
 
-def save_autofig(filename: str, figure: pyplot.Figure | None = None) -> None:
+def save_autofig(filename: str, figure: figure.Figure | None = None) -> None:
     """Save a figure automatically generated during testing in the special `autofig`
     sub-package so that Sphinx can include it into the documentation later.
 

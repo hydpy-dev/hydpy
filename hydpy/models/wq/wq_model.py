@@ -2,6 +2,7 @@
 
 # imports...
 # ...from site-packages
+from matplotlib import figure
 from matplotlib import pyplot
 
 # ...from HydPy
@@ -2958,7 +2959,7 @@ class TrapezeModel(modeltools.AdHocModel):
         ymax: float | None = None,
         color: str | None = None,
         label: bool | str = False
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the channel profile.
 
         See the main documentation of the application model |wq_trapeze| for more
@@ -3039,7 +3040,7 @@ class WidthsModel(modeltools.AdHocModel):
         ymax: float | None = None,
         color: str | None = None,
         label: bool | str = False
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the channel profile.
 
         The following tests closely resemble those of |wq_trapeze| for comparison and

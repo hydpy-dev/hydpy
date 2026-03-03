@@ -32,6 +32,7 @@ from hydpy.core.typingtools import *
 from hydpy.cythons import interputils
 
 if TYPE_CHECKING:
+    from matplotlib import figure
     from matplotlib import pyplot
 else:
     pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
@@ -191,7 +192,7 @@ dy1/dx3   dy2/dx3
         idx_output: int = 0,
         points: int = 100,
         **kwargs: Any,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the relationship between particular input (`idx_input`) and output
         (`idx_output`) values defined by the actual |InterpAlgorithm| object.
 
@@ -411,7 +412,7 @@ interpolator has been defined so far.
         idx_output: int = 0,
         points: int = 100,
         **kwargs: float | str | None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the relationship between particular input (`idx_input`) and output
         (`idx_output`) values defined by the actual |InterpAlgorithm| object."""
         figure = self.algorithm.plot(
@@ -989,7 +990,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         points: int = 100,
         legend: bool = True,
         **kwargs: float | str | None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Call method |InterpAlgorithm.plot| of all currently handled
         |InterpAlgorithm| objects."""
         for toy, seasonalinterpolator in self:

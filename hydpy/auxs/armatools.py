@@ -18,6 +18,7 @@ from hydpy.auxs import statstools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
+    from matplotlib import figure
     from matplotlib import pyplot
     from scipy import integrate
 else:
@@ -341,7 +342,7 @@ check the calculated coefficients: 1.0.
         moment2 = statstools.calc_mean_time_deviation(self.delays, self.coefs, moment1)
         return moment1, moment2
 
-    def plot(self, threshold=None, **kwargs) -> pyplot.Figure:
+    def plot(self, threshold=None, **kwargs) -> figure.Figure:
         """Create a barplot of the MA coefficients."""
 
         try:
@@ -908,7 +909,7 @@ far.
         moment2 = statstools.calc_mean_time_deviation(timepoints, response, moment1)
         return moment1, moment2
 
-    def plot(self, threshold=None, **kwargs) -> pyplot.Figure:
+    def plot(self, threshold=None, **kwargs) -> figure.Figure:
         """Barplot of the ARMA response."""
         try:
             # Works under matplotlib 3.

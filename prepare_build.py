@@ -204,18 +204,21 @@ def _write_mypy_plugin_data() -> None:
     from hydpy import pub
     from hydpy.core import importtools
 
-    model2attr2module_and_type: dict[str, dict[str, tuple[str, str]]] = {}
-    model2subgroup2attr2module_and_type: dict[
+    model2attr2module_var: dict[str, dict[str, tuple[str, str]]] = {}
+    model2subgroup2attr2module_var: dict[
         str, dict[str, dict[str, tuple[str, str]]]
     ] = {}
+    var2modelmodule_subgroupmodule_subgrouptype: dict[str, tuple[str, str, str]] = {}
 
     with pub.options.usecython(False):
         dirpath = models.__path__[0]
         for modelname in os.listdir(dirpath):
             modelpath = os.path.join(dirpath, modelname)
             if os.path.isdir(modelpath) and (modelname != "__pycache__"):
+                basemodel = True
                 modelmodule = f"hydpy.models.{modelname}.{modelname}_model"
             elif modelpath.endswith(".py") and (modelname != "__init__.py"):
+                basemodel = False
                 modelname = modelname.removesuffix(".py")
                 modelmodule = f"hydpy.models.{modelname}"
             else:
@@ -228,7 +231,7 @@ def _write_mypy_plugin_data() -> None:
                 short_name = complete_name.rpartition("_")[0]
                 if hasattr(model, short_name):
                     subdict[short_name] = (method.__module__, method.__name__)
-            model2attr2module_and_type[modelmodule] = subdict
+            model2attr2module_var[modelmodule] = subdict
             subdict_ = {}
             for prefix, vars_ in (
                 ("hydpy.core.parametertools", model.parameters),
@@ -241,12 +244,20 @@ def _write_mypy_plugin_data() -> None:
                             type(var).__module__,
                             type(var).__name__,
                         )
+                        if basemodel:
+                            var2modelmodule_subgroupmodule_subgrouptype[
+                                f"{type(var).__module__}.{type(var).__name__}"
+                            ] = (modelmodule, prefix, type(subvars).__name__)
                     subdict_[f"{prefix}.{type(subvars).__name__}"] = subsubdict
-            model2subgroup2attr2module_and_type[f"{modelmodule}.Model"] = subdict_
+            model2subgroup2attr2module_var[f"{modelmodule}.Model"] = subdict_
 
         filepath = os.path.join(conf.__path__[0], "mypy_plugin_data.pickle")
         with open(filepath, "wb") as file_:
-            data = (model2attr2module_and_type, model2subgroup2attr2module_and_type)
+            data = (
+                model2attr2module_var,
+                model2subgroup2attr2module_var,
+                var2modelmodule_subgroupmodule_subgrouptype,
+            )
             pickle.dump(data, file_, protocol=pickle.HIGHEST_PROTOCOL)
 
 

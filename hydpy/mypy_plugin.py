@@ -37,7 +37,7 @@ VARS2 = set(
         "hydpy.core.sequencetools.ModelSequences.seqs",
     ]
 )
-SUBVARS = set(
+SUBVARS1 = set(
     [
         "hydpy.core.parametertools.Parameters.control",
         "hydpy.core.parametertools.Parameters.derived",
@@ -54,6 +54,35 @@ SUBVARS = set(
         "hydpy.core.sequencetools.Sequences.aides",
         "hydpy.core.sequencetools.Sequences.outlets",
         "hydpy.core.sequencetools.Sequences.senders",
+    ]
+)
+SUBVARS2 = set(
+    [
+        "hydpy.core.variabletools.Variable.subvars",
+        "hydpy.core.parametertools.Parameter.subvars",
+        "hydpy.core.parametertools.Parameter.subpars",
+        "hydpy.core.sequencetools.InputSequence.subvars",
+        "hydpy.core.sequencetools.InputSequence.subseqs",
+        "hydpy.core.sequencetools.FactorSequence.subvars",
+        "hydpy.core.sequencetools.FactorSequence.subseqs",
+        "hydpy.core.sequencetools.FluxSequence.subvars",
+        "hydpy.core.sequencetools.FluxSequence.subseqs",
+        "hydpy.core.sequencetools.StateSequence.subvars",
+        "hydpy.core.sequencetools.StateSequence.subseqs",
+        "hydpy.core.sequencetools.LogSequence.subvars",
+        "hydpy.core.sequencetools.LogSequence.subseqs",
+        "hydpy.core.sequencetools.AideSequence.subvars",
+        "hydpy.core.sequencetools.AideSequence.subseqs",
+        "hydpy.core.sequencetools.InletSequence.subvars",
+        "hydpy.core.sequencetools.InletSequence.subseqs",
+        "hydpy.core.sequencetools.OutletSequence.subvars",
+        "hydpy.core.sequencetools.OutletSequence.subseqs",
+        "hydpy.core.sequencetools.ObserverSequence.subvars",
+        "hydpy.core.sequencetools.ObserverSequence.subseqs",
+        "hydpy.core.sequencetools.ReceiverSequence.subvars",
+        "hydpy.core.sequencetools.ReceiverSequence.subseqs",
+        "hydpy.core.sequencetools.SenderSequence.subvars",
+        "hydpy.core.sequencetools.SenderSequence.subseqs",
     ]
 )
 VALUES = set(
@@ -77,9 +106,10 @@ SERIES = set(
 DIRPATH = split(__file__)[0]
 
 MODEL_MAP: dict[str, dict[str, tuple[str, str]]]
-VAR_MAP: dict[str, dict[str, dict[str, tuple[str, str]]]]
+VAR_MAP_1: dict[str, dict[str, dict[str, tuple[str, str]]]]
+VAR_MAP_2: dict[str, tuple[str, str, str]]
 with open(join(DIRPATH, "conf", "mypy_plugin_data.pickle"), "rb") as file_:
-    MODEL_MAP, VAR_MAP = load(file_)
+    MODEL_MAP, VAR_MAP_1, VAR_MAP_2 = load(file_)
 
 
 def prepare_model_hook(context: FunctionContext) -> Type:
@@ -182,7 +212,7 @@ def variables_hook2(context: AttributeContext) -> Type:
     return context.default_attr_type
 
 
-def subvariables_hook(context: AttributeContext) -> Type:
+def subvariables_hook1(context: AttributeContext) -> Type:
     """
     `Parameters[ModelX, ...].ControlParameters[T, ...]`
     -->
@@ -197,6 +227,30 @@ def subvariables_hook(context: AttributeContext) -> Type:
     return context.default_attr_type
 
 
+def subvariables_hook2(context: AttributeContext) -> Type:
+    """
+    ParX.subvars --> `SubParameters[TM_co, ...]`
+    -->
+    ParX.subvars --> `ControlParameters[BaseModelX, ...]`
+    """
+    if (
+        isinstance(api := context.api, TypeChecker)
+        and isinstance(var_inst := context.type, Instance)
+        and (var_data := VAR_MAP_2.get(var_inst.type.fullname))
+    ):
+        model_module_name, subgroup_module_name, subgroup_name = var_data
+        if (
+            (model_module_type := api.modules.get(model_module_name))
+            and (model_sym := model_module_type.names.get("Model"))
+            and isinstance(model_info := model_sym.node, TypeInfo)
+            and (subgroup_module_type := api.modules.get(subgroup_module_name))
+            and (subgroup_sym := subgroup_module_type.names.get(subgroup_name))
+            and isinstance(subgroup_info := subgroup_sym.node, TypeInfo)
+        ):
+            return Instance(subgroup_info, args=[Instance(model_info, args=[])])
+    return context.default_attr_type
+
+
 def variable_hook(context: AttributeContext) -> Type:
     """
     `ControlParameters[ModelX, ...].__getattr__("par") -> parametertools.Parameter`
@@ -208,7 +262,7 @@ def variable_hook(context: AttributeContext) -> Type:
         and isinstance(subvars_inst := context.type, Instance)
         and (len(args := subvars_inst.args) > 0)
         and isinstance(model_inst := get_proper_type(args[0]), Instance)
-        and (model_map := VAR_MAP.get(model_inst.type.fullname))
+        and (model_map := VAR_MAP_1.get(model_inst.type.fullname))
         and isinstance(member_expr := context.context, MemberExpr)
     ):
         attr_name = member_expr.name
@@ -375,8 +429,10 @@ class MypyPlugin(Plugin):
             return variables_hook1
         if fullname in VARS2:
             return variables_hook2
-        if fullname in SUBVARS:
-            return subvariables_hook
+        if fullname in SUBVARS1:
+            return subvariables_hook1
+        if fullname in SUBVARS2:
+            return subvariables_hook2
         if fullname.rpartition(".")[0] == "hydpy.core.variabletools.SubVariables":
             return variable_hook
         if fullname.rpartition(".")[0] == "hydpy.core.modeltools.Model":

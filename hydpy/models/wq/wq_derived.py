@@ -216,7 +216,6 @@ class SectorFlowWidths(_SectorWidths):
                           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])
         """
         flowwidths = self.subpars.pars.control.flowwidths
-        assert isinstance(flowwidths, wq_control.FlowWidths)
         self._update(flowwidths)
 
 
@@ -249,7 +248,6 @@ class SectorTotalWidths(_SectorWidths):
                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])
         """
         totalwidths = self.subpars.pars.control.totalwidths
-        assert isinstance(totalwidths, wq_control.TotalWidths)
         self._update(totalwidths)
 
 
@@ -293,7 +291,6 @@ class SectorFlowAreas(_SectorAreas):
                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
         """
         sectorflowwidths = self.subpars.sectorflowwidths
-        assert isinstance(sectorflowwidths, SectorFlowWidths)
         self._update(sectorflowwidths)
 
 
@@ -323,7 +320,6 @@ class SectorTotalAreas(_SectorAreas):
                           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
         """
         sectortotalwidths = self.subpars.sectortotalwidths
-        assert isinstance(sectortotalwidths, SectorTotalWidths)
         self._update(sectortotalwidths)
 
 

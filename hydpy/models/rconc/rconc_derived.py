@@ -22,7 +22,7 @@ class KSC(parametertools.Parameter):
 
     CONTROLPARAMETERS = (rconc_control.RetentionTime, rconc_control.NmbStorages)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KSC| based on
         :math:`KSC = \\frac{2 \\cdot NmbStorages}{RetentionTime}`.
 
@@ -57,7 +57,7 @@ class DT(parametertools.Parameter):
 
     CONTROLPARAMETERS = (rconc_control.NmbSteps,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |DT| based on :math:`DT = \\frac{1}{NmbSteps}`.
 
         >>> from hydpy.models.rconc import *

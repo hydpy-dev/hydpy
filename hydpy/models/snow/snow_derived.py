@@ -25,7 +25,7 @@ class GThresh(snow_parameters.Parameter1DLayers):
         snow_control.CN4,
     )
 
-    def update(self):
+    def update(self) -> None:
         """Update |GThresh| based on :math:`GThresh = MeanAnSolidPrecip / CN4` [-].
 
         >>> from hydpy.models.snow import *
@@ -49,7 +49,7 @@ class ZMean(parametertools.Parameter):
 
     CONTROLPARAMETERS = (snow_control.ZLayers,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |ZMean| by averaging |ZLayers| (weighted with |LayerArea|).
 
         >>> from hydpy.models.snow import *

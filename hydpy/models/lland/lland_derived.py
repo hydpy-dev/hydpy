@@ -41,7 +41,7 @@ class NmbLogEntries(parametertools.Parameter):
     TYPE: Final = int
     SPAN = (1, None)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the number of entries and adjust the shape of all relevant log
         sequences.
 
@@ -117,7 +117,7 @@ class AbsFHRU(lland_parameters.ParameterComplete):
 
     CONTROLPARAMETERS = (lland_control.FT, lland_control.FHRU)
 
-    def update(self):
+    def update(self) -> None:
         """Update |AbsFHRU| based on |FT| and |FHRU|.
 
         >>> from hydpy.models.lland import *
@@ -143,7 +143,7 @@ class MGH(parametertools.Parameter):
 
     CONTROLPARAMETERS = (lland_control.GH, lland_control.FHRU)
 
-    def update(self):
+    def update(self) -> None:
         """Update |MGH| based on |GH| and |FHRU|.
 
         >>> from hydpy.models.lland import *
@@ -169,7 +169,7 @@ class KInz(lland_parameters.LanduseMonthParameter):
 
     CONTROLPARAMETERS = (lland_control.HInz, lland_control.LAI)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KInz| based on |HInz| and |LAI| according to :cite:t:`ref-LARSIM`
         (based on :cite:t:`ref-Dickinson1984`).
 
@@ -199,7 +199,7 @@ class HeatOfFusion(lland_parameters.ParameterLand):
 
     FIXEDPARAMETERS = (lland_fixed.BoWa2Z, lland_fixed.RSchmelz)
 
-    def update(self):
+    def update(self) -> None:
         """Update |HeatOfFusion| based on |RSchmelz| and |BoWa2Z|.
 
         Basic equation:
@@ -237,7 +237,7 @@ class Fr(lland_parameters.LanduseMonthParameter):
         lland_control.P2Strahl,
     )
 
-    def update(self):
+    def update(self) -> None:
         """Update |Fr| based on |LAI|, |P1Strahl| and |P2Strahl|.
 
         Basic equation for forests:
@@ -286,7 +286,7 @@ class KB(parametertools.Parameter):
 
     CONTROLPARAMETERS = (lland_control.EQB, lland_control.TInd)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KB| based on |EQB| and |TInd|.
 
         >>> from hydpy.models.lland import *
@@ -313,7 +313,7 @@ class KI1(parametertools.Parameter):
 
     CONTROLPARAMETERS = (lland_control.EQI1, lland_control.TInd)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KI1| based on |EQI1| and |TInd|.
 
         >>> from hydpy.models.lland import *
@@ -340,7 +340,7 @@ class KI2(parametertools.Parameter):
 
     CONTROLPARAMETERS = (lland_control.EQI2, lland_control.TInd)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KI2| based on |EQI2| and |TInd|.
 
         >>> from hydpy.models.lland import *
@@ -367,7 +367,7 @@ class KD1(parametertools.Parameter):
 
     CONTROLPARAMETERS = (lland_control.EQD1, lland_control.TInd)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KD1| based on |EQD1| and |TInd|.
 
         >>> from hydpy.models.lland import *
@@ -394,7 +394,7 @@ class KD2(parametertools.Parameter):
 
     CONTROLPARAMETERS = (lland_control.EQD2, lland_control.TInd)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KD2| based on |EQD2| and |TInd|.
 
         >>> from hydpy.models.lland import *
@@ -419,7 +419,7 @@ class QFactor(parametertools.Parameter):
 
     CONTROLPARAMETERS = (lland_control.FT,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |QFactor| based on |FT| and the current simulation step size.
 
         >>> from hydpy.models.lland import *

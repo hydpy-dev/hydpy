@@ -5,6 +5,8 @@
 import numpy
 
 # ...from HydPy
+from hydpy.core import exceptiontools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
@@ -29,7 +31,7 @@ class HV(parametertools.LeftRightParameter):
 
     CONTROLPARAMETERS = (kinw_control.BBV, kinw_control.BNV)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`HV=BBV/BNV`.
 
         Examples:
@@ -64,7 +66,7 @@ class MFM(parametertools.Parameter):
 
     CONTROLPARAMETERS = (kinw_control.EKM, kinw_control.SKM, kinw_control.Gef)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`MFM=EKM \\cdot SKM \\cdot \\sqrt{Gef}`.
 
         Examples:
@@ -91,7 +93,7 @@ class MFV(parametertools.LeftRightParameter):
 
     CONTROLPARAMETERS = (kinw_control.EKV, kinw_control.SKV, kinw_control.Gef)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`MFV=EKV \\cdot SKV \\cdot \\sqrt{Gef}`.
 
         Examples:
@@ -119,7 +121,7 @@ class BNMF(parametertools.Parameter):
 
     CONTROLPARAMETERS = (kinw_control.BNM,)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`BNMF= \\sqrt{1+BNM^2}`.
 
         Examples:
@@ -143,7 +145,7 @@ class BNVF(parametertools.LeftRightParameter):
 
     CONTROLPARAMETERS = (kinw_control.BNV,)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`BNVF= \\sqrt{1+BNV^2}`.
 
         Examples:
@@ -167,7 +169,7 @@ class BNVRF(parametertools.LeftRightParameter):
 
     CONTROLPARAMETERS = (kinw_control.BNVR,)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`BNVRF= \\sqrt(1+BNVR^2)`.
 
         Examples:
@@ -193,7 +195,7 @@ class HRP(parametertools.Parameter):
 
     CONTROLPARAMETERS = (kinw_control.HR,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following
@@ -223,12 +225,18 @@ class NmbDiscontinuities(parametertools.Parameter):
     TYPE: Final = int
     SPAN = (0, None)
 
-    def update(self):
+    def update(self) -> None:
         """Take the number of discontinuities from the available cross-section
         submodel.
 
         >>> from hydpy.models.kinw_impl_euler import *
         >>> parameterstep()
+        >>> derived.nmbdiscontinuities.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Submodel `wqmodel` is required \
+for updating parameter `nmbdiscontinuities` of element `?`, but is still not available.
+
         >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
         ...     nmbtrapezes(2)
         ...     bottomlevels(1.0, 3.0)
@@ -240,7 +248,12 @@ class NmbDiscontinuities(parametertools.Parameter):
         nmbdiscontinuities(1)
         """
         if (model := self.subpars.pars.model).__HYDPY_ROOTMODEL__:
-            self(len(model.wqmodel.get_depths_of_discontinuity()))
+            if (submodel := model.wqmodel) is None:
+                raise exceptiontools.AttributeNotReady(
+                    f"Submodel `wqmodel` is required for updating parameter "
+                    f"{objecttools.elementphrase(self)}, but is still not available."
+                )
+            self(len(submodel.get_depths_of_discontinuity()))
 
 
 class FinalDepth2InitialVolume(parametertools.Parameter):
@@ -252,7 +265,7 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
     TYPE: Final = float
     SPAN = (0.0, None)
 
-    def update(self):
+    def update(self) -> None:
         """Use the methods |CrossSectionModel_V1.get_depths_of_discontinuity| and
         |Return_InitialWaterVolume_V1| to determine the final water depths and the
         corresponding initial water volumes.
@@ -262,6 +275,12 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
         >>> length(100.0)
         >>> nmbsegments(10)
         >>> derived.seconds(60 * 60 * 24)
+        >>> derived.nmbdiscontinuities.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Submodel `wqmodel` is required \
+for updating parameter `nmbdiscontinuities` of element `?`, but is still not available.
+
         >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
         ...     nmbtrapezes(3)
         ...     bottomlevels(1.0, 3.0, 5.0)
@@ -281,5 +300,11 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
             self.shape = (self.subpars.nmbdiscontinuities.value, 2)
             self.values = numpy.nan
             if self.shape[0] > 0:
-                for i, d in enumerate(model.wqmodel.get_depths_of_discontinuity()):
+                if (submodel := model.wqmodel) is None:
+                    raise exceptiontools.AttributeNotReady(
+                        f"Submodel `wqmodel` is required for updating parameter "
+                        f"{objecttools.elementphrase(self)}, but is still not "
+                        f"available."
+                    )
+                for i, d in enumerate(submodel.get_depths_of_discontinuity()):
                     self.values[i, :] = d, model.return_initialwatervolume(d)

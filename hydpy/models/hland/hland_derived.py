@@ -129,7 +129,7 @@ class RelSoilArea(parametertools.Parameter):
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |RelSoilArea| based on |RelZoneAreas| and |ZoneType|.
 
         >>> from hydpy.models.hland import *
@@ -159,7 +159,7 @@ class RelLandArea(parametertools.Parameter):
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |RelLandArea| based on |RelZoneAreas| and |ZoneType|.
 
         >>> from hydpy.models.hland import *
@@ -186,7 +186,7 @@ class RelUpperZoneArea(parametertools.Parameter):
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |RelUpperZoneArea| based on |RelZoneAreas| and |ZoneType|.
 
         >>> from hydpy.models.hland import *
@@ -215,7 +215,7 @@ class RelLowerZoneArea(parametertools.Parameter):
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |RelLowerZoneArea| based on |RelZoneAreas| and |ZoneType|.
 
         >>> from hydpy.models.hland import *
@@ -471,7 +471,7 @@ class TTM(hland_parameters.ParameterLand):
 
     CONTROLPARAMETERS = (hland_control.TT, hland_control.DTTM)
 
-    def update(self):
+    def update(self) -> None:
         """Update |TTM| based on :math:`TTM = TT + DTTM`.
 
         >>> from hydpy.models.hland import *
@@ -497,7 +497,7 @@ class DT(parametertools.Parameter):
 
     CONTROLPARAMETERS = (hland_control.RecStep,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |DT| based on :math:`DT = \\frac{1}{RecStep}`.
 
         >>> from hydpy.models.hland import *
@@ -531,7 +531,7 @@ class W0(parametertools.Parameter):
 
     CONTROLPARAMETERS = (hland_control.K0,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |W0| based on :math:`W0 = e^{-1/K0}`.
 
         >>> from hydpy.models.hland import *
@@ -560,7 +560,7 @@ class W1(parametertools.Parameter):
 
     CONTROLPARAMETERS = (hland_control.K1,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |W1| based on :math:`W1 = e^{-1/K1}`.
 
         >>> from hydpy.models.hland import *
@@ -589,7 +589,7 @@ class W2(parametertools.Parameter):
 
     CONTROLPARAMETERS = (hland_control.K2,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |W2| based on :math:`W2 = e^{-1/K2}`.
 
         >>> from hydpy.models.hland import *
@@ -619,7 +619,7 @@ class W3(parametertools.Parameter):
 
     CONTROLPARAMETERS = (hland_control.K3,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |W3| based on :math:`W3 = e^{-1/K3}`.
 
         >>> from hydpy.models.hland import *
@@ -646,7 +646,7 @@ class K4(parametertools.Parameter):
     TIME = False
     SPAN = (0.0, None)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |hland_derived.K4| based on :math:`K4 = 9 \cdot K3`.
 
         >>> from hydpy.models.hland import *
@@ -675,7 +675,7 @@ class W4(parametertools.Parameter):
 
     DERIVEDPARAMETERS = (K4,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |W4| based on :math:`W4 = e^{-1/K4}`.
 
         >>> from hydpy.models.hland import *
@@ -703,7 +703,7 @@ class QFactor(parametertools.Parameter):
 
     CONTROLPARAMETERS = (hland_control.Area,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |QFactor| based on |Area| and the current simulation step size.
 
         >>> from hydpy.models.hland import *

@@ -71,7 +71,7 @@ class NmbLogEntries(parametertools.Parameter):
     TYPE: Final = int
     SPAN = (1, None)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the number of entries and adjust the shape of all relevant log
         sequences.
 
@@ -146,7 +146,7 @@ class LatitudeRad(parametertools.Parameter):
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
     CONTROLPARAMETERS = (meteo_control.Latitude,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |LatitudeRad| based on parameter |Latitude|.
 
         >>> from hydpy import round_

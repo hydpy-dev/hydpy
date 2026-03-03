@@ -4670,7 +4670,7 @@ class UTCLongitudeParameter(Parameter):
     TYPE: Final = int
     SPAN: TypeSPAN = (-180, 180)
 
-    def update(self):
+    def update(self) -> None:
         """Apply the current value of option |Options.utclongitude|.
 
         >>> from hydpy import pub

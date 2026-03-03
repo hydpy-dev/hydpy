@@ -14,9 +14,6 @@ from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.auxs import interptools
 
-# ...from exch
-from hydpy.models.exch import exch_observers
-
 
 class CrestHeight(parametertools.Parameter):
     """Crest height [m]."""
@@ -329,14 +326,12 @@ relevant observation nodes, but the first given value is of type `int`.
                 )
         self.value = len(observernodes)
         x = self.subpars.pars.model.sequences.observers.x
-        assert isinstance(x, exch_observers.X)
         x.shape = self.value
         x.observernodes = observernodes
 
     def __repr__(self) -> str:
         if self._valueready:
             x = self.subpars.pars.model.sequences.observers.x
-            assert isinstance(x, exch_observers.X)
             names = tuple(f'"{name}"' for name in x.observernodes)
             return objecttools.assignrepr_tuple(names, self.name, 84)
         return super().__repr__()

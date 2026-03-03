@@ -11,6 +11,7 @@ from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
 # ...from managers
+from hydpy.models.manager import manager_model
 from hydpy.models.manager import manager_control
 
 
@@ -131,9 +132,8 @@ the following error occurred: The following sources are unknown: d and e
                         "Providing keyword arguments and more than one positional "
                         "argument simultaneously is not supported."
                     ) from None
-                sources = self.subpars.pars.control.sources
-                assert isinstance(sources, manager_control.Sources)
-                sourcenames = sources.sourcenames
+                model = cast(manager_model.Model, self.subpars.pars.model)
+                sourcenames = model.parameters.control.sources.sourcenames
                 required_names = set(sourcenames)
                 given_names = set(kwargs)
                 if (len(args) == 0) and (diff := required_names - given_names):
@@ -166,9 +166,8 @@ the following error occurred: The following sources are unknown: d and e
 
     def __repr__(self) -> str:
         if self._valueready and (len(numpy.unique_values(self.values))) > 1:
-            sources = self.subpars.pars.control.sources
-            assert isinstance(sources, manager_control.Sources)
-            sourcenames = sources.sourcenames
+            model = cast(manager_model.Model, self.subpars.pars.model)
+            sourcenames = model.parameters.control.sources.sourcenames
             n2v = tuple(f"{n}={v}" for n, v in zip(sourcenames, self.values))
             return objecttools.assignrepr_values(n2v, f"{self.name}(") + ")"
         return super().__repr__()

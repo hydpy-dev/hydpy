@@ -254,7 +254,6 @@ and the target node `t`, but there must be exactly one.
             graph = hydpytools.create_directedgraph(nodes=nodes, elements=elements)
 
             sources = self.subpars.pars.control.sources
-            assert isinstance(sources, manager_control.Sources)
             name2element = {n: elements[n] for n in sources.sourcenames}
             target = self._target
 

@@ -20,7 +20,7 @@ class Nmb(parametertools.Parameter):
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
-    def update(self):
+    def update(self) -> None:
         """Determine the number of response functions.
 
         >>> from hydpy.models.arma import *
@@ -61,7 +61,7 @@ class MaxQ(parametertools.Parameter):
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
-    def update(self):
+    def update(self) -> None:
         """Determine the maximum discharge values.
 
         >>> from hydpy.models.arma import *
@@ -85,7 +85,7 @@ class DiffQ(parametertools.Parameter):
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
-    def update(self):
+    def update(self) -> None:
         """Determine the "max Q deltas".
 
         >>> from hydpy.models.arma import *
@@ -113,7 +113,7 @@ class AR_Order(parametertools.Parameter):
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
-    def update(self):
+    def update(self) -> None:
         """Determine the total number of AR coefficients.
 
         >>> from hydpy.models.arma import *
@@ -137,7 +137,7 @@ class MA_Order(parametertools.Parameter):
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
-    def update(self):
+    def update(self) -> None:
         """Determine the total number of MA coefficients.
 
         >>> from hydpy.models.arma import *
@@ -160,7 +160,7 @@ class AR_Coefs(parametertools.Parameter):
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
-    def update(self):
+    def update(self) -> None:
         """Determine all AR coefficients.
 
         >>> from hydpy.models.arma import *
@@ -193,7 +193,7 @@ class MA_Coefs(parametertools.Parameter):
 
     CONTROLPARAMETERS = (arma_control.Responses,)
 
-    def update(self):
+    def update(self) -> None:
         """Determine all MA coefficients.
 
         >>> from hydpy.models.arma import *

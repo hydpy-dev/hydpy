@@ -8,6 +8,7 @@ from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
 
 # ...from manager
+from hydpy.models.manager import manager_model
 from hydpy.models.manager import manager_control
 from hydpy.models.manager import manager_derived
 
@@ -23,9 +24,8 @@ class MixinSource(sequencetools.ModelSequence):
             self.__hydpy__change_shape_if_necessary__((p.value,))
 
     def __repr__(self) -> str:
-        sources = self.subseqs.seqs.model.parameters.control.sources
-        assert isinstance(sources, manager_control.Sources)
-        sourcenames = sources.sourcenames
+        model = cast(manager_model.Model, self.subseqs.seqs.model)
+        sourcenames = model.parameters.control.sources.sourcenames
         repr_ = objecttools.repr_
         n2v = tuple(f"{n}={repr_(v)}" for n, v in zip(sourcenames, self.values))
         return objecttools.assignrepr_values(n2v, f"{self.name}(", width=70) + ")"

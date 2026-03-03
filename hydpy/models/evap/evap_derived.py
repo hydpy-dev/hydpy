@@ -92,7 +92,7 @@ class NmbLogEntries(parametertools.Parameter):
     TYPE: Final = int
     SPAN = (1, None)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the number of entries and adjust the shape of all relevant log
         sequences.
 
@@ -158,9 +158,11 @@ determined for a the current simulation step size.  The fraction of the memory p
         self(nmb)
         pars = self.subpars.pars
         for seq in pars.model.sequences.logs:
+            new_shape: int | tuple[int, ...]
+            old_shape: int | tuple[int, ...]
             if isinstance(seq, evap_logs.LoggedPotentialEvapotranspiration):
                 new_shape = self.value
-                old_shape = exceptiontools.getattr_(seq, "shape", (None, None))[1]
+                old_shape = exceptiontools.getattr_(seq, "shape", (-1, -1))[1]
             else:
                 if seq.NDIM == 1:
                     new_shape = (self.value,)
@@ -168,7 +170,7 @@ determined for a the current simulation step size.  The fraction of the memory p
                     new_shape = self.value, pars.control.nmbhru.value
                 else:
                     assert False
-                old_shape = exceptiontools.getattr_(seq, "shape", (None,))
+                old_shape = exceptiontools.getattr_(seq, "shape", (-1,))
             if new_shape != old_shape:
                 seq.shape = new_shape
 
@@ -182,7 +184,7 @@ class RoughnessLength(
 
     CONTROLPARAMETERS = (evap_control.CropHeight,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the roughness length based on
         :math:`max(0.13 \cdot CropHeight, \ 0.00013)`.
 
@@ -215,7 +217,7 @@ class AerodynamicResistanceFactor(evap_parameters.LandMonthParameter):
     DERIVEDPARAMETERS = (RoughnessLength,)
     FIXEDPARAMETERS = (evap_fixed.AerodynamicResistanceFactorMinimum,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the factor for calculating aerodynamic resistance based on the
         :math:`max \big( ln(2 / z_0) \cdot ln(10 / z_0) / 0.41^2, \ \tau \big)` with
         :math:`z_0` being the |RoughnessLength| :cite:p:`ref-Löpmeier2014` and

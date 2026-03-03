@@ -31,7 +31,7 @@ class InputFactor(parametertools.Parameter):
     CONTROLPARAMETERS = (dam_control.SurfaceArea,)
     DERIVEDPARAMETERS = (Seconds,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |InputFactor| based on the control parameter |dam_control.SurfaceArea|
         and the derived parameter |Seconds|:
 
@@ -55,7 +55,7 @@ class RemoteDischargeSmoothPar(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.RemoteDischargeSafety,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter values.
 
         The documentation on module |smoothtools| explains the following example in
@@ -90,7 +90,7 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.NearDischargeMinimumTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter values.
 
         The documentation on module |smoothtools| explains the following example in
@@ -125,7 +125,7 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.NearDischargeMinimumTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter values.
 
         The documentation on module |smoothtools| explains the following example in
@@ -160,7 +160,7 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMinimumTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -193,7 +193,7 @@ class WaterLevelMaximumSmoothPar(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMaximumTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -226,7 +226,7 @@ class RemoteWaterLevelMaximumSmoothPar(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.RemoteWaterLevelMaximumTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -259,7 +259,7 @@ class SmoothParEvaporation(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.ToleranceEvaporation,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -291,7 +291,7 @@ class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMinimumRemoteTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -325,7 +325,7 @@ class WaterLevelReliefSmoothPar(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.WaterLevelReliefTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter values.
 
         The documentation on module |smoothtools| explains the following example in
@@ -360,7 +360,7 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.WaterLevelSupplyTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter values.
 
         The documentation on module |smoothtools| explains the following example in
@@ -395,7 +395,7 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.HighestRemoteTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -463,7 +463,7 @@ class VolumeSmoothParLog1(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.VolumeTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -496,7 +496,7 @@ class VolumeSmoothParLog2(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.VolumeTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -529,7 +529,7 @@ class DischargeSmoothPar(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.DischargeTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -566,7 +566,7 @@ class CrestLevelSmoothPar(parametertools.Parameter):
 
     CONTROLPARAMETERS = (dam_control.CrestLevelTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in

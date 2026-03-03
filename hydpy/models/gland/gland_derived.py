@@ -89,7 +89,7 @@ class QFactor(parametertools.Parameter):
 
     CONTROLPARAMETERS = (gland_control.Area,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |QFactor| based on |Area| and the current simulation
         step size.
 

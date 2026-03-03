@@ -3336,7 +3336,7 @@ class Model(modeltools.ELSModel, modeltools.SegmentModel):
     """|kinw.DOCNAME.complete|."""
 
     DOCNAME = modeltools.DocName(short="KinW")
-    __HYDPY_ROOTMODEL__ = None
+    __HYDPY_ROOTMODEL__: bool | None = None
 
     SOLVERPARAMETERS = (
         kinw_solver.AbsErrorMax,

@@ -631,6 +631,8 @@ class Model(modeltools.AdHocModel, modeltools.SubmodelInterface):
     DOCNAME = modeltools.DocName(short="Exch")
     __HYDPY_ROOTMODEL__ = None
 
+    nodenames: list[str]
+
     INLET_METHODS = (Pick_OriginalInput_V1,)
     OBSERVER_METHODS = (Pick_X_V1,)
     RECEIVER_METHODS = (Pick_LoggedWaterLevel_V1, Pick_LoggedWaterLevels_V1)

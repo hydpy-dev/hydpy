@@ -29,7 +29,7 @@ class NUL(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.NU,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |NUL| based on :math:`NUL = NU - 1`.
 
         >>> from hydpy.models.wland import *
@@ -52,7 +52,7 @@ class NUGE(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.LT,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |NUG| based on
         :math:`NUGE = \sum (ER \ \land \ LT \neq WATER \ \land \ LT \neq SEALED)`.
 
@@ -83,7 +83,7 @@ class NUG(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.LT, wland_control.ER)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |NUG| based on :math:`NUG = \sum (\overline{ER} \ \land \
         LT \neq WATER \ \land \ LT \neq SEALED)`.
 
@@ -113,7 +113,7 @@ class ALR(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.AUR,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |ALR| based on :math:`ALR = \sum_{i = 1}^{NUL} AUR_i`.
 
         >>> from hydpy.models.wland import *
@@ -137,7 +137,7 @@ class ASR(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.AUR,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |ASR| based on :math:`ASR = AUR_{NU}`.
 
         >>> from hydpy.models.wland import *
@@ -161,7 +161,7 @@ class AGRE(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT, wland_control.ER)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |AGR| based on :math:`AGRE = \sum_{i=1}^{NU} AUR_i \cdot
         (ER_i \ \land \ LT_i \neq WATER \ \land \ LT_i \neq SEALED)`.
 
@@ -189,7 +189,7 @@ class AGR(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT, wland_control.ER)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |AGR| based on :math:`AGR = \sum_{i=1}^{NU} AUR_i \cdot
         (\overline{ER_i} \ \land \ LT_i \neq WATER \ \land \ LT_i \neq SEALED)`.
 
@@ -217,7 +217,7 @@ class QF(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.AT,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |QF| based on |AT| and the current simulation step size.
 
         >>> from hydpy.models.wland import *
@@ -241,7 +241,7 @@ class CD(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.GL, wland_control.BL)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |CD| based on :math:`CD = GL - BL`.
 
         >>> from hydpy.models.wland import *
@@ -266,7 +266,7 @@ class RH1(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.SH,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following
@@ -299,7 +299,7 @@ class RH2(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.SH,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following
@@ -332,7 +332,7 @@ class RT2(parametertools.Parameter):
 
     CONTROLPARAMETERS = (wland_control.ST,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following

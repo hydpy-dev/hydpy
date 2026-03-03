@@ -487,7 +487,6 @@ from hydpy.core.typingtools import *
 
 # ...from manager
 from hydpy.models.manager import manager_model
-from hydpy.models.manager import manager_control
 
 
 class Model(modeltools.AdHocModel):
@@ -686,7 +685,6 @@ additional water release, but two such nodes are available (`r3a` and `r3b`).
         )
 
         sources = self.parameters.control.sources
-        assert isinstance(sources, manager_control.Sources)
         volume_nodes = []
         watervolume = self.sequences.receivers.watervolume
         for sourcename in sources.sourcenames:
@@ -742,7 +740,6 @@ additional water release, but two such nodes are available (`r3a` and `r3b`).
         )
 
         sources = self.parameters.control.sources
-        assert isinstance(sources, manager_control.Sources)
         request_nodes = []
         request = self.sequences.senders.request
         for sourcename in sources.sourcenames:

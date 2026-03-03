@@ -21,7 +21,7 @@ class NmbBranches(parametertools.Parameter):
 
     CONTROLPARAMETERS = (exch_control.YPoints,)
 
-    def update(self):
+    def update(self) -> None:
         """Determine the number of branches."""
         con = self.subpars.pars.control
         self(con.ypoints.shape[0])
@@ -36,7 +36,7 @@ class NmbPoints(parametertools.Parameter):
 
     CONTROLPARAMETERS = (exch_control.YPoints,)
 
-    def update(self):
+    def update(self) -> None:
         """Determine the number of points."""
         con = self.subpars.pars.control
         self(con.ypoints.shape[1])

@@ -20,7 +20,7 @@ class SegmentLength(parametertools.Parameter):
     SPAN = (0.0, None)
     CONTROLPARAMETERS = (musk_control.Length,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update the segment length based on
         :math:`SegmentLength = Length / NmbSegments`.
 

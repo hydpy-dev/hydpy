@@ -2479,7 +2479,7 @@ index parameter.
                     return KeywordArguments(False)
         return name2unique
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> float:
         name_ = name.upper()
         if (not name.islower()) or (name_ not in self.constants):
             names = objecttools.enumeration(
@@ -2494,7 +2494,7 @@ index parameter.
         used_constants = self.mask.refindices.values
         return self.values[used_constants == sel_constant]
 
-    def __setattr__(self, name: str, value):
+    def __setattr__(self, name: str, value: float) -> None:
         name_ = name.upper()
         if name.islower() and (name_ in (constants := self.constants)):
             try:
@@ -3410,7 +3410,7 @@ for axis 0 with size 1
                     f"`{objecttools.enumeration(err)}`."
                 ) from None
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str) -> float:
         if key in self.entrynames:
             try:
                 return self.TYPE(self.values[self.entrynames.index(key)])
@@ -3424,17 +3424,17 @@ for axis 0 with size 1
             f"attribute named `{key}`."
         )
 
-    def __setattr__(self, key, values):
+    def __setattr__(self, key: str, value: float) -> None:
         if key in self.entrynames:
             try:
-                self.values[self.entrynames.index(key)] = values
+                self.values[self.entrynames.index(key)] = value
             except BaseException:
                 objecttools.augment_excmessage(
                     f"While trying to assign a new value to parameter "
                     f"{objecttools.elementphrase(self)} via attribute `{key}`"
                 )
         else:
-            super().__setattr__(key, values)
+            super().__setattr__(key, value)
 
     def __repr__(self):
         values = self.revert_timefactor(self.values)
@@ -3847,7 +3847,7 @@ attribute nor a row or column related attribute named `wrong`.
                     ) from None
             self.trim()
 
-    def __getattr__(self, key: str):
+    def __getattr__(self, key: str) -> float | VectorFloat:
         if key in self.rownames:
             try:
                 return self.values[self.rownames.index(key), :]
@@ -3881,7 +3881,7 @@ attribute nor a row or column related attribute named `wrong`.
             f"normal attribute nor a row or column related attribute named `{key}`."
         )
 
-    def __setattr__(self, key: str, values) -> None:
+    def __setattr__(self, key: str, values: float | VectorFloat) -> None:
         if key in self.rownames:
             try:
                 self.values[self.rownames.index(key), :] = values

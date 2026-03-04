@@ -1055,14 +1055,14 @@ class UnitTest(Test):
             for example in range(self.first_example_plot, self.last_example_plot + 1)
         ]
 
-    def memorise_inits(self):
+    def memorise_inits(self) -> None:
         """Memorise all initial conditions."""
         for parseq in self.parseqs:
             value = exceptiontools.getattr_(parseq, "value", None)
             if value is not None:
                 setattr(self.inits, parseq.name, value)
 
-    def prepare_output_arrays(self):
+    def prepare_output_arrays(self) -> None:
         """Prepare arrays for storing the calculated results for the
         respective parameters and/or sequences."""
         for parseq in self.parseqs:
@@ -1072,21 +1072,21 @@ class UnitTest(Test):
             array = numpy.full(shape, init, type_)
             setattr(self.results, parseq.name, array)
 
-    def reset_inits(self):
+    def reset_inits(self) -> None:
         """Set all initial conditions."""
         for parseq in self.parseqs:
             inits = getattr(self.inits, parseq.name, None)
             if inits is not None:
                 parseq(inits)
 
-    def _update_inputs(self, idx):
+    def _update_inputs(self, idx) -> None:
         """Update the actual values with the |UnitTest.nexts| data of
         the given index."""
         for parseq in self.parseqs:
             if hasattr(self.nexts, parseq.name):
                 parseq(getattr(self.nexts, parseq.name)[idx])
 
-    def _update_outputs(self, idx):
+    def _update_outputs(self, idx) -> None:
         """Update the |UnitTest.results| data with the actual values of
         the given index."""
         for parseq in self.parseqs:
@@ -1101,7 +1101,9 @@ class _Open:
         "for further information."
     )
 
-    def __init__(self, path, mode, *args, **kwargs):
+    texts: list[str]
+
+    def __init__(self, path, mode, *args, **kwargs) -> None:
         # pylint: disable=unused-argument
         # all further positional and keyword arguments are ignored.
         self.path = path.replace(os.sep, "/")
@@ -1116,27 +1118,27 @@ class _Open:
     def __exit__(self, exception, message, traceback_):
         self.close()
 
-    def read(self):
+    def read(self) -> NoReturn:
         """Raise a |NotImplementedError| in any case."""
         raise NotImplementedError(self.__readingerror)
 
-    def readline(self):
+    def readline(self) -> NoReturn:
         """Raise a |NotImplementedError| in any case."""
         raise NotImplementedError(self.__readingerror)
 
-    def readlines(self):
+    def readlines(self) -> NoReturn:
         """Raise a |NotImplementedError| in any case."""
         raise NotImplementedError(self.__readingerror)
 
-    def write(self, text):
+    def write(self, text) -> None:
         """Replace the `write` method of file objects."""
         self.texts.append(text)
 
-    def writelines(self, lines):
+    def writelines(self, lines) -> None:
         """Replace the `writelines` method of file objects."""
         self.texts.extend(lines)
 
-    def close(self):
+    def close(self) -> None:
         """Replace the `close` method of file objects."""
         text = "".join(self.texts)
         maxchars = len(self.path)
@@ -1212,14 +1214,14 @@ Please see the documentation on class `Open` of module `testtools` \
 for further information.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.open = builtins.open
 
     def __enter__(self):
         builtins.open = _Open
         return self
 
-    def __exit__(self, exception, message, traceback_):
+    def __exit__(self, exception, message, traceback_) -> None:
         builtins.open = self.open
 
 

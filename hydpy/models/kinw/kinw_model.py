@@ -3448,16 +3448,16 @@ class BaseModelProfile(modeltools.ELSModel):
         """
 
         class _XYs:
-            def __init__(self):
+            def __init__(self) -> None:
                 self._xs = [0.0]
                 self._ys = [0.0]
 
-            def __iadd__(self, dxdy):
+            def __iadd__(self, dxdy: tuple[float, float]) -> Self:
                 self._xs.append(self._xs[-1] + dxdy[0])
                 self._ys.append(self._ys[-1] + dxdy[1])
                 return self
 
-            def __isub__(self, dxdy):
+            def __isub__(self, dxdy: tuple[float, float]) -> Self:
                 self._xs.insert(0, self._xs[0] - dxdy[0])
                 self._ys.insert(0, self._ys[0] + dxdy[1])
                 return self
@@ -3472,8 +3472,8 @@ class BaseModelProfile(modeltools.ELSModel):
         xys = _XYs()
         xys += con.bm / 2.0, 0.0
         xys -= con.bm / 2.0, 0.0
-        xys += con.hm * con.bnm, con.hm
-        xys -= con.hm * con.bnm, con.hm
+        xys += con.hm * con.bnm, con.hm.value
+        xys -= con.hm * con.bnm, con.hm.value
         xys += con.bv[1], 0.0
         xys -= con.bv[0], 0.0
         xys += der.hv[1] * con.bnv[1], der.hv[1]

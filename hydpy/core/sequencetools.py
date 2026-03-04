@@ -751,13 +751,13 @@ class Sequences(Generic[TM_co]):
         self.fluxes.prepare_series(allocate_ram=allocate_ram, write_jit=jit)
         self.states.prepare_series(allocate_ram=allocate_ram, write_jit=jit)
 
-    def load_series(self):
+    def load_series(self) -> None:
         """Call method |IOSequences.load_series| of all handled |IOSequences|
         objects."""
         for subseqs in self.iosubsequences:
             subseqs.load_series()
 
-    def save_series(self):
+    def save_series(self) -> None:
         """Call method |IOSequence.save_series| of all handled |IOSequences|
         objects."""
         for subseqs in self.iosubsequences:
@@ -3419,7 +3419,7 @@ class ConditionSequence(ModelSequence):
         """Apply |trim| of module |variabletools|."""
         return variabletools.trim(self, lower, upper)
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the value of the actual |StateSequence| or |LogSequence| object to the
         last value defined by "calling" the object.
 
@@ -3735,7 +3735,7 @@ class LogSequenceFixed(LogSequence):
     NDIM: Final[Literal[1]] = 1
     SHAPE: int
 
-    def _finalise_connections(self):
+    def _finalise_connections(self) -> None:
         self.shape = (self.SHAPE,)
 
     @property

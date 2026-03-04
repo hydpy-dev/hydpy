@@ -117,7 +117,7 @@ not be set based on the given keyword arguments.
                 )
 
     @classmethod
-    def print_defaults(cls):
+    def print_defaults(cls) -> None:
         """Print the soil-related default values of the parameter.
 
         See the documentation on class |B| for an example.

@@ -3570,7 +3570,7 @@ class NumConstsELS:
     dt_decrease: float
     a_coeffs: numpy.ndarray
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.nmb_methods = 10
         self.nmb_stages = 11
         self.dt_increase = 2.0
@@ -3606,7 +3606,7 @@ class NumVarsELS:
     extrapolated_relerror: float
     f0_ready: bool
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.use_relerror = False
         self.nmb_calls = 0
         self.t0 = 0.0

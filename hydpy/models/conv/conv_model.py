@@ -616,7 +616,7 @@ class Model(modeltools.AdHocModel):
 class BaseModel(modeltools.AdHocModel):
     """Base class for all |conv.DOCNAME.complete| application models."""
 
-    def connect(self):
+    def connect(self) -> None:
         """Connect the |InletSequence| and |OutletSequence| objects of the actual model
         to the |NodeSequence| objects handled by an arbitrary number of inlet and
         outlet nodes.
@@ -678,26 +678,28 @@ following error occurred: The node handled by control parameter outputcoordinate
 (out1 and out2) are not the same as the outlet nodes handled by element conv (out1, \
 out2, and out3).
         """
+        model = cast(Model, self)
         try:
             for coordinates, sequence, nodes in (
                 (
-                    self.parameters.control.inputcoordinates,
-                    self.sequences.inlets.inputs,
-                    self.element.inlets,
+                    model.parameters.control.inputcoordinates,
+                    model.sequences.inlets.inputs,
+                    model.element.inlets,
                 ),
                 (
-                    self.parameters.control.outputcoordinates,
-                    self.sequences.outlets.outputs,
-                    self.element.outlets,
+                    model.parameters.control.outputcoordinates,
+                    model.sequences.outlets.outputs,
+                    model.element.outlets,
                 ),
             ):
                 if nodes == devicetools.Nodes(coordinates.nodes):
                     sequence.node2idx = {}
                     sequence.shape = len(coordinates)
                     for idx, node in enumerate(coordinates.nodes):
-                        sequence.set_pointer(
-                            node.get_double(sequence.subseqs.name), idx
+                        double = node.get_double(
+                            sequence.subseqs.name  # type: ignore[arg-type]
                         )
+                        sequence.set_pointer(double, idx)
                         sequence.node2idx[node] = idx
                 else:
                     parameternodes = objecttools.enumeration(coordinates.nodes)
@@ -706,9 +708,9 @@ out2, and out3).
                         f"The node handled by control parameter {coordinates.name} "
                         f"({parameternodes}) are not the same as the "
                         f"{sequence.subseqs.name[:-1]} nodes handled by element "
-                        f"{self.element.name} ({elementnodes})."
+                        f"{model.element.name} ({elementnodes})."
                     )
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to connect model " f"{objecttools.elementphrase(self)}"
+                f"While trying to connect model " f"{objecttools.elementphrase(model)}"
             )

@@ -4324,11 +4324,11 @@ solver parameter `tol` of element `?` has been defined so far.
         return self._alternative_initvalue
 
     @alternative_initvalue.setter
-    def alternative_initvalue(self, value):
+    def alternative_initvalue(self, value) -> None:
         self._alternative_initvalue = value
 
     @alternative_initvalue.deleter
-    def alternative_initvalue(self):
+    def alternative_initvalue(self) -> None:
         self._alternative_initvalue = None
 
 
@@ -4854,7 +4854,7 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
                 ) from exc
             self.callback = callback
 
-    def _init_callback(self):
+    def _init_callback(self) -> None:
         if init := getattr(self.fastaccess, f"init_{self.name}_callback", None):
             init()
         else:

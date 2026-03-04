@@ -109,7 +109,7 @@ class Calc_AirTemperature_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.AirTemperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.tempmodel_typeid == 1:
             model.calc_airtemperature_tempmodel_v1(
                 cast(tempinterfaces.TempModel_V1, model.tempmodel)
@@ -161,7 +161,7 @@ class Update_LoggedAirTemperature_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_logs.LoggedAirTemperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -195,7 +195,7 @@ class Calc_DailyAirTemperature_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.DailyAirTemperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
@@ -287,7 +287,7 @@ class Calc_MeanAirTemperature_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.MeanAirTemperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.tempmodel_typeid == 1:
             model.calc_meanairtemperature_tempmodel_v1(
                 cast(tempinterfaces.TempModel_V1, model.tempmodel)
@@ -331,7 +331,7 @@ class Calc_WindSpeed2m_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.WindSpeed2m,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -376,7 +376,7 @@ class Return_AdjustedWindSpeed_V1(modeltools.Method):
     REQUIREDSEQUENCES = (evap_inputs.WindSpeed,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, h: float) -> float:
+    def __call__(model: modeltools.Model, h: float, /) -> float:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         inp = model.sequences.inputs.fastaccess
@@ -412,7 +412,7 @@ class Calc_WindSpeed2m_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.WindSpeed2m,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         fac.windspeed2m = model.return_adjustedwindspeed_v1(2.0)
 
@@ -453,7 +453,7 @@ class Update_LoggedWindSpeed2m_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_logs.LoggedWindSpeed2m,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
@@ -482,7 +482,7 @@ class Calc_DailyWindSpeed2m_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.DailyWindSpeed2m,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -516,7 +516,7 @@ class Calc_WindSpeed10m_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.WindSpeed10m,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         fac.windspeed10m = model.return_adjustedwindspeed_v1(10.0)
 
@@ -557,7 +557,7 @@ class Update_LoggedRelativeHumidity_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_logs.LoggedRelativeHumidity,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         log = model.sequences.logs.fastaccess
@@ -586,7 +586,7 @@ class Calc_DailyRelativeHumidity_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.DailyRelativeHumidity,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
@@ -619,7 +619,7 @@ class Calc_SaturationVapourPressure_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.SaturationVapourPressure,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
@@ -645,7 +645,7 @@ class Return_SaturationVapourPressure_V1(modeltools.Method):
     """
 
     @staticmethod
-    def __call__(model: modeltools.Model, airtemperature: float) -> float:
+    def __call__(model: modeltools.Model, airtemperature: float, /) -> float:
         return 6.1078 * 2.71828 ** (
             17.08085 * airtemperature / (airtemperature + 234.175)
         )
@@ -676,7 +676,7 @@ class Calc_SaturationVapourPressure_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.SaturationVapourPressure,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
@@ -710,7 +710,7 @@ class Calc_DailySaturationVapourPressure_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.DailySaturationVapourPressure,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
@@ -747,7 +747,7 @@ class Calc_SaturationVapourPressureSlope_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.SaturationVapourPressureSlope,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
@@ -781,7 +781,7 @@ class Return_SaturationVapourPressureSlope_V1(modeltools.Method):
     """
 
     @staticmethod
-    def __call__(model: modeltools.Model, t: float) -> float:
+    def __call__(model: modeltools.Model, t: float, /) -> float:
         return (
             24430.6 * modelutils.exp(17.08085 * t / (t + 234.175)) / (t + 234.175) ** 2
         )
@@ -812,7 +812,7 @@ class Calc_SaturationVapourPressureSlope_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.SaturationVapourPressureSlope,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
@@ -846,7 +846,7 @@ class Calc_DailySaturationVapourPressureSlope_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.DailySaturationVapourPressureSlope,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
@@ -884,7 +884,7 @@ class Calc_ActualVapourPressure_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.ActualVapourPressure,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -921,7 +921,7 @@ class Calc_DailyActualVapourPressure_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.DailyActualVapourPressure,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
@@ -955,7 +955,7 @@ class Calc_DryAirPressure_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.DryAirPressure,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         inp = model.sequences.inputs.fastaccess
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -995,7 +995,7 @@ class Calc_AirDensity_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.AirDensity,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1036,7 +1036,7 @@ class Process_RadiationModel_V1(modeltools.Method):
     SUBMODELINTERFACES = (radiationinterfaces.RadiationModel_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.radiationmodel_typeid == 1:
             cast(
                 radiationinterfaces.RadiationModel_V1, model.radiationmodel
@@ -1081,7 +1081,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.PossibleSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
 
         if model.radiationmodel_typeid == 1:
@@ -1132,7 +1132,7 @@ class Calc_SunshineDuration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.SunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
 
         if model.radiationmodel_typeid == 1:
@@ -1183,7 +1183,7 @@ class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.ClearSkySolarRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
 
         if model.radiationmodel_typeid == 1:
@@ -1266,7 +1266,7 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.GlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
 
         if model.radiationmodel_typeid == 1:
@@ -1326,7 +1326,7 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_logs.LoggedSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1355,7 +1355,7 @@ class Calc_DailySunshineDuration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.DailySunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1400,7 +1400,7 @@ class Update_LoggedPossibleSunshineDuration_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_logs.LoggedPossibleSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1431,7 +1431,7 @@ class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.DailyPossibleSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1482,7 +1482,7 @@ class Update_LoggedClearSkySolarRadiation_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_logs.LoggedClearSkySolarRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1529,7 +1529,7 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_logs.LoggedGlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1558,7 +1558,7 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.DailyGlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1644,7 +1644,7 @@ class Calc_CurrentAlbedo_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.CurrentAlbedo,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1786,7 +1786,7 @@ class Calc_CurrentAlbedo_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.CurrentAlbedo,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1837,7 +1837,7 @@ class Calc_NetShortwaveRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.NetShortwaveRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         netshortwaveradiation: float = (1.0 - 0.23) * flu.globalradiation
@@ -1868,7 +1868,7 @@ class Calc_NetShortwaveRadiation_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.NetShortwaveRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1901,7 +1901,7 @@ class Calc_DailyNetShortwaveRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.DailyNetShortwaveRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1981,7 +1981,7 @@ class Update_CloudCoverage_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_states.CloudCoverage,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2034,7 +2034,7 @@ class Calc_AdjustedCloudCoverage_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.AdjustedCloudCoverage,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2125,7 +2125,7 @@ class Calc_NetLongwaveRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.NetLongwaveRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2201,7 +2201,7 @@ class Calc_NetLongwaveRadiation_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.NetLongwaveRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2276,7 +2276,7 @@ class Calc_DailyNetLongwaveRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.DailyNetLongwaveRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2326,7 +2326,7 @@ class Calc_NetRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.NetRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -2361,7 +2361,7 @@ class Calc_NetRadiation_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.NetRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -2396,7 +2396,7 @@ class Calc_DailyNetRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.DailyNetRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -2464,7 +2464,7 @@ class Calc_SoilHeatFlux_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.SoilHeatFlux,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2653,7 +2653,7 @@ class Calc_SoilHeatFlux_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.SoilHeatFlux,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2721,7 +2721,7 @@ class Calc_SoilHeatFlux_V3(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.SoilHeatFlux,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2849,7 +2849,7 @@ class Calc_SoilHeatFlux_V4(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.SoilHeatFlux,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2891,7 +2891,7 @@ class Calc_PsychrometricConstant_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.PsychrometricConstant,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
         fac.psychrometricconstant = 6.65e-4 * inp.atmosphericpressure
@@ -3005,7 +3005,7 @@ class Calc_AerodynamicResistance_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.AerodynamicResistance,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -3090,7 +3090,7 @@ class Calc_AerodynamicResistance_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.AerodynamicResistance,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -3176,7 +3176,7 @@ class Calc_SoilSurfaceResistance_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.SoilSurfaceResistance,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
@@ -3230,7 +3230,7 @@ class Update_LoggedPrecipitation_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_logs.LoggedPrecipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3264,7 +3264,7 @@ class Calc_DailyPrecipitation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.DailyPrecipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
@@ -3315,7 +3315,7 @@ class Update_LoggedPotentialSoilEvapotranspiration_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_logs.LoggedPotentialSoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3354,7 +3354,7 @@ class Calc_DailyPotentialSoilEvapotranspiration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.DailyPotentialSoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
@@ -3425,7 +3425,7 @@ class Update_SoilResistance_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_states.SoilResistance,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -3604,7 +3604,7 @@ class Calc_LanduseSurfaceResistance_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.LanduseSurfaceResistance,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -3788,7 +3788,7 @@ class Calc_ActualSurfaceResistance_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.ActualSurfaceResistance,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -4000,7 +4000,7 @@ class Calc_ActualSurfaceResistance_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.ActualSurfaceResistance,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -4112,7 +4112,7 @@ class Calc_Precipitation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.Precipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.precipmodel_typeid == 1:
             model.calc_precipitation_precipmodel_v1(
                 cast(precipinterfaces.PrecipModel_V1, model.precipmodel)
@@ -4173,7 +4173,7 @@ class Calc_InterceptedWater_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.InterceptedWater,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.intercmodel_typeid == 1:
             model.calc_interceptedwater_intercmodel_v1(
                 cast(stateinterfaces.IntercModel_V1, model.intercmodel)
@@ -4247,7 +4247,7 @@ class Calc_SnowyCanopy_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.SnowyCanopy,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -4310,7 +4310,7 @@ class Calc_SoilWater_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.SoilWater,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.soilwatermodel_typeid == 1:
             model.calc_soilwater_soilwatermodel_v1(
                 cast(stateinterfaces.SoilWaterModel_V1, model.soilwatermodel)
@@ -4368,7 +4368,7 @@ class Calc_SnowCover_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_factors.SnowCover,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.snowcovermodel_typeid == 1:
             model.calc_snowcover_snowcovermodel_v1(
                 cast(stateinterfaces.SnowCoverModel_V1, model.snowcovermodel)
@@ -4840,7 +4840,7 @@ class Calc_ReferenceEvapotranspiration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -4894,7 +4894,7 @@ class Calc_ReferenceEvapotranspiration_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4933,7 +4933,7 @@ class Calc_ReferenceEvapotranspiration_V3(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4970,7 +4970,9 @@ class Calc_ReferenceEvapotranspiration_PETModel_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: petinterfaces.PETModel_V1, /
+    ) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialevapotranspiration()
@@ -4990,7 +4992,7 @@ class Calc_ReferenceEvapotranspiration_V4(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.retmodel_typeid == 1:
             model.calc_referenceevapotranspiration_petmodel_v1(
                 cast(petinterfaces.PETModel_V1, model.retmodel)
@@ -5054,7 +5056,7 @@ class Calc_ReferenceEvapotranspiration_V5(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -5110,7 +5112,7 @@ class Calc_PotentialEvapotranspiration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5179,7 +5181,7 @@ class Calc_PotentialEvapotranspiration_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5255,7 +5257,7 @@ class Calc_PotentialEvapotranspiration_V3(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5325,7 +5327,7 @@ class Update_PotentialEvapotranspiration_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -5363,7 +5365,7 @@ class Adjust_ReferenceEvapotranspiration_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -5395,7 +5397,7 @@ class Calc_MeanReferenceEvapotranspiration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.MeanReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5432,7 +5434,7 @@ class Calc_MeanPotentialEvapotranspiration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.MeanPotentialEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5467,7 +5469,9 @@ class Calc_PotentialWaterEvaporation_PETModel_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialWaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: petinterfaces.PETModel_V1, /
+    ) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -5531,7 +5535,9 @@ class Calc_PotentialWaterEvaporation_PETModel_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialWaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V2) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: petinterfaces.PETModel_V2, /
+    ) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialwaterevaporation()
@@ -5552,7 +5558,7 @@ class Calc_PotentialWaterEvaporation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialWaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.petmodel_typeid == 1:
             model.calc_potentialwaterevaporation_petmodel_v1(
                 cast(petinterfaces.PETModel_V1, model.petmodel)
@@ -5612,7 +5618,7 @@ class Calc_WaterEvaporation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5648,7 +5654,7 @@ class Calc_WaterEvaporation_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -5726,7 +5732,7 @@ class Calc_WaterEvaporation_V3(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -5818,7 +5824,7 @@ class Calc_WaterEvaporation_V4(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.WaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
@@ -5869,7 +5875,7 @@ class Update_LoggedWaterEvaporation_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_logs.LoggedWaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5905,7 +5911,7 @@ class Calc_DailyWaterEvaporation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.DailyWaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
@@ -5962,7 +5968,7 @@ class Calc_InterceptionEvaporation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.InterceptionEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -6045,7 +6051,7 @@ class Calc_PotentialInterceptionEvaporation_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -6119,7 +6125,7 @@ class Calc_PotentialInterceptionEvaporation_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -6154,7 +6160,9 @@ class Calc_PotentialInterceptionEvaporation_PETModel_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: petinterfaces.PETModel_V1, /
+    ) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialevapotranspiration()
@@ -6217,7 +6225,9 @@ class Calc_PotentialInterceptionEvaporation_PETModel_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V2) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: petinterfaces.PETModel_V2, /
+    ) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialinterceptionevaporation()
@@ -6240,7 +6250,7 @@ class Calc_PotentialInterceptionEvaporation_V3(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.petmodel_typeid == 1:
             model.calc_potentialinterceptionevaporation_petmodel_v1(
                 cast(petinterfaces.PETModel_V1, model.petmodel)
@@ -6337,7 +6347,7 @@ class Calc_InterceptionEvaporation_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.InterceptionEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -6417,7 +6427,7 @@ class Calc_PotentialSoilEvapotranspiration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -6454,7 +6464,9 @@ class Calc_PotentialSoilEvapotranspiration_PETModel_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: petinterfaces.PETModel_V1, /
+    ) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -6521,7 +6533,9 @@ class Calc_PotentialSoilEvapotranspiration_PETModel_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V2) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: petinterfaces.PETModel_V2, /
+    ) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialsoilevapotranspiration()
@@ -6544,7 +6558,7 @@ class Calc_PotentialSoilEvapotranspiration_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.petmodel_typeid == 1:
             model.calc_potentialsoilevapotranspiration_petmodel_v1(
                 cast(petinterfaces.PETModel_V1, model.petmodel)
@@ -6638,7 +6652,7 @@ class Calc_SoilEvapotranspiration_V1(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -6726,7 +6740,7 @@ class Calc_SoilEvapotranspiration_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -6834,7 +6848,7 @@ class Calc_SoilEvapotranspiration_V3(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -6958,7 +6972,7 @@ class Update_SoilEvapotranspiration_V1(modeltools.Method):
     UPDATEDSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -7016,7 +7030,7 @@ class Update_SoilEvapotranspiration_V2(modeltools.Method):
     RESULTSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -7113,7 +7127,7 @@ class Update_SoilEvapotranspiration_V3(modeltools.Method):
     UPDATEDSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -7135,7 +7149,7 @@ class Determine_PotentialEvapotranspiration_V1(modeltools.Method):
     "run methods"."""
 
     @staticmethod
-    def __call__(model: modeltools.AdHocModel) -> None:
+    def __call__(model: modeltools.AdHocModel, /) -> None:
         model.run()
 
 
@@ -7159,7 +7173,7 @@ class Get_PotentialEvapotranspiration_V1(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.referenceevapotranspiration[k]
@@ -7185,7 +7199,7 @@ class Get_PotentialEvapotranspiration_V2(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.PotentialEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.potentialevapotranspiration[k]
@@ -7207,7 +7221,7 @@ class Get_MeanPotentialEvapotranspiration_V1(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.MeanReferenceEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.meanreferenceevapotranspiration
@@ -7229,7 +7243,7 @@ class Get_MeanPotentialEvapotranspiration_V2(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.MeanPotentialEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.meanpotentialevapotranspiration
@@ -7751,7 +7765,7 @@ class Get_WaterEvaporation_V1(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.WaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.waterevaporation[k]
@@ -7780,7 +7794,7 @@ class Get_PotentialWaterEvaporation_V1(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.DailyWaterEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
@@ -7807,7 +7821,7 @@ class Get_PotentialInterceptionEvaporation_V1(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.PotentialInterceptionEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.potentialinterceptionevaporation[k]
@@ -7833,7 +7847,7 @@ class Get_InterceptionEvaporation_V1(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.InterceptionEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.interceptionevaporation[k]
@@ -7859,7 +7873,7 @@ class Get_PotentialSoilEvapotranspiration_V1(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.PotentialSoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.potentialsoilevapotranspiration[k]
@@ -7885,7 +7899,7 @@ class Get_SoilEvapotranspiration_V1(modeltools.Method):
     REQUIREDSEQUENCES = (evap_fluxes.SoilEvapotranspiration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.soilevapotranspiration[k]

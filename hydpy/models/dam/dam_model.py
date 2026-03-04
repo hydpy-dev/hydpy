@@ -63,7 +63,7 @@ class Calc_Precipitation_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.Precipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
 
         if model.precipmodel is None:
@@ -105,7 +105,7 @@ class Calc_AdjustedPrecipitation_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.AdjustedPrecipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -147,7 +147,7 @@ class Calc_PotentialEvaporation_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.PotentialEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
 
         if model.pemodel is None:
@@ -223,7 +223,7 @@ class Calc_AdjustedEvaporation_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.AdjustedEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -312,7 +312,7 @@ class Calc_ActualEvaporation_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -395,7 +395,7 @@ class Calc_ActualEvaporation_V2(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -481,7 +481,7 @@ class Calc_ActualEvaporation_V3(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -571,7 +571,7 @@ class Calc_ActualEvaporation_WaterVolume_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.ActualEvaporation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -612,7 +612,7 @@ class Pick_Inflow_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.Inflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
         flu.inflow = 0.0
@@ -643,7 +643,7 @@ class Pick_Inflow_V2(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.Inflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
         flu.inflow = inl.s + inl.r
@@ -671,7 +671,7 @@ class Pick_TotalRemoteDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.TotalRemoteDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         rec = model.sequences.receivers.fastaccess
         flu.totalremotedischarge = rec.q
@@ -697,7 +697,7 @@ class Pick_LoggedOuterWaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_logs.LoggedOuterWaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         log.loggedouterwaterlevel[0] = rec.owl
@@ -723,7 +723,7 @@ class Pick_LoggedRemoteWaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_logs.LoggedRemoteWaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         log.loggedremotewaterlevel[0] = rec.rwl
@@ -749,7 +749,7 @@ class Pick_LoggedRequiredRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_logs.LoggedRequiredRemoteRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         log.loggedrequiredremoterelease[0] = rec.d
@@ -775,7 +775,7 @@ class Pick_LoggedRequiredRemoteRelease_V2(modeltools.Method):
     RESULTSEQUENCES = (dam_logs.LoggedRequiredRemoteRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         log.loggedrequiredremoterelease[0] = rec.s
@@ -802,7 +802,7 @@ class Pick_AdditionalRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.AdditionalRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         obs = model.sequences.observers.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.additionalrelease = 0.0
@@ -831,7 +831,7 @@ class Pick_Exchange_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.Exchange,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
         flu.exchange = 0.0
@@ -859,7 +859,7 @@ class Pick_LoggedAllowedRemoteRelief_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_logs.LoggedAllowedRemoteRelief,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         log.loggedallowedremoterelief[0] = rec.r
@@ -899,7 +899,7 @@ class Update_LoggedTotalRemoteDischarge_V1(modeltools.Method):
     UPDATEDSEQUENCES = (dam_logs.LoggedTotalRemoteDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -956,7 +956,7 @@ class Calc_WaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_factors.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         new = model.sequences.states.fastaccess_new
         fac = model.sequences.factors.fastaccess
@@ -985,7 +985,7 @@ class Calc_OuterWaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_factors.OuterWaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         fac.outerwaterlevel = log.loggedouterwaterlevel[0]
@@ -1011,7 +1011,7 @@ class Calc_RemoteWaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_factors.RemoteWaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         fac.remotewaterlevel = log.loggedremotewaterlevel[0]
@@ -1035,7 +1035,7 @@ class Calc_WaterLevelDifference_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_factors.WaterLevelDifference,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         fac.waterleveldifference = fac.waterlevel - fac.outerwaterlevel
 
@@ -1172,7 +1172,7 @@ class Calc_EffectiveWaterLevelDifference_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_factors.EffectiveWaterLevelDifference,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1248,7 +1248,7 @@ class Calc_SurfaceArea_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_aides.SurfaceArea,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         new = model.sequences.states.fastaccess_new
         aid = model.sequences.aides.fastaccess
@@ -1355,7 +1355,7 @@ class Calc_AllowedRemoteRelief_V2(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.AllowedRemoteRelief,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1443,7 +1443,7 @@ class Calc_RequiredRemoteSupply_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.RequiredRemoteSupply,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1497,7 +1497,7 @@ class Calc_NaturalRemoteDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.NaturalRemoteDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1587,7 +1587,7 @@ class Calc_RemoteDemand_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.RemoteDemand,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1656,7 +1656,7 @@ class Calc_RemoteFailure_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.RemoteFailure,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1764,7 +1764,7 @@ class Calc_RequiredRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.RequiredRemoteRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1796,7 +1796,7 @@ class Calc_RequiredRemoteRelease_V2(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.RequiredRemoteRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         flu.requiredremoterelease = log.loggedrequiredremoterelease[0]
@@ -1822,7 +1822,7 @@ class Calc_AllowedRemoteRelief_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.AllowedRemoteRelief,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
         flu.allowedremoterelief = log.loggedallowedremoterelief[0]
@@ -1929,7 +1929,7 @@ class Calc_RequiredRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.RequiredRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1990,7 +1990,7 @@ class Calc_RequiredRelease_V2(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.RequiredRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2054,7 +2054,7 @@ class Calc_PossibleRemoteRelief_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.PossibleRemoteRelief,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2248,7 +2248,7 @@ class Calc_ActualRemoteRelief_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.ActualRemoteRelief,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.actualremoterelief = model.fix_min1_v1(
@@ -2560,7 +2560,7 @@ class Calc_TargetedRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.TargetedRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2706,7 +2706,7 @@ class Calc_ActualRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2812,7 +2812,7 @@ class Calc_ActualRelease_V2(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -3539,7 +3539,7 @@ class Calc_ActualRelease_V3(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.ActualRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3628,7 +3628,7 @@ class Calc_MissingRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.MissingRemoteRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.missingremoterelease = max(
             flu.requiredremoterelease - flu.actualrelease, 0.0
@@ -3722,7 +3722,7 @@ class Calc_ActualRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.ActualRemoteRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -3811,7 +3811,7 @@ class Update_ActualRemoteRelief_V1(modeltools.Method):
     UPDATEDSEQUENCES = (dam_fluxes.ActualRemoteRelief,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3911,7 +3911,7 @@ class Update_ActualRemoteRelease_V1(modeltools.Method):
     UPDATEDSEQUENCES = (dam_fluxes.ActualRemoteRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4011,7 +4011,7 @@ class Calc_FloodDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.FloodDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -4075,7 +4075,7 @@ class Calc_MaxForcedDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.MaxForcedDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -4140,7 +4140,7 @@ class Calc_MaxFreeDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.MaxFreeDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -4314,7 +4314,7 @@ class Calc_ForcedDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.ForcedDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -4528,7 +4528,7 @@ class Calc_FreeDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.FreeDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -4573,7 +4573,7 @@ class Calc_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.outflow = max(flu.actualrelease + flu.flooddischarge, 0.0)
 
@@ -4615,7 +4615,7 @@ class Calc_AllowedDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_aides.AllowedDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4709,7 +4709,7 @@ class Calc_AllowedDischarge_V2(modeltools.Method):
     RESULTSEQUENCES = (dam_aides.AllowedDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -4761,7 +4761,7 @@ class Calc_AllowedWaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_aides.AllowedWaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -4860,7 +4860,7 @@ class Calc_AllowedDischarge_V3(modeltools.Method):
     RESULTSEQUENCES = (dam_aides.AllowedDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -4932,7 +4932,7 @@ class Calc_SafeRelease_V1(modeltools.Method):
     SUBMODELINTERFACES = (exchangeinterfaces.ExchangeModel_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5060,7 +5060,7 @@ class Calc_AimedRelease_WaterVolume_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.AimedRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5152,7 +5152,7 @@ class Calc_UnavoidableRelease_WaterVolume_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.UnavoidableRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5308,7 +5308,7 @@ class Calc_Outflow_V2(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5346,7 +5346,7 @@ class Calc_Outflow_V3(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.outflow = flu.forceddischarge
 
@@ -5371,7 +5371,7 @@ class Calc_Outflow_V4(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.outflow = flu.freedischarge
 
@@ -5397,7 +5397,7 @@ class Calc_Outflow_V5(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.outflow = flu.freedischarge + flu.forceddischarge
 
@@ -5464,7 +5464,7 @@ class Calc_Outflow_WaterVolume_V6(modeltools.Method):
     UPDATEDSEQUENCES = (dam_fluxes.Outflow, dam_states.WaterVolume)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5561,7 +5561,7 @@ class Calc_Outflow_V7(modeltools.Method):
     RESULTSEQUENCES = (dam_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if model.idx_sim < con.commission:
@@ -5604,7 +5604,7 @@ class Update_WaterVolume_V1(modeltools.Method):
     UPDATEDSEQUENCES = (dam_states.WaterVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -5648,7 +5648,7 @@ class Update_WaterVolume_V2(modeltools.Method):
     UPDATEDSEQUENCES = (dam_states.WaterVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -5699,7 +5699,7 @@ class Update_WaterVolume_V3(modeltools.Method):
     UPDATEDSEQUENCES = (dam_states.WaterVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -5748,7 +5748,7 @@ class Update_WaterVolume_V4(modeltools.Method):
     UPDATEDSEQUENCES = (dam_states.WaterVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -5781,7 +5781,7 @@ class Update_WaterVolume_V5(modeltools.Method):
     UPDATEDSEQUENCES = (dam_states.WaterVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -5813,7 +5813,7 @@ class Pass_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_outlets.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.q = flu.outflow
@@ -5839,7 +5839,7 @@ class Pass_ActualRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_outlets.S,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.s = flu.actualremoterelease
@@ -5865,7 +5865,7 @@ class Pass_ActualRemoteRelief_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_outlets.R,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.r = flu.actualremoterelief
@@ -5891,7 +5891,7 @@ class Pass_MissingRemoteRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_senders.D,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sen = model.sequences.senders.fastaccess
         sen.d = flu.missingremoterelease
@@ -5917,7 +5917,7 @@ class Pass_AllowedRemoteRelief_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_senders.R,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sen = model.sequences.senders.fastaccess
         sen.r = flu.allowedremoterelief
@@ -5943,7 +5943,7 @@ class Pass_RequiredRemoteSupply_V1(modeltools.Method):
     RESULTSEQUENCES = (dam_senders.S,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sen = model.sequences.senders.fastaccess
         sen.s = flu.requiredremotesupply
@@ -5984,7 +5984,7 @@ class Update_LoggedOutflow_V1(modeltools.Method):
     UPDATEDSEQUENCES = (dam_logs.LoggedOutflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -6019,7 +6019,7 @@ class Return_WaterLevelError_V1(modeltools.Method):
     REQUIREDSEQUENCES = (dam_aides.AllowedWaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, watervolume: float) -> float:
+    def __call__(model: modeltools.Model, watervolume: float, /) -> float:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
 

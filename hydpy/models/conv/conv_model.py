@@ -35,7 +35,7 @@ class Pick_Inputs_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.Inputs,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -87,7 +87,7 @@ class Calc_Outputs_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.Outputs,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -231,7 +231,7 @@ class Calc_ActualConstant_ActualFactor_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.ActualConstant, conv_fluxes.ActualFactor)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -291,7 +291,7 @@ class Calc_InputPredictions_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.InputPredictions,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -327,7 +327,7 @@ class Calc_OutputPredictions_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.OutputPredictions,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -361,7 +361,7 @@ class Calc_InputResiduals_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.InputResiduals,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmbinputs):
@@ -384,7 +384,7 @@ class Interpolate_InverseDistance_V1(modeltools.Method):
     RESULTSEQUENCES = ()
 
     @staticmethod
-    def __call__(model: modeltools.Model, inputs: Vector, outputs: Vector) -> None:
+    def __call__(model: modeltools.Model, inputs: Vector, outputs: Vector, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         for idx_out in range(der.nmboutputs):
@@ -476,7 +476,7 @@ class Calc_Outputs_V2(modeltools.Method):
     SUBMETHODS = (Interpolate_InverseDistance_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         model.interpolate_inversedistance_v1(flu.inputs, flu.outputs)
 
@@ -522,7 +522,7 @@ class Calc_OutputResiduals_V1(modeltools.Method):
     SUBMETHODS = (Interpolate_InverseDistance_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         model.interpolate_inversedistance_v1(flu.inputresiduals, flu.outputresiduals)
 
@@ -552,7 +552,7 @@ class Calc_Outputs_V3(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.Outputs,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmboutputs):
@@ -579,7 +579,7 @@ class Pass_Outputs_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_outlets.Outputs,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         out = model.sequences.outlets.fastaccess
         flu = model.sequences.fluxes.fastaccess

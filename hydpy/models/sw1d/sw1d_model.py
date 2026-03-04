@@ -51,7 +51,7 @@ class Pick_Inflow_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_fluxes.Inflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.inflow = 0.0
@@ -77,7 +77,7 @@ class Pick_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.outflow = 0.0
@@ -103,7 +103,7 @@ class Pick_LateralFlow_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_fluxes.LateralFlow,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.lateralflow = 0.0
@@ -128,7 +128,7 @@ class Pick_WaterLevelDownstream_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterLevelDownstream,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         inl = model.sequences.inlets.fastaccess
         fac = model.sequences.factors.fastaccess
         fac.waterleveldownstream = inl.waterlevel
@@ -158,7 +158,7 @@ class Pass_Discharge_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_outlets.LongQ,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         out = model.sequences.outlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -185,7 +185,7 @@ class Pass_WaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_senders.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         fac = model.sequences.factors.fastaccess
         sen = model.sequences.senders.fastaccess
         for i in range(sen.len_waterlevel):
@@ -230,7 +230,7 @@ class Calc_MaxTimeStep_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.MaxTimeStep,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -285,7 +285,7 @@ class Calc_MaxTimeStep_V2(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.MaxTimeStep,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -348,7 +348,7 @@ class Calc_MaxTimeStep_V3(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.MaxTimeStep,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -404,7 +404,7 @@ class Calc_MaxTimeStep_V4(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.MaxTimeStep,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -518,7 +518,7 @@ class Calc_MaxTimeStep_V5(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.MaxTimeStep,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -581,7 +581,7 @@ class Calc_MaxTimeStep_V6(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.MaxTimeStep,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -623,7 +623,7 @@ class Calc_MaxTimeSteps_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
@@ -674,7 +674,7 @@ class Calc_TimeStep_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.TimeStep,)
 
     @staticmethod
-    def __call__(model: modeltools.SubstepModel) -> None:
+    def __call__(model: modeltools.SubstepModel, /) -> None:
         fac = model.sequences.factors.fastaccess
 
         fac.timestep = modelutils.inf
@@ -722,7 +722,7 @@ class Send_TimeStep_V1(modeltools.Method):
     REQUIREDSEQUENCES = (sw1d_factors.TimeStep,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
 
         for i in range(model.routingmodels.number):
@@ -757,7 +757,7 @@ class Calc_WaterLevelUpstream_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterLevelUpstream,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         if model.storagemodelupstream_typeid == 1:
             fac.waterlevelupstream = cast(
@@ -785,7 +785,7 @@ class Calc_WaterLevelDownstream_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterLevelDownstream,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         if model.storagemodeldownstream_typeid == 1:
             fac.waterleveldownstream = cast(
@@ -813,7 +813,7 @@ class Calc_WaterVolumeUpstream_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterVolumeUpstream,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         if model.storagemodelupstream_typeid == 1:
             fac.watervolumeupstream = cast(
@@ -841,7 +841,7 @@ class Calc_WaterVolumeDownstream_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterVolumeDownstream,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         if model.storagemodeldownstream_typeid == 1:
             fac.watervolumedownstream = cast(
@@ -880,7 +880,7 @@ class Calc_WaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         w: float = der.weightupstream
@@ -909,7 +909,7 @@ class Calc_WaterLevel_V2(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         fac.waterlevel = fac.waterleveldownstream
 
@@ -934,7 +934,7 @@ class Calc_WaterLevel_V3(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         fac.waterlevel = fac.waterlevelupstream
 
@@ -963,7 +963,7 @@ class Calc_WaterLevel_V4(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         fac.waterlevel = (fac.waterlevelupstream + fac.waterleveldownstream) / 2.0
 
@@ -1019,7 +1019,7 @@ class Calc_WaterDepth_WaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterDepth, sw1d_factors.WaterLevel)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.crosssection_typeid == 2:
             model.calc_waterdepth_waterlevel_crosssectionmodel_v2(
                 cast(routinginterfaces.CrossSectionModel_V2, model.crosssection)
@@ -1072,7 +1072,7 @@ class Calc_WaterDepth_WettedArea_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterDepth, sw1d_factors.WettedArea)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.crosssection_typeid == 2:
             model.calc_waterdepth_wettedarea_crosssectionmodel_v2(
                 cast(routinginterfaces.CrossSectionModel_V2, model.crosssection)
@@ -1141,7 +1141,7 @@ class Calc_WaterDepth_WettedArea_WettedPerimeter_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.crosssection_typeid == 2:
             model.calc_waterdepth_wettedarea_wettedperimeter_crosssectionmodel_v2(
                 cast(routinginterfaces.CrossSectionModel_V2, model.crosssection)
@@ -1202,7 +1202,7 @@ class Calc_DischargeUpstream_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_fluxes.DischargeUpstream,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
@@ -1268,7 +1268,7 @@ class Calc_DischargeDownstream_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_fluxes.DischargeDownstream,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
 
@@ -1400,7 +1400,7 @@ class Calc_Discharge_V1(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -1478,7 +1478,7 @@ class Calc_Discharge_V2(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1668,7 +1668,7 @@ class Calc_Discharge_V3(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1784,7 +1784,7 @@ class Calc_Discharge_V4(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1861,7 +1861,7 @@ class Update_Discharge_V1(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
         if sta.discharge > 0.0:
@@ -2102,7 +2102,7 @@ class Update_Discharge_V2(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2153,7 +2153,7 @@ class Reset_DischargeVolume_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_fluxes.DischargeVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.dischargevolume = 0.0
 
@@ -2180,7 +2180,7 @@ class Update_DischargeVolume_V1(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2210,7 +2210,7 @@ class Calc_DischargeVolume_V1(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.dischargevolume = der.seconds * flu.inflow
@@ -2239,7 +2239,7 @@ class Calc_DischargeVolume_V2(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.dischargevolume = der.seconds * flu.outflow
@@ -2279,7 +2279,7 @@ class Calc_Discharges_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         for i in range(model.routingmodels.number):
             if model.routingmodels.typeids[i] in (1, 2, 3):
                 cast(
@@ -2317,7 +2317,7 @@ class Calc_Discharges_V2(modeltools.Method):
     RESULTSEQUENCES = (sw1d_fluxes.Discharges,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
@@ -2389,7 +2389,7 @@ class Calc_NetInflow_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_fluxes.NetInflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.netinflow = flu.lateralflow
@@ -2424,7 +2424,7 @@ class Update_WaterVolume_V1(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_states.WaterVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         sta.watervolume += flu.netinflow
@@ -2456,7 +2456,7 @@ class Update_Storages_V1(modeltools.Method):
     SUBMODELINTERFACES = (routinginterfaces.StorageModel_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         for i in range(model.storagemodels.number):
             if model.storagemodels.typeids[i] == 1:
                 cast(
@@ -2486,7 +2486,7 @@ class Query_WaterLevels_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.WaterLevels,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
 
         for i in range(model.storagemodels.number):
@@ -2674,7 +2674,7 @@ class Determine_Discharge_V2(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         sta.discharge = flu.inflow
@@ -2701,7 +2701,7 @@ class Determine_Discharge_V4(modeltools.Method):
     UPDATEDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         sta.discharge = flu.outflow
@@ -2790,7 +2790,7 @@ class Get_WaterVolume_V1(modeltools.Method):
     REQUIREDSEQUENCES = (sw1d_states.WaterVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         sta = model.sequences.states.fastaccess
         return sta.watervolume
 
@@ -2801,7 +2801,7 @@ class Get_WaterLevel_V1(modeltools.Method):
     REQUIREDSEQUENCES = (sw1d_factors.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
         return fac.waterlevel
 
@@ -2812,7 +2812,7 @@ class Get_Discharge_V1(modeltools.Method):
     REQUIREDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         sta = model.sequences.states.fastaccess
         return sta.discharge
 
@@ -2823,7 +2823,7 @@ class Get_DischargeVolume_V1(modeltools.Method):
     REQUIREDSEQUENCES = (sw1d_fluxes.DischargeVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         flu = model.sequences.fluxes.fastaccess
         return flu.dischargevolume
 
@@ -2835,7 +2835,7 @@ class Get_MaxTimeStep_V1(modeltools.Method):
     REQUIREDSEQUENCES = (sw1d_factors.MaxTimeStep,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
         return fac.maxtimestep
 
@@ -2846,7 +2846,7 @@ class Set_TimeStep_V1(modeltools.Method):
     RESULTSEQUENCES = (sw1d_factors.TimeStep,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, timestep: float) -> None:
+    def __call__(model: modeltools.Model, timestep: float, /) -> None:
         fac = model.sequences.factors.fastaccess
         fac.timestep = timestep
 
@@ -2928,7 +2928,7 @@ class Get_PartialDischargeUpstream_V1(modeltools.Method):
     REQUIREDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, clientdischarge: float) -> float:
+    def __call__(model: modeltools.Model, clientdischarge: float, /) -> float:
         sta = model.sequences.states.fastaccess
 
         dischargedownstream: float = 0.0
@@ -3021,7 +3021,7 @@ class Get_PartialDischargeDownstream_V1(modeltools.Method):
     REQUIREDSEQUENCES = (sw1d_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, clientdischarge: float) -> float:
+    def __call__(model: modeltools.Model, clientdischarge: float, /) -> float:
         sta = model.sequences.states.fastaccess
 
         dischargeupstream: float = 0.0

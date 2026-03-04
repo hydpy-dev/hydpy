@@ -36,7 +36,7 @@ class Pick_LoggedWaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_logs.LoggedWaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         log.loggedwaterlevel[0] = rec.waterlevel
@@ -63,7 +63,7 @@ class Pick_LoggedWaterLevels_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_logs.LoggedWaterLevels,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
         for idx in range(2):
@@ -92,7 +92,7 @@ class Pick_X_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_factors.X,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         obs = model.sequences.observers.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -122,7 +122,7 @@ class Update_WaterLevels_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_factors.WaterLevels,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
         for idx in range(2):
@@ -179,7 +179,7 @@ class Calc_DeltaWaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_factors.DeltaWaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         d_wl0 = max(fac.waterlevels[0], con.crestheight)
@@ -225,7 +225,7 @@ class Calc_PotentialExchange_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_fluxes.PotentialExchange,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -280,7 +280,7 @@ class Calc_ActualExchange_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_fluxes.ActualExchange,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if flu.potentialexchange >= 0.0:
@@ -310,7 +310,7 @@ class Pass_ActualExchange_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_outlets.Exchange,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.exchange[0] = -flu.actualexchange
@@ -338,7 +338,7 @@ class Pick_OriginalInput_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_fluxes.OriginalInput,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
         flu.originalinput = 0.0
@@ -397,7 +397,7 @@ class Calc_AdjustedInput_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_fluxes.AdjustedInput,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -469,7 +469,7 @@ class Calc_Outputs_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_fluxes.Outputs,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -507,7 +507,7 @@ class Calc_Y_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_factors.Y,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -540,7 +540,7 @@ class Pass_Outputs_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_outlets.Branched,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
@@ -569,7 +569,7 @@ class Pass_Y_V1(modeltools.Method):
     RESULTSEQUENCES = (exch_senders.Y,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         sen = model.sequences.senders.fastaccess
         for i in range(sen.len_y):
@@ -592,7 +592,7 @@ class Get_WaterLevel_V1(modeltools.Method):
     REQUIREDSEQUENCES = (exch_logs.LoggedWaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         log = model.sequences.logs.fastaccess
         return log.loggedwaterlevel[0]
 
@@ -619,7 +619,7 @@ class Get_Y_V1(modeltools.Method):
     REQUIREDSEQUENCES = (exch_factors.Y,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.y

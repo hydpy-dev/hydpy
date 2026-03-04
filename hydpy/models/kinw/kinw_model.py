@@ -50,7 +50,7 @@ class Pick_Q_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_fluxes.QZ,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
         flu.qz = 0.0
@@ -79,7 +79,7 @@ class Pick_Inflow_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_fluxes.Inflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
@@ -99,7 +99,7 @@ class Calc_QZA_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_fluxes.QZA,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.qza = flu.qz
 
@@ -139,7 +139,7 @@ class Calc_RHM_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.RHM,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -198,7 +198,7 @@ class Calc_RHMDH_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.RHMDH,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -237,7 +237,7 @@ class Calc_RHV_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.RHV,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -297,7 +297,7 @@ class Calc_RHVDH_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.RHVDH,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -341,7 +341,7 @@ class Calc_RHLVR_RHRVR_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.RHLVR, kinw_aides.RHRVR)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -413,7 +413,7 @@ class Calc_RHLVRDH_RHRVRDH_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.RHLVRDH, kinw_aides.RHRVRDH)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -514,7 +514,7 @@ class Calc_AM_UM_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.AM, kinw_aides.UM)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -616,7 +616,7 @@ class Calc_AMDH_UMDH_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.AMDH, kinw_aides.UMDH)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -762,7 +762,7 @@ class Calc_ALV_ARV_ULV_URV_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.ALV, kinw_aides.ARV, kinw_aides.ULV, kinw_aides.URV)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -919,7 +919,7 @@ class Calc_ALVDH_ARVDH_ULVDH_URVDH_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1061,7 +1061,7 @@ class Calc_ALVR_ARVR_ULVR_URVR_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1192,7 +1192,7 @@ class Calc_ALVRDH_ARVRDH_ULVRDH_URVRDH_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1230,7 +1230,7 @@ class Calc_QM_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.QM,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1270,7 +1270,7 @@ class Calc_QM_V2(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.QM,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
@@ -1343,7 +1343,7 @@ class Calc_QMDH_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.QMDH,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1395,7 +1395,7 @@ class Calc_QLV_QRV_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.QLV, kinw_aides.QRV)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1454,7 +1454,7 @@ class Calc_QLV_QRV_V2(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.QLV, kinw_aides.QRV)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
@@ -1546,7 +1546,7 @@ class Calc_QLVDH_QRVDH_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.QLVDH, kinw_aides.QRVDH)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1617,7 +1617,7 @@ class Calc_QLVR_QRVR_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.QLVR, kinw_aides.QRVR)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1676,7 +1676,7 @@ class Calc_QLVR_QRVR_V2(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.QLVR, kinw_aides.QRVR)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
@@ -1764,7 +1764,7 @@ class Calc_QLVRDH_QRVRDH_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.QLVRDH, kinw_aides.QRVRDH)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1829,7 +1829,7 @@ class Calc_AG_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.AG,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
@@ -1868,7 +1868,7 @@ class Calc_QG_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_fluxes.QG,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1927,7 +1927,7 @@ class Calc_QG_V2(modeltools.Method):
     RESULTSEQUENCES = (kinw_fluxes.QG,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1999,7 +1999,7 @@ class Calc_WBM_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.WBM,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -2096,7 +2096,7 @@ class Calc_WBLV_WBRV_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.WBLV, kinw_aides.WBRV)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
@@ -2184,7 +2184,7 @@ class Calc_WBLVR_WBRVR_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.WBLVR, kinw_aides.WBRVR)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
@@ -2224,7 +2224,7 @@ class Calc_WBG_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_aides.WBG,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
         for i in range(con.gts):
@@ -2258,7 +2258,7 @@ class Calc_DH_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_fluxes.DH,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -2296,7 +2296,7 @@ class Update_H_V1(modeltools.Method):
     UPDATEDSEQUENCES = (kinw_states.H,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2332,7 +2332,7 @@ class Update_VG_V1(modeltools.Method):
     UPDATEDSEQUENCES = (kinw_states.VG,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2369,7 +2369,7 @@ class Calc_QA_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_fluxes.QA,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if con.gts > 0:
@@ -2414,7 +2414,7 @@ class Update_WaterVolume_V1(modeltools.Method):
     UPDATEDSEQUENCES = (kinw_states.WaterVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         old = model.sequences.states.fastaccess_old
         flu = model.sequences.fluxes.fastaccess
@@ -2483,7 +2483,7 @@ class Return_InitialWaterVolume_V1(modeltools.Method):
     DERIVEDPARAMETERS = (kinw_derived.Seconds,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, waterdepth: float) -> float:
+    def __call__(model: modeltools.Model, waterdepth: float, /) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
 
@@ -2545,7 +2545,7 @@ class Return_VolumeError_V1(modeltools.Method):
     SUBMETHODS = (Return_InitialWaterVolume_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, waterdepth: float) -> float:
+    def __call__(model: modeltools.Model, waterdepth: float, /) -> float:
         old = model.sequences.states.fastaccess_old
 
         v: float = old.watervolume[model.idx_segment]
@@ -2713,7 +2713,7 @@ class Calc_WaterDepth_V1(modeltools.Method):
     SUBMETHODS = (Return_VolumeError_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         sol = model.parameters.solver.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -2793,7 +2793,7 @@ class Update_WaterVolume_V2(modeltools.Method):
     UPDATEDSEQUENCES = (kinw_states.WaterVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         new = model.sequences.states.fastaccess_new
         fac = model.sequences.factors.fastaccess
@@ -2839,7 +2839,7 @@ class Calc_InternalFlow_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_fluxes.InternalFlow, kinw_fluxes.Outflow)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2887,7 +2887,7 @@ class Calc_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
@@ -2912,7 +2912,7 @@ class Pass_Q_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_outlets.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
 
@@ -2936,7 +2936,7 @@ class Pass_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (kinw_outlets.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
 
@@ -3116,7 +3116,7 @@ class Return_QF_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, h: float) -> float:
+    def __call__(model: modeltools.Model, h: float, /) -> float:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         d_qg = flu.qg[0]
@@ -3321,7 +3321,7 @@ class Return_H_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         con = model.parameters.control.fastaccess
         return model.pegasush.find_x(0.0, 2.0 * con.hm, -10.0, 1000.0, 0.0, 1e-10, 1000)
 

@@ -32,7 +32,7 @@ class Pick_Q_V1(modeltools.Method):
     RESULTSEQUENCES = (dummy_fluxes.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
         flu.q = 0.0
@@ -60,7 +60,7 @@ class Pass_Q_V1(modeltools.Method):
     RESULTSEQUENCES = (dummy_outlets.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.q = flu.q
@@ -85,7 +85,7 @@ class Get_InterceptedWater_V1(modeltools.Method):
     REQUIREDSEQUENCES = (dummy_inputs.InterceptedWater,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.interceptedwater[k]
@@ -110,7 +110,7 @@ class Get_SoilWater_V1(modeltools.Method):
     REQUIREDSEQUENCES = (dummy_inputs.SoilWater,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.soilwater[k]
@@ -135,7 +135,7 @@ class Get_SnowCover_V1(modeltools.Method):
     REQUIREDSEQUENCES = (dummy_inputs.SnowCover,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.snowcover[k]
@@ -161,7 +161,7 @@ class Get_SnowyCanopy_V1(modeltools.Method):
     REQUIREDSEQUENCES = (dummy_inputs.SnowyCanopy,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.snowycanopy[k]
@@ -186,7 +186,7 @@ class Get_SnowAlbedo_V1(modeltools.Method):
     REQUIREDSEQUENCES = (dummy_inputs.SnowAlbedo,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.snowalbedo[k]

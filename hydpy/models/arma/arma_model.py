@@ -81,7 +81,7 @@ class Calc_QPIn_V1(modeltools.Method):
     RESULTSEQUENCES = (arma_fluxes.QPIn,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmb - 1):
@@ -146,7 +146,7 @@ class Update_LogIn_V1(modeltools.Method):
     UPDATEDSEQUENCES = (arma_logs.LogIn,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -204,7 +204,7 @@ class Calc_QMA_V1(modeltools.Method):
     RESULTSEQUENCES = (arma_fluxes.QMA,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -265,7 +265,7 @@ class Calc_QAR_V1(modeltools.Method):
     RESULTSEQUENCES = (arma_fluxes.QAR,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -305,7 +305,7 @@ class Calc_QPOut_V1(modeltools.Method):
     RESULTSEQUENCES = (arma_fluxes.QPOut,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmb):
@@ -363,7 +363,7 @@ class Update_LogOut_V1(modeltools.Method):
     UPDATEDSEQUENCES = (arma_logs.LogOut,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -401,7 +401,7 @@ class Calc_QOut_V1(modeltools.Method):
     RESULTSEQUENCES = (arma_fluxes.QOut,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.qout = 0.0
@@ -427,7 +427,7 @@ class Pick_Q_V1(modeltools.Method):
     RESULTSEQUENCES = (arma_fluxes.QIn,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         inl = model.sequences.inlets.fastaccess
         flu.qin = 0.0
@@ -452,7 +452,7 @@ class Pass_Q_V1(modeltools.Method):
     RESULTSEQUENCES = (arma_outlets.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.q = flu.qout

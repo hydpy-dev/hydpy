@@ -82,7 +82,7 @@ class AutoMethod(Method):
     order without passing any arguments or other customisations."""
 
     @classmethod
-    def __call__(cls, model: Model) -> None:
+    def __call__(cls, model: Model, /) -> None:
         for method in cls.SUBMETHODS:
             method.__call__(model)
 
@@ -124,12 +124,12 @@ class ReusableMethod(Method):
         cls.REUSEMARKER = f"__hydpy_reuse_{cls.__name__.lower()}__"
 
     @classmethod
-    def call_reusablemethod(cls, model: Model, *args, **kwargs) -> None:
+    def call_reusablemethod(cls, model: Model, *args) -> None:
         """Execute the "normal" model-specific `__call__` method only when indicated by
         the |ReusableMethod.REUSEMARKER| attribute and update this attribute when
         necessary."""
         if not getattr(model, cls.REUSEMARKER):
-            cls.__call__(model, *args, **kwargs)
+            cls.__call__(model, *args)
             setattr(model, cls.REUSEMARKER, True)
 
 

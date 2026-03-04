@@ -25,7 +25,7 @@ class Pick_Inflow_V1(modeltools.Method):
     RESULTSEQUENCES = (musk_fluxes.Inflow,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.inflow = 0.0
@@ -66,7 +66,7 @@ class Adjust_Inflow_V1(modeltools.Method):
     UPDATEDSEQUENCES = (musk_fluxes.Inflow,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         sol = model.parameters.solver.fastaccess
         flu = model.sequences.fluxes.fastaccess
         if flu.inflow < 0.0:
@@ -94,7 +94,7 @@ class Update_Discharge_V1(modeltools.Method):
     UPDATEDSEQUENCES = (musk_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         sta.discharge[0] = flu.inflow
@@ -177,7 +177,7 @@ class Calc_Discharge_V1(modeltools.Method):
     UPDATEDSEQUENCES = (musk_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         new = model.sequences.states.fastaccess_new
         old = model.sequences.states.fastaccess_old
@@ -244,7 +244,7 @@ class Calc_ReferenceDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (musk_fluxes.ReferenceDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
@@ -305,7 +305,7 @@ class Return_ReferenceDischargeError_V1(modeltools.Method):
     REQUIREDSEQUENCES = (musk_fluxes.ReferenceDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel, waterdepth: float) -> float:
+    def __call__(model: modeltools.SegmentModel, waterdepth: float, /) -> float:
         flu = model.sequences.fluxes.fastaccess
         i = model.idx_segment
         return (
@@ -382,7 +382,7 @@ class Calc_ReferenceWaterDepth_V1(modeltools.Method):
     RESULTSEQUENCES = (musk_factors.ReferenceWaterDepth,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         sol = model.parameters.solver.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -465,7 +465,7 @@ class Calc_WettedArea_SurfaceWidth_Celerity_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         if model.wqmodel_typeid == 1:
             model.calc_wettedarea_surfacewidth_celerity_crosssectionmodel_v1(
                 cast(routinginterfaces.CrossSectionModel_V1, model.wqmodel)
@@ -502,7 +502,7 @@ class Calc_CorrectingFactor_V1(modeltools.Method):
     RESULTSEQUENCES = (musk_factors.CorrectingFactor,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         i = model.idx_segment
@@ -548,7 +548,7 @@ class Calc_CourantNumber_V1(modeltools.Method):
     RESULTSEQUENCES = (musk_states.CourantNumber,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -599,7 +599,7 @@ class Calc_ReynoldsNumber_V1(modeltools.Method):
     RESULTSEQUENCES = (musk_states.ReynoldsNumber,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -694,7 +694,7 @@ class Calc_Coefficient1_Coefficient2_Coefficient3_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         fac = model.sequences.factors.fastaccess
         new = model.sequences.states.fastaccess_new
         old = model.sequences.states.fastaccess_old
@@ -792,7 +792,7 @@ class Calc_Discharge_V2(modeltools.Method):
     UPDATEDSEQUENCES = (musk_states.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         fac = model.sequences.factors.fastaccess
         new = model.sequences.states.fastaccess_new
         old = model.sequences.states.fastaccess_old
@@ -830,7 +830,7 @@ class Calc_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (musk_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess_new
@@ -844,7 +844,7 @@ class Pass_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (musk_outlets.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.q = flu.outflow

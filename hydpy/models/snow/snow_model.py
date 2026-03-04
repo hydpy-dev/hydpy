@@ -138,7 +138,7 @@ class Calc_PLayer_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_fluxes.PLayer,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -198,7 +198,7 @@ class Return_T_V1(modeltools.Method):
     DERIVEDPARAMETERS = (snow_derived.DOY, snow_derived.ZMean)
 
     @staticmethod
-    def __call__(model: modeltools.Model, t: float, k: int, g: MatrixFloat) -> float:
+    def __call__(model: modeltools.Model, t: float, k: int, g: MatrixFloat, /) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
 
@@ -248,7 +248,7 @@ class Calc_TLayer_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_factors.TLayer,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -300,7 +300,7 @@ class Calc_TMinLayer_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_factors.TMinLayer,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -352,7 +352,7 @@ class Calc_TMaxLayer_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_factors.TMaxLayer,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -391,7 +391,7 @@ class Calc_SolidFractionPrecipitation_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_factors.SolidFractionPrecipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -480,7 +480,7 @@ class Calc_SolidFractionPrecipitation_V2(modeltools.Method):
     RESULTSEQUENCES = (snow_factors.SolidFractionPrecipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -531,7 +531,7 @@ class Calc_PRainLayer_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_fluxes.PRainLayer,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -564,7 +564,7 @@ class Calc_PSnowLayer_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_fluxes.PSnowLayer,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -597,7 +597,7 @@ class Update_G_V1(modeltools.Method):
     UPDATEDSEQUENCES = (snow_states.G,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -635,7 +635,7 @@ class Calc_ETG_V1(modeltools.Method):
     UPDATEDSEQUENCES = (snow_states.ETG,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         sta = model.sequences.states.fastaccess
@@ -686,7 +686,7 @@ class Calc_PotMelt_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_fluxes.PotMelt,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -730,7 +730,7 @@ class Calc_GRatio_V1(modeltools.Method):
     UPDATEDSEQUENCES = (snow_states.GRatio,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -789,7 +789,7 @@ class Update_GRatio_GLocalMax_V1(modeltools.Method):
     UPDATEDSEQUENCES = (snow_states.GRatio, snow_logs.GLocalMax)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -852,7 +852,7 @@ class Calc_Melt_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_fluxes.Melt,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fix = model.parameters.fixed.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -887,7 +887,7 @@ class Update_G_V2(modeltools.Method):
     UPDATEDSEQUENCES = (snow_states.G,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -959,7 +959,7 @@ class Update_GRatio_GLocalMax_V2(modeltools.Method):
     UPDATEDSEQUENCES = (snow_states.GRatio, snow_logs.GLocalMax)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1000,7 +1000,7 @@ class Calc_PNetLayer_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_fluxes.PNetLayer,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
@@ -1034,7 +1034,7 @@ class Calc_PNet_V1(modeltools.Method):
     RESULTSEQUENCES = (snow_fluxes.PNet,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
 

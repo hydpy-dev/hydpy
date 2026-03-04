@@ -93,7 +93,7 @@ class Calc_EarthSunDistance_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.EarthSunDistance,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fix = model.parameters.fixed.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -169,7 +169,7 @@ class Calc_SolarDeclination_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.SolarDeclination,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fix = model.parameters.fixed.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -233,7 +233,7 @@ class Calc_SolarDeclination_V2(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.SolarDeclination,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -268,7 +268,7 @@ class Calc_SunsetHourAngle_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.SunsetHourAngle,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         fac.sunsethourangle = modelutils.acos(
@@ -334,7 +334,7 @@ class Calc_SolarTimeAngle_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.SolarTimeAngle,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fix = model.parameters.fixed.fastaccess
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
@@ -403,7 +403,7 @@ class Calc_TimeOfSunrise_TimeOfSunset_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.TimeOfSunrise, meteo_factors.TimeOfSunset)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -564,7 +564,7 @@ class Calc_ExtraterrestrialRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_fluxes.ExtraterrestrialRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fix = model.parameters.fixed.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -660,7 +660,7 @@ class Calc_ExtraterrestrialRadiation_V2(modeltools.Method):
     RESULTSEQUENCES = (meteo_fluxes.ExtraterrestrialRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -750,7 +750,7 @@ class Calc_PossibleSunshineDuration_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.PossibleSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fix = model.parameters.fixed.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -835,7 +835,7 @@ class Calc_PossibleSunshineDuration_V2(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.PossibleSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         d_stc = der.sct[model.idx_sim]
@@ -865,7 +865,7 @@ class Calc_DailyPossibleSunshineDuration_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.DailyPossibleSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         fac.dailypossiblesunshineduration = fac.timeofsunset - fac.timeofsunrise
 
@@ -907,7 +907,7 @@ class Update_LoggedSunshineDuration_V1(modeltools.Method):
     UPDATEDSEQUENCES = (meteo_logs.LoggedSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         log = model.sequences.logs.fastaccess
@@ -953,7 +953,7 @@ class Update_LoggedGlobalRadiation_V1(modeltools.Method):
     UPDATEDSEQUENCES = (meteo_logs.LoggedGlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         log = model.sequences.logs.fastaccess
@@ -982,7 +982,7 @@ class Calc_DailySunshineDuration_V1(modeltools.Method):
     UPDATEDSEQUENCES = (meteo_factors.DailySunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1011,7 +1011,7 @@ class Calc_DailyGlobalRadiation_V2(modeltools.Method):
     UPDATEDSEQUENCES = (meteo_fluxes.DailyGlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1172,7 +1172,7 @@ class Calc_PortionDailyRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.PortionDailyRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1353,7 +1353,7 @@ class Calc_ClearSkySolarRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_fluxes.ClearSkySolarRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1420,7 +1420,7 @@ class Calc_GlobalRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_fluxes.GlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
@@ -1523,7 +1523,7 @@ class Calc_UnadjustedGlobalRadiation_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_fluxes.UnadjustedGlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1568,7 +1568,7 @@ class Adjust_ClearSkySolarRadiation_V1(modeltools.Method):
     UPDATEDSEQUENCES = (meteo_fluxes.ClearSkySolarRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1613,7 +1613,7 @@ class Update_LoggedUnadjustedGlobalRadiation_V1(modeltools.Method):
     UPDATEDSEQUENCES = (meteo_logs.LoggedUnadjustedGlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1706,7 +1706,7 @@ class Calc_DailyGlobalRadiation_V1(modeltools.Method):
     UPDATEDSEQUENCES = (meteo_fluxes.DailyGlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.dailyglobalradiation = model.return_dailyglobalradiation_v1(
@@ -1871,7 +1871,7 @@ class Calc_UnadjustedSunshineDuration_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.UnadjustedSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1980,7 +1980,7 @@ class Calc_GlobalRadiation_V2(modeltools.Method):
     RESULTSEQUENCES = (meteo_fluxes.GlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -2071,7 +2071,7 @@ class Calc_SunshineDuration_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.SunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
@@ -2124,7 +2124,7 @@ class Update_LoggedUnadjustedSunshineDuration_V1(modeltools.Method):
     UPDATEDSEQUENCES = (meteo_logs.LoggedUnadjustedSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
@@ -2186,7 +2186,7 @@ class Calc_DailySunshineDuration_V2(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.DailySunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
         fac.dailysunshineduration = model.return_sunshineduration_v1(
@@ -2267,7 +2267,7 @@ class Calc_SunshineDuration_V2(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.SunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
         log = model.sequences.logs.fastaccess
@@ -2303,7 +2303,7 @@ class Calc_Temperature_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.Temperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2333,7 +2333,7 @@ class Adjust_Temperature_V1(modeltools.Method):
     UPDATEDSEQUENCES = (meteo_factors.Temperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         for k in range(con.nmbhru):
@@ -2365,7 +2365,7 @@ class Calc_MeanTemperature_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_factors.MeanTemperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -2397,7 +2397,7 @@ class Calc_Precipitation_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_fluxes.Precipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2427,7 +2427,7 @@ class Adjust_Precipitation_V1(modeltools.Method):
     UPDATEDSEQUENCES = (meteo_fluxes.Precipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for k in range(con.nmbhru):
@@ -2459,7 +2459,7 @@ class Calc_MeanPrecipitation_V1(modeltools.Method):
     RESULTSEQUENCES = (meteo_fluxes.MeanPrecipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2474,7 +2474,7 @@ class Determine_Temperature_V1(modeltools.Method):
     "run methods"."""
 
     @staticmethod
-    def __call__(model: modeltools.AdHocModel) -> None:
+    def __call__(model: modeltools.AdHocModel, /) -> None:
         model.run()
 
 
@@ -2497,7 +2497,7 @@ class Get_Temperature_V1(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_factors.Temperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.temperature[s]
@@ -2519,7 +2519,7 @@ class Get_MeanTemperature_V1(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_factors.MeanTemperature,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.meantemperature
@@ -2530,7 +2530,7 @@ class Determine_Precipitation_V1(modeltools.Method):
     "run methods"."""
 
     @staticmethod
-    def __call__(model: modeltools.AdHocModel) -> None:
+    def __call__(model: modeltools.AdHocModel, /) -> None:
         model.run()
 
 
@@ -2553,7 +2553,7 @@ class Get_Precipitation_V1(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_fluxes.Precipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.precipitation[s]
@@ -2575,7 +2575,7 @@ class Get_MeanPrecipitation_V1(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_fluxes.MeanPrecipitation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.meanprecipitation
@@ -2586,7 +2586,7 @@ class Process_Radiation_V1(modeltools.ReusableMethod):
     methods"."""
 
     @staticmethod
-    def __call__(model: modeltools.AdHocModel) -> None:
+    def __call__(model: modeltools.AdHocModel, /) -> None:
         model.run()
 
 
@@ -2605,7 +2605,7 @@ class Get_PossibleSunshineDuration_V1(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_factors.PossibleSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.possiblesunshineduration
@@ -2626,7 +2626,7 @@ class Get_PossibleSunshineDuration_V2(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_inputs.PossibleSunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.possiblesunshineduration
@@ -2647,7 +2647,7 @@ class Get_SunshineDuration_V1(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_factors.SunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.sunshineduration
@@ -2668,7 +2668,7 @@ class Get_SunshineDuration_V2(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_inputs.SunshineDuration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.sunshineduration
@@ -2689,7 +2689,7 @@ class Get_ClearSkySolarRadiation_V1(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_fluxes.ClearSkySolarRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.clearskysolarradiation
@@ -2710,7 +2710,7 @@ class Get_ClearSkySolarRadiation_V2(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_inputs.ClearSkySolarRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.clearskysolarradiation
@@ -2731,7 +2731,7 @@ class Get_GlobalRadiation_V1(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_fluxes.GlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.globalradiation
@@ -2752,7 +2752,7 @@ class Get_GlobalRadiation_V2(modeltools.Method):
     REQUIREDSEQUENCES = (meteo_inputs.GlobalRadiation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.globalradiation

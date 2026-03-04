@@ -34,7 +34,7 @@ class Pick_LoggedDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (manager_logs.LoggedDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
@@ -64,7 +64,7 @@ class Pick_LoggedWaterVolume_V1(modeltools.Method):
     RESULTSEQUENCES = (manager_logs.LoggedWaterVolume,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         log = model.sequences.logs.fastaccess
         rec = model.sequences.receivers.fastaccess
@@ -133,7 +133,7 @@ class Calc_FreeDischarge_V1(modeltools.Method):
     RESULTSEQUENCES = (manager_fluxes.FreeDischarge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         log = model.sequences.logs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -213,7 +213,7 @@ class Calc_DemandTarget_V1(modeltools.Method):
     RESULTSEQUENCES = (manager_fluxes.DemandTarget,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -290,7 +290,7 @@ class Calc_Alertness_V1(modeltools.Method):
     RESULTSEQUENCES = (manager_factors.Alertness,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -355,7 +355,7 @@ class Calc_DemandSources_V1(modeltools.Method):
     RESULTSEQUENCES = (manager_fluxes.DemandSources,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -423,7 +423,7 @@ class Calc_PossibleRelease_V1(modeltools.Method):
     RESULTSEQUENCES = (manager_fluxes.PossibleRelease,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -525,7 +525,7 @@ class Calc_Request_V1(modeltools.Method):
     RESULTSEQUENCES = (manager_fluxes.Request,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -589,7 +589,7 @@ class Update_LoggedRequest_V1(modeltools.Method):
     UPDATEDSEQUENCES = (manager_logs.LoggedRequest,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -624,7 +624,7 @@ class Pass_Request_V1(modeltools.Method):
     RESULTSEQUENCES = (manager_senders.Request,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sen = model.sequences.senders.fastaccess

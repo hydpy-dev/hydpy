@@ -1,10 +1,15 @@
 # pylint: disable=missing-module-docstring
+from __future__ import annotations
 
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 
-from hydpy.models.whmod import whmod_constants
+from hydpy.models.whmod import whmod_model
 from hydpy.models.whmod import whmod_masks
+from hydpy.models.whmod import whmod_constants
+
+if TYPE_CHECKING:
+    from hydpy.models.whmod import whmod_control
 
 
 class LandTypeBaseParameter(parametertools.ZipParameter):
@@ -13,10 +18,11 @@ class LandTypeBaseParameter(parametertools.ZipParameter):
     constants = whmod_constants.LANDTYPE_CONSTANTS
 
     @property
-    def refweights(self):
+    def refweights(self) -> whmod_control.ZoneArea:
         """Reference to the associated instance of |ZoneRatio| for calculating areal
         mean values."""
-        return self.subpars.pars.control.zonearea
+        model = cast(whmod_model.Model, self.subpars.pars.model)
+        return model.parameters.control.zonearea
 
 
 class LandTypeCompleteParameter(LandTypeBaseParameter):
@@ -149,7 +155,8 @@ class SoilTypeParameter(parametertools.ZipParameter):
     mask = whmod_masks.SoilTypeComplete()
 
     @property
-    def refweights(self):
+    def refweights(self) -> whmod_control.ZoneArea:
         """Reference to the associated instance of |ZoneRatio| for calculating areal
         mean values."""
-        return self.subpars.pars.control.zonearea
+        model = cast(whmod_model.Model, self.subpars.pars.model)
+        return model.parameters.control.zonearea

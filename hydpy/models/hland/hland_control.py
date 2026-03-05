@@ -478,18 +478,16 @@ arguments are given, which is ambiguous.
 
     @staticmethod
     @functools.lru_cache
-    def _linear(factor, sclass):
+    def _linear(factor: float, sclass: int) -> VectorInputFloat:
         if sclass == 1:
-            values = (1.0,)
-        else:
-            values = (
-                factor * 2.0 * numpy.arange(sclass) / (sclass - 1) + (1.0 - factor)
-            ) / sclass
-        return values
+            return (1.0,)
+        return (
+            factor * 2.0 * numpy.arange(sclass) / (sclass - 1) + (1.0 - factor)
+        ) / sclass
 
     @staticmethod
     @functools.lru_cache
-    def _lognormal(sclass, scale: float) -> VectorFloat:
+    def _lognormal(sclass: int, scale: float) -> VectorFloat:
         values = numpy.ones(sclass, dtype=config.NP_FLOAT)
         if scale > 0.0:
             for idx in range(sclass):
@@ -863,7 +861,7 @@ arguments are given, which is ambiguous.
 
     _keywordarguments = parametertools.KeywordArguments(False)
 
-    def __init__(self, subvars) -> None:
+    def __init__(self, subvars: parametertools.SubParameters) -> None:
         super().__init__(subvars)
         self._keywordarguments = parametertools.KeywordArguments(False)
 

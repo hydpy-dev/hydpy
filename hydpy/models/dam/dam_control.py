@@ -440,7 +440,7 @@ class NmbSafeReleaseModels(parametertools.Parameter):
     TYPE: Final = int
     SPAN = (0, None)
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
         self.subpars.pars.model.safereleasemodels.number = self.value
 

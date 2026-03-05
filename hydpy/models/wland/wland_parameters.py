@@ -6,10 +6,12 @@ from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_constants
+from hydpy.models.wland import wland_model
 from hydpy.models.wland import wland_masks
 
 if TYPE_CHECKING:
     from hydpy.core import variabletools
+    from hydpy.models.wland import wland_control
 
 
 class SoilParameter(parametertools.Parameter):
@@ -184,10 +186,11 @@ class LanduseParameterLand(parametertools.ZipParameter):
     mask = wland_masks.Land()
 
     @property
-    def refweights(self):
+    def refweights(self) -> wland_control.AUR:
         """Alias for the associated instance of |AUR| for calculating areal mean
         values."""
-        return self.subpars.aur
+        model = cast(wland_model.Model, self.subpars.pars.model)
+        return model.parameters.control.aur
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):

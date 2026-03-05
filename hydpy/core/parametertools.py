@@ -3436,7 +3436,7 @@ for axis 0 with size 1
         else:
             super().__setattr__(key, value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         values = self.revert_timefactor(self.values)
         prefix = f"{self.name}("
         lines = []
@@ -4057,7 +4057,7 @@ given, but is not.
     def right(self, value):
         self.values[1] = value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         values = [objecttools.repr_(value) for value in self.values]
         if values[0] == values[1]:
             return f"{self.name}({values[0]})"

@@ -1047,7 +1047,7 @@ class Characteristics(NamedTuple):
             f")"
         )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return objecttools.flatten_repr(self)
 
 

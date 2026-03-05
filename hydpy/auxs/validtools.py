@@ -6,9 +6,16 @@ import numpy
 
 # ...from hydpy
 from hydpy.core import objecttools
+from hydpy.core.typingtools import *
 
 
-def test_equal_shape(**kwargs) -> None:
+class HasShape(Protocol):
+    """Protocol for types that have a `shape` attribute."""
+
+    shape: tuple[int, ...]
+
+
+def test_equal_shape(**kwargs: HasShape) -> None:
     """Raise a ValueError if the shapes of the objects given as keywords are not equal.
 
     If all shapes are equal, nothing happens:
@@ -46,7 +53,9 @@ arr1 (2,), arr2 (1,), and arr3 (2,).
         )
 
 
-def test_non_negative(**kwargs) -> None:
+def test_non_negative(
+    **kwargs: VectorInputFloat | MatrixInputFloat | TensorInputFloat,
+) -> None:
     """Raise a ValueError if at least one value of the objects given as keywords is
     negative.
 
@@ -71,7 +80,7 @@ def test_non_negative(**kwargs) -> None:
     >>> test_non_negative()
     """
     names = list(kwargs.keys())
-    negs = [numpy.nanmin(array) < 0.0 for array in kwargs.values()]
+    negs = [numpy.nanmin(numpy.asarray(array)) < 0.0 for array in kwargs.values()]
     if any(negs):
         string = objecttools.enumeration(
             name for name, neg in sorted(zip(names, negs)) if neg

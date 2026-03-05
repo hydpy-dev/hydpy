@@ -1,12 +1,17 @@
 # pylint: disable=missing-module-docstring
 
 from hydpy.core import masktools
+from hydpy.core import parametertools
+from hydpy.core import variabletools
+from hydpy.core.typingtools import *
 
+from hydpy.models.whmod import whmod_model
+from hydpy.models.whmod import whmod_control
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod.whmod_constants import *
 
 
-def _exclude(*args):
+def _exclude(*args: parametertools.IntConstant) -> tuple[int, ...]:
     return tuple(
         value
         for (key, value) in whmod_constants.LANDTYPE_CONSTANTS.items()
@@ -18,9 +23,10 @@ class LandTypeBase(masktools.IndexMask):
     """Base class for all land type-specific masks."""
 
     @staticmethod
-    def get_refindices(variable):
+    def get_refindices(variable: variabletools.Variable) -> whmod_control.LandType:
         """Reference to the associated instance of |LandType|."""
-        return variable.subvars.vars.model.parameters.control.landtype
+        model = cast(whmod_model.Model, variable.subvars.vars.model)
+        return model.parameters.control.landtype
 
 
 class LandTypeComplete(LandTypeBase):
@@ -105,9 +111,10 @@ class SoilTypeBase(masktools.IndexMask):
     """Base class for all soil type-specific masks."""
 
     @staticmethod
-    def get_refindices(variable):
+    def get_refindices(variable: variabletools.Variable):
         """Reference to the associated instance of |SoilType|."""
-        return variable.subvars.vars.model.parameters.control.soiltype
+        model = cast(whmod_model.Model, variable.subvars.vars.model)
+        return model.parameters.control.soiltype
 
 
 class SoilTypeComplete(SoilTypeBase):

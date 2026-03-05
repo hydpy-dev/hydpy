@@ -3,10 +3,16 @@
 # import...
 # ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 # ...from hland
 from hydpy.models.hland.hland_constants import CONSTANTS
+
+# from hydpy.models.hland import hland_model  # actual import below
 from hydpy.models.hland import hland_masks
+
+if TYPE_CHECKING:
+    from hydpy.models.hland import hland_control
 
 
 class ParameterBase(parametertools.ZipParameter):
@@ -15,10 +21,14 @@ class ParameterBase(parametertools.ZipParameter):
     constants = CONSTANTS
 
     @property
-    def refweights(self):
+    def refweights(self) -> hland_control.ZoneArea:
         """Reference to the associated instance of |RelZoneAreas| for calculating areal
         mean values."""
-        return self.subpars.pars.control.zonearea
+        # pylint: disable=import-outside-toplevel
+        from hydpy.models.hland import hland_model
+
+        model = cast(hland_model.Model, self.subpars.pars.model)
+        return model.parameters.control.zonearea
 
 
 class ParameterComplete(ParameterBase):

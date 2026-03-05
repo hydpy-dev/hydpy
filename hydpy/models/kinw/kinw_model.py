@@ -3409,7 +3409,7 @@ class BaseModelProfile(modeltools.ELSModel):
     """Base class for |kinw.DOCNAME.long| models performing discharge calculations
     based on a triple trapezoid profile."""
 
-    def plot_profile(self, labelformat: str = "%.1f"):
+    def plot_profile(self, labelformat: str = "%.1f") -> None:
         """Plot the triple trapezoid profile and insert the discharge values at some
         distinct stages.
 

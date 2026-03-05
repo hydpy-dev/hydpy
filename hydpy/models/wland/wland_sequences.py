@@ -18,7 +18,7 @@ class BaseFluxSequence1D(sequencetools.FluxSequence):
     CONTROLPARAMETERS = (wland_control.AUR,)
 
     @property
-    def refweights(self):
+    def refweights(self) -> wland_control.AUR:
         """Alias for the associated instance of |AUR| for calculating areal values."""
         return self.subseqs.seqs.model.parameters.control.aur
 
@@ -105,6 +105,6 @@ class StateSequence1DLand(sequencetools.StateSequence):
     mask = wland_masks.Land()
 
     @property
-    def refweights(self):
+    def refweights(self) -> wland_control.AUR:
         """Alias for the associated instance of |AUR| for calculating areal values."""
         return self.subseqs.seqs.model.parameters.control.aur

@@ -516,8 +516,6 @@ and actual evaporation is reduced accordingly:
 0.0
 """
 
-# import...
-# ...from HydPy
 import hydpy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
@@ -526,8 +524,6 @@ from hydpy.core.typingtools import *
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.exe.modelimports import *
-
-# ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 

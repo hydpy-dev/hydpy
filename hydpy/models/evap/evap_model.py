@@ -2,11 +2,8 @@
 .. _`issue 118`: https://github.com/hydpy-dev/hydpy/issues/118
 """
 
-# imports...
-# ...from standard library
 import contextlib
 
-# ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *

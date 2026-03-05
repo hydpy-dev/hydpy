@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools

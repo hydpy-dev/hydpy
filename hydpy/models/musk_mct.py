@@ -1229,19 +1229,14 @@ more information and a way to change this behaviour:
 -0.000025
 """
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import importtools
 from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.interfaces import routinginterfaces
-
-# ...from musk
 from hydpy.models.musk import musk_masks
 from hydpy.models.musk import musk_model
 from hydpy.models.musk import musk_solver

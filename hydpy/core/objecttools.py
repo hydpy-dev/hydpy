@@ -1,8 +1,6 @@
 """This module implements tools to help to standardize the functionality of the
 different objects defined by the HydPy framework."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import builtins
 import contextlib
@@ -14,12 +12,10 @@ import sys
 import textwrap
 import types
 
-# ...from site-packages
 import black
 import numpy
 import wrapt
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools

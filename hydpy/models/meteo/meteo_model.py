@@ -2,11 +2,8 @@
 .. _`solar time`: https://en.wikipedia.org/wiki/Solar_time
 """
 
-# imports...
-# ...from standard library
 import contextlib
 
-# ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *

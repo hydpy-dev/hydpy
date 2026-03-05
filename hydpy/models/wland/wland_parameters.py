@@ -1,12 +1,13 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
+from __future__ import annotations
+
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_constants
-from hydpy.models.wland import wland_model
+
+# from hydpy.models.wland import wland_model  # actual import below
 from hydpy.models.wland import wland_masks
 
 if TYPE_CHECKING:
@@ -189,6 +190,9 @@ class LanduseParameterLand(parametertools.ZipParameter):
     def refweights(self) -> wland_control.AUR:
         """Alias for the associated instance of |AUR| for calculating areal mean
         values."""
+        # pylint: disable=import-outside-toplevel
+        from hydpy.models.wland import wland_model
+
         model = cast(wland_model.Model, self.subpars.pars.model)
         return model.parameters.control.aur
 

@@ -1,17 +1,12 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
-
-# ...from lland
 from hydpy.models.lland import lland_control
 from hydpy.models.lland import lland_fixed
 from hydpy.models.lland import lland_parameters

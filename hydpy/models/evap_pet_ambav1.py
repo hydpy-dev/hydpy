@@ -368,8 +368,6 @@ diurnal pattern not apparent in the generally aggregated water evaporation value
     | 2000-08-03 23:00:00 |             90.9 |       2.3 |              1017.0 |           16.4 |          2.3 |              0.0 |                      0.0 |                18.652661 |                      1.187604 |            16.955269 |    1000.044731 |   1.215856 |           0.2 |                   0.0 |            327.380512 |                     0.0 |       0.0 |           0.0 |                0.0 |             0.0 |                   0.0 |            72.396674 |   -72.396674 |          0.0 |                              0.0 |                             0.0 |                                  0.0 |        -0.063192 |              1.984717 |           0.0 |            nan |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces

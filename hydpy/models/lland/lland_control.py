@@ -2,15 +2,11 @@
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
@@ -19,8 +15,6 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
-
-# ...from lland
 from hydpy.models.lland.lland_constants import CONSTANTS as CONSTANTS_
 from hydpy.models.lland import lland_parameters
 

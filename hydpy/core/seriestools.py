@@ -1,13 +1,9 @@
 """This module provides features for working with time series."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools

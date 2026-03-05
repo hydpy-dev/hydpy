@@ -2,18 +2,13 @@
 .. _`issue 89`: https://github.com/hydpy-dev/hydpy/issues/89
 """
 
-# imports...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.interfaces import soilinterfaces
-
-# ...from hland
 from hydpy.models.ga import ga_control
 from hydpy.models.ga import ga_derived
 from hydpy.models.ga import ga_inputs

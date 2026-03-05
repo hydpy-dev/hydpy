@@ -1,18 +1,14 @@
 """Sphinx extension introducing `.. project_structure:: (e.g.) HydPy-H-Lahn`
 directives."""
 
-# import...
-# from standard library
 import os
 from typing import Any
 
-# ...from site-packages
 from docutils import nodes
 from sphinx.application import Sphinx
 from sphinx.directives.code import CodeBlock
 from sphinx.writers.html5 import HTML5Translator
 
-# ...from HydPy
 from hydpy import data
 from hydpy.core import autodoctools
 

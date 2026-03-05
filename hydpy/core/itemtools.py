@@ -1,16 +1,12 @@
 """This module implements so-called exchange items that simplify modifying the values
 of |Parameter| and |Sequence_| objects."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import itertools
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import devicetools

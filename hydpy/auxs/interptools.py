@@ -10,16 +10,12 @@ The relevant models perform the interpolation during simulation runs, so we impl
 the related methods in the Cython extension module |interputils|.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import itertools
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools

@@ -7,12 +7,8 @@ storage content is left.  The loss rate |Q| and the initial storage content |S| 
 set as required.
 """
 
-# imports...
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-
-# ...from test
 from hydpy.models.test import test_model
 from hydpy.models.test import test_solver
 

@@ -1,15 +1,11 @@
 """This module implements masking features to define which entries of |Parameter| or
 |Sequence_| arrays are relevant and which are not."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import inspect
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 

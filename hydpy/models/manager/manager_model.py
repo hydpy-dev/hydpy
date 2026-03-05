@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# imports...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils

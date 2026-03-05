@@ -5,8 +5,6 @@ Features more specific to either parameters or sequences are implemented in modu
 |parametertools| and |sequencetools|, respectively.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import contextlib
@@ -15,10 +13,8 @@ import functools
 import inspect
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools

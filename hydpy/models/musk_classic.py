@@ -166,13 +166,9 @@ hours but setting `damp` to one:
     | 19:00 |    0.0 | 0.030374 |  0.0  0.001123   0.00793   0.030374 |    0.0 |    0.0 | 0.030374 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
-
-# ...from musk
 from hydpy.models.musk import musk_masks
 from hydpy.models.musk import musk_model
 from hydpy.models.musk import musk_solver

@@ -4,8 +4,6 @@
 
 """
 
-# import...
-# ...from hydpy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 

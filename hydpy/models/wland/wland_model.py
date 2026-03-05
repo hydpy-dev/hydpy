@@ -2,11 +2,8 @@
 .. _`Pegasus method`: https://link.springer.com/article/10.1007/BF01932959
 """
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import exceptiontools
@@ -22,8 +19,6 @@ from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
-
-# ...from wland
 from hydpy.models.wland import wland_control
 from hydpy.models.wland import wland_derived
 from hydpy.models.wland import wland_fixed

@@ -192,8 +192,6 @@ of the saturation vapour pressure:
     | 2001-01-10 14:00 |             52.0 |       3.3 |              1001.0 |           38.0 |         3.3 |                66.247576 |                      3.582033 |             34.44874 |              0.665665 |      678.505661 |             737.506154 |            522.449359 |            38.034488 |   484.414871 |    48.441487 |                    0.627892 |                        0.627892 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces

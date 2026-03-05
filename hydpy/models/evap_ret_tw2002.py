@@ -100,8 +100,6 @@ calculates the same potential evapotranspiration value:
 
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces

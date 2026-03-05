@@ -1,10 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# imports...
-# ...from standard library
 import abc
 
-# ...from HydPy
 import hydpy
 from hydpy.core import importtools
 from hydpy.core import modeltools

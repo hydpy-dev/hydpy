@@ -271,8 +271,6 @@ Traceback (most recent call last):
 NotImplementedError: NDIM of sequence `q` is higher than expected.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import copy
 
@@ -294,7 +292,6 @@ from numpy import inf  # pylint: disable=unused-import
 from numpy import nan  # pylint: disable=unused-import
 import setuptools
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy import cythons

@@ -391,8 +391,6 @@ deals with winter conditions:
     | 2010-12-12 23:00 |              0.0 |          1.03126 |        -0.406588 |      8.660262 |    16.046405 |                      0.0 |                      7.386143 |                   0.6 |                   0.0 |                 59.933948 |                    0.0 |                       0.0 |              17.4178 |             0.0 |        0.0 |      0.0 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.interfaces import radiationinterfaces

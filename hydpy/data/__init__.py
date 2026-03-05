@@ -1,7 +1,6 @@
 """This subpackage contains the example project data provided by the standard
 distribution of *HydPy*."""
-# import...
-# ...from standard library
+
 import os
 
 

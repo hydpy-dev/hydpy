@@ -6,17 +6,13 @@ function or if you want to implement an additional iuh, see the examples or the 
 code of class |TranslationDiffusionEquation|.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import itertools
 import math
 
-# ...from site-packages
 import numpy
 
-# ...from Hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools

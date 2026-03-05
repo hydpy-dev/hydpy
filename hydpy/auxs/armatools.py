@@ -1,15 +1,12 @@
 """This module provides additional features for module |iuhtools|, related to
 Autoregressive-Moving Average (ARMA) models."""
 
-# import...
-# ...from standard library
+from __future__ import annotations
 import itertools
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools

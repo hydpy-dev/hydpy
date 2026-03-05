@@ -1,11 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
-
-# ...from manager
 from hydpy.models.manager import manager_sequences
 
 

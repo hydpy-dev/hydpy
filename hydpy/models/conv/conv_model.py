@@ -1,8 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# imports...
-# ...from site-packages
-# ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import modeltools
 from hydpy.core import objecttools

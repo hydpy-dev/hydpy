@@ -1,12 +1,8 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 import hydpy
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
-
-# ...from gland
 from hydpy.models.gland import gland_control
 
 

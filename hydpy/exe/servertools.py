@@ -222,8 +222,6 @@ atomic submethods of class |HydPyServer| also allow coupling *HydPy*  with other
 software products. See the documentation on class |HydPyServer| for further information.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import collections
 import mimetypes
@@ -237,10 +235,8 @@ import urllib.parse
 import urllib.request
 import types
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import conf
 from hydpy import config

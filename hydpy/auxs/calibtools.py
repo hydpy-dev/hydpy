@@ -3,8 +3,6 @@
 .. _`NLopt`: https://nlopt.readthedocs.io/en/latest/
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import collections
@@ -14,11 +12,9 @@ import time
 import types
 import warnings
 
-# ...from site-packages
 import black
 import numpy
 
-# ...from hydpy
 import hydpy
 from hydpy import config
 from hydpy.core import devicetools

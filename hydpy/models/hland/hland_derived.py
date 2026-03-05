@@ -1,20 +1,14 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from standard library
 import warnings
 
-# ...from site-packages
 import networkx
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
-
-# ...from hland
 from hydpy.models.hland import hland_parameters
 from hydpy.models.hland import hland_control
 from hydpy.models.hland.hland_constants import ILAKE, GLACIER, SEALED

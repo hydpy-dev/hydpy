@@ -84,8 +84,6 @@ achieve complete output for the second timestep:
 | 2000-01-03 | nan     nan | nan  nan  nan      nan | nan | nan |  nan |  nan |  nan |  nan |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.models.conv import conv_model

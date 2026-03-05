@@ -1,20 +1,14 @@
 # pylint: disable=missing-module-docstring
-# import...
-# ...from standard library
+
 import itertools
 
-# ...from standard library
 import math
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.auxs import smoothtools
-
-# ...from wq
 from hydpy.models.wq import wq_control
 from hydpy.models.wq import wq_variables
 

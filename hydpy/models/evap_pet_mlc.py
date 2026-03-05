@@ -63,8 +63,6 @@ the second unit's result value:
     | 2000-01-02 | 1.6                          2.4 | 2.24                         3.12 |                           2.944 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces

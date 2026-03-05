@@ -1,7 +1,5 @@
 """This module provides features for applying and implementing hydrological models."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import collections
@@ -15,10 +13,8 @@ import os
 import runpy
 import types
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import conf
 from hydpy.core import auxfiletools

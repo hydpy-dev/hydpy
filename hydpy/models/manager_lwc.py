@@ -471,21 +471,15 @@ the end part of the simulation period:
     | 2000-02-29 00:00:00 |  0.995291 |     0.943433 |      0.057398 | 0.001241   0.00099  0.0  0.0  0.0       0.001129 |      0.0       0.0  0.5       0.0  0.017786              0.0 |      0.0       0.0       0.5       0.0  0.017786       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.017863 |      0.0 |      0.0 |      0.5 |      0.0 | 0.017786 |      0.0 | 0.555296 | -0.000108 | -0.000086 | 0.529778 |      0.0 | -0.000007 | -0.000098 |
 """
 
-# import...
-# ...from standard library
 import itertools
 
-# ...from site-packages
 import inflect
 
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import devicetools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
-
-# ...from manager
 from hydpy.models.manager import manager_model
 
 

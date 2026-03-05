@@ -115,14 +115,9 @@ that "?" serves as a spare:
 too low `ymax`  values silently.)
 """
 
-# import...
-
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.interfaces import routinginterfaces
 from hydpy.exe.modelimports import *
-
-# ...from wq
 from hydpy.models.wq import wq_model
 
 

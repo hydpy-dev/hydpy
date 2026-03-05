@@ -4,8 +4,6 @@ The implemented tools are primarily designed for hiding model initialisation rou
 from model users and for allowing writing readable doctests.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 
 import collections
@@ -17,7 +15,6 @@ import sys
 import types
 import warnings
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import filetools

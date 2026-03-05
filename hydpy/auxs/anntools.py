@@ -5,15 +5,11 @@ The relevant models apply some of the neural network features during simulation 
 which is why we implement these features in the Cython extension module |annutils|.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import weakref
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import propertytools

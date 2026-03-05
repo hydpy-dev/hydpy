@@ -1,16 +1,11 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import inflect
 import numpy
 
-# ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
-
-# ...from managers
 from hydpy.models.manager import manager_model
 from hydpy.models.manager import manager_control
 

@@ -1,10 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
-
 from hydpy.models.evap import evap_sequences
 
 

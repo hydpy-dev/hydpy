@@ -1,13 +1,10 @@
 """This subpackage provides tools for cythonizing hydrological models as
 well as the resulting Cython extension files (in subpackage `autogen`)."""
 
-# import...
-# from standard library
 import os
 import sys
 import importlib
 
-# from HydPy
 from hydpy.cythons import autogen
 
 autogenpath: str = autogen.__path__[0]

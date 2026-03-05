@@ -1,14 +1,17 @@
 # pylint: disable=missing-module-docstring
 
+from __future__ import annotations
+
 from hydpy.core import masktools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
-
 from hydpy.models.whmod import whmod_model
-from hydpy.models.whmod import whmod_control
 from hydpy.models.whmod import whmod_constants
 from hydpy.models.whmod.whmod_constants import *
+
+if TYPE_CHECKING:
+    from hydpy.models.whmod import whmod_control
 
 
 def _exclude(*args: parametertools.IntConstant) -> tuple[int, ...]:

@@ -256,8 +256,6 @@ For water areas, |evap_aet_minhas| takes the potential water evaporation calcula
     | 03/01 |              2.0 |     100.0 |                              0.0 |                             0.0 |                  3.142563 |         3.142563 |                     0.0 |                    0.0 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import aetinterfaces

@@ -1,12 +1,9 @@
 """This module implements some exception classes and related features."""
 
-# import...
-# ...from standard-library
 import enum
 import importlib
 import types
 
-# ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 

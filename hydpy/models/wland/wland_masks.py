@@ -1,16 +1,17 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
+from __future__ import annotations
+
 from hydpy.core import masktools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
-
 from hydpy.models.wland import wland_model
 from hydpy.models.wland import wland_constants
-from hydpy.models.wland import wland_control
 from hydpy.models.wland.wland_constants import WATER, SEALED
+
+if TYPE_CHECKING:
+    from hydpy.models.wland import wland_control
 
 
 def _exclude(*args: parametertools.IntConstant) -> tuple[int, ...]:

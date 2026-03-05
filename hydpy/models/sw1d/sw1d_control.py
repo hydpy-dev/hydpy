@@ -1,14 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 from hydpy.auxs import interptools
-
-# ...from sw1d
 from hydpy.models.sw1d import sw1d_fluxes
 
 

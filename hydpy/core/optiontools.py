@@ -1,11 +1,8 @@
 """This module implements features for defining local or global *HydPy* options."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import types
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import propertytools

@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# imports...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.models.exch import exch_control
 from hydpy.models.exch import exch_derived

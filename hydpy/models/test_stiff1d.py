@@ -2,12 +2,8 @@
 """|test_stiff1d| similar to |test_stiff0d| but works on 1-dimensional sequences
 instead of 0-dimensional sequences."""
 
-# imports...
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-
-# ...from test
 from hydpy.models.test import test_model
 from hydpy.models.test import test_solver
 

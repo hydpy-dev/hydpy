@@ -50,8 +50,6 @@ factors for both months and "damps" the second unit's result value:
     | 2000-01-02 | 1.6                          2.4 | 3.2                          2.7 |                             2.8 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces

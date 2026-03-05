@@ -1,22 +1,16 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-
-# ...from standard library
 import itertools
 
-# ...from site-package
 import inflect
 import networkx
 
-# ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import hydpytools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.auxs import smoothtools
-
 from hydpy.models.manager import manager_parameters
 from hydpy.models.manager import manager_control
 

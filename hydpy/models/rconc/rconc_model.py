@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
-# imports...
-# ...from standard library
-# ...from HydPy
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils

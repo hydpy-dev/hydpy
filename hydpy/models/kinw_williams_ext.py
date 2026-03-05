@@ -718,14 +718,10 @@ set the number of subchannels to zero:
     | 2000-01-04 23:30:00 |      100.0 |      100.0 |  - |      100.0 |  - |  100.0 |        0.0 |      100.0 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
-
-# ...from kinw
 from hydpy.models.kinw import kinw_fluxes
 from hydpy.models.kinw import kinw_model
 from hydpy.models.kinw import kinw_solver

@@ -41,9 +41,6 @@ not require further explanation:
 4.0
 """
 
-# import...
-
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.interfaces import stateinterfaces

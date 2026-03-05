@@ -28,14 +28,10 @@ to the documentation on |wq_trapeze| for further details:
    :width: 400
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.interfaces import routinginterfaces
 from hydpy.exe.modelimports import *
-
-# ...from wq
 from hydpy.models.wq import wq_control
 from hydpy.models.wq import wq_model
 

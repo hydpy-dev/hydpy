@@ -91,8 +91,6 @@ Spatially averaged time series values have been stored in files ending with the 
 9.64767, 8.513649, 7.777628, 7.343314, 7.156591
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import collections
 import contextlib
@@ -102,7 +100,6 @@ import os
 import warnings
 from xml.etree import ElementTree
 
-# ...from HydPy
 import hydpy
 from hydpy import conf
 from hydpy import config

@@ -4,8 +4,6 @@
 cf-conventions-1.7/cf-conventions.html#time-coordinate
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import calendar
 import collections
@@ -14,10 +12,8 @@ import copy
 import datetime as datetime_
 import time
 
-# ...from third party packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import objecttools

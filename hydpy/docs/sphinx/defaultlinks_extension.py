@@ -2,8 +2,6 @@
 `.. how_to_understand_model_integration_tests::`.
 """
 
-# import...
-# ...from site-packages
 from docutils import nodes as docutils_nodes
 from docutils import statemachine
 from docutils.parsers import rst

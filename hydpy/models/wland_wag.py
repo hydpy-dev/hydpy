@@ -1130,8 +1130,6 @@ There is no violation of the water balance:
 0.0
 """
 
-# import...
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
@@ -1139,8 +1137,6 @@ from hydpy.core.typingtools import *
 from hydpy.interfaces import dischargeinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import stateinterfaces
-
-# ...from wland
 from hydpy.models.wland import wland_masks
 from hydpy.models.wland import wland_model
 from hydpy.models.wland import wland_solver

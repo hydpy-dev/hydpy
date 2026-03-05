@@ -148,8 +148,6 @@ missing variability in the input values well:
 | 2000-01-03 | 0.0  0.0     0.0 |            0.0 |          0.0 |      0.0       0.0               0.0 |      0.0       0.0       0.0                0.0 |       0.0       0.0             0.0 |       0.0       0.0        0.0              0.0 | 0.0   0.0       0.0      0.0 | 0.0 | 0.0 | 0.0 |  0.0 |  0.0 |      0.0 |  0.0 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.models.conv import conv_model

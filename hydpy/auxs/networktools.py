@@ -4,11 +4,8 @@ data.
 .. _`guideline of the German organisation LAWA`: https://www.lawa.de/documents/richtlinie_fuer_die_gebietsbezeichnung_und_die_verschluesselung_von_fliessgewaessern_1552305779.pdf    # pylint: disable=line-too-long
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 
-# ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools

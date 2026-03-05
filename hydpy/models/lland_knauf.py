@@ -1946,11 +1946,8 @@ There is no indication of an error in the water balance:
 0.0
 """
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
@@ -1958,8 +1955,6 @@ from hydpy.core.typingtools import *
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import radiationinterfaces
 from hydpy.interfaces import soilinterfaces
-
-# ...from lland
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_masks
 from hydpy.models.lland.lland_constants import *

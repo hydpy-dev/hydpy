@@ -1,8 +1,6 @@
 """This module implements features for printing additional information and for
 modifying how information is printed."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import os
 import sys
@@ -10,7 +8,6 @@ import tempfile
 import time
 import types
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import objecttools

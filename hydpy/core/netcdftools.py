@@ -236,8 +236,6 @@ runs.  The documentation of class "HydPy" explains how to select and set the rel
 information.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import collections
@@ -248,11 +246,9 @@ import os
 import time
 import warnings
 
-# ...from site-packages
 import netCDF4 as netcdf4
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import devicetools

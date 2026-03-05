@@ -1,16 +1,12 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
-
 from hydpy.models.meteo import meteo_fixed
 from hydpy.models.meteo import meteo_control
 

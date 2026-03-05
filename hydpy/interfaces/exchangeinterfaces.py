@@ -1,11 +1,8 @@
 """This module defines generic submodel interfaces for exchanging freely selectable
 data."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 
-# ...from hydpy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 

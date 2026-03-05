@@ -1,10 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import inflect
 
-# ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools

@@ -1,12 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
+from __future__ import annotations
+
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
-
-# ...from lland
 from hydpy.models.lland.lland_constants import CONSTANTS
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_masks

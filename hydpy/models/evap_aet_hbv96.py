@@ -284,8 +284,6 @@ surface does not suppress evaporation:
     | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                              0.0 |                             0.0 |                  0.449853 |              0.0 |                     0.0 |                    0.0 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import aetinterfaces

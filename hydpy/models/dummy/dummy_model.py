@@ -1,9 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from standard library
-# ...from site-packages
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.models.dummy import dummy_inputs
 from hydpy.models.dummy import dummy_inlets

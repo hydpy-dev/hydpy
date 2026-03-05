@@ -1193,16 +1193,12 @@ desired accuracy while preventing excessive processing time:
 217
 """
 
-# import...
-# ...from HydPy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
-
-# ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 

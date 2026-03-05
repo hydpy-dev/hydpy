@@ -1,8 +1,6 @@
 """This module implements some "types" to be used for static (and eventually dynamical)
 typing."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 from collections.abc import (
     Callable,
@@ -40,11 +38,9 @@ from typing import (
 )
 from typing_extensions import assert_never, Never, ParamSpec, Self, Unpack
 
-# ...from site-packages
 import numpy
 from numpy.typing import NDArray
 
-# ...from hydpy
 if TYPE_CHECKING:
     from hydpy.core import modeltools
     from hydpy.core import parametertools

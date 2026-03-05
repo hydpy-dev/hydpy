@@ -2,11 +2,8 @@
 .. _`issue 68`: https://github.com/hydpy-dev/hydpy/issues/68
 """
 
-# imports...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import modeltools
@@ -17,8 +14,6 @@ from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import rconcinterfaces
 from hydpy.interfaces import tempinterfaces
 from hydpy.interfaces import stateinterfaces
-
-# ...from hland
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland.hland_constants import FIELD, FOREST, GLACIER, ILAKE, SEALED
 from hydpy.models.hland import hland_control

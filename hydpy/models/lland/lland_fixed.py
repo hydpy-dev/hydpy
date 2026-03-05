@@ -2,8 +2,6 @@
 .. _`Wikipedia page on latent heat`: https://en.wikipedia.org/wiki/Latent_heat
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 

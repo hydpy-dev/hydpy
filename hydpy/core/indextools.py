@@ -1,14 +1,10 @@
 """This module implements tools to determine time-related indices."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import copy
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools

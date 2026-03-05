@@ -3,18 +3,14 @@
 .. _`NetCDF Climate and Forecast (CF) Metadata Conventions`: http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html  # pylint: disable=line-too-long
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import collections
 import contextlib
 import itertools
 import warnings
 
-# ...from site-packages
 import networkx
 
-# ...from HydPy
 import hydpy
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools

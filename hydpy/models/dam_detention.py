@@ -450,8 +450,6 @@ There is no indication of an error in the water balance:
 0.0
 """
 
-# import...
-# ...from HydPy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.exe.modelimports import *
@@ -461,8 +459,6 @@ from hydpy.core.typingtools import *
 from hydpy.interfaces import exchangeinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
-
-# ...from dam
 from hydpy.models.dam import dam_model
 
 

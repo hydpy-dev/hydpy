@@ -1,11 +1,8 @@
 # pylint: disable=missing-module-docstring
 
-# imports...
-# ...from site-packages
 import numpy
 from packaging import version
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import importtools
@@ -19,8 +16,6 @@ from hydpy.interfaces import radiationinterfaces
 from hydpy.interfaces import soilinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
-
-# ...from lland
 from hydpy.models.lland import lland_control
 from hydpy.models.lland import lland_derived
 from hydpy.models.lland import lland_fixed

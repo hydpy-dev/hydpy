@@ -180,13 +180,11 @@ As recommended in `PEP 8`_, clarify the sources of your imports.
 Always use the following pattern at the top of a new module and
 list the imports of a section in alphabetical order:
 
->>> # import...
->>> # ...from standard library
 >>> import os
 >>> import sys
->>> # ...from site-packages
+...
 >>> import numpy
->>> # ...from HydPy
+...
 >>> from hydpy.core import sequencetools
 >>> from hydpy.cythons import pointerutils
 

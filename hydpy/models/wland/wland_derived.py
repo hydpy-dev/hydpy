@@ -1,17 +1,11 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.auxs import smoothtools
-
-# ...from lland
 from hydpy.models.wland import wland_control
 from hydpy.models.wland.wland_constants import SEALED, WATER
 

@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# imports...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.models.arma import arma_derived
 from hydpy.models.arma import arma_fluxes

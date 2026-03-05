@@ -38,8 +38,6 @@ testing it does not require additional explanations:
     | 2000-02-01 |                         2.0 | 1.6                          2.4 |                            2.24 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces

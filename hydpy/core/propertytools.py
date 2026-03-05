@@ -1,14 +1,11 @@
 """This module implements |property| like classes with similar or additional
 behaviour."""
 
-# import...
-# ...from standard-library
 from __future__ import annotations
 import abc
 import inspect
 import types
 
-# ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *

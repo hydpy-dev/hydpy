@@ -1,12 +1,11 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
+from __future__ import annotations
+
 from hydpy.core import masktools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
 
-# ...from hland
 # from hydpy.models.hland import hland_model  # actual import below
 from hydpy.models.hland.hland_constants import FIELD, FOREST, ILAKE, GLACIER, SEALED
 

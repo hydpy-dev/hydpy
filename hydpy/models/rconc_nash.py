@@ -5,8 +5,6 @@ See the integration tests of the application model |hland_96p|, which use |rconc
 as a submodel.
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import rconcinterfaces

@@ -1,11 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# imports...
-# ...from site-packages
+from __future__ import annotations
+
 from matplotlib import figure
 from matplotlib import pyplot
 
-# ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
@@ -13,8 +12,6 @@ from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
 from hydpy.interfaces import dischargeinterfaces
-
-# ...from wq
 from hydpy.models.wq import wq_control
 from hydpy.models.wq import wq_derived
 from hydpy.models.wq import wq_factors

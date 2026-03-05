@@ -1,17 +1,12 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import inflect
 import numpy
 
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
-
-# ...from snow
 from hydpy.models.snow import snow_control
 from hydpy.models.snow import snow_derived
 from hydpy.models.snow import snow_fixed

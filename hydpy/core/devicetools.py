@@ -69,8 +69,6 @@ True
 False
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import collections
@@ -82,11 +80,9 @@ import typing
 import warnings
 import weakref
 
-# ...from site-packages
 import inflect
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import masktools

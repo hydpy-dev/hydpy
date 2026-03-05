@@ -1,13 +1,9 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
-
 from hydpy.models.hland import hland_control
 from hydpy.models.hland import hland_masks
 from hydpy.models.hland import hland_sequences

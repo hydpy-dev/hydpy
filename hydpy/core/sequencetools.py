@@ -1,8 +1,6 @@
 """This module implements tools for defining and handling different kinds of
 hydrological model sequences (time series)."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import copy
@@ -13,10 +11,8 @@ import sys
 import types
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import devicetools
@@ -4148,7 +4144,7 @@ class NodeSequence(IOSequence):
 
         Node sequences return errors like the following if they receive misspecified
         values or are ill-configured:
--
+
         >>> sim.value = 1.0, 2.0  # doctest: +ELLIPSIS
         Traceback (most recent call last):
         ...

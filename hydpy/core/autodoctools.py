@@ -1,8 +1,6 @@
 """This module implements tools for increasing the level of automation and
 standardisation of the online documentation generated with Sphinx."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import builtins
@@ -29,14 +27,13 @@ import typing
 import unittest
 import warnings
 
-# ...from site-packages
 # import matplotlib    actual import below
 import numpy
 import typing_extensions
 
 # import pandas    actual import below
 # import scipy    actual import below
-# ...from HydPy
+
 import hydpy
 from hydpy import auxs
 from hydpy import core

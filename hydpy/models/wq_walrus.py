@@ -25,12 +25,8 @@ tests short and take a single example from its documentation:
 0.111111
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
-
-# ...from ga
 from hydpy.models.wq import wq_model
 
 

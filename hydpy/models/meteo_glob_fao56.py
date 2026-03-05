@@ -171,8 +171,6 @@ results given by :cite:t:`ref-Allen1998`:
     | 2001-01-10 14:00 |             0.88 |         1.000283 |        -0.076994 |        1.548357 |       0.682792 |                      1.0 |                983.341538 |             737.506154 |      678.505661 | 678.505661 | 737.506154 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.interfaces import radiationinterfaces

@@ -10,11 +10,7 @@ evaporation, the simulation of water stored on plants, in the snow
 layer and the soil, as well as runoff concentration.
 """
 
-# import...
-# ...from HydPy
 from hydpy.exe.modelimports import *
-
-# ...from lland
 from hydpy.models.lland.lland_constants import (
     SIED_D,
     SIED_L,

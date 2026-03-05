@@ -373,9 +373,6 @@ oscillate for a few days) but are at least stable and not overly wrong:
     | 2000-01-31 00:00:00 | 0.499979     0.500021 |       -0.000021 |         -0.000012 |      -0.000012 |     0.0 |     0.0 |      0.0 |      0.0 |  0.000012 | -0.000012 |     0.49998 |     0.50002 |
 """
 
-# import...
-
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core import objecttools

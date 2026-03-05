@@ -21,15 +21,12 @@ semi-automated manner (other means are the selection mechanism implemented in mo
 |selectiontools|).
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import copy
 import itertools
 import types
 import warnings
 
-# ...from HydPy
 import hydpy
 from hydpy.core import importtools
 from hydpy.core import modeltools

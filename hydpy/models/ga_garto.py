@@ -941,13 +941,9 @@ There is no indication of an error in the water balance:
 0.0
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.core.typingtools import *
-
-# ...from ga
 from hydpy.models.ga import ga_model
 
 

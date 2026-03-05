@@ -234,11 +234,8 @@ See the documentation on module |xmltools| for an actually successful example us
 "script function" |run_simulation|.
 """
 
-# import...
-# ...from standard-library
 import sys
 
-# ...from hydpy
 from hydpy.exe import commandtools
 
 

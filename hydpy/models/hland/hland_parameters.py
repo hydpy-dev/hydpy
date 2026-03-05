@@ -1,11 +1,9 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
+from __future__ import annotations
+
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
-
-# ...from hland
 from hydpy.models.hland.hland_constants import CONSTANTS
 
 # from hydpy.models.hland import hland_model  # actual import below

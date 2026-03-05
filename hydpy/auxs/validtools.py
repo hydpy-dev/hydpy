@@ -1,10 +1,7 @@
 """This module implements features for the validation of (numerical) input data."""
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from hydpy
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 

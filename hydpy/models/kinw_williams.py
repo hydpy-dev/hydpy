@@ -1011,14 +1011,10 @@ set the number of subchannels to zero:
     | 2000-01-04 23:30:00 |        0.0 |  - |        0.0 |  - | - |    0.0 |        0.0 |        0.0 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
-
-# ...from kinw
 from hydpy.models.kinw import kinw_fluxes
 from hydpy.models.kinw import kinw_model
 from hydpy.models.kinw import kinw_solver

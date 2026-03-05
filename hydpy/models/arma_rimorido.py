@@ -341,12 +341,8 @@ the ARMA model:
     | 19:00 |  2.0 | 2.0   0.0 | 2.0  0.005149 | 2.005149 | 2.005149 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-
-# ...from arma
 from hydpy.models.arma import arma_model
 
 

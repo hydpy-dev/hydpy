@@ -2,23 +2,17 @@
 .. _`issue 67`: https://github.com/hydpy-dev/hydpy/issues/67
 """
 
-# import...
-# from standard library
 from __future__ import annotations
 import functools
 import warnings
 
-# from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
-
-# ...from hland
 from hydpy.models.hland import hland_constants
 from hydpy.models.hland import hland_fixed
 from hydpy.models.hland import hland_parameters

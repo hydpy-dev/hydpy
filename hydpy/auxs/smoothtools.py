@@ -25,16 +25,12 @@ them computationally efficient by using Cython (see the extension module
 |smoothutils|.
 """
 
-# import...
-# ...from standard-library
 import os
 
-# ...from site-packages
 # from scipy but not optional due to using interp1d during module initialisation:
 from scipy import interpolate
 import numpy
 
-# ...from HydPy
 from hydpy import conf
 from hydpy.core import exceptiontools
 from hydpy.core.typingtools import *

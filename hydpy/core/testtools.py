@@ -1,7 +1,5 @@
 """This module implements tools for testing *HydPy* and its models."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import builtins
@@ -19,10 +17,8 @@ import sys
 import types
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 
 # from hydpy import aliases  actual import below

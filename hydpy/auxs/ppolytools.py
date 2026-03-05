@@ -5,14 +5,10 @@ The relevant models perform the interpolation during simulation runs, which is w
 implement the related methods in the Cython extension module |ppolyutils|.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools

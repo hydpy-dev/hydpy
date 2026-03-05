@@ -12,12 +12,8 @@ the integration tests :ref:`lland_dd_acker_garto` of application model |lland_dd
 :ref:`lland_knauf_acker_heavy_garto_daily` of application model |lland_knauf|.
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
-
-# ...from ga
 from hydpy.models.ga import ga_control
 from hydpy.models.ga import ga_model
 

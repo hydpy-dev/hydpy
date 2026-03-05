@@ -1,8 +1,6 @@
 """This module provides tools for defining and handling different kinds of parameters
 of hydrological models."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import builtins
 import contextlib
@@ -13,10 +11,8 @@ import textwrap
 import types
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools

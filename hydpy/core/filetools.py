@@ -1,8 +1,6 @@
 """This module provides features for handling the folder structure of *HydPy*  projects
 as well as loading data from and storing data to files."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import contextlib
 import os
@@ -12,10 +10,8 @@ import types
 import warnings
 import zipfile
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools

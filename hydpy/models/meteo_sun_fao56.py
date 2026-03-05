@@ -142,8 +142,6 @@ Again, there is a good agreement with the results of |meteo_glob_fao56|:
     | 2001-01-10 14:00 |      678.505661 |         1.000283 |        -0.076994 |        1.548357 |       0.682792 |                      1.0 |             0.88 |                983.341538 |             737.506154 |     0.88 |      1.0 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.interfaces import radiationinterfaces

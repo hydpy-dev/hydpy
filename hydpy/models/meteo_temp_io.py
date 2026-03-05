@@ -38,8 +38,6 @@ and testing it does not require additional explanations:
     | 2000-02-01 |         4.0 | 3.4          2.8 |            2.92 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.models.meteo import meteo_model

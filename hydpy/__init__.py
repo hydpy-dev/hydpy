@@ -6,19 +6,15 @@
 An interactive framework for the developement and a application of hydrological models.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import importlib
 import os
 import warnings
 from typing import TYPE_CHECKING
 
-# ...from site-packages
 import numpy
 from numpy import nan
 
-# ...from HydPy
 from hydpy.core import pubtools
 
 pub = pubtools.Pub("pub")

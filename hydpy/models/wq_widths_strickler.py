@@ -950,14 +950,10 @@ depth exceeds the main channel's depth:
     | 2000-01-04 23:30:00 | 3.717834  3.717852  3.718002  3.718867  3.722817  3.737713   3.78536    3.916073 |      100.0 | 100.000069  100.001107  100.009585  100.058758  100.283264  101.132752    103.878248 | 111.633966 |  1.560987   1.560999  1.561096  1.561661  1.564238  1.573977  1.605314      1.69274 |  100.0 |        0.0 | 111.633966 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.interfaces import routinginterfaces
 from hydpy.exe.modelimports import *
-
-# ...from wq
 from hydpy.models.wq import wq_control
 from hydpy.models.wq import wq_model
 

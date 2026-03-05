@@ -1581,15 +1581,11 @@ There is no indication of an error in the water balance:
 0.0
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import routinginterfaces
-
-# ...from kinw
 from hydpy.models.kinw import kinw_model
 from hydpy.models.kinw import kinw_solver
 

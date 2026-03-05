@@ -358,15 +358,11 @@ There is no indication of an error in the water balance:
 0.0
 """
 
-# import...
-# ...from HydPy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import routinginterfaces
-
-# ...from musk
 from hydpy.models.sw1d import sw1d_model
 
 

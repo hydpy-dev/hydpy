@@ -1,13 +1,9 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from standard library
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core.typingtools import *
 from hydpy.core import objecttools

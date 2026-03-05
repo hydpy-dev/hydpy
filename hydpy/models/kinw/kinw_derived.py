@@ -271,11 +271,13 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
         >>> length(100.0)
         >>> nmbsegments(10)
         >>> derived.seconds(60 * 60 * 24)
-        >>> derived.nmbdiscontinuities.update()
+        >>> derived.nmbdiscontinuities(2)
+        >>> derived.finaldepth2initialvolume.update()
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: Submodel `wqmodel` is required \
-for updating parameter `nmbdiscontinuities` of element `?`, but is still not available.
+for updating parameter `finaldepth2initialvolume` of element `?`, but is still not \
+available.
 
         >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
         ...     nmbtrapezes(3)
@@ -285,7 +287,6 @@ for updating parameter `nmbdiscontinuities` of element `?`, but is still not ava
         ...     bottomslope(0.001)
         ...     stricklercoefficients(30.0)
         ...     calibrationfactors(1.0)
-        >>> derived.nmbdiscontinuities.update()
         >>> derived.finaldepth2initialvolume.update()
         >>> derived.finaldepth2initialvolume
         finaldepth2initialvolume([[2.0, 5.008867],

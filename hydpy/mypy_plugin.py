@@ -13,7 +13,7 @@ from mypy.checker import TypeChecker
 from mypy.errorcodes import ARG_TYPE, ATTR_DEFINED
 from mypy.nodes import Decorator, MemberExpr, MypyFile, TypeAlias, TypeInfo
 from mypy.options import Options
-from mypy.plugin import AttributeContext, FunctionContext, Plugin
+from mypy.plugin import AttributeContext, FunctionContext, Plugin, MethodContext
 from mypy.typeops import bind_self
 from mypy.types import (
     AnyType,
@@ -141,6 +141,70 @@ def prepare_model_hook(context: FunctionContext) -> Type:
             severity="error",
             code=ARG_TYPE,
         )
+    return context.default_return_type
+
+
+def get_submodeladder_call_hook(context: MethodContext) -> Type:
+    """
+    `ModelX.add_submodely_v1("modely") -> modeltools.SubmodelInterface`
+    -->
+    `ModelX.add_submodely_v1("modely") -> modely.Model`
+    """
+    if (
+        isinstance(api := context.api, TypeChecker)
+        and (len(arg_types := context.arg_types) == 2)
+        and (len(arg_types[0]) == 1)
+        and isinstance(arg_type := get_proper_type(arg_types[0][0]), Instance)
+        and isinstance(literal := arg_type.last_known_value, LiteralType)
+        and isinstance(
+            adder_inst := get_proper_type(context.default_return_type), Instance
+        )
+    ):
+        arg = literal.value
+        if ((module_name := f"hydpy.models.{arg}") in MODEL_MAP) or (
+            (module_name := f"hydpy.models.{arg}.{arg}_model") in MODEL_MAP
+        ):
+            if (
+                ((module_type := api.modules.get(module_name)) is None)
+                or ((model_sym := module_type.names.get("Model")) is None)
+                or not isinstance(model_info := model_sym.node, TypeInfo)
+                or (len(adder_args := adder_inst.args) != 3)
+                or not isinstance(
+                    interface_inst := get_proper_type(adder_args[2]), Instance
+                )
+            ):
+                return context.default_return_type
+            interface_name = interface_inst.type.fullname
+            if model_info.has_base(interface_name):
+                return adder_inst.copy_modified(
+                    args=adder_args[:2] + (Instance(model_info, args=[]),)
+                )
+            context.api.msg.report(
+                msg=(
+                    f"Model `{module_name}` does not comply with the submodel "
+                    f"interface `{interface_name}`."
+                ),
+                context=context.context,
+                severity="error",
+                code=ARG_TYPE,
+            )
+        context.api.msg.report(
+            msg=f"No model named `{module_name}` available.",
+            context=context.context,
+            severity="error",
+            code=ARG_TYPE,
+        )
+    return context.default_return_type
+
+
+def get_submodeladder_enter_hook(context: MethodContext) -> Type:
+    """
+    `ModelX.add_submodely_v1("modely") -> modeltools.SubmodelInterface`
+    -->
+    `ModelX.add_submodely_v1("modely") -> modely.Model`
+    """
+    if isinstance(adder_inst := context.type, Instance):
+        return adder_inst.args[2]
     return context.default_return_type
 
 
@@ -408,6 +472,13 @@ class MypyPlugin(Plugin):
                 (10, m, -1) for m in MODEL_MAP
             ]
         return []
+
+    def get_method_hook(self, fullname: str) -> Callable[[MethodContext], Type] | None:
+        if fullname == "hydpy.core.importtools.SubmodelAdder.__call__":
+            return get_submodeladder_call_hook
+        if fullname == "hydpy.core.importtools.SubmodelAdder.__enter__":
+            return get_submodeladder_enter_hook
+        return None
 
     def get_function_hook(
         self, fullname: str

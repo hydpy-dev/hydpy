@@ -20,7 +20,6 @@ from mypy.types import (
     CallableType,
     get_proper_type,
     LiteralType,
-    Overloaded,
     Instance,
     Type,
     TypeOfAny,
@@ -108,8 +107,9 @@ DIRPATH = split(__file__)[0]
 MODEL_MAP: dict[str, dict[str, tuple[str, str]]]
 VAR_MAP_1: dict[str, dict[str, dict[str, tuple[str, str]]]]
 VAR_MAP_2: dict[str, tuple[str, str, str]]
+VAR_INFO: dict[str, tuple[int, type[float]]]
 with open(join(DIRPATH, "conf", "mypy_plugin_data.pickle"), "rb") as file_:
-    MODEL_MAP, VAR_MAP_1, VAR_MAP_2 = load(file_)
+    MODEL_MAP, VAR_MAP_1, VAR_MAP_2, VAR_INFO = load(file_)
 
 
 def prepare_model_hook(context: FunctionContext) -> Type:
@@ -355,35 +355,33 @@ def variable_hook(context: AttributeContext) -> Type:
     return context.default_attr_type
 
 
-def _get_ndim_type_module(
-    context: AttributeContext,
-) -> tuple[int, Type, MypyFile] | None:
-    if (
-        isinstance(api := context.api, TypeChecker)
-        and isinstance(var_inst := context.type, Instance)
-        and (ndim_sym := var_inst.type.get("NDIM"))
-        and isinstance(ndim_type := get_proper_type(ndim_sym.type), LiteralType)
-        and (type_sym := var_inst.type.get("TYPE"))
-        and isinstance(
-            type_type := get_proper_type(type_sym.type), (CallableType, Overloaded)
-        )
-        and (typingtools_module := api.modules.get("hydpy.core.typingtools"))
-        and isinstance(ndim_value := ndim_type.value, int)
+def _get_ndim_and_type(
+    context: AttributeContext | MethodSigContext,
+) -> tuple[int, type] | None:
+    if isinstance(var_inst := context.type, Instance) and (
+        (fullname := var_inst.type.fullname) in VAR_INFO
     ):
-        if isinstance(type_type, Overloaded):
-            type_type = type_type.items[0]
-        return ndim_value, type_type.ret_type, typingtools_module
+        return VAR_INFO[fullname]
     return None
 
 
-def _get_values_or_series(context: AttributeContext, series: bool) -> Type:
-    data = _get_ndim_type_module(context)
-    if data is None:
-        return context.default_attr_type
-    ndim, ret_type, typingtools_module = data
-    match ndim + series:
+def _get_vectorlike(
+    context: AttributeContext | MethodSigContext,
+    ndim: int,
+    type_: type[float],
+    input_: bool,
+) -> Type | None:
+    if not isinstance(api := context.api, TypeChecker):
+        return None
+    match ndim:
         case 0:
-            return ret_type
+            if (
+                ((module := api.modules.get("builtins")) is not None)
+                and ((scalar_sym := module.names.get(type_.__name__)) is not None)
+                and isinstance(scalar_info := scalar_sym.node, TypeInfo)
+            ):
+                return Instance(scalar_info, args=[])
+            return None
         case 1:
             prefix = "Vector"
         case 2:
@@ -391,17 +389,32 @@ def _get_values_or_series(context: AttributeContext, series: bool) -> Type:
         case 3:
             prefix = "Tensor"
         case _:
-            return context.default_attr_type
-    middle = "InputComplete" if context.is_lvalue else ""
-    if not isinstance(ret_inst := get_proper_type(ret_type), Instance):
-        return context.default_attr_type
-    suffix = ret_inst.type.fullname.split(".")[-1].capitalize()
-    attr_name = f"{prefix}{middle}{suffix}"
-    if (attr_sym := typingtools_module.names.get(attr_name)) and isinstance(
-        attr_node := attr_sym.node, TypeAlias
+            return None
+    middle = "InputComplete" if input_ else ""
+    suffix = type_.__name__.capitalize()
+    vl_name = f"{prefix}{middle}{suffix}"
+    if (
+        ((module := api.modules.get("hydpy.core.typingtools")) is not None)
+        and ((vl_sym := module.names.get(vl_name)) is not None)
+        and isinstance(vl_node := vl_sym.node, TypeAlias)
     ):
-        return attr_node.target
-    return context.default_attr_type
+        return vl_node.target
+    return None
+
+
+def _get_values_or_series(context: AttributeContext, series: bool) -> Type:
+    ndim_type = _get_ndim_and_type(context)
+    if ndim_type is None:
+        return context.default_attr_type
+    vectorlike = _get_vectorlike(
+        context=context,
+        ndim=ndim_type[0] + series,
+        type_=ndim_type[1],
+        input_=context.is_lvalue,
+    )
+    if vectorlike is None:
+        return context.default_attr_type
+    return vectorlike
 
 
 def values_hook(context: AttributeContext) -> Type:

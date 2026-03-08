@@ -209,7 +209,7 @@ def _write_mypy_plugin_data() -> None:
         str, dict[str, dict[str, tuple[str, str]]]
     ] = {}
     var2modelmodule_subgroupmodule_subgrouptype: dict[str, tuple[str, str, str]] = {}
-
+    var2ndim_type: dict[str: tuple[int, type[float]]] = {}
     with pub.options.usecython(False):
         dirpath = models.__path__[0]
         for modelname in os.listdir(dirpath):
@@ -245,9 +245,11 @@ def _write_mypy_plugin_data() -> None:
                             type(var).__name__,
                         )
                         if basemodel:
+                            fullname = f"{type(var).__module__}.{type(var).__name__}"
                             var2modelmodule_subgroupmodule_subgrouptype[
-                                f"{type(var).__module__}.{type(var).__name__}"
+                                fullname
                             ] = (modelmodule, prefix, type(subvars).__name__)
+                            var2ndim_type[fullname] = var.NDIM, var.TYPE
                     subdict_[f"{prefix}.{type(subvars).__name__}"] = subsubdict
             model2subgroup2attr2module_var[f"{modelmodule}.Model"] = subdict_
 
@@ -257,6 +259,7 @@ def _write_mypy_plugin_data() -> None:
                 model2attr2module_var,
                 model2subgroup2attr2module_var,
                 var2modelmodule_subgroupmodule_subgrouptype,
+                var2ndim_type,
             )
             pickle.dump(data, file_, protocol=pickle.HIGHEST_PROTOCOL)
 

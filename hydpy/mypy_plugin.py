@@ -154,7 +154,7 @@ def prepare_model_hook(context: FunctionContext) -> Type:
     return context.default_return_type
 
 
-def get_submodeladder_call_hook(context: MethodContext) -> Type:
+def submodeladder_call_hook(context: MethodContext) -> Type:
     """
     `ModelX.add_submodely_v1("modely") -> modeltools.SubmodelInterface`
     -->
@@ -207,7 +207,7 @@ def get_submodeladder_call_hook(context: MethodContext) -> Type:
     return context.default_return_type
 
 
-def get_submodeladder_enter_hook(context: MethodContext) -> Type:
+def submodeladder_enter_hook(context: MethodContext) -> Type:
     """
     `ModelX.add_submodely_v1("modely") -> modeltools.SubmodelInterface`
     -->
@@ -526,9 +526,9 @@ class MypyPlugin(Plugin):
 
     def get_method_hook(self, fullname: str) -> Callable[[MethodContext], Type] | None:
         if fullname == "hydpy.core.importtools.SubmodelAdder.__call__":
-            return get_submodeladder_call_hook
+            return submodeladder_call_hook
         if fullname == "hydpy.core.importtools.SubmodelAdder.__enter__":
-            return get_submodeladder_enter_hook
+            return submodeladder_enter_hook
         return None
 
     def get_function_hook(

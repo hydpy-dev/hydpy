@@ -3411,7 +3411,7 @@ class ConditionSequence(ModelSequence):
         self.trim()
         self._oldargs = copy.deepcopy(args)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Apply |trim| of module |variabletools|."""
         return variabletools.trim(self, lower, upper)
 

@@ -13,7 +13,7 @@ class I(sequencetools.StateSequence):
 
     CONTROLPARAMETERS = (gland_control.IMax,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |I| in accordance with :math:`0 \leq I \leq IMax`.
 
         >>> from hydpy.models.gland import *
@@ -28,7 +28,7 @@ class I(sequencetools.StateSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.imax.value
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class S(sequencetools.StateSequence):
@@ -39,7 +39,7 @@ class S(sequencetools.StateSequence):
 
     CONTROLPARAMETERS = (gland_control.X1,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |S| in accordance with :math:`0 \leq S \leq X1`.
 
         >>> from hydpy.models.gland import *
@@ -54,7 +54,7 @@ class S(sequencetools.StateSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.x1.value
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class R(sequencetools.StateSequence):
@@ -65,7 +65,7 @@ class R(sequencetools.StateSequence):
 
     CONTROLPARAMETERS = (gland_control.X3,)
 
-    def trim(self, lower=None, upper=None):
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |R| in accordance with :math:`0 \leq R \leq X3`.
 
         >>> from hydpy.models.gland import *
@@ -81,7 +81,7 @@ class R(sequencetools.StateSequence):
         """
         if upper is None:
             upper = self.subseqs.seqs.model.parameters.control.x3.value
-        super().trim(lower, upper)
+        return super().trim(lower, upper)
 
 
 class R2(sequencetools.StateSequence):

@@ -21,7 +21,7 @@ class NmbWidths(parametertools.NmbParameter):
 
     SPAN = (1, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Check according to :math:`NmbWidths \\geq NmbSectors`.
 
         >>> from hydpy.models.wq import *
@@ -52,7 +52,7 @@ class NmbSectors(parametertools.NmbParameter):
 
     SPAN = (1, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Check according to :math:`NmbSectors \\leq NmbWidths`.
 
         >>> from hydpy.models.wq import *
@@ -93,7 +93,7 @@ class FlowWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
 
     SPAN = (0.0, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim according to :math:`FlowWidths \\leq TotalWidths`.
 
         >>> from hydpy.models.wq import *
@@ -119,7 +119,7 @@ class TotalWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
 
     SPAN = (0.0, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim according to :math:`TotalWidths \\geq FlowWidths`.
 
         >>> from hydpy.models.wq import *
@@ -243,7 +243,7 @@ not strictly rising (1, 4, and 4).
                         f"but {values[-1]} is given."
                     )
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Regular trimming is disabled in favour of the special checks described in the
         main documentation of parameter |Transitions|."""
         return False

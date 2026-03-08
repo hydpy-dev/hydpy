@@ -13,16 +13,26 @@ from mypy.checker import TypeChecker
 from mypy.errorcodes import ARG_TYPE, ATTR_DEFINED
 from mypy.nodes import Decorator, MemberExpr, MypyFile, TypeAlias, TypeInfo
 from mypy.options import Options
-from mypy.plugin import AttributeContext, FunctionContext, Plugin, MethodContext
+from mypy.plugin import (
+    AttributeContext,
+    FunctionContext,
+    Plugin,
+    MethodContext,
+    MethodSigContext,
+)
 from mypy.typeops import bind_self
 from mypy.types import (
     AnyType,
     CallableType,
+    FunctionLike,
     get_proper_type,
     LiteralType,
     Instance,
+    NoneType,
     Type,
+    TypeAliasType,
     TypeOfAny,
+    UnionType,
 )
 
 VARS1 = set(
@@ -206,6 +216,34 @@ def get_submodeladder_enter_hook(context: MethodContext) -> Type:
     if isinstance(adder_inst := context.type, Instance):
         return adder_inst.args[2]
     return context.default_return_type
+
+
+def trim_hook(context: MethodSigContext) -> FunctionLike:
+    """
+    VariableX.trim(TrimHook, TrimHook) -> bool
+    -->
+    VariableX.trim(float | None, float | None) -> bool
+    """
+    default = context.default_signature
+    if (default.arg_names != ["lower", "upper"]) or not all(
+        (
+            isinstance(at, TypeAliasType)
+            and ((alias := at.alias) is not None)
+            and (alias.fullname == "hydpy.core.typingtools.TrimHook")
+        )
+        for at in default.arg_types
+    ):
+        return default
+    ndim_type = _get_ndim_and_type(context)
+    if ndim_type is None:
+        return default
+    vectorlike = _get_vectorlike(
+        context=context, ndim=ndim_type[0], type_=ndim_type[1], input_=True
+    )
+    if vectorlike is None:
+        return default
+    vl_opt = UnionType(items=[vectorlike, NoneType()])
+    return default.copy_modified(arg_types=(vl_opt, vl_opt))
 
 
 def method_hook(context: AttributeContext) -> Type:
@@ -499,6 +537,13 @@ class MypyPlugin(Plugin):
         """Hooks for refining return types."""
         if fullname == "hydpy.core.importtools.prepare_model":
             return prepare_model_hook
+        return None
+
+    def get_method_signature_hook(
+        self, fullname: str
+    ) -> Callable[[MethodSigContext], FunctionLike] | None:
+        if fullname.endswith(".trim"):
+            return trim_hook
         return None
 
     def get_attribute_hook(

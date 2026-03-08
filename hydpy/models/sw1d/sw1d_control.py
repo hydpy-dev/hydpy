@@ -149,7 +149,7 @@ class TargetWaterLevel1(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |TargetWaterLevel1| following
         :math:`TargetWaterLevel1 \leq TargetWaterLevel2`.
 
@@ -173,7 +173,7 @@ class TargetWaterLevel2(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |TargetWaterLevel2| following
         :math:`TargetWaterLevel1 \leq TargetWaterLevel2`.
 
@@ -197,7 +197,7 @@ class BottomLowWaterThreshold(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim |BottomLowWaterThreshold| following
         :math:`BottomLowWaterThreshold \\leq UpperLowWaterThreshold` and
         :math:`BottomLowWaterThreshold \\leq BottomHighWaterThreshold` and
@@ -245,7 +245,7 @@ class UpperLowWaterThreshold(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim |UpperLowWaterThreshold| following
         :math:`UpperLowWaterThreshold \\geq BottomLowWaterThreshold` and
         :math:`UpperLowWaterThreshold \\leq UpperHighWaterThreshold`.
@@ -287,7 +287,7 @@ class BottomHighWaterThreshold(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim |BottomHighWaterThreshold| following
         :math:`BottomHighWaterThreshold \\geq BottomLowWaterThreshold` and
         :math:`BottomHighWaterThreshold \\leq UpperHighWaterThreshold`.
@@ -329,7 +329,7 @@ class UpperHighWaterThreshold(parametertools.SeasonalParameter):
 
     NDIM: Final[Literal[1]] = 1
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim |UpperHighWaterThreshold| following
         :math:`UpperHighWaterThreshold \\geq BottomLowWaterThreshold` and
         :math:`UpperHighWaterThreshold \\geq UpperLowWaterThreshold` and

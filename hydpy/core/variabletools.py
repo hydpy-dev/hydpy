@@ -46,7 +46,7 @@ integer values."""
 TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 
 
-def trim(self: Variable, lower=None, upper=None) -> bool:
+def trim(self: Variable, lower: TrimHook = None, upper: TrimHook = None) -> bool:
     """Trim the value(s) of a |Variable| instance.
 
     The returned boolean indicates whether at least one value has been trimmed.
@@ -343,11 +343,19 @@ is `str`.
         type_ = getattr(self, "TYPE", float)
         if type_ is float:
             if self.NDIM == 0:
-                return _trim_float_0d(self, lower, upper)
+                return _trim_float_0d(
+                    self=self,
+                    lower=cast(float | None, lower),
+                    upper=cast(float | None, upper),
+                )
             return _trim_float_nd(self, lower, upper)
         if type_ is int:
             if self.NDIM == 0:
-                return _trim_int_0d(self, lower, upper)
+                return _trim_int_0d(
+                    self=self,
+                    lower=cast(int | None, lower),
+                    upper=cast(int | None, upper),
+                )
             return _trim_int_nd(self, lower, upper)
         if type_ is bool:
             return False
@@ -359,7 +367,7 @@ is `str`.
     return False
 
 
-def _trim_float_0d(self, lower, upper) -> bool:
+def _trim_float_0d(self: Variable, lower: float | None, upper: float | None) -> bool:
     if numpy.isnan(self.value):
         return False
     if (lower is None) or numpy.isnan(lower):
@@ -381,7 +389,7 @@ def _trim_float_0d(self, lower, upper) -> bool:
     return False
 
 
-def _trim_float_nd(self, lower, upper) -> bool:
+def _trim_float_nd(self: Variable, lower: TrimHook, upper: TrimHook) -> bool:
     values = self.values
     shape = values.shape
     if lower is None:
@@ -409,7 +417,7 @@ def _trim_float_nd(self, lower, upper) -> bool:
         values[idxs] = numpy.nan
 
 
-def _trim_int_0d(self, lower, upper) -> bool:
+def _trim_int_0d(self: Variable, lower: int | None, upper: int | None) -> bool:
     if lower is None:
         lower = INT_NAN
     if (upper is None) or (upper == INT_NAN):
@@ -422,7 +430,7 @@ def _trim_int_0d(self, lower, upper) -> bool:
     return False
 
 
-def _trim_int_nd(self, lower, upper) -> bool:
+def _trim_int_nd(self: Variable, lower: TrimHook, upper: TrimHook) -> bool:
     if lower is None:
         lower = INT_NAN
     lower = numpy.full(self.shape, lower, dtype=config.NP_INT)

@@ -1522,7 +1522,7 @@ parameter and a simulation time step size first.
             ).parfactor
         return parfactor(parameterstep)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Apply function |trim| of module |variabletools|."""
         return variabletools.trim(self, lower, upper)
 
@@ -2045,7 +2045,7 @@ class NameParameter(_MixinModifiableParameter, Parameter):
             finally:
                 cls._reset_after_modification("constants", old)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Check if all previously set values comply with the supported constants.
 
         >>> from hydpy.core.parametertools import Constants, NameParameter
@@ -3044,7 +3044,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         proxy = super(__class__, type(self))  # type: ignore[name-defined]
         proxy.shape.fset(self, tuple(shape_))  # type: ignore[attr-defined]
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Extend the usual trim logic with a warning mechanism to account for that
         trimming only affects "background values" and not the "visible" time of year /
         value pairs.

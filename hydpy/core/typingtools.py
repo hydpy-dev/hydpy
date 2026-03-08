@@ -150,6 +150,10 @@ TypeINIT: TypeAlias = int | float | bool | None
 TypeTIME: TypeAlias = bool | None
 TypeNUMERIC: TypeAlias = bool
 
+TrimHook: TypeAlias = Union[
+    float, VectorInputFloat, MatrixInputFloat, TensorInputFloat, None
+]
+
 
 class SharableConfiguration(TypedDict):
     """Specification of the configuration data that main models can share with their
@@ -346,6 +350,7 @@ __all__ = [
     "TextIO",
     "TM_co",
     "TOM_co",
+    "TrimHook",
     "TypeAlias",
     "TypeINIT",
     "TypeNDIM",

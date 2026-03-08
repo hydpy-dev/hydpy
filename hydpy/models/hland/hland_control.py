@@ -205,7 +205,7 @@ class ZoneArea(hland_parameters.ParameterComplete):
     TYPE: Final = float
     SPAN = (0.0, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |ZoneArea| so that :math:`\Sigma ZoneArea = Area` holds and each zone
         area is non-negative.
 
@@ -1339,7 +1339,7 @@ class K0(hland_parameters.ParameterUpperZone):
     # defined at the bottom of the file:
     CONTROLPARAMETERS: tuple[type[K1]]
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |K0| following :math:`K^* \leq K0 \leq K1` with
         :math:`K^* = -1/ln \left( 1 - e^{-1 / k1} \right)`.
 
@@ -1400,7 +1400,7 @@ class K1(hland_parameters.ParameterUpperZone):
     CONTROLPARAMETERS: tuple[type[K0], type[K2]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |K1| following :math:`max (K0, K^*) \leq K1 \leq K2` with
         :math:`K^* = max \left( -1/ln \left( 1 - e^{-1 / k0} \right), K1L \right)`.
 
@@ -1491,7 +1491,7 @@ class K2(hland_parameters.ParameterUpperZone):
     CONTROLPARAMETERS: tuple[type[K1], type[K3]]
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |K2| following :math:`max(K1, K1L) \leq K2 \leq K3`.
 
         >>> from hydpy.models.hland import *
@@ -1534,7 +1534,7 @@ class K3(parametertools.Parameter):
     CONTROLPARAMETERS = (K2,)
     FIXEDPARAMETERS = (hland_fixed.K1L,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |K3| in accordance with :math:`max(K2, K1L) \leq K3`.
 
         >>> from hydpy.models.hland import *

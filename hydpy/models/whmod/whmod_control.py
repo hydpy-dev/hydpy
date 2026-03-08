@@ -236,7 +236,7 @@ class IrrigationTrigger(parametertools.KeywordParameter2D):
         relevant=whmod_masks.LandTypeSoil.relevant
     )
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |IrrigationTrigger| following
         :math:`0 \leq IrrigationTrigger \leq IrrigationTarget \leq 1`.
 
@@ -289,7 +289,7 @@ class IrrigationTarget(parametertools.KeywordParameter2D):
         relevant=whmod_masks.LandTypeSoil.relevant
     )
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |IrrigationTarget| following
         :math:`0 \leq IrrigationTrigger \leq IrrigationTarget \leq 1`.
 

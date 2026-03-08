@@ -70,7 +70,7 @@ class DT(parametertools.Parameter):
     TYPE: Final = float
     TIME = False
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Adjust |DT| when necessary, so the simulation period is an integer multiple.
 
         Assume we want to perform a simulation over intervals of 30 minutes but define
@@ -152,7 +152,7 @@ class ResidualMoisture(parametertools.Parameter):
     TYPE: Final = float
     SPAN = (0.0, 1.0)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |ResidualMoisture| following
         :math:`0 \leq ResidualMoisture \leq SaturationMoisture \leq 1`.
 
@@ -182,7 +182,7 @@ class SaturationMoisture(parametertools.Parameter):
     TYPE: Final = float
     SPAN = (0.0, 1.0)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |SaturationMoisture| following
         :math:`0 \leq ResidualMoisture \leq SaturationMoisture \leq 1`.
 

@@ -89,7 +89,7 @@ class AngstromConstant(parametertools.MonthParameter):
     SPAN = (0.0, 1.0)
     INIT = 0.25
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values following :math:`AngstromConstant \leq  1 - AngstromFactor` or
         at least following :math:`AngstromConstant \leq  1`.
 
@@ -118,7 +118,7 @@ class AngstromFactor(parametertools.MonthParameter):
     SPAN = (0.0, 1.0)
     INIT = 0.5
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values in accordance with :math:`AngstromFactor \leq  1 -
         AngstromConstant` or at least in accordance with :math:`AngstromFactor \leq 1`.
 

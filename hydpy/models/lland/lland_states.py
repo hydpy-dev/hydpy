@@ -31,7 +31,7 @@ class STInz(lland_sequences.State1DSequence):
     SPAN = (0.0, None)
     mask = lland_masks.Forest()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values in accordance with :math:`SInz / PWMax \leq STInz \leq SInz`, or
         at least in accordance with if :math:`STInz \geq 0`.
 
@@ -48,7 +48,7 @@ class STInz(lland_sequences.State1DSequence):
         >>> states.stinz
         stinz(0.0, 0.0, 0.5, 5.0, 5.0, 10.0, 3.0)
         """
-        pwmax = self.subseqs.seqs.model.parameters.control.pwmax
+        pwmax = self.subseqs.seqs.model.parameters.control.pwmax.values
         sinz = numpy.clip(self.subseqs.sinz.values, 0.0, numpy.inf)
         if lower is None:
             lower = sinz / pwmax
@@ -65,7 +65,7 @@ class SInz(lland_sequences.State1DSequence):
     SPAN = (0.0, None)
     mask = lland_masks.Forest()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values in accordance with :math:`SInz / PWMax \leq STInz \leq SInz`, or
         at least in accordance with if :math:`SInz \geq 0`.
 
@@ -116,7 +116,7 @@ class WATS(lland_sequences.State1DSequence):
     SPAN = (0.0, None)
     mask = lland_masks.Land()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values in accordance with :math:`WAeS / PWMax \leq WATS \leq WAeS`, or
         at least in accordance with if :math:`WATS \geq 0`.
 
@@ -133,7 +133,7 @@ class WATS(lland_sequences.State1DSequence):
         >>> states.wats
         wats(0.0, 0.0, 0.5, 5.0, 5.0, 10.0, 3.0)
         """
-        pwmax = self.subseqs.seqs.model.parameters.control.pwmax
+        pwmax = self.subseqs.seqs.model.parameters.control.pwmax.values
         waes = numpy.clip(self.subseqs.waes.values, 0.0, numpy.inf)
         if lower is None:
             lower = waes / pwmax
@@ -150,7 +150,7 @@ class WAeS(lland_sequences.State1DSequence):
     SPAN = (0.0, None)
     mask = lland_masks.Land()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values in accordance with :math:`WAeS / PWMax \leq WATS \leq WAeS`, or
         at least in accordance with if :math:`WAeS \geq 0`
 
@@ -208,7 +208,7 @@ class BoWa(lland_sequences.State1DSequence):
     SPAN = (0.0, None)
     mask = lland_masks.Soil()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim in accordance with :math:`0 \leq BoWa \leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -220,7 +220,7 @@ class BoWa(lland_sequences.State1DSequence):
         bowa(0.0, 0.0, 100.0, 200.0, 200.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.control.wmax
+            upper = self.subseqs.seqs.model.parameters.control.wmax.values
         return super().trim(lower, upper)
 
 
@@ -255,7 +255,7 @@ class SBG(sequencetools.StateSequence):
 
     NDIM: Final[Literal[0]] = 0
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim in accordance with :math:`SBG \leq GSBMax \cdot VolBMax`.
 
         >>> from hydpy.models.lland import *

@@ -156,7 +156,7 @@ class GL(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Ensure |GL| is above |BL|.
 
         >>> from hydpy.models.wland import *
@@ -182,7 +182,7 @@ class BL(parametertools.Parameter):
     NDIM: Final[Literal[0]] = 0
     TYPE: Final = float
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Ensure |BL| is below |GL|.
 
         >>> from hydpy.models.wland import *
@@ -457,7 +457,7 @@ class ThetaS(wland_parameters.SoilParameter):
         CLAY: 0.482,
     }
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |ThetaS| following :math:`1e^{-6} \leq ThetaS \leq 1.0` and,
         if |ThetaR| exists for the relevant application model, also following
         :math:`ThetaR \leq ThetaS`.
@@ -498,7 +498,7 @@ class ThetaR(parametertools.Parameter):
     SPAN = (1e-6, None)
     INIT = 0.01
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |ThetaR| following :math:`1e^{-6} \leq ThetaR \leq ThetaS`.
 
         >>> from hydpy.models.wland import *

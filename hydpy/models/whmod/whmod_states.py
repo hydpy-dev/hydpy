@@ -25,7 +25,7 @@ class SoilMoisture(whmod_sequences.State1DSoilSequence):
     SPAN = (0.0, None)
     DERIVEDPARAMETERS = (whmod_derived.MaxSoilWater,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |SoilMoisture| following :math:`0 \leq SoilMoisture \leq MaxSoilWater`.
 
         >>> from hydpy.models.whmod import *
@@ -37,7 +37,7 @@ class SoilMoisture(whmod_sequences.State1DSoilSequence):
         soilmoisture(0.0, 0.0, 100.0, 200.0, 200.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.derived.maxsoilwater
+            upper = self.subseqs.seqs.model.parameters.derived.maxsoilwater.values
         return super().trim(lower, upper)
 
 
@@ -47,7 +47,7 @@ class CisternWater(sequencetools.StateSequence):
     NDIM: Final[Literal[0]] = 0
     SPAN = (0.0, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |CisternWater| following
         :math:`0 \leq CisternWater \leq CisternCapacity`.
 

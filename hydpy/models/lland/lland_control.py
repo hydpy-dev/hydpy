@@ -699,7 +699,7 @@ class WMax(lland_parameters.ParameterSoil):
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[FK]]]
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -740,7 +740,7 @@ class FK(lland_parameters.ParameterSoilThreshold):
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[WMax]]]
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -776,7 +776,7 @@ class PWP(lland_parameters.ParameterSoilThreshold):
 
     CONTROLPARAMETERS = (WMax, FK)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -925,7 +925,7 @@ Keyword `rdmin` is not among the available model constants.
             else:
                 objecttools.augment_excmessage()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`DMin \\leq DMax`.
 
         >>> from hydpy.models.lland import *
@@ -1004,7 +1004,7 @@ Keyword `rdmax` is not among the available model constants.
             else:
                 objecttools.augment_excmessage()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`DMax \\geq DMin`.
 
         >>> from hydpy.models.lland import *
@@ -1295,7 +1295,7 @@ class GSBGrad1(parametertools.Parameter):
     TIME = True
     INIT = numpy.inf
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim upper values in accordance with :math:`GSBGrad1 \leq GSBGrad2`.
 
         >>> from hydpy.models.lland import *
@@ -1326,7 +1326,7 @@ class GSBGrad2(parametertools.Parameter):
     TIME = True
     INIT = numpy.inf
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim upper values in accordance with :math:`GSBGrad1 \leq GSBGrad2`.
 
         >>> from hydpy.models.lland import *
@@ -1514,7 +1514,7 @@ class EQI1(parametertools.Parameter):
     SPAN = (0.0, None)
     INIT = 2000.0
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
@@ -1545,7 +1545,7 @@ class EQI2(parametertools.Parameter):
     SPAN = (0.0, None)
     INIT = 1000.0
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
@@ -1576,7 +1576,7 @@ class EQD1(parametertools.Parameter):
     SPAN = (0.0, None)
     INIT = 100.0
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *
@@ -1607,7 +1607,7 @@ class EQD2(parametertools.Parameter):
     SPAN = (0.0, None)
     INIT = 50.0
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *

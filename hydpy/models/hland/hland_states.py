@@ -24,7 +24,7 @@ class SP(hland_sequences.State2DSequence):
 
     CONTROLPARAMETERS = (hland_control.WHC,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |SP| following :math:`WC \leq WHC \cdot SP`.
 
         >>> from hydpy.models.hland import *
@@ -71,7 +71,7 @@ class WC(hland_sequences.State2DSequence):
 
     CONTROLPARAMETERS = (hland_control.WHC,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim |WC| following :math:`WC \\leq WHC \\cdot SP`.
 
         >>> from hydpy.models.hland import *
@@ -106,7 +106,7 @@ class SM(hland_sequences.State1DSequence):
 
     CONTROLPARAMETERS = (hland_control.FC,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |SM| following :math:`0 \leq SM \leq FC`.
 
         >>> from hydpy.models.hland import *
@@ -118,7 +118,7 @@ class SM(hland_sequences.State1DSequence):
         sm(0.0, 0.0, 100.0, 200.0, 200.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.control.fc
+            upper = self.subseqs.seqs.model.parameters.control.fc.values
         return super().trim(lower, upper)
 
 
@@ -166,7 +166,7 @@ class LZ(sequencetools.StateSequence):
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim negative values if the actual subbasin does not contain an internal
         lake.
 
@@ -200,7 +200,7 @@ class SG1(hland_sequences.State1DSequence):
     CONTROLPARAMETERS = (hland_control.SG1Max,)
     mask = hland_masks.UpperZone()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |SG1| following :math:`0  \leq SG1 \leq SG1Max`.
 
         >>> from hydpy.models.hland import *
@@ -212,7 +212,7 @@ class SG1(hland_sequences.State1DSequence):
         sg1(0.0, 0.0, 50.0, 100.0, 100.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.control.sg1max
+            upper = self.subseqs.seqs.model.parameters.control.sg1max.values
         return super().trim(lower, upper)
 
 

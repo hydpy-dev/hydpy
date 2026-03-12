@@ -162,7 +162,7 @@ def submodeladder_call_hook(context: MethodContext) -> Type:
     """
     if (
         isinstance(api := context.api, TypeChecker)
-        and (len(arg_types := context.arg_types) == 2)
+        and (len(arg_types := context.arg_types) >= 2)
         and (len(arg_types[0]) == 1)
         and isinstance(arg_type := get_proper_type(arg_types[0][0]), Instance)
         and isinstance(literal := arg_type.last_known_value, LiteralType)

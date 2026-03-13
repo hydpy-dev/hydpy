@@ -202,14 +202,20 @@ def _write_mypy_plugin_data() -> None:
     from hydpy import conf
     from hydpy import models
     from hydpy import pub
-    from hydpy.core import importtools
+    from hydpy.core.autodoctools import autodoc_complete
+    from hydpy.core.importtools import prepare_model
+    from hydpy.core.variabletools import Variable
+    from hydpy.auxs.interptools import BaseInterpolator
+
+    autodoc_complete()
 
     model2attr2module_var: dict[str, dict[str, tuple[str, str]]] = {}
-    model2subgroup2attr2module_var: dict[
-        str, dict[str, dict[str, tuple[str, str]]]
-    ] = {}
+    model2subgroup2attr2module_var: dict[str, dict[str, dict[str, tuple[str, str]]]] = (
+        {}
+    )
     var2modelmodule_subgroupmodule_subgrouptype: dict[str, tuple[str, str, str]] = {}
-    var2ndim_type: dict[str: tuple[int, type[float]]] = {}
+    var2ndim_type: dict[str, tuple[int, type[float]]] = {}
+
     with pub.options.usecython(False):
         dirpath = models.__path__[0]
         for modelname in os.listdir(dirpath):
@@ -223,7 +229,7 @@ def _write_mypy_plugin_data() -> None:
                 modelmodule = f"hydpy.models.{modelname}"
             else:
                 continue
-            model = importtools.prepare_model(modelname)
+            model = prepare_model(modelname)
             subdict = {}
             for method in model.get_methods():
                 complete_name = method.__name__.lower()
@@ -246,22 +252,44 @@ def _write_mypy_plugin_data() -> None:
                         )
                         if basemodel:
                             fullname = f"{type(var).__module__}.{type(var).__name__}"
-                            var2modelmodule_subgroupmodule_subgrouptype[
-                                fullname
-                            ] = (modelmodule, prefix, type(subvars).__name__)
+                            var2modelmodule_subgroupmodule_subgrouptype[fullname] = (
+                                modelmodule,
+                                prefix,
+                                type(subvars).__name__,
+                            )
                             var2ndim_type[fullname] = var.NDIM, var.TYPE
                     subdict_[f"{prefix}.{type(subvars).__name__}"] = subsubdict
             model2subgroup2attr2module_var[f"{modelmodule}.Model"] = subdict_
 
-        filepath = os.path.join(conf.__path__[0], "mypy_plugin_data.pickle")
-        with open(filepath, "wb") as file_:
-            data = (
-                model2attr2module_var,
-                model2subgroup2attr2module_var,
-                var2modelmodule_subgroupmodule_subgrouptype,
-                var2ndim_type,
-            )
-            pickle.dump(data, file_, protocol=pickle.HIGHEST_PROTOCOL)
+    vars_with_shape: set[str] = set()
+
+    def _search_variables_with_specific_members(
+        v: type[Variable | BaseInterpolator], seen: set[str]
+    ) -> None:
+        fullname_ = f"{v.__module__}.{v.__name__}"
+        if (fullname_ in seen) or not fullname_.startswith("hydpy."):
+            return
+        seen.add(fullname_)
+        if "shape" in vars(v):
+            vars_with_shape.add(f"{fullname_}.shape")
+        for w in v.__subclasses__():
+            _search_variables_with_specific_members(w, seen)
+        for w in v.__bases__:
+            _search_variables_with_specific_members(w, seen)
+
+    _search_variables_with_specific_members(Variable, set())
+    _search_variables_with_specific_members(BaseInterpolator, set())
+
+    filepath = os.path.join(conf.__path__[0], "mypy_plugin_data.pickle")
+    with open(filepath, "wb") as file_:
+        data = (
+            model2attr2module_var,
+            model2subgroup2attr2module_var,
+            var2modelmodule_subgroupmodule_subgrouptype,
+            var2ndim_type,
+            vars_with_shape,
+        )
+        pickle.dump(data, file_, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 @click.command()

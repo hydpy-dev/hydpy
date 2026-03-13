@@ -12,7 +12,6 @@ class WaterLevels(variabletools.MixinFixedShape, sequencetools.FactorSequence):
     the value of the |LoggedWaterLevels| of the previous simulation step.
     """
 
-    NDIM: Final[Literal[1]] = 1
     SHAPE = (2,)
 
 

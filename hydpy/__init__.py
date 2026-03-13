@@ -250,31 +250,8 @@ __all__ = [
 sequence2alias: dict[sequencetools.InOutSequenceTypes, str] = {}
 
 if config.USEAUTODOC:
-    with warnings.catch_warnings():
-        warnings.filterwarnings(action="ignore", category=FutureWarning)
-        from hydpy import auxs
-        from hydpy import core
-        from hydpy import cythons
-        from hydpy import exe
-        from hydpy import interfaces
-        from hydpy.core import autodoctools
+    from hydpy.core import autodoctools
 
-        substituter = autodoctools.prepare_mainsubstituter()
-        for subpackage in (auxs, core, cythons, interfaces, exe):
-            subpackagepath = subpackage.__path__[0]
-            for filename in sorted(os.listdir(subpackagepath)):
-                if filename.endswith(".py") and not filename.startswith("_"):
-                    module = importlib.import_module(
-                        f"{subpackage.__name__}.{filename[:-3]}"
-                    )
-                    autodoctools.autodoc_module(module)
-        modelpath: str = models.__path__[0]
-        for filename in sorted(os.listdir(modelpath)):
-            path = os.path.join(modelpath, filename)
-            if os.path.isdir(path) and not filename.startswith("_"):
-                module = importlib.import_module(f"{models.__name__}.{filename}")
-                autodoctools.autodoc_basemodel(module)
-        for filename in sorted(os.listdir(modelpath)):
-            if filename.endswith(".py") and not filename.startswith("_"):
-                module = importlib.import_module(f"{models.__name__}.{filename[:-3]}")
-                autodoctools.autodoc_applicationmodel(module)
+    substituter: autodoctools.Substituter
+
+    autodoctools.autodoc_complete()

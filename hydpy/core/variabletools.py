@@ -1341,7 +1341,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         self.value = values
 
     @property
-    def shape(self) -> tuple[int, ...]:
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         Note that setting a new |Variable.shape| results in a loss of
@@ -1488,7 +1488,7 @@ as `var` can only be `()`, but `(2,)` is given.
         return ()
 
     @shape.setter
-    def shape(self, shape: int | tuple[int, ...]) -> None:
+    def shape(self, shape: ShapeHookSet) -> None:
         self._valueready = False
         self._shapeready = False
         initvalue, initflag = self.initinfo
@@ -2244,6 +2244,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 class MixinFixedShape:
     """Mixin class for defining variables with a fixed shape."""
 
+    NDIM: Final[Literal[1]] = 1
     SHAPE: tuple[int, ...]
     name: str
 
@@ -2252,7 +2253,7 @@ class MixinFixedShape:
         self.shape = self.SHAPE
 
     @property
-    def shape(self) -> tuple[int, ...]:
+    def shape(self) -> ShapeHookGet:
         """Variables that mix in |MixinFixedShape| are generally initialised with a
         fixed shape.
 
@@ -2281,7 +2282,7 @@ this was attempted for element `?`.
         return super().shape  # type: ignore[misc]
 
     @shape.setter
-    def shape(self, shape: int | tuple[int, ...]) -> None:
+    def shape(self, shape: ShapeHookSet) -> None:
         oldshape = exceptiontools.getattr_(self, "shape", None)
         if oldshape is None:
             proxy = super(__class__, type(self))  # type: ignore[name-defined]

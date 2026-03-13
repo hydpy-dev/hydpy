@@ -58,7 +58,7 @@ class LoggedPotentialEvapotranspiration(sequencetools.LogSequence):
     NDIM: Final[Literal[2]] = 2
 
     @property
-    def shape(self) -> tuple[int, ...]:
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the lengths of all dimensions.
 
         |LoggedPotentialEvapotranspiration| is generally initialised with a length of
@@ -73,7 +73,7 @@ class LoggedPotentialEvapotranspiration(sequencetools.LogSequence):
         return super().shape
 
     @shape.setter
-    def shape(self, shape: int | tuple[int, ...]) -> None:
+    def shape(self, shape: ShapeHookSet) -> None:
         prop = super(__class__, type(self)).shape  # type: ignore[name-defined]
         prop.fset(self, (1, shape))  # type: ignore[attr-defined]
 

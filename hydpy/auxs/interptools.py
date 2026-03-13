@@ -214,7 +214,7 @@ dy1/dx3   dy2/dx3
 class BaseInterpolator(_Labeled):
     """Base class for |SimpleInterpolator| and |SeasonalInterpolator|."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TIME = None
     SPAN = (None, None)
 
@@ -306,7 +306,7 @@ class SimpleInterpolator(BaseInterpolator):
     >>> mock.assert_called_with(**kwargs)
     """
 
-    TYPE = "interputils.SimpleInterpolator"
+    TYPE: Final = "interputils.SimpleInterpolator"
 
     _algorithm: InterpAlgorithm | None
 
@@ -330,6 +330,11 @@ class SimpleInterpolator(BaseInterpolator):
         self._algorithm = algorithm
         self.__simpleinterpolator = interputils.SimpleInterpolator(algorithm)
         setattr(self.fastaccess, self.name, self.__simpleinterpolator)
+
+    @property
+    def shape(self) -> ShapeHookGet:
+        """This property exists for type consistency; we might remove it later."""
+        return ()
 
     @property
     def algorithm(self) -> InterpAlgorithm:
@@ -691,7 +696,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
     AttributeError: 'SeasonalInterpolator' object has no attribute 'temp'
     """
 
-    TYPE = "interputils.SeasonalInterpolator"
+    TYPE: Final = "interputils.SeasonalInterpolator"
 
     nmb_algorithms: int
 
@@ -912,7 +917,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
                 ratios[tdx, idx_0] = 1.0 - ratios[tdx, idx_1]
 
     @property
-    def shape(self) -> tuple[int, int]:
+    def shape(self) -> ShapeHookGet:
         """The shape of array |SeasonalInterpolator.ratios|."""
         shape = self.ratios.shape
         return int(shape[0]), int(shape[1])

@@ -2076,7 +2076,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         self.__hydpy__set_fastaccessattribute__("array", values)
 
     @property
-    def shape(self) -> tuple[int, ...]:
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         When setting a new |IOSequence.shape| of an |IOSequence| object, one
@@ -2088,7 +2088,7 @@ during a simulation run is not supported but tried for sequence `t` of element \
         return super().shape
 
     @shape.setter
-    def shape(self, shape: int | tuple[int, ...]):
+    def shape(self, shape: ShapeHookSet) -> None:
         proxy = super(__class__, type(self))  # type: ignore[name-defined]
         proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
         if self.ramflag:
@@ -3324,7 +3324,7 @@ class DependentSequence(OutputSequence):
             self.__hydpy__set_fastaccessattribute__("sum", value)
 
     @property
-    def shape(self) -> tuple[int, ...]:
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         |FactorSequence| and |FluxSequence| objects come with some additional
@@ -3357,7 +3357,7 @@ class DependentSequence(OutputSequence):
         return super().shape
 
     @shape.setter
-    def shape(self, shape: int | tuple[int, ...]) -> None:
+    def shape(self, shape: ShapeHookSet) -> None:
         proxy = super(__class__, type(self))  # type: ignore[name-defined]
         proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
         if self.NDIM and self.NUMERIC:
@@ -3594,7 +3594,7 @@ not broadcast input array from shape (3,) into shape (2,)
             setattr(self.fastaccess_old, self.name, 0.0)
 
     @property
-    def shape(self) -> tuple[int, ...]:
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         |StateSequence| objects come with some additional `fastaccess` attributes,
@@ -3626,7 +3626,7 @@ not broadcast input array from shape (3,) into shape (2,)
         return super().shape
 
     @shape.setter
-    def shape(self, shape: int | tuple[int, ...]):
+    def shape(self, shape: ShapeHookSet) -> None:
         from hydpy.core import modeltools  # pylint: disable=import-outside-toplevel
 
         proxy = super(__class__, type(self))  # type: ignore[name-defined]
@@ -3735,7 +3735,7 @@ class LogSequenceFixed(LogSequence):
         self.shape = (self.SHAPE,)
 
     @property
-    def shape(self):
+    def shape(self) -> ShapeHookGet:
         """Sequences derived from |LogSequenceFixed| initialise themselves with a
         predefined shape.
 
@@ -3762,13 +3762,14 @@ changed, but this was attempted for element `?`.
         return super().shape
 
     @shape.setter
-    def shape(self, shape):
+    def shape(self, shape: ShapeHookSet) -> None:
         if exceptiontools.attrready(self, "shape"):
             raise AttributeError(
                 f"The shape of sequence `{self.name}` cannot be changed, but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
-        super(__class__, type(self)).shape.fset(self, shape)
+        prop = super(__class__, type(self)).shape  # type: ignore[name-defined]
+        prop.fset(self, shape)  # type: ignore[attr-defined]
 
 
 class AideSequence(ModelSequence):
@@ -3905,7 +3906,7 @@ class LinkSequence(BaseLinkInputSequence):
             pass
 
     @property
-    def shape(self) -> tuple[int, ...]:
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         Property |LinkSequence.shape| of class |LinkSequence| works similarly to the
@@ -3978,7 +3979,7 @@ requested, but not prepared yet via `set_pointer`.
         return super().shape
 
     @shape.setter
-    def shape(self, shape: int | tuple[int, ...]):
+    def shape(self, shape: ShapeHookSet) -> None:
         try:
             old_shape = exceptiontools.getattr_(self, "shape", None)
             proxy = super(__class__, type(self))  # type: ignore[name-defined]

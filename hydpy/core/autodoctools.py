@@ -1277,6 +1277,32 @@ def autodoc_tuple2doc(module: types.ModuleType) -> None:
                     member.__doc__ = doc + "\n".join(l for l in lst)
 
 
+def autodoc_complete() -> None:
+    """Add substituters to all relevant modules."""
+    with warnings.catch_warnings():
+        warnings.filterwarnings(action="ignore", category=FutureWarning)
+
+        hydpy.substituter = prepare_mainsubstituter()
+        for subpackage in (auxs, core, cythons, interfaces, exe):
+            subpackagepath = subpackage.__path__[0]
+            for filename in sorted(os.listdir(subpackagepath)):
+                if filename.endswith(".py") and not filename.startswith("_"):
+                    module = importlib.import_module(
+                        f"{subpackage.__name__}.{filename[:-3]}"
+                    )
+                    autodoc_module(module)
+        modelpath: str = models.__path__[0]
+        for filename in sorted(os.listdir(modelpath)):
+            path = os.path.join(modelpath, filename)
+            if os.path.isdir(path) and not filename.startswith("_"):
+                module = importlib.import_module(f"{models.__name__}.{filename}")
+                autodoc_basemodel(module)
+        for filename in sorted(os.listdir(modelpath)):
+            if filename.endswith(".py") and not filename.startswith("_"):
+                module = importlib.import_module(f"{models.__name__}.{filename[:-3]}")
+                autodoc_applicationmodel(module)
+
+
 def _make_cssstyle(
     *,
     marginleft: str | None = None,

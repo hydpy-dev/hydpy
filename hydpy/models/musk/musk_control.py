@@ -271,7 +271,6 @@ with value `1.0` needed to be trimmed to `0.0`.
     0.5, 0.5, 0.0
     """
 
-    NDIM: Final[Literal[1]] = 1
     TYPE: Final = float
     SHAPE = (3,)
     KEYWORDS = {

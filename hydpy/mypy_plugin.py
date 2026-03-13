@@ -6,7 +6,7 @@ potential problems in situations where HydPy relies on runtime behaviour that is
 from configparser import ConfigParser
 from os.path import join, split
 from pickle import load
-from typing import Callable, Final
+from typing import Callable, cast, Final
 from warnings import warn
 
 from mypy.checker import TypeChecker
@@ -29,6 +29,7 @@ from mypy.types import (
     LiteralType,
     Instance,
     NoneType,
+    TupleType,
     Type,
     TypeAliasType,
     TypeOfAny,
@@ -118,8 +119,9 @@ MODEL_MAP: dict[str, dict[str, tuple[str, str]]]
 VAR_MAP_1: dict[str, dict[str, dict[str, tuple[str, str]]]]
 VAR_MAP_2: dict[str, tuple[str, str, str]]
 VAR_INFO: dict[str, tuple[int, type[float]]]
+VAR_SHAPE: set[str]
 with open(join(DIRPATH, "conf", "mypy_plugin_data.pickle"), "rb") as file_:
-    MODEL_MAP, VAR_MAP_1, VAR_MAP_2, VAR_INFO = load(file_)
+    MODEL_MAP, VAR_MAP_1, VAR_MAP_2, VAR_INFO, VAR_SHAPE = load(file_)
 
 
 def prepare_model_hook(context: FunctionContext) -> Type:
@@ -488,6 +490,34 @@ def series_hook(context: AttributeContext) -> Type:
     return _get_values_or_series(context=context, series=True)
 
 
+def shape_hook(context: AttributeContext) -> Type:
+    """
+    `VariableX.shape -> tuple[int, ...]`
+    `VariableY.shape -> tuple[int, ...]`
+    -->
+    `VariableX.shape -> tuple[int]`
+    `VariableY.shape -> tuple[int, int]`
+
+    `VariableX.shape <- int | tuple[int, ...]
+    `VariableY.shape <- int | tuple[int, ...]
+    -->
+    `VariableX.shape <- int, tuple[int]
+    `VariableY.shape <- tuple[int, int]
+    """
+    default = context.default_attr_type
+    ndim_type = _get_ndim_and_type(context)
+    if (ndim_type is None) or not isinstance(api := context.api, TypeChecker):
+        return default
+    int_inst = api.named_type("builtins.int")
+    tuple_type = TupleType(
+        cast(list[Type], ndim_type[0] * [int_inst]),
+        fallback=api.named_type("builtins.tuple"),
+    )
+    if (ndim_type[0] == 1) and context.is_lvalue:
+        return UnionType([int_inst, tuple_type])
+    return tuple_type
+
+
 class MypyPlugin(Plugin):
     """Mypy plugin for HydPy."""
 
@@ -552,6 +582,8 @@ class MypyPlugin(Plugin):
         """Hooks for refining attribute types."""
         if fullname in VALUES:
             return values_hook
+        if fullname in VAR_SHAPE:
+            return shape_hook
         if fullname in SERIES:
             return series_hook
         if fullname in VARS1:

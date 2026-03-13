@@ -150,6 +150,8 @@ TypeINIT: TypeAlias = int | float | bool | None
 TypeTIME: TypeAlias = bool | None
 TypeNUMERIC: TypeAlias = bool
 
+ShapeHookGet: TypeAlias = tuple[int, ...]
+ShapeHookSet: TypeAlias = int | tuple[int, ...]
 TrimHook: TypeAlias = Union[
     float, VectorInputFloat, MatrixInputFloat, TensorInputFloat, None
 ]
@@ -321,6 +323,8 @@ __all__ = [
     "P_",
     "ParamSpec",
     "Protocol",
+    "ShapeHookGet",
+    "ShapeHookSet",
     "Self",
     "SeriesAggregationType",
     "SeriesConventionType",

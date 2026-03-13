@@ -2963,7 +2963,7 @@ broadcast input array from shape (2,) into shape (366,3)
         return tuple(toy for toy, _ in self._toy2values_unprotected)
 
     @property
-    def shape(self) -> tuple[int, ...]:
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         .. testsetup::
@@ -3025,7 +3025,7 @@ first.  However, in complete HydPy projects this stepsize is indirectly defined 
         return super().shape
 
     @shape.setter
-    def shape(self, shape: int | tuple[int, ...]) -> None:
+    def shape(self, shape: ShapeHookSet) -> None:
         if isinstance(shape, tuple):
             shape_ = list(shape)
         else:
@@ -4008,7 +4008,6 @@ given, but is not.
     floodplainwidth(left=3.0, right=4.0)
     """
 
-    NDIM: Final[Literal[1]] = 1
     SHAPE = (2,)
     strict_valuehandling: bool = False
 

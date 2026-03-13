@@ -288,8 +288,8 @@ import types
 
 # ...third party modules
 import numpy
-from numpy import inf  # pylint: disable=unused-import
-from numpy import nan  # pylint: disable=unused-import
+from numpy import inf as _inf
+from numpy import nan as _nan
 import setuptools
 
 import hydpy
@@ -3206,3 +3206,7 @@ def isinf(double: float) -> float:
     call(123.4)
     """
     return numpy.isinf(double)
+
+
+inf: Final = _inf
+nan: Final = _nan

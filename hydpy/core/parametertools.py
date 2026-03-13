@@ -116,11 +116,12 @@ def _warn_trim_kwarg(
 class IntConstant(int):
     """Class for |int| objects with individual docstrings."""
 
-    def __new__(cls, value):
+    def __new__(cls, value) -> Self:
         const = int.__new__(cls, value)
         const.__doc__ = None
-        frame = inspect.currentframe().f_back
-        const.__module__ = frame.f_locals.get("__name__")
+        assert (frame := inspect.currentframe()) is not None
+        assert (frame := frame.f_back) is not None
+        const.__module__ = frame.f_locals["__name__"]
         return const
 
 
@@ -4890,7 +4891,8 @@ keyword argument, it must be `callback`, and you need to pass a callback functio
     def value(self):
         """The fixed value or the value last updated by the callback function."""
         if self._has_callback:
-            self.callback(self.subpars.pars.model)
+            assert (callback := self.callback) is not None
+            callback(self.subpars.pars.model)
             self._valueready = True
         return super().value
 

@@ -1941,8 +1941,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             return mask(self, **kwargs)
         return mask
 
-    def __deepcopy__(self, memo):
-        new = type(self)(None)
+    def __deepcopy__(self, memo) -> Self:
+        new = type(self)(None)  # type: ignore[arg-type]
         for key, value in vars(self).items():
             if key not in self._NOT_DEEPCOPYABLE_MEMBERS:
                 setattr(new, key, copy.deepcopy(value, memo))

@@ -11,6 +11,8 @@ from hydpy.core import objecttools
 from hydpy.core import selectiontools
 from hydpy.core.typingtools import *
 
+_Tree: TypeAlias = dict[str, "_Tree"]
+
 
 class RiverBasinNumber(str):
     """A single river basin number (Gewässerkennzahl) based on a `guideline of the
@@ -68,7 +70,7 @@ basin number.
     False
     """
 
-    def __new__(cls, value: int | str):
+    def __new__(cls, value: int | str) -> RiverBasinNumber:
         try:
             # PyCharm bug, see https://stackoverflow.com/questions/49465166/
             # noinspection PyArgumentList
@@ -234,9 +236,9 @@ class RiverBasinNumbers(tuple):
         return obj
 
     @property
-    def _tree(self):
+    def _tree(self) -> _Tree:
         if vars(self)["_tree"] is None:
-            tree = {}
+            tree: _Tree = {}
             for rbn in self:
                 subtree = tree
                 for digit in rbn:
@@ -274,7 +276,7 @@ class RiverBasinNumbers(tuple):
             except KeyError:
                 return RiverBasinNumbers(())
 
-        def _walk(number_: str, tree_: dict[str, dict], numbers: set) -> set:
+        def _walk(number_: str, tree_: _Tree, numbers: set) -> set:
             if tree_:
                 numbers.remove(number_)
                 for digit_, subtree in tree_.items():

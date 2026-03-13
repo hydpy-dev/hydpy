@@ -1214,7 +1214,7 @@ for further information.
         self.open = builtins.open
 
     def __enter__(self):
-        builtins.open = _Open
+        builtins.open = _Open  # type: ignore[assignment]
         return self
 
     def __exit__(self, exception, message, traceback_) -> None:
@@ -1380,7 +1380,7 @@ def make_abc_testable(abstract: type[T_inv]) -> type[T_inv]:
 
 
 @contextlib.contextmanager
-def mock_datetime_now(testdatetime):
+def mock_datetime_now(testdatetime: datetime.datetime) -> Iterator[None]:
     """Let class method |datetime.datetime.now| of class |datetime.datetime|
     of module |datetime| return the given date for testing purposes within
     a "with-block".
@@ -1424,14 +1424,25 @@ but for the given `datetime` object it is `999` instead.
 
     class _DateTime(datetime.datetime):
         @classmethod
-        def now(cls, tz=None):  # pylint: disable=unused-argument
-            return testdatetime
+        def now(
+            cls, tz: datetime.tzinfo | None = None
+        ) -> Self:  # pylint: disable=unused-argument
+            return cls(
+                year=testdatetime.year,
+                month=testdatetime.month,
+                day=testdatetime.day,
+                hour=testdatetime.hour,
+                minute=testdatetime.minute,
+                second=testdatetime.second,
+                microsecond=testdatetime.microsecond,
+                tzinfo=tz,
+            )
 
     try:
-        datetime.datetime = _DateTime
+        datetime.datetime = _DateTime  # type: ignore[misc]
         yield
     finally:
-        datetime.datetime = _datetime
+        datetime.datetime = _datetime  # type: ignore[misc]
 
 
 class NumericalDifferentiator:

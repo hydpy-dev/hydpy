@@ -1,0 +1,29 @@
+.. |ANN| replace:: :class:`~hydpy.auxs.anntools.ANN`
+.. |AllowedRelease| replace:: :class:`~hydpy.models.dam.dam_control.AllowedRelease`
+.. |AllowedWaterLevelDrop| replace:: :class:`~hydpy.models.dam.dam_control.AllowedWaterLevelDrop`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Inflow| replace:: :class:`~hydpy.models.dam.dam_fluxes.Inflow`
+.. |PETModel_V1| replace:: :class:`~hydpy.interfaces.petinterfaces.PETModel_V1`
+.. |PrecipModel_V2| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V2`
+.. |SeasonalParameter| replace:: :class:`~hydpy.core.parametertools.SeasonalParameter`
+.. |ToleranceEvaporation| replace:: :class:`~hydpy.models.dam.dam_control.ToleranceEvaporation`
+.. |WaterLevelMinimumThreshold| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumThreshold`
+.. |WaterLevelMinimumTolerance| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevelMinimumTolerance`
+.. |dam_llake| replace:: :mod:`~hydpy.models.dam_llake`
+.. |dam_lretention.DOCNAME.complete| replace:: HydPy-Dam-L-RB (retention basin model adopted from LARSIM)
+.. |dam_lretention| replace:: :mod:`~hydpy.models.dam_lretention`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_logistic1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic1`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+.. |numpy.inf| replace:: :const:`~numpy.inf`
+
+.. _dam_lretention:
+
+dam_lretention
+==============
+
+.. automodule:: hydpy.models.dam_lretention
+    :members:
+    :show-inheritance:
+    :exclude-members: Pattern, SUBMODELINTERFACES, AsyncGenerator, RECEIVER_METHODS, ParamSpecKwargs, subseqs, BinaryIO, get_overloads, ValuesView, INTERFACE_METHODS, Sentinel, final, MutableMapping, subpars, Awaitable, get_args, Protocol, deprecated, ClassVar, Literal, OrderedDict, get_original_bases, OUTLET_METHODS, Any, MutableSequence, SUBMODELS, Format, Type, Hashable, Collection, ChainMap, disjoint_base, fastaccess, Generator, ByteString, UPDATEDSEQUENCES, TypeVarTuple, ADD_METHODS, Coroutine, get_origin, Optional, SOLVERPARAMETERS, LiteralString, NamedTuple, fastaccess_old, TypeVar, Concatenate, KeysView, Buffer, MutableSet, AsyncContextManager, TypeGuard, Sequence, Union, subvars, TypeAliasType, ParamSpec, DefaultDict, SupportsIndex, AbstractSet, pars, runtime, runtime_checkable, InputSequences, SupportsComplex, Mapping, TYPE_CHECKING, Required, Tuple, Match, overload, SupportsRound, type_repr, is_protocol, Final, RUN_METHODS, SupportsAbs, Self, seqs, clear_overloads, AnyStr, dataclass_transform, Sized, NoExtraItems, is_typeddict, Annotated, IntVar, no_type_check, Dict, SenderSequences, ForwardRef, SUBMETHODS, SENDER_METHODS, get_type_hints, Counter, cast, Unpack, FULL_ODE_METHODS, ContextManager, AsyncIterable, Reader, override, Iterator, NoReturn, SOLVERSEQUENCES, Writer, IO, AideSequences, TypeIs, Generic, PART_ODE_METHODS, OBSERVER_METHODS, reveal_type, NewType, Deque, TypedDict, DERIVEDPARAMETERS, Never, Text, evaluate_forward_ref, SupportsInt, SupportsFloat, RESULTSEQUENCES, Set, Reversible, Doc, CapsuleType, NoDefault, NotRequired, ParamSpecArgs, REQUIREDSEQUENCES, ItemsView, AsyncIterator, ReadOnly, TextIO, assert_never, get_annotations, CONTROLPARAMETERS, get_protocol_members, ReceiverSequences, CLASSES, Iterable, TypeAlias, FIXEDPARAMETERS, assert_type, Container, List, FrozenSet, fastaccess_new, MappingView, no_type_check_decorator, TypeForm, Callable, SupportsBytes, INLET_METHODS

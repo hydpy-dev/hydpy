@@ -1,0 +1,30 @@
+.. |AngstromAlternative| replace:: :class:`~hydpy.models.meteo.meteo_control.AngstromAlternative`
+.. |Calc_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_DailyGlobalRadiation_V1`
+.. |Calc_GlobalRadiation_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V2`
+.. |Calc_SunshineDuration_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SunshineDuration_V2`
+.. |Calc_UnadjustedGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_UnadjustedGlobalRadiation_V1`
+.. |LoggedGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedGlobalRadiation`
+.. |LoggedSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedSunshineDuration`
+.. |LoggedUnadjustedSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedUnadjustedSunshineDuration`
+.. |RadiationModel_V1| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V1`
+.. |Return_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Return_DailyGlobalRadiation_V1`
+.. |meteo_glob_fao56| replace:: :mod:`~hydpy.models.meteo_glob_fao56`
+.. |meteo_glob_morsim| replace:: :mod:`~hydpy.models.meteo_glob_morsim`
+.. |meteo_sun_fao56| replace:: :mod:`~hydpy.models.meteo_sun_fao56`
+.. |meteo_sun_morsim.DOCNAME.complete| replace:: HydPy-Meteo-Sun-MORSIM (sunshine duration estimation adopted from MORECS/LARSIM)
+.. |meteo_sun_morsim| replace:: :mod:`~hydpy.models.meteo_sun_morsim`
+.. |meteo_factors.PossibleSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.PossibleSunshineDuration`
+.. |meteo_factors.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.SunshineDuration`
+.. |meteo_fluxes.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.GlobalRadiation`
+.. |meteo_inputs.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_inputs.GlobalRadiation`
+.. |meteo_inputs.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_inputs.SunshineDuration`
+
+.. _meteo_sun_morsim:
+
+meteo_sun_morsim
+================
+
+.. automodule:: hydpy.models.meteo_sun_morsim
+    :members:
+    :show-inheritance:
+    :exclude-members: Pattern, SUBMODELINTERFACES, AsyncGenerator, RECEIVER_METHODS, ParamSpecKwargs, subseqs, BinaryIO, get_overloads, ValuesView, INTERFACE_METHODS, Sentinel, final, MutableMapping, ObserverSequences, subpars, Awaitable, get_args, Protocol, deprecated, ClassVar, Literal, OrderedDict, get_original_bases, OUTLET_METHODS, InletSequences, Any, MutableSequence, SUBMODELS, Format, Type, StateSequences, Hashable, Collection, ChainMap, disjoint_base, fastaccess, Generator, ByteString, UPDATEDSEQUENCES, TypeVarTuple, ADD_METHODS, Coroutine, get_origin, Optional, SOLVERPARAMETERS, LiteralString, NamedTuple, fastaccess_old, TypeVar, Concatenate, KeysView, Buffer, MutableSet, AsyncContextManager, TypeGuard, Sequence, Union, subvars, TypeAliasType, ParamSpec, DefaultDict, SupportsIndex, AbstractSet, pars, runtime, runtime_checkable, SupportsComplex, Mapping, TYPE_CHECKING, Required, Tuple, Match, overload, SupportsRound, type_repr, is_protocol, OutletSequences, Final, RUN_METHODS, SupportsAbs, Self, seqs, clear_overloads, AnyStr, dataclass_transform, Sized, NoExtraItems, is_typeddict, Annotated, IntVar, no_type_check, Dict, SenderSequences, ForwardRef, SUBMETHODS, SENDER_METHODS, get_type_hints, Counter, cast, Unpack, FULL_ODE_METHODS, ContextManager, AsyncIterable, Reader, override, Iterator, NoReturn, SOLVERSEQUENCES, Writer, IO, AideSequences, TypeIs, Generic, PART_ODE_METHODS, OBSERVER_METHODS, reveal_type, NewType, Deque, TypedDict, DERIVEDPARAMETERS, Never, Text, evaluate_forward_ref, SupportsInt, SupportsFloat, RESULTSEQUENCES, Set, Reversible, Doc, CapsuleType, NoDefault, NotRequired, ParamSpecArgs, REQUIREDSEQUENCES, ItemsView, AsyncIterator, ReadOnly, TextIO, assert_never, get_annotations, CONTROLPARAMETERS, get_protocol_members, ReceiverSequences, CLASSES, Iterable, TypeAlias, FIXEDPARAMETERS, assert_type, Container, List, FrozenSet, fastaccess_new, MappingView, no_type_check_decorator, TypeForm, Callable, SupportsBytes, INLET_METHODS

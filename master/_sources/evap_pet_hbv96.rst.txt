@@ -1,0 +1,23 @@
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |IntegrationTest| replace:: :class:`~hydpy.core.testtools.IntegrationTest`
+.. |PrecipModel_V1| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V1`
+.. |PrecipModel_V2| replace:: :class:`~hydpy.interfaces.precipinterfaces.PrecipModel_V2`
+.. |TempModel_V1| replace:: :class:`~hydpy.interfaces.tempinterfaces.TempModel_V1`
+.. |TempModel_V2| replace:: :class:`~hydpy.interfaces.tempinterfaces.TempModel_V2`
+.. |evap_pet_hbv96.DOCNAME.complete| replace:: HydPy-Evap-PET-HBV96 (potential evapotranspiration after HBV96)
+.. |evap_pet_hbv96| replace:: :mod:`~hydpy.models.evap_pet_hbv96`
+.. |hland_96| replace:: :mod:`~hydpy.models.hland_96`
+.. |lland_dd| replace:: :mod:`~hydpy.models.lland_dd`
+.. |meteo_precip_io| replace:: :mod:`~hydpy.models.meteo_precip_io`
+.. |meteo_temp_io| replace:: :mod:`~hydpy.models.meteo_temp_io`
+.. |wland_wag| replace:: :mod:`~hydpy.models.wland_wag`
+
+.. _evap_pet_hbv96:
+
+evap_pet_hbv96
+==============
+
+.. automodule:: hydpy.models.evap_pet_hbv96
+    :members:
+    :show-inheritance:
+    :exclude-members: Pattern, SUBMODELINTERFACES, AsyncGenerator, RECEIVER_METHODS, ParamSpecKwargs, subseqs, BinaryIO, get_overloads, ValuesView, INTERFACE_METHODS, Sentinel, final, MutableMapping, ObserverSequences, subpars, Awaitable, get_args, Protocol, deprecated, ClassVar, Literal, OrderedDict, get_original_bases, OUTLET_METHODS, InletSequences, Any, MutableSequence, SUBMODELS, Format, Type, StateSequences, Hashable, Collection, ChainMap, disjoint_base, fastaccess, Generator, ByteString, UPDATEDSEQUENCES, LogSequences, TypeVarTuple, ADD_METHODS, Coroutine, get_origin, Optional, SOLVERPARAMETERS, LiteralString, NamedTuple, fastaccess_old, TypeVar, Concatenate, KeysView, Buffer, MutableSet, AsyncContextManager, TypeGuard, Sequence, Union, subvars, TypeAliasType, ParamSpec, DefaultDict, SupportsIndex, AbstractSet, pars, runtime, runtime_checkable, SupportsComplex, Mapping, TYPE_CHECKING, Required, Tuple, Match, overload, SupportsRound, type_repr, is_protocol, OutletSequences, Final, RUN_METHODS, SupportsAbs, Self, seqs, clear_overloads, AnyStr, dataclass_transform, Sized, NoExtraItems, is_typeddict, Annotated, IntVar, no_type_check, Dict, SenderSequences, ForwardRef, SUBMETHODS, SENDER_METHODS, get_type_hints, Counter, cast, Unpack, FULL_ODE_METHODS, ContextManager, AsyncIterable, Reader, override, Iterator, NoReturn, SOLVERSEQUENCES, Writer, IO, AideSequences, TypeIs, Generic, PART_ODE_METHODS, OBSERVER_METHODS, reveal_type, NewType, Deque, TypedDict, DERIVEDPARAMETERS, Never, Text, evaluate_forward_ref, SupportsInt, SupportsFloat, RESULTSEQUENCES, Set, Reversible, Doc, CapsuleType, NoDefault, NotRequired, ParamSpecArgs, REQUIREDSEQUENCES, ItemsView, AsyncIterator, ReadOnly, TextIO, assert_never, get_annotations, CONTROLPARAMETERS, get_protocol_members, ReceiverSequences, CLASSES, Iterable, TypeAlias, FIXEDPARAMETERS, assert_type, Container, List, FrozenSet, fastaccess_new, MappingView, no_type_check_decorator, TypeForm, Callable, SupportsBytes, INLET_METHODS

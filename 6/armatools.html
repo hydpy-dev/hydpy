@@ -1,0 +1,893 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>armatools &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="calibtools" href="calibtools.html" />
+    <link rel="prev" title="anntools" href="anntools.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="calibtools.html" title="calibtools"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="anntools.html" title="anntools"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" accesskey="U">Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">armatools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="framework_tools.html">Framework Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="core.html">Core Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="execution.html">Execution Tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cythons.html">Cython Tools</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="auxiliaries.html">Auxiliary Tools</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="anntools.html">anntools</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">armatools</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.armatools.MA"><code class="docutils literal notranslate"><span class="pre">MA</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.MA.smallest_coeff"><code class="docutils literal notranslate"><span class="pre">MA.smallest_coeff</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.MA.nmb_nodes"><code class="docutils literal notranslate"><span class="pre">MA.nmb_nodes</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.MA.nmb_nodes_extra"><code class="docutils literal notranslate"><span class="pre">MA.nmb_nodes_extra</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.MA.coefs"><code class="docutils literal notranslate"><span class="pre">MA.coefs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.MA.order"><code class="docutils literal notranslate"><span class="pre">MA.order</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.MA.update_coefs"><code class="docutils literal notranslate"><span class="pre">MA.update_coefs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.MA.turningpoint"><code class="docutils literal notranslate"><span class="pre">MA.turningpoint</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.MA.delays"><code class="docutils literal notranslate"><span class="pre">MA.delays</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.MA.moments"><code class="docutils literal notranslate"><span class="pre">MA.moments</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.MA.plot"><code class="docutils literal notranslate"><span class="pre">MA.plot()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA"><code class="docutils literal notranslate"><span class="pre">ARMA</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.max_ar_order"><code class="docutils literal notranslate"><span class="pre">ARMA.max_ar_order</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.max_rel_rmse"><code class="docutils literal notranslate"><span class="pre">ARMA.max_rel_rmse</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.max_dev_coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.max_dev_coefs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.rel_rmse"><code class="docutils literal notranslate"><span class="pre">ARMA.rel_rmse</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.ar_coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.ar_coefs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.ma_coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.ma_coefs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.coefs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.ar_order"><code class="docutils literal notranslate"><span class="pre">ARMA.ar_order</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.ma_order"><code class="docutils literal notranslate"><span class="pre">ARMA.ma_order</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.order"><code class="docutils literal notranslate"><span class="pre">ARMA.order</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.update_coefs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.effective_max_ar_order"><code class="docutils literal notranslate"><span class="pre">ARMA.effective_max_ar_order</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_ar_coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.update_ar_coefs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.dev_moments"><code class="docutils literal notranslate"><span class="pre">ARMA.dev_moments</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.norm_coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.norm_coefs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.sum_coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.sum_coefs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.dev_coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.dev_coefs</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.calc_all_ar_coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.calc_all_ar_coefs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.get_a"><code class="docutils literal notranslate"><span class="pre">ARMA.get_a()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.get_b"><code class="docutils literal notranslate"><span class="pre">ARMA.get_b()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_ma_coefs"><code class="docutils literal notranslate"><span class="pre">ARMA.update_ma_coefs()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.calc_next_ma_coef"><code class="docutils literal notranslate"><span class="pre">ARMA.calc_next_ma_coef()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.response"><code class="docutils literal notranslate"><span class="pre">ARMA.response</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.moments"><code class="docutils literal notranslate"><span class="pre">ARMA.moments</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.auxs.armatools.ARMA.plot"><code class="docutils literal notranslate"><span class="pre">ARMA.plot()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="calibtools.html">calibtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="interptools.html">interptools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="iuhtools.html">iuhtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="networktools.html">networktools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ppolytools.html">ppolytools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quadtools.html">quadtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="roottools.html">roottools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="smoothtools.html">smoothtools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="statstools.html">statstools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="validtools.html">validtools</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="anntools.html"
+                          title="previous chapter">anntools</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="calibtools.html"
+                          title="next chapter">calibtools</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/armatools.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/armatools.html">6</a></li>
+<li><a href="../5.0/armatools.html">5.0</a></li>
+<li><a href="../4.0/armatools.html">4.0</a></li>
+<li><a href="../master/armatools.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="armatools">
+<span id="id1"></span><h1>armatools<a class="headerlink" href="#armatools" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.auxs.armatools">This module provides additional features for module <a class="reference internal" href="iuhtools.html#module-hydpy.auxs.iuhtools" title="hydpy.auxs.iuhtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">iuhtools</span></code></a>, related to
+Autoregressive-Moving Average (ARMA) models.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.auxs.armatools" title="hydpy.auxs.armatools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">armatools</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.auxs.armatools.MA" title="hydpy.auxs.armatools.MA"><code class="xref py py-class docutils literal notranslate"><span class="pre">MA</span></code></a> Moving Average Model.</p></li>
+<li><p><a class="reference internal" href="#hydpy.auxs.armatools.ARMA" title="hydpy.auxs.armatools.ARMA"><code class="xref py py-class docutils literal notranslate"><span class="pre">ARMA</span></code></a> Autoregressive-Moving Average model.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.armatools.</span></span><span class="sig-name descname"><span class="pre">MA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iuh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#MA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.MA" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Moving Average Model.</p>
+<p>You can set the MA coefficients manually:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">MA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span> <span class="o">=</span> <span class="n">MA</span><span class="p">(</span><span class="n">coefs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span>
+<span class="go">MA(coefs=(0.8, 0.2))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.8</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span>
+<span class="go">MA(coefs=(0.2, 0.8))</span>
+</pre></div>
+</div>
+<p>Otherwise, they are determined by method <a class="reference internal" href="#hydpy.auxs.armatools.MA.update_coefs" title="hydpy.auxs.armatools.MA.update_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_coefs()</span></code></a> based on an integrable
+function.  Usually, this function is an <a class="reference internal" href="iuhtools.html#hydpy.auxs.iuhtools.IUH" title="hydpy.auxs.iuhtools.IUH"><code class="xref py py-class docutils literal notranslate"><span class="pre">IUH</span></code></a> subclass instance, but (as in the
+following example) other function objects defining instantaneous unit hydrographs
+are acceptable, too.  However, they should be well-behaved (e.g. be relatively
+smooth, unimodal, and strictly positive and have an integral surface of one in the
+positive range).</p>
+<p>For educational purposes, we apply some (problematic) discontinuous functions in
+the following.  The first example is a simple rectangle impulse:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">iuh</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">y</span><span class="p">[</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mf">20.0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">y</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span> <span class="o">=</span> <span class="n">MA</span><span class="p">(</span><span class="n">iuh</span><span class="o">=</span><span class="n">iuh</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As our custom function object cannot estimate the first moment of its response on
+its own, we need to assign this information manually:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span> <span class="o">=</span> <span class="mf">10.0</span>
+</pre></div>
+</div>
+<p>The limited precision of method <a class="reference internal" href="#hydpy.auxs.armatools.MA.update_coefs" title="hydpy.auxs.armatools.MA.update_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_coefs()</span></code></a> results in observable
+inaccuracies at the impulse’s edges:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span>
+<span class="go">MA(coefs=(0.025025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,</span>
+<span class="go">          0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,</span>
+<span class="go">          0.05, 0.024975))</span>
+</pre></div>
+</div>
+<p>In such cases, you can increase the number of nodes at which method
+<a class="reference internal" href="#hydpy.auxs.armatools.MA.update_coefs" title="hydpy.auxs.armatools.MA.update_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_coefs()</span></code></a> evaluates the impulse function at the cost of more computation
+time:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">nmb_nodes</span> <span class="o">=</span> <span class="mi">100000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span>
+<span class="go">MA(coefs=(0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,</span>
+<span class="go">          0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05,</span>
+<span class="go">          0.025))</span>
+</pre></div>
+</div>
+<p>You can modify the number of resulting coefficients via the attribute
+<a class="reference internal" href="#hydpy.auxs.armatools.MA.smallest_coeff" title="hydpy.auxs.armatools.MA.smallest_coeff"><code class="xref py py-attr docutils literal notranslate"><span class="pre">smallest_coeff</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">smallest_coeff</span> <span class="o">=</span> <span class="mf">0.03</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">nmb_nodes</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span>
+<span class="go">MA(coefs=(0.025666, 0.051281, 0.051281, 0.051281, 0.051281, 0.051281,</span>
+<span class="go">          0.051281, 0.051281, 0.051281, 0.051281, 0.051281, 0.051281,</span>
+<span class="go">          0.051281, 0.051281, 0.051281, 0.051281, 0.051281, 0.051281,</span>
+<span class="go">          0.051281, 0.051281))</span>
+</pre></div>
+</div>
+<p>The first two central moments of the time delay subsume describing how an MA model
+behaves:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">iuh</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">y</span><span class="p">[</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">y</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span> <span class="o">=</span> <span class="n">MA</span><span class="p">(</span><span class="n">iuh</span><span class="o">=</span><span class="n">iuh</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span>
+<span class="go">MA(coefs=(0.500253, 0.499747))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">moments</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="go">0.499747, 0.5</span>
+</pre></div>
+</div>
+<p>The first central moment is the weighted time delay (mean lag time).  The second
+central moment is the weighted mean deviation from the mean lag time (diffusion).</p>
+<p>MA objects can return the turning point in the recession part of their MA
+coefficients.  We demonstrate this for the right side of the probability density
+function of the normal distribution with zero mean and a standard deviation
+(turning point) of 10:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span> <span class="o">=</span> <span class="n">MA</span><span class="p">(</span><span class="n">iuh</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span> <span class="o">=</span> <span class="mf">1.35</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span>
+<span class="go">MA(coefs=(0.195578, 0.346589, 0.241841, 0.132744, 0.057307, 0.019454,</span>
+<span class="go">          0.005192, 0.001089, 0.00018, 0.000023, 0.000002, 0.0, 0.0))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">turningpoint</span><span class="p">)</span>
+<span class="go">2, 0.241841</span>
+</pre></div>
+</div>
+<p>Note that the first returned value is the index of the MA coefficient closest to
+the turning point, and not a high-precision estimate of the real turning point of
+the instantaneous unit hydrograph.</p>
+<p>You can also use the following plotting command to verify the position of the
+turning point (printed as a red dot):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_autofig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_autofig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MA_plot.png&quot;</span><span class="p">,</span> <span class="n">figure</span><span class="p">)</span>
+</pre></div>
+</div>
+<blockquote>
+<div><a class="reference internal image-reference" href="_images/MA_plot.png"><img alt="_images/MA_plot.png" src="_images/MA_plot.png" width="400" />
+</a>
+</div></blockquote>
+<p>Turning point detection also works for functions which include both a rising and a
+falling limb.  We show this by shifting the normal distribution to the right:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mf">1.02328</span> <span class="o">*</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span> <span class="o">=</span> <span class="mf">3.94</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span>
+<span class="go">MA(coefs=(0.019335, 0.06793, 0.123759, 0.177362, 0.199964, 0.177362,</span>
+<span class="go">          0.123759, 0.06793, 0.029326, 0.009956, 0.002657, 0.000557,</span>
+<span class="go">          0.000092, 0.000012, 0.000001, 0.0, 0.0))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">turningpoint</span><span class="p">)</span>
+<span class="go">6, 0.123759</span>
+</pre></div>
+</div>
+<p>For MA models of order one, property <a class="reference internal" href="#hydpy.auxs.armatools.MA.turningpoint" title="hydpy.auxs.armatools.MA.turningpoint"><code class="xref py py-const docutils literal notranslate"><span class="pre">turningpoint</span></code></a> returns the index and value
+of the first ordinate:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">turningpoint</span><span class="p">)</span>
+<span class="go">0, 1.0</span>
+</pre></div>
+</div>
+<p>Undetectable turning points result in the following error:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">turningpoint</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">Not able to detect a turning point in the impulse response defined by the MA coefficients `1.0, 1.0, 1.0`.</span>
+</pre></div>
+</div>
+<p>For very spiky response functions, the underlying integration algorithm might fail.
+Then it is assumed that the complete mass of the response function happens at a
+single delay time, defined by the property <cite>moment1</cite> of the instantaneous unit
+hydrograph.  In this case, we also raise an additional warning message to allow
+users to determine the coefficients using an alternative approach:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">iuh</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">y</span><span class="p">[(</span><span class="mf">4.23</span> <span class="o">&lt;</span> <span class="n">x</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mf">4.24</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">10.0</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">y</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span> <span class="o">=</span> <span class="n">iuh</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span> <span class="o">=</span> <span class="mf">4.25</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn_later</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">warn_later</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">ma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="go">UserWarning: During the determination of the MA coefficients corresponding to the instantaneous unit hydrograph ... a numerical integration problem occurred.  Please check the calculated coefficients: 0.0, 0.0, 0.0, 0.0, 0.75, 0.25.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span>
+<span class="go">MA(coefs=(0.0, 0.0, 0.0, 0.0, 0.75, 0.25))</span>
+</pre></div>
+</div>
+<p>For speedy responses, there should usually be only one MA coefficient:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span> <span class="o">=</span> <span class="n">MA</span><span class="p">(</span><span class="n">iuh</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mf">1e6</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">1e6</span> <span class="o">*</span> <span class="n">x</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span> <span class="o">=</span> <span class="mf">6.931e-7</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">warn_later</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">ma</span>
+<span class="go">MA(coefs=(1.0,))</span>
+<span class="go">UserWarning: During the determination of the MA coefficients corresponding to the instantaneous unit hydrograph `...` a numerical integration problem occurred.  Please check the calculated coefficients: 1.0.</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA.smallest_coeff">
+<span class="sig-name descname"><span class="pre">smallest_coeff</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-09</span></span><a class="headerlink" href="#hydpy.auxs.armatools.MA.smallest_coeff" title="Link to this definition">¶</a></dt>
+<dd><p>Smallest MA coefficient allowed at the end of the response.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA.nmb_nodes">
+<span class="sig-name descname"><span class="pre">nmb_nodes</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></span><a class="headerlink" href="#hydpy.auxs.armatools.MA.nmb_nodes" title="Link to this definition">¶</a></dt>
+<dd><p>The number of nodes usually applied for numerically integrating all MA 
+coefficients.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA.nmb_nodes_extra">
+<span class="sig-name descname"><span class="pre">nmb_nodes_extra</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">100000</span></span><a class="headerlink" href="#hydpy.auxs.armatools.MA.nmb_nodes_extra" title="Link to this definition">¶</a></dt>
+<dd><p>The number of nodes applied for numerically integrating the MA coefficient if
+the instantaneous unit hydrograph has a small delay time.</p>
+<p><a class="reference internal" href="#hydpy.auxs.armatools.MA.nmb_nodes_extra" title="hydpy.auxs.armatools.MA.nmb_nodes_extra"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_nodes_extra</span></code></a> is ignored if set to a smaller value than <a class="reference internal" href="#hydpy.auxs.armatools.MA.nmb_nodes" title="hydpy.auxs.armatools.MA.nmb_nodes"><code class="xref py py-const docutils literal notranslate"><span class="pre">nmb_nodes</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA.coefs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">coefs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.armatools.MA.coefs" title="Link to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ndarray</span></code></a> containing all MA coefficents.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA.order">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">order</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.armatools.MA.order" title="Link to this definition">¶</a></dt>
+<dd><p>MA order.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA.update_coefs">
+<span class="sig-name descname"><span class="pre">update_coefs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#MA.update_coefs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.MA.update_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>(Re)Calculate the MA coefficients based on the instantaneous unit
+hydrograph.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA.turningpoint">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">turningpoint</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.armatools.MA.turningpoint" title="Link to this definition">¶</a></dt>
+<dd><p>Turning point (index and value tuple) in the recession part of the MA
+approximation of the instantaneous unit hydrograph.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA.delays">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">delays</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.armatools.MA.delays" title="Link to this definition">¶</a></dt>
+<dd><p>Time delays related to the individual MA coefficients.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA.moments">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">moments</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.armatools.MA.moments" title="Link to this definition">¶</a></dt>
+<dd><p>The first two time delay weighted statistical moments of the MA
+coefficients.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.MA.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.10.8)"><span class="pre">Figure</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#MA.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.MA.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Create a barplot of the MA coefficients.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.auxs.armatools.</span></span><span class="sig-name descname"><span class="pre">ARMA</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ma_model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ar_coefs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ma_coefs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#ARMA"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.ARMA" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Autoregressive-Moving Average model.</p>
+<p>One can set all ARMA coefficients manually:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">MA</span><span class="p">,</span> <span class="n">ARMA</span><span class="p">,</span> <span class="n">print_matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span> <span class="o">=</span> <span class="n">ARMA</span><span class="p">(</span><span class="n">ar_coefs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,),</span> <span class="n">ma_coefs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_matrix</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">coefs</span><span class="p">)</span>
+<span class="go">| 0.5 |</span>
+<span class="go">| 0.3, 0.2 |</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span>
+<span class="go">ARMA(ar_coefs=(0.5,),</span>
+<span class="go">     ma_coefs=(0.3, 0.2))</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">ar_coefs</span> <span class="o">=</span> <span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">ma_coefs</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span>
+<span class="go">ARMA(ar_coefs=(),</span>
+<span class="go">     ma_coefs=(0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0,</span>
+<span class="go">               11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0))</span>
+</pre></div>
+</div>
+<p>Alternatively, they are determined by method <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_coefs" title="hydpy.auxs.armatools.ARMA.update_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_coefs()</span></code></a>, which requires an
+available <a class="reference internal" href="#hydpy.auxs.armatools.MA" title="hydpy.auxs.armatools.MA"><code class="xref py py-class docutils literal notranslate"><span class="pre">MA</span></code></a> model.  We use the MA model based on the shifted normal distribution
+of the documentation on class <a class="reference internal" href="#hydpy.auxs.armatools.MA" title="hydpy.auxs.armatools.MA"><code class="xref py py-class docutils literal notranslate"><span class="pre">MA</span></code></a> as an example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span> <span class="o">=</span> <span class="n">MA</span><span class="p">(</span><span class="n">iuh</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mf">1.02328</span> <span class="o">*</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span> <span class="o">=</span> <span class="mf">3.94</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span> <span class="o">=</span> <span class="n">ARMA</span><span class="p">(</span><span class="n">ma_model</span><span class="o">=</span><span class="n">ma</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span>
+<span class="go">ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),</span>
+<span class="go">     ma_coefs=(0.019335, 0.054772, 0.081952, 0.107755, 0.104457,</span>
+<span class="go">               0.076369, 0.041094, 0.01581, 0.004132, 0.000663,</span>
+<span class="go">               0.00005))</span>
+</pre></div>
+</div>
+<p>To verify that the ARMA model approximates the MA model with sufficient accuracy,
+one can query the achieved relative rmse value (<a class="reference internal" href="#hydpy.auxs.armatools.ARMA.rel_rmse" title="hydpy.auxs.armatools.ARMA.rel_rmse"><code class="xref py py-const docutils literal notranslate"><span class="pre">rel_rmse</span></code></a>) or check the
+central moments of their responses to the standard delta time impulse:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">rel_rmse</span><span class="p">)</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">moments</span><span class="p">)</span>
+<span class="go">4.110439, 1.926845</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">moments</span><span class="p">)</span>
+<span class="go">4.110439, 1.926845</span>
+</pre></div>
+</div>
+<p>On can check the accuray of the approximation via the property <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.dev_moments" title="hydpy.auxs.armatools.ARMA.dev_moments"><code class="xref py py-const docutils literal notranslate"><span class="pre">dev_moments</span></code></a>,
+which returns the sum of the absolute values of the deviations of both methods:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">dev_moments</span><span class="p">)</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>For the first six digits, there is no difference.  However, the total number of
+coefficients is only reduced by one:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">17</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">(5, 11)</span>
+</pre></div>
+</div>
+<p>To reduce the determined number or AR coefficients, one can set a higher AR-related
+tolerance value:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">max_rel_rmse</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span>
+<span class="go">ARMA(ar_coefs=(0.788899, -0.256436, 0.034256),</span>
+<span class="go">     ma_coefs=(0.019335, 0.052676, 0.075127, 0.096486, 0.089452,</span>
+<span class="go">               0.060853, 0.02904, 0.008929, 0.001397, 0.000001,</span>
+<span class="go">               -0.000004, 0.00001, -0.000008, -0.000009, -0.000004,</span>
+<span class="go">               -0.000001))</span>
+</pre></div>
+</div>
+<p>The number of AR coeffcients is actually reduced.  However, there are now even more
+MA coefficients, possibly trying to compensate the lower accuracy of the AR
+coefficients, and there is a slight decrease in the precision of the moments:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">(3, 16)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">moments</span><span class="p">)</span>
+<span class="go">4.110441, 1.926851</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">dev_moments</span><span class="p">)</span>
+<span class="go">0.000007</span>
+</pre></div>
+</div>
+<p>To also reduce the number of MA coefficients, one can set a higher MA-related
+tolerance value:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">max_dev_coefs</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span>
+<span class="go">ARMA(ar_coefs=(0.788888, -0.256432, 0.034255),</span>
+<span class="go">     ma_coefs=(0.019335, 0.052675, 0.075126, 0.096485, 0.089451,</span>
+<span class="go">               0.060852, 0.02904, 0.008928, 0.001397))</span>
+</pre></div>
+</div>
+<p>Now the total number of coefficients is in fact decreased, and the loss in accuracy
+is still small:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">(3, 9)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">moments</span><span class="p">)</span>
+<span class="go">4.110737, 1.927672</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">dev_moments</span><span class="p">)</span>
+<span class="go">0.001125</span>
+</pre></div>
+</div>
+<p>Further relaxing the tolerance values results in even less coefficients, but also
+in some slightly negative responses to a standard impulse:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">max_rel_rmse</span> <span class="o">=</span> <span class="mf">1e-2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">max_dev_coefs</span> <span class="o">=</span> <span class="mf">1e-2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">warn_later</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">warn_later</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">arma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="go">UserWarning: Note that the smallest response to a standard impulse of the determined ARMA model is negative (`-0.000336`).</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span>
+<span class="go">ARMA(ar_coefs=(0.736953, -0.166457),</span>
+<span class="go">     ma_coefs=(0.019474, 0.054169, 0.077806, 0.09874, 0.091294,</span>
+<span class="go">               0.060796, 0.027226))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">(2, 7)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">response</span><span class="p">)</span>
+<span class="go">0.019474, 0.06852, 0.12506, 0.179497, 0.202758, 0.18034, 0.126378,</span>
+<span class="go">0.063116, 0.025477, 0.008269, 0.001853, -0.000011, -0.000316,</span>
+<span class="go">-0.000231, -0.000118, -0.000048, -0.000016</span>
+</pre></div>
+</div>
+<p>It seems to be hard to find a parameter efficient approximation to the MA model in
+the given example. Generally, approximating ARMA models to MA models is more
+beneficial when functions with long tails are involved.  The most extreme example
+would be a simple exponential decline:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span> <span class="o">=</span> <span class="n">MA</span><span class="p">(</span><span class="n">iuh</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">x</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span> <span class="o">=</span> <span class="mf">6.932</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span> <span class="o">=</span> <span class="n">ARMA</span><span class="p">(</span><span class="n">ma_model</span><span class="o">=</span><span class="n">ma</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the given example a number of 185 MA coefficients can be reduced to a total
+number of three ARMA coefficients with no relevant loss of accuracy:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">185</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">order</span>
+<span class="go">(1, 2)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">dev_moments</span><span class="p">)</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+<p>Use the following plotting command to see why 2 MA coeffcients instead of one are
+required in the above example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">arma</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.testtools</span><span class="w"> </span><span class="kn">import</span> <span class="n">save_autofig</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">save_autofig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ARMA_plot.png&quot;</span><span class="p">,</span> <span class="n">figure</span><span class="p">)</span>
+</pre></div>
+</div>
+<blockquote>
+<div><a class="reference internal image-reference" href="_images/ARMA_plot.png"><img alt="_images/ARMA_plot.png" src="_images/ARMA_plot.png" width="400" />
+</a>
+</div></blockquote>
+<p>Violations of the tolerance values are reported as warnings:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">max_dev_coefs</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">UserWarning</span>: <span class="n">Method `update_ma_coefs` is not able to determine the MA coefficients of the ARMA model with the desired accuracy.  You can set the tolerance value ´max_dev_coefs` to a higher value.  An accuracy of `0.000000000924` has been reached using `185` MA coefficients.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">max_rel_rmse</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">UserWarning</span>: <span class="n">Method `update_ar_coefs` is not able to determine the AR coefficients of the ARMA model with the desired accuracy.  You can either set the tolerance value `max_rel_rmse` to a higher value or increase the allowed `max_ar_order`.  An accuracy of `0.0` has been reached using `10` coefficients.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">warn_later</span><span class="p">():</span>
+<span class="gp">... </span>    <span class="n">arma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="go">UserWarning: Not able to detect a turning point in the impulse response defined by the MA coefficients `1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0`.</span>
+</pre></div>
+</div>
+<p>When getting such warnings, you need to inspect the achieved coefficients manually.
+In the last case, when the turning point detection failed, method
+<a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_coefs" title="hydpy.auxs.armatools.ARMA.update_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_coefs()</span></code></a> simplified the ARMA to the original MA model, which is safe but
+not always a good choice:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span>
+<span class="go">ARMA(ar_coefs=(),</span>
+<span class="go">     ma_coefs=(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1))</span>
+</pre></div>
+</div>
+<p>As approximating small MA models is seldom beneficial, it does not happen for fewer
+than 10 ordinates:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">coefs</span> <span class="o">=</span> <span class="mf">0.08</span><span class="p">,</span> <span class="mf">0.29</span><span class="p">,</span> <span class="mf">0.22</span><span class="p">,</span> <span class="mf">0.16</span><span class="p">,</span> <span class="mf">0.11</span><span class="p">,</span> <span class="mf">0.07</span><span class="p">,</span> <span class="mf">0.04</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.01</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">update_coefs</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span>
+<span class="go">ARMA(ar_coefs=(),</span>
+<span class="go">     ma_coefs=(0.08, 0.29, 0.22, 0.16, 0.11, 0.07, 0.04, 0.02, 0.01))</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.max_ar_order">
+<span class="sig-name descname"><span class="pre">max_ar_order</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.max_ar_order" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum number of AR coefficients that are to be determined by method
+<a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_coefs" title="hydpy.auxs.armatools.ARMA.update_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_coefs()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.max_rel_rmse">
+<span class="sig-name descname"><span class="pre">max_rel_rmse</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-06</span></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.max_rel_rmse" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum relative root mean squared error to be accepted by method
+<a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_coefs" title="hydpy.auxs.armatools.ARMA.update_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_coefs()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.max_dev_coefs">
+<span class="sig-name descname"><span class="pre">max_dev_coefs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1e-06</span></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.max_dev_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>Maximum deviation of the sum of all coefficents from one to be accepted by 
+method <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_coefs" title="hydpy.auxs.armatools.ARMA.update_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_coefs()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.rel_rmse">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">rel_rmse</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.rel_rmse" title="Link to this definition">¶</a></dt>
+<dd><p>Relative root mean squared error the last time achieved by method
+<a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_coefs" title="hydpy.auxs.armatools.ARMA.update_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_coefs()</span></code></a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs.armatools</span><span class="w"> </span><span class="kn">import</span> <span class="n">ARMA</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ARMA</span><span class="p">()</span><span class="o">.</span><span class="n">rel_rmse</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">RuntimeError</span>: <span class="n">The relative root mean squared error has not been determined so far.</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.ar_coefs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ar_coefs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.ar_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>The AR coefficients of the ARMA model.</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.ar_coefs" title="hydpy.auxs.armatools.ARMA.ar_coefs"><code class="xref py py-const docutils literal notranslate"><span class="pre">ar_coefs</span></code></a> does not recalculate already defined coefficients
+automatically for efficiency:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">MA</span><span class="p">,</span> <span class="n">ARMA</span><span class="p">,</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span> <span class="o">=</span> <span class="n">ARMA</span><span class="p">(</span><span class="n">ar_coefs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,),</span> <span class="n">ma_coefs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">ma</span> <span class="o">=</span> <span class="n">MA</span><span class="p">(</span><span class="n">iuh</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mf">1.02328</span> <span class="o">*</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span> <span class="o">=</span> <span class="mf">3.94</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">ar_coefs</span><span class="p">)</span>
+<span class="go">0.5</span>
+</pre></div>
+</div>
+<p>You can trigger the recalculation by removing the available coefficients first:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">arma</span><span class="o">.</span><span class="n">ar_coefs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">ar_coefs</span><span class="p">)</span>
+<span class="go">0.680483, -0.228511, 0.047283, -0.006022, 0.000377</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span>
+<span class="go">ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),</span>
+<span class="go">     ma_coefs=(0.019335, 0.054772, 0.081952, 0.107755, 0.104457,</span>
+<span class="go">               0.076369, 0.041094, 0.01581, 0.004132, 0.000663,</span>
+<span class="go">               0.00005))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.ma_coefs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ma_coefs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.ma_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>The MA coefficients of the ARMA model.</p>
+<p><a class="reference external" href="https://docs.python.org/3/library/functions.html#property" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">property</span></code></a> <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.ma_coefs" title="hydpy.auxs.armatools.ARMA.ma_coefs"><code class="xref py py-const docutils literal notranslate"><span class="pre">ma_coefs</span></code></a> does not recalculate already defined coefficients
+automatically for efficiency:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">MA</span><span class="p">,</span> <span class="n">ARMA</span><span class="p">,</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span> <span class="o">=</span> <span class="n">ARMA</span><span class="p">(</span><span class="n">ar_coefs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,),</span> <span class="n">ma_coefs</span><span class="o">=</span><span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">ma</span> <span class="o">=</span> <span class="n">MA</span><span class="p">(</span><span class="n">iuh</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="mf">1.02328</span> <span class="o">*</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">iuh</span><span class="o">.</span><span class="n">moment1</span> <span class="o">=</span> <span class="mf">3.94</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">ma_coefs</span><span class="p">)</span>
+<span class="go">0.3, 0.2</span>
+</pre></div>
+</div>
+<p>You can trigger the recalculation by removing the available coefficients first:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">arma</span><span class="o">.</span><span class="n">ma_coefs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">arma</span><span class="o">.</span><span class="n">ma_coefs</span><span class="p">)</span>
+<span class="go">0.019335, 0.054772, 0.081952, 0.107755, 0.104457, 0.076369, 0.041094,</span>
+<span class="go">0.01581, 0.004132, 0.000663, 0.00005</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arma</span>
+<span class="go">ARMA(ar_coefs=(0.680483, -0.228511, 0.047283, -0.006022, 0.000377),</span>
+<span class="go">     ma_coefs=(0.019335, 0.054772, 0.081952, 0.107755, 0.104457,</span>
+<span class="go">               0.076369, 0.041094, 0.01581, 0.004132, 0.000663,</span>
+<span class="go">               0.00005))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.coefs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">coefs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.coefs" title="Link to this definition">¶</a></dt>
+<dd><p>Tuple containing both the AR and the MA coefficients.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.ar_order">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ar_order</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.ar_order" title="Link to this definition">¶</a></dt>
+<dd><p>Number of AR coefficients.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.ma_order">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ma_order</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.ma_order" title="Link to this definition">¶</a></dt>
+<dd><p>Number of MA coefficients</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.order">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">order</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.order" title="Link to this definition">¶</a></dt>
+<dd><p>Number of both the AR and the MA coefficients.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.update_coefs">
+<span class="sig-name descname"><span class="pre">update_coefs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#ARMA.update_coefs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.update_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>Determine both the AR and the MA coefficients.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.effective_max_ar_order">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">effective_max_ar_order</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.effective_max_ar_order" title="Link to this definition">¶</a></dt>
+<dd><p>The maximum number of AR coefficients that shall or can be determined.</p>
+<p>It is the minimum of <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.max_ar_order" title="hydpy.auxs.armatools.ARMA.max_ar_order"><code class="xref py py-attr docutils literal notranslate"><span class="pre">max_ar_order</span></code></a> and the number of coefficients of the
+pure <a class="reference internal" href="#hydpy.auxs.armatools.MA" title="hydpy.auxs.armatools.MA"><code class="xref py py-class docutils literal notranslate"><span class="pre">MA</span></code></a> after their turning point.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.update_ar_coefs">
+<span class="sig-name descname"><span class="pre">update_ar_coefs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#ARMA.update_ar_coefs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.update_ar_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the AR coefficients.</p>
+<p>The number of AR coefficients is subsequently increased until the required
+precision <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.max_rel_rmse" title="hydpy.auxs.armatools.ARMA.max_rel_rmse"><code class="xref py py-attr docutils literal notranslate"><span class="pre">max_rel_rmse</span></code></a> or the maximum number of AR coefficients
+(see <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.effective_max_ar_order" title="hydpy.auxs.armatools.ARMA.effective_max_ar_order"><code class="xref py py-const docutils literal notranslate"><span class="pre">effective_max_ar_order</span></code></a>) is reached.  In the second case,
+<a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_ar_coefs" title="hydpy.auxs.armatools.ARMA.update_ar_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_ar_coefs()</span></code></a> raises a warning.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.dev_moments">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dev_moments</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.dev_moments" title="Link to this definition">¶</a></dt>
+<dd><p>Sum of the absolute deviations between the central moments of the
+instantaneous unit hydrograph and the ARMA approximation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.norm_coefs">
+<span class="sig-name descname"><span class="pre">norm_coefs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#ARMA.norm_coefs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.norm_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>Multiply all coefficients by the same factor, so that their sum becomes
+one.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.sum_coefs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">sum_coefs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.sum_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>The sum of all AR and MA coefficients</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.dev_coefs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">dev_coefs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.dev_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>Absolute deviation of <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.sum_coefs" title="hydpy.auxs.armatools.ARMA.sum_coefs"><code class="xref py py-const docutils literal notranslate"><span class="pre">sum_coefs</span></code></a> from one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.calc_all_ar_coefs">
+<span class="sig-name descname"><span class="pre">calc_all_ar_coefs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ar_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ma_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#hydpy.auxs.armatools.MA" title="hydpy.auxs.armatools.MA"><span class="pre">MA</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#ARMA.calc_all_ar_coefs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.calc_all_ar_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the AR coeffcients based on a least squares approach.</p>
+<p>The argument <cite>ar_order</cite> defines the number of AR coefficients to be determined.
+The argument <cite>ma_order</cite> defines a pure <a class="reference internal" href="#hydpy.auxs.armatools.MA" title="hydpy.auxs.armatools.MA"><code class="xref py py-class docutils literal notranslate"><span class="pre">MA</span></code></a> model. The least squares approach
+is applied on all those coefficents of the pure MA model, which are associated
+with the part of the recession curve behind its turning point.</p>
+<p>The attribute <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.rel_rmse" title="hydpy.auxs.armatools.ARMA.rel_rmse"><code class="xref py py-const docutils literal notranslate"><span class="pre">rel_rmse</span></code></a> is updated with the resulting relative root mean
+square error.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.get_a">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_a</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#ARMA.get_a"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.get_a" title="Link to this definition">¶</a></dt>
+<dd><p>Extract the independent variables of the given values and return them as a
+matrix with n columns in a form suitable for the least squares approach applied
+in method <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_ar_coefs" title="hydpy.auxs.armatools.ARMA.update_ar_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_ar_coefs()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.get_b">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_b</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#ARMA.get_b"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.get_b" title="Link to this definition">¶</a></dt>
+<dd><p>Extract the dependent variables of the values in a vector with n entries in
+a form suitable for the least squares approach applied in method
+<a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_ar_coefs" title="hydpy.auxs.armatools.ARMA.update_ar_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_ar_coefs()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.update_ma_coefs">
+<span class="sig-name descname"><span class="pre">update_ma_coefs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#ARMA.update_ma_coefs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.update_ma_coefs" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the MA coefficients.</p>
+<p>The number of MA coefficients is subsequently increased until the required
+precision (<a class="reference internal" href="#hydpy.auxs.armatools.ARMA.max_dev_coefs" title="hydpy.auxs.armatools.ARMA.max_dev_coefs"><code class="xref py py-attr docutils literal notranslate"><span class="pre">max_dev_coefs</span></code></a>) or the or the order of the original <a class="reference internal" href="#hydpy.auxs.armatools.MA" title="hydpy.auxs.armatools.MA"><code class="xref py py-class docutils literal notranslate"><span class="pre">MA</span></code></a> model
+is reached.  In the second case, <a class="reference internal" href="#hydpy.auxs.armatools.ARMA.update_ma_coefs" title="hydpy.auxs.armatools.ARMA.update_ma_coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_ma_coefs()</span></code></a> raises a warning.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.calc_next_ma_coef">
+<span class="sig-name descname"><span class="pre">calc_next_ma_coef</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ma_order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ma_model</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#ARMA.calc_next_ma_coef"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.calc_next_ma_coef" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the MA coefficients of the ARMA model based on its predetermined
+AR coefficients and the MA ordinates of the given <a class="reference internal" href="#hydpy.auxs.armatools.MA" title="hydpy.auxs.armatools.MA"><code class="xref py py-class docutils literal notranslate"><span class="pre">MA</span></code></a> model.</p>
+<p>The MA coefficients are determined one at a time, beginning with the first one.
+Each ARMA MA coefficient in set in a manner that allows for the exact
+reproduction of the equivalent pure MA coefficient with all relevant ARMA
+coefficients.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.response">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">response</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.response" title="Link to this definition">¶</a></dt>
+<dd><p>Return the response to a standard dt impulse.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.moments">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">moments</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.moments" title="Link to this definition">¶</a></dt>
+<dd><p>The first two time delay weighted statistical moments of the ARMA
+response.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.auxs.armatools.ARMA.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="(in Matplotlib v3.10.8)"><span class="pre">Figure</span></a></span></span><a class="reference internal" href="_modules/hydpy/auxs/armatools.html#ARMA.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.auxs.armatools.ARMA.plot" title="Link to this definition">¶</a></dt>
+<dd><p>Barplot of the ARMA response.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="calibtools.html" title="calibtools"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="anntools.html" title="anntools"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="framework_tools.html" >Framework Tools</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="auxiliaries.html" >Auxiliary Tools</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">armatools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

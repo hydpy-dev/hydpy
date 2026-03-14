@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.interfaces.routinginterfaces &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.interfaces.routinginterfaces</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.interfaces.routinginterfaces</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=unused-argument</span>
+<span class="sd">&quot;&quot;&quot;This module defines submodel interfaces for calculating 1-dimensional water flows.&quot;&quot;&quot;</span>
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="c1"># ...from hydpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V1">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CrossSectionModel_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelInterface</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for calculating the discharge and related properties at a channel</span>
+<span class="sd">    cross-section.&quot;&quot;&quot;</span>
+
+    <span class="n">typeid</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type identifier for |CrossSectionModel_V1| submodels.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CrossSectionModel_V1.prepare_bottomslope">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.prepare_bottomslope">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_bottomslope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bottomslope</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the bottom&#39;s slope (in the longitudinal direction) [-].&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V1.get_depths_of_discontinuity">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_depths_of_discontinuity">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_depths_of_discontinuity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all water depths that define points of discontinuity (except zero).&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V1.use_waterdepth">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.use_waterdepth">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">use_waterdepth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waterdepth</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the water depth in m and use it to calculate all other properties.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V1.use_waterlevel">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.use_waterlevel">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">use_waterlevel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waterlevel</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the water level in m and use it to calculate all other properties.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V1.get_wettedarea">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_wettedarea">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_wettedarea</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the wetted area in m².&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V1.get_surfacewidth">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_surfacewidth">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_surfacewidth</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the surface width in m.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V1.get_discharge">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_discharge">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_discharge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the discharge in m³/s.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V1.get_celerity">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V1.get_celerity">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_celerity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the wave celerity in m/s.&quot;&quot;&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="CrossSectionModel_V2">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CrossSectionModel_V2</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelInterface</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for calculating discharge-related properties at a channel</span>
+<span class="sd">    cross-section.&quot;&quot;&quot;</span>
+
+    <span class="n">typeid</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type identifier for |CrossSectionModel_V2| submodels.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CrossSectionModel_V2.get_depths_of_discontinuity">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_depths_of_discontinuity">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_depths_of_discontinuity</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all water depths that define points of discontinuity (except zero).&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V2.use_waterdepth">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_waterdepth">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">use_waterdepth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waterdepth</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the water depth in m and use it to calculate all other properties.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V2.use_waterlevel">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_waterlevel">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">use_waterlevel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">waterlevel</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the water level in m and use it to calculate all other properties.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V2.use_wettedarea">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.use_wettedarea">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">use_wettedarea</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wettedarea</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the wetted area in m² and use it to calculate all other properties.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V2.get_waterdepth">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_waterdepth">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_waterdepth</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the water depth in m.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V2.get_waterlevel">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_waterlevel">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_waterlevel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the water level in m.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V2.get_wettedarea">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_wettedarea">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_wettedarea</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the wetted area in m².&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="CrossSectionModel_V2.get_wettedperimeter">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.CrossSectionModel_V2.get_wettedperimeter">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_wettedperimeter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the wetted perimeter in m.&quot;&quot;&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RoutingModelBase">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModelBase">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RoutingModelBase</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelInterface</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base interface for routing models at inflow, central, and outflow locations.</span>
+
+<span class="sd">    An essential note for model developers: All main models using submodels that follow</span>
+<span class="sd">    the interface  |RoutingModel_V1|, |RoutingModel_V2|, or |RoutingModel_V3| must call</span>
+<span class="sd">    |RoutingModelBase.determine_maxtimestep|, |RoutingModelBase.set_timestep|, and</span>
+<span class="sd">    |RoutingModelBase.determine_discharge| in the mentioned order during each internal</span>
+<span class="sd">    simulation step.  Before |RoutingModelBase.determine_discharge| is called, methods</span>
+<span class="sd">    |RoutingModelBase.get_discharge|, |RoutingModel_V1.get_partialdischargeupstream|,</span>
+<span class="sd">    and |RoutingModel_V3.get_partialdischargedownstream| (if implemented) must return</span>
+<span class="sd">    the &quot;old&quot; discharge previously calculated or read from condition files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">typeid</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type identifier for the respective routing submodels.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RoutingModelBase.determine_maxtimestep">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_maxtimestep">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">determine_maxtimestep</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the highest possible computation time step.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RoutingModelBase.get_maxtimestep">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModelBase.get_maxtimestep">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_maxtimestep</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the highest possible computation time step in s.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RoutingModelBase.set_timestep">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModelBase.set_timestep">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_timestep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the actual computation time step in s.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="RoutingModelBase.determine_discharge">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModelBase.determine_discharge">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">determine_discharge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the discharge.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RoutingModelBase.get_discharge">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModelBase.get_discharge">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_discharge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the simulated total discharge in m³/s.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RoutingModelBase.get_dischargevolume">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModelBase.get_dischargevolume">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dischargevolume</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the simulated total discharge in m.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RoutingModel_V1">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RoutingModel_V1</span><span class="p">(</span><span class="n">RoutingModelBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for calculating the inflow into a channel.&quot;&quot;&quot;</span>
+
+    <span class="n">typeid</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type identifier for |RoutingModel_V1| submodels.&quot;&quot;&quot;</span>
+
+    <span class="n">routingmodelsdownstream</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">[</span>
+        <span class="n">RoutingModel_V2</span> <span class="o">|</span> <span class="n">RoutingModel_V3</span>
+    <span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;References to the neighbour routing models lying downstream.&quot;&quot;&quot;</span>
+
+    <span class="n">storagemodeldownstream</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">[</span><span class="n">StorageModel_V1</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Required reference to the neighbour storage model downstream.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RoutingModel_V1.get_partialdischargeupstream">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModel_V1.get_partialdischargeupstream">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_partialdischargeupstream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clientdischarge</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the simulated partial discharge in m³/s.</span>
+
+<span class="sd">        For multiple downstream models, |RoutingModel_V1.get_partialdischargeupstream|</span>
+<span class="sd">        returns the discharge portion that it attributes to the client model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RoutingModel_V2">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModel_V2">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RoutingModel_V2</span><span class="p">(</span><span class="n">RoutingModelBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for calculating the discharge between two channel segments.&quot;&quot;&quot;</span>
+
+    <span class="n">typeid</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type identifier for |RoutingModel_V2| submodels.&quot;&quot;&quot;</span>
+
+    <span class="n">routingmodelsupstream</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">[</span>
+        <span class="n">RoutingModel_V1</span> <span class="o">|</span> <span class="n">RoutingModel_V2</span>
+    <span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;References to the neighbour routing models lying upstream.&quot;&quot;&quot;</span>
+
+    <span class="n">routingmodelsdownstream</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">[</span>
+        <span class="n">RoutingModel_V2</span> <span class="o">|</span> <span class="n">RoutingModel_V3</span>
+    <span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;References to the neighbour routing models lying downstream.&quot;&quot;&quot;</span>
+
+    <span class="n">storagemodelupstream</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">[</span><span class="n">StorageModel_V1</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Required reference to the neighbour storage model upstream.&quot;&quot;&quot;</span>
+
+    <span class="n">storagemodeldownstream</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">[</span><span class="n">StorageModel_V1</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Required reference to the neighbour storage model downstream.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RoutingModel_V2.get_partialdischargeupstream">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargeupstream">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_partialdischargeupstream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clientdischarge</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the simulated partial discharge in m³/s.</span>
+
+<span class="sd">        For multiple downstream models, |RoutingModel_V1.get_partialdischargeupstream|</span>
+<span class="sd">        returns the discharge portion that it attributes to the client model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="RoutingModel_V2.get_partialdischargedownstream">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModel_V2.get_partialdischargedownstream">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_partialdischargedownstream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clientdischarge</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the simulated partial discharge in m³/s.</span>
+
+<span class="sd">        For multiple upstream models, |RoutingModel_V2.get_partialdischargedownstream|</span>
+<span class="sd">        returns the discharge portion that it attributes to the client model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="RoutingModel_V3">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModel_V3">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RoutingModel_V3</span><span class="p">(</span><span class="n">RoutingModelBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for calculating the outflow of a channel.&quot;&quot;&quot;</span>
+
+    <span class="n">typeid</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type identifier for |RoutingModel_V3| submodels.&quot;&quot;&quot;</span>
+
+    <span class="n">routingmodelsupstream</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">[</span>
+        <span class="n">RoutingModel_V1</span> <span class="o">|</span> <span class="n">RoutingModel_V2</span>
+    <span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;References to the neighbour routing models lying upstream.&quot;&quot;&quot;</span>
+
+    <span class="n">storagemodelupstream</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelProperty</span><span class="p">[</span><span class="n">StorageModel_V1</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Required reference to the neighbour storage model upstream.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RoutingModel_V3.get_partialdischargedownstream">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.RoutingModel_V3.get_partialdischargedownstream">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_partialdischargedownstream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clientdischarge</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the simulated partial discharge in m³/s.</span>
+
+<span class="sd">        For multiple upstream models, |RoutingModel_V3.get_partialdischargedownstream|</span>
+<span class="sd">        returns the discharge portion that it attributes to the client model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="StorageModel_V1">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.StorageModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StorageModel_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelInterface</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for calculating the water amount stored in a single channel segment.&quot;&quot;&quot;</span>
+
+    <span class="n">typeid</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type identifier for |StorageModel_V1| submodels.&quot;&quot;&quot;</span>
+
+    <span class="n">routingmodelsupstream</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">[</span>
+        <span class="n">RoutingModel_V1</span> <span class="o">|</span> <span class="n">RoutingModel_V2</span> <span class="o">|</span> <span class="n">RoutingModel_V3</span>
+    <span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Optional reference to the neighbour routing model upstream.&quot;&quot;&quot;</span>
+
+    <span class="n">routingmodelsdownstream</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">[</span>
+        <span class="n">RoutingModel_V1</span> <span class="o">|</span> <span class="n">RoutingModel_V2</span> <span class="o">|</span> <span class="n">RoutingModel_V3</span>
+    <span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Optional reference to the neighbour routing model downstream.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="StorageModel_V1.set_timestep">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.StorageModel_V1.set_timestep">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_timestep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timestep</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the actual computation time step in s.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="StorageModel_V1.update_storage">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.StorageModel_V1.update_storage">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_storage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the stored water content.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="StorageModel_V1.get_watervolume">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.StorageModel_V1.get_watervolume">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_watervolume</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the current water volume in 1000 m³.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="StorageModel_V1.get_waterlevel">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.StorageModel_V1.get_waterlevel">[docs]</a>
+    <span class="nd">@modeltools</span><span class="o">.</span><span class="n">abstractmodelmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_waterlevel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the current water level in m.&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="kc">False</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ChannelModel_V1">
+<a class="viewcode-back" href="../../../routinginterfaces.html#hydpy.interfaces.routinginterfaces.ChannelModel_V1">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ChannelModel_V1</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelInterface</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for handling routing and storage submodels.</span>
+
+<span class="sd">    The purpose of any model that follows the |ChannelModel_V1| interface is to collect</span>
+<span class="sd">    and connect the routing and storage submodels required to simulate the water flow</span>
+<span class="sd">    through a single channel (without confluences or branches).  It can but must not be</span>
+<span class="sd">    able to perform the actual simulation itself.  See |sw1d_channel| as an example,</span>
+<span class="sd">    which usually delegates simulations to |sw1d_network|.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">typeid</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Type identifier for |ChannelModel_V1| submodels.&quot;&quot;&quot;</span>
+
+    <span class="n">storagemodels</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">[</span><span class="n">StorageModel_V1</span><span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;References to the storage submodels.</span>
+<span class="sd">    </span>
+<span class="sd">    There must be one storage model for each channel segment.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">routingmodels</span><span class="p">:</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">SubmodelsProperty</span><span class="p">[</span>
+        <span class="n">RoutingModel_V1</span> <span class="o">|</span> <span class="n">RoutingModel_V2</span> <span class="o">|</span> <span class="n">RoutingModel_V3</span>
+    <span class="p">]</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;References to the routing submodels.</span>
+
+<span class="sd">    There must be one routing model for each interface between two channel segments.</span>
+<span class="sd">    Additionally, one routing model can be at the first position for simulating</span>
+<span class="sd">    &quot;longitudinal inflow&quot; into the channel.  And there can be one routing model at the</span>
+<span class="sd">    last position for calculating &quot;longitudinal outflow&quot;.  </span>
+<span class="sd">    </span>
+<span class="sd">    Note that &quot;inflow&quot; and &quot;outflow&quot; here only refer to the location but not </span>
+<span class="sd">    necessarily to water increases or decreases in the channel&#39;s water amount, as both </span>
+<span class="sd">    might be positive or negative, depending on the selected submodel.</span>
+<span class="sd">    </span>
+<span class="sd">    If neither the upstream channel model defines a routing model for its last </span>
+<span class="sd">    position nor the corresponding downstream channel model for its first position, </span>
+<span class="sd">    both channels cannot become connected.  If both channel models define routing </span>
+<span class="sd">    models for the mentioned positions, it is unclear which is relevant.  We suggest </span>
+<span class="sd">    the following convention.  Of course, add routing submodels that handle &quot;external </span>
+<span class="sd">    longitudinal inflow&quot; (e.g. |sw1d_q_in|) at the first position and routing submodels </span>
+<span class="sd">    that handle &quot;external longitudinal outflow&quot; (e.g. |sw1d_weir_out|) at the last </span>
+<span class="sd">    position.  Add routing submodels that handle &quot;internal longitudinal flow&quot; (e.g. </span>
+<span class="sd">    |sw1d_lias|) at the last position for places with confluences or without </span>
+<span class="sd">    tributaries.  For branches, add them to the first position.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.interfaces.routinginterfaces</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

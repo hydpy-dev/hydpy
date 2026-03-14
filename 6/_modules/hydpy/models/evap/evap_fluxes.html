@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.evap.evap_fluxes &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap.evap_fluxes</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.evap.evap_fluxes</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">sequencetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.evap</span><span class="w"> </span><span class="kn">import</span> <span class="n">evap_sequences</span>
+
+
+<div class="viewcode-block" id="Precipitation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.Precipitation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Precipitation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Precipitation [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyPrecipitation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.DailyPrecipitation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyPrecipitation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The precipitation sum of the last 24 hours [mm/d].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="GlobalRadiation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.GlobalRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GlobalRadiation</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Global radiation [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="ClearSkySolarRadiation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.ClearSkySolarRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ClearSkySolarRadiation</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Clear sky solar radiation [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyGlobalRadiation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.DailyGlobalRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyGlobalRadiation</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average global radiation in the last 24 hours [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="NetShortwaveRadiation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.NetShortwaveRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NetShortwaveRadiation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Net shortwave radiation [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyNetShortwaveRadiation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.DailyNetShortwaveRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyNetShortwaveRadiation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average net shortwave radiation in the last 24 hours [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="NetLongwaveRadiation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.NetLongwaveRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NetLongwaveRadiation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Net longwave radiation [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyNetLongwaveRadiation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.DailyNetLongwaveRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyNetLongwaveRadiation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average net longwave radiation in the last 24 hours [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="NetRadiation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.NetRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NetRadiation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Total net radiation [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyNetRadiation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.DailyNetRadiation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyNetRadiation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Average net radiation in the last 24 hours [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SoilHeatFlux">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.SoilHeatFlux">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilHeatFlux</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Soil heat flux [W/m²].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="ReferenceEvapotranspiration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.ReferenceEvapotranspiration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReferenceEvapotranspiration</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reference (grass) evapotranspiration [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="PotentialInterceptionEvaporation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.PotentialInterceptionEvaporation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PotentialInterceptionEvaporation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potential interception evaporation [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="PotentialSoilEvapotranspiration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.PotentialSoilEvapotranspiration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PotentialSoilEvapotranspiration</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potential evapotranspiration from soils [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="PotentialEvapotranspiration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.PotentialEvapotranspiration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PotentialEvapotranspiration</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potential (land type-specific) evapotranspiration [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyPotentialSoilEvapotranspiration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.DailyPotentialSoilEvapotranspiration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyPotentialSoilEvapotranspiration</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The potential soil evapotranspiration sum of the last 24 hours [mm/d].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="MeanReferenceEvapotranspiration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.MeanReferenceEvapotranspiration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MeanReferenceEvapotranspiration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean reference evapotranspiration [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="MeanPotentialEvapotranspiration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.MeanPotentialEvapotranspiration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MeanPotentialEvapotranspiration</span><span class="p">(</span><span class="n">sequencetools</span><span class="o">.</span><span class="n">FluxSequence</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean potential evapotranspiration [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">,</span> <span class="n">NUMERIC</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="PotentialWaterEvaporation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.PotentialWaterEvaporation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PotentialWaterEvaporation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potential evaporation from open water areas [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="WaterEvaporation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.WaterEvaporation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">WaterEvaporation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual evaporation from open water areas [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="DailyWaterEvaporation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.DailyWaterEvaporation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DailyWaterEvaporation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The water evaporation sum of the last 24 hours [mm/d].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="InterceptionEvaporation">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.InterceptionEvaporation">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">InterceptionEvaporation</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual interception evaporation [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="SoilEvapotranspiration">
+<a class="viewcode-back" href="../../../../evap.html#hydpy.models.evap.evap_fluxes.SoilEvapotranspiration">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilEvapotranspiration</span><span class="p">(</span><span class="n">evap_sequences</span><span class="o">.</span><span class="n">FluxSequence1D</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Actual soil evapotranspiration [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">NUMERIC</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.evap.evap_fluxes</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,666 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>evap_aet_hbv96 &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="evap_aet_minhas" href="evap_aet_minhas.html" />
+    <link rel="prev" title="evap_pet_hbv96" href="evap_pet_hbv96.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="evap_aet_minhas.html" title="evap_aet_minhas"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="evap_pet_hbv96.html" title="evap_pet_hbv96"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Evap.html" accesskey="U">HydPy-Evap</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">evap_aet_hbv96</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="evap.html">evap</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_ret_io.html">evap_ret_io</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_ret_fao56.html">evap_ret_fao56</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_ret_tw2002.html">evap_ret_tw2002</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_pet_m.html">evap_pet_m</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_pet_mlc.html">evap_pet_mlc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_pet_ambav1.html">evap_pet_ambav1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_pet_hbv96.html">evap_pet_hbv96</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">evap_aet_hbv96</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-tests">Integration tests</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#vegetated-soil">vegetated soil</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#bare-soil">bare soil</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#sealed-soil">sealed soil</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#water-area">water area</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#unequal-potential-values-soil">unequal potential values, soil</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#unequal-potential-values-water">unequal potential values, water</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.Model.tempmodel"><code class="docutils literal notranslate"><span class="pre">Model.tempmodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.Model.petmodel"><code class="docutils literal notranslate"><span class="pre">Model.petmodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.Model.intercmodel"><code class="docutils literal notranslate"><span class="pre">Model.intercmodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.Model.soilwatermodel"><code class="docutils literal notranslate"><span class="pre">Model.soilwatermodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.Model.snowcovermodel"><code class="docutils literal notranslate"><span class="pre">Model.snowcovermodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.FactorSequences"><code class="docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.evap_aet_hbv96.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="evap_aet_minhas.html">evap_aet_minhas</a></li>
+<li class="toctree-l4"><a class="reference internal" href="evap_aet_morsim.html">evap_aet_morsim</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="evap_pet_hbv96.html"
+                          title="previous chapter">evap_pet_hbv96</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="evap_aet_minhas.html"
+                          title="next chapter">evap_aet_minhas</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/evap_aet_hbv96.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/evap_aet_hbv96.html">6</a></li>
+<li><a href="../master/evap_aet_hbv96.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="evap-aet-hbv96">
+<span id="id1"></span><h1>HydPy-Evap-AET-HBV96 (actual evapotranspiration after HBV96)<a class="headerlink" href="#evap-aet-hbv96" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.evap_aet_hbv96"><a class="reference internal" href="#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a> serves as a submodel that supplies its main model with estimates of
+actual evapotranspiration from soils and actual evaporation from interception storages
+and water areas.  Therefore, it requires potential evapotranspiration data calculated
+by a sub-submodel.  If you long to emulate HBV96 <span id="id2">(<a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em>, 1997</a>)</span> as
+closely as possible, select <a class="reference internal" href="evap_pet_hbv96.html#module-hydpy.models.evap_pet_hbv96" title="hydpy.models.evap_pet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_hbv96</span></code></a>.</p>
+<p>Additionally, <a class="reference internal" href="#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a> requires information about the current air temperature,
+the initial water contents of the interception and soil storages, and the current
+degree of snow coverage.  By default, <a class="reference internal" href="#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a> queries all these properties
+from its main model and, at least for the last three properties, this should be the
+desired behaviour in most cases as it fully synchronises the related states.  However,
+the following tests use <a class="reference internal" href="#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a> as a stand-alone model.  Hence, we need to
+connect additional submodels to it that provide pre-defined temperature, water content,
+and snow cover data.</p>
+<section id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to_read_the_reference_manual.html#integration-tests"><span class="std std-ref">Integration Tests</span></a> first.</p>
+</div>
+<p>According to the intended usage as a submodel, <a class="reference internal" href="#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a> requires no connections
+to any nodes.  Hence, assigning a model instance to a blank <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Element" title="hydpy.core.devicetools.Element"><code class="xref py py-class docutils literal notranslate"><span class="pre">Element</span></code></a> instance is
+sufficient:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.evap_aet_hbv96</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;element&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>We perform the integration test for two simulation steps.  We will configure the first
+step identical to the first hour of the second day of the simulation period selected
+for the integration tests of <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;2000-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;2000-01-03&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<p>We set all parameter values identical to the ones defined in the <a class="reference internal" href="hland_96.html#hland-96-field"><span class="std std-ref">field</span></a>
+example of <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbhru</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">maxsoilwater</span><span class="p">(</span><span class="mf">200.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">soilmoisturelimit</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">excessreduction</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">temperaturethresholdice</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We add submodels of type <a class="reference internal" href="evap_ret_io.html#module-hydpy.models.evap_ret_io" title="hydpy.models.evap_ret_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_io</span></code></a>, <a class="reference internal" href="meteo_temp_io.html#module-hydpy.models.meteo_temp_io" title="hydpy.models.meteo_temp_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">meteo_temp_io</span></code></a>, <a class="reference internal" href="dummy_interceptedwater.html#module-hydpy.models.dummy_interceptedwater" title="hydpy.models.dummy_interceptedwater"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dummy_interceptedwater</span></code></a>,
+<a class="reference internal" href="dummy_soilwater.html#module-hydpy.models.dummy_soilwater" title="hydpy.models.dummy_soilwater"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dummy_soilwater</span></code></a>, and <a class="reference internal" href="dummy_snowcover.html#module-hydpy.models.dummy_snowcover" title="hydpy.models.dummy_snowcover"><code class="xref py py-mod docutils literal notranslate"><span class="pre">dummy_snowcover</span></code></a> for providing pre-defined values of potential
+evapotranspiration (identical values for potential interception evaporation and soil
+evapotranspiration), air temperature, intercepted water, soil water, and snow cover:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_petmodel_v1</span><span class="p">(</span><span class="s2">&quot;evap_ret_io&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">hruarea</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">evapotranspirationfactor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_tempmodel_v2</span><span class="p">(</span><span class="s2">&quot;meteo_temp_io&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">hruarea</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">temperatureaddend</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_intercmodel_v1</span><span class="p">(</span><span class="s2">&quot;dummy_interceptedwater&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_soilwatermodel_v1</span><span class="p">(</span><span class="s2">&quot;dummy_soilwater&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_snowcovermodel_v1</span><span class="p">(</span><span class="s2">&quot;dummy_snowcover&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Now, we can initialise an <a class="reference internal" href="testtools.html#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> object:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m&quot;</span>
+</pre></div>
+</div>
+<p>The first temperature input also stems from the input data of the <a class="reference internal" href="hland_96.html#hland-96-field"><span class="std std-ref">field</span></a>
+example, while the second represents winter conditions:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">tempmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">19.2</span><span class="p">,</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<p>The (constant) potential evapotranspiration value stems from the output of the
+integration test of <a class="reference internal" href="evap_pet_hbv96.html#module-hydpy.models.evap_pet_hbv96" title="hydpy.models.evap_pet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_hbv96</span></code></a>, which is also consistent with the
+<a class="reference internal" href="hland_96.html#hland-96-field"><span class="std std-ref">field</span></a> example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">referenceevapotranspiration</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.06896</span>
+</pre></div>
+</div>
+<p>The following interception and soil water contents are intermediate values of the
+<a class="reference internal" href="hland_96.html#hland-96-field"><span class="std std-ref">field</span></a> example that occur after adding precipitation but before removing
+evapotranspiration:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">intercmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">interceptedwater</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">soilwatermodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">soilwater</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">99.622389</span>
+</pre></div>
+</div>
+<p>The first snow cover value represents summer conditions (like in the
+<a class="reference internal" href="hland_96.html#hland-96-field"><span class="std std-ref">field</span></a> example), while the second represents winter conditions:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">snowcovermodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">snowcover</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]]</span>
+</pre></div>
+</div>
+<section id="vegetated-soil">
+<span id="evap-aet-hbv96-vegetated-soil"></span><h3>vegetated soil<a class="headerlink" href="#vegetated-soil" title="Link to this heading">¶</a></h3>
+<p>For “vegetated soils”, interception evaporation and soil evapotranspiration are
+relevant:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">interception</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">soil</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For the first hour, interception evaporation equals potential evapotranspiration, while
+soil evaporation is smaller due to restricted soil water availability and the priority
+of interception evaporation.  In the second hour, the snow cover suppresses soil
+evapotranspiration but does not affect interception evaporation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_90__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_90__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="go">--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |               0.021469 |</span>
+<span class="go">| 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="bare-soil">
+<span id="evap-aet-hbv96-bare-soil"></span><h3>bare soil<a class="headerlink" href="#bare-soil" title="Link to this heading">¶</a></h3>
+<p>Next, we assume a “bare soil” where interception processes are irrelevant:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">interception</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">soil</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Unlike the <a class="reference internal" href="#evap-aet-hbv96-vegetated-soil"><span class="std std-ref">vegetated soil</span></a>, soil evapotranspiration is stronger in
+the first hour since interception evaporation does not “consume” any potential
+evapotranspiration:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_91__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_91__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="go">--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |               0.042937 |</span>
+<span class="go">| 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |                    0.0 |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="sealed-soil">
+<span id="evap-aet-hbv96-sealed-soil"></span><h3>sealed soil<a class="headerlink" href="#sealed-soil" title="Link to this heading">¶</a></h3>
+<p>The following “sealed soil” can evaporate water from its surface but not from its body:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">interception</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">soil</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The results are consistent with those of the previous examples:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_92__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_92__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="go">--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |</span>
+<span class="go">| 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                 0.06896 |                    0.0 |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="water-area">
+<span id="evap-aet-hbv96-water-area"></span><h3>water area<a class="headerlink" href="#water-area" title="Link to this heading">¶</a></h3>
+<p>A “water area” comes neither with a solid surface nor a soil body:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">interception</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">soil</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the first hour, the actual evaporation from the water area is identical to potential
+evapotranspiration.  In the second hour, an assumed ice surface suppresses any
+evaporation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_93__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_93__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="go">--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          0.06896 |                         0.06896 |                   0.06896 |          0.06896 |                     0.0 |                    0.0 |</span>
+<span class="go">| 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                          0.06896 |                         0.06896 |                   0.06896 |              0.0 |                     0.0 |                    0.0 |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="unequal-potential-values-soil">
+<h3>unequal potential values, soil<a class="headerlink" href="#unequal-potential-values-soil" title="Link to this heading">¶</a></h3>
+<p>The previous examples relied on the <a class="reference internal" href="evap_ret_io.html#module-hydpy.models.evap_ret_io" title="hydpy.models.evap_ret_io"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_ret_io</span></code></a> submodel, which complies with the
+<a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> interface that provides only a single potential evapotranspiration value
+per time step.  <a class="reference internal" href="#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a> is also compatible with submodels that follow
+<a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V2" title="hydpy.interfaces.petinterfaces.PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V2</span></code></a>, which offers separate potential values for interception evaporation,
+soil evapotranspiration, and evaporation from water areas.  We use <a class="reference internal" href="evap_pet_ambav1.html#module-hydpy.models.evap_pet_ambav1" title="hydpy.models.evap_pet_ambav1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_ambav1</span></code></a> to
+demonstrate this functionality:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_petmodel_v2</span><span class="p">(</span><span class="s2">&quot;evap_pet_ambav1&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">hrutype</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">plant</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">measuringheightwindspeed</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">leafalbedo</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">leafalbedosnow</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">groundalbedo</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">groundalbedosnow</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">leafareaindex</span><span class="p">(</span><span class="mf">5.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">cropheight</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">leafresistance</span><span class="p">(</span><span class="mf">40.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">wetsoilresistance</span><span class="p">(</span><span class="mf">100.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">soilresistanceincrease</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">wetnessthreshold</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">cloudtypefactor</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">nightcloudfactor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_tempmodel_v2</span><span class="p">(</span><span class="s2">&quot;meteo_temp_io&quot;</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">hruarea</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">temperatureaddend</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_precipmodel_v2</span><span class="p">(</span><span class="s2">&quot;meteo_precip_io&quot;</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">hruarea</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">precipitationfactor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_radiationmodel_v4</span><span class="p">(</span><span class="s2">&quot;meteo_psun_sun_glob_io&quot;</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">pass</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_snowcovermodel_v1</span><span class="p">(</span><span class="s2">&quot;dummy_snowcover&quot;</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="k">pass</span>
+</pre></div>
+</div>
+<p>After recreating the <a class="reference internal" href="testtools.html#hydpy.core.testtools.IntegrationTest" title="hydpy.core.testtools.IntegrationTest"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegrationTest</span></code></a> object, we can define the time series and
+initial conditions required by <a class="reference internal" href="evap_pet_ambav1.html#module-hydpy.models.evap_pet_ambav1" title="hydpy.models.evap_pet_ambav1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_ambav1</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">/%m&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">windspeed</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">relativehumidity</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">80.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">atmosphericpressure</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">1000.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">tempmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">19.2</span><span class="p">,</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">precipmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">precipitation</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">radiationmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">sunshineduration</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">6.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">radiationmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">possiblesunshineduration</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">16.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">radiationmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">globalradiation</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">190.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">snowcovermodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">snowcover</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]]</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span> <span class="o">=</span> <span class="p">(</span>
+<span class="gp">... </span>    <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">soilresistance</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">loggedprecipitation</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">loggedpotentialsoilevapotranspiration</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">])</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The time series of air temperature, intercepted water, soil water, and the snow cover
+degree correspond to the previous examples:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">tempmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">19.2</span><span class="p">,</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">intercmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">interceptedwater</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">2.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">soilwatermodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">soilwater</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="mf">99.622389</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">snowcovermodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">snowcover</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>The following results are comparable to the <a class="reference internal" href="#evap-aet-hbv96-vegetated-soil"><span class="std std-ref">vegetated soil</span></a>
+example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">interception</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">soil</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_94__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_94__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="go">--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                          3.42978 |                        2.604398 |                       0.0 |              0.0 |                     2.0 |               1.422518 |</span>
+<span class="go">| 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                         0.482794 |                         0.30027 |                       0.0 |              0.0 |                0.482794 |                    0.0 |</span>
+</pre></div></div></div></pre></div></div></section>
+<section id="unequal-potential-values-water">
+<h3>unequal potential values, water<a class="headerlink" href="#unequal-potential-values-water" title="Link to this heading">¶</a></h3>
+<p>For water areas, <a class="reference internal" href="#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a> takes the potential water evaporation calculated by
+<a class="reference internal" href="evap_pet_ambav1.html#module-hydpy.models.evap_pet_ambav1" title="hydpy.models.evap_pet_ambav1"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_ambav1</span></code></a> as actual water evaporation, as long as the occurrence of an ice
+surface does not suppress evaporation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">interception</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">soil</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">water</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">()</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_95__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_95__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date | airtemperature | interceptedwater | soilwater | snowcover | potentialinterceptionevaporation | potentialsoilevapotranspiration | potentialwaterevaporation | waterevaporation | interceptionevaporation | soilevapotranspiration |</span>
+<span class="go">--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                              0.0 |                             0.0 |                  3.576338 |         3.576338 |                     0.0 |                    0.0 |</span>
+<span class="go">| 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                              0.0 |                             0.0 |                  0.449853 |              0.0 |                     0.0 |                    0.0 |</span>
+</pre></div></div></div></pre></div></div></section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.evap_aet_hbv96.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/evap_aet_hbv96.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_TempModel_V1" title="hydpy.models.evap.evap_model.Main_TempModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_TempModel_V1</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_TempModel_V2B" title="hydpy.models.evap.evap_model.Main_TempModel_V2B"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_TempModel_V2B</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_PET_PETModel_V1" title="hydpy.models.evap.evap_model.Main_PET_PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_PET_PETModel_V1</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_PET_PETModel_V2" title="hydpy.models.evap.evap_model.Main_PET_PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_PET_PETModel_V2</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_IntercModel_V1" title="hydpy.models.evap.evap_model.Main_IntercModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_IntercModel_V1</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_SoilWaterModel_V1" title="hydpy.models.evap.evap_model.Main_SoilWaterModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_SoilWaterModel_V1</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Main_SnowCoverModel_V1" title="hydpy.models.evap.evap_model.Main_SnowCoverModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_SnowCoverModel_V1</span></code></a>, <a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Sub_ETModel" title="hydpy.models.evap.evap_model.Sub_ETModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sub_ETModel</span></code></a>, <a class="reference internal" href="aetinterfaces.html#hydpy.interfaces.aetinterfaces.AETModel_V1" title="hydpy.interfaces.aetinterfaces.AETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">AETModel_V1</span></code></a></p>
+<p>HydPy-Evap-AET-HBV96 (actual evapotranspiration after HBV96).</p>
+<dl class="simple">
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Determine_InterceptionEvaporation_V1" title="hydpy.models.evap.evap_model.Determine_InterceptionEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_InterceptionEvaporation_V1</span></code></a> Determine the actual interception evaporation according to <span id="id3"><a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em> (1997)</a></span>.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Determine_SoilEvapotranspiration_V1" title="hydpy.models.evap.evap_model.Determine_SoilEvapotranspiration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_SoilEvapotranspiration_V1</span></code></a> Determine the actual evapotranspiration from the soil according to <span id="id4"><a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em> (1997)</a></span>.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Determine_WaterEvaporation_V1" title="hydpy.models.evap.evap_model.Determine_WaterEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_WaterEvaporation_V1</span></code></a> Determine the actual evapotranspiration from open water areas according to <span id="id5"><a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em> (1997)</a></span>.</p></li>
+</ul>
+</dd>
+<dt>The following interface methods are available to main models using the defined model as a submodel:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Determine_InterceptionEvaporation_V1" title="hydpy.models.evap.evap_model.Determine_InterceptionEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_InterceptionEvaporation_V1</span></code></a> Determine the actual interception evaporation according to <span id="id6"><a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em> (1997)</a></span>.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Determine_SoilEvapotranspiration_V1" title="hydpy.models.evap.evap_model.Determine_SoilEvapotranspiration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_SoilEvapotranspiration_V1</span></code></a> Determine the actual evapotranspiration from the soil according to <span id="id7"><a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em> (1997)</a></span>.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Determine_WaterEvaporation_V1" title="hydpy.models.evap.evap_model.Determine_WaterEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Determine_WaterEvaporation_V1</span></code></a> Determine the actual evapotranspiration from open water areas according to <span id="id8"><a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em> (1997)</a></span>.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Get_WaterEvaporation_V1" title="hydpy.models.evap.evap_model.Get_WaterEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_WaterEvaporation_V1</span></code></a> Get the current water area evaporation from the selected hydrological response unit.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Get_InterceptionEvaporation_V1" title="hydpy.models.evap.evap_model.Get_InterceptionEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_InterceptionEvaporation_V1</span></code></a> Get the current actual interception evaporation from the selected hydrological response unit.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Get_SoilEvapotranspiration_V1" title="hydpy.models.evap.evap_model.Get_SoilEvapotranspiration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Get_SoilEvapotranspiration_V1</span></code></a> Get the current soil evapotranspiration from the selected hydrological response unit.</p></li>
+</ul>
+</dd>
+<dt>The following “additional methods” might be called by one or more of the other methods or are meant to be directly called by the user:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_AirTemperature_V1" title="hydpy.models.evap.evap_model.Calc_AirTemperature_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AirTemperature_V1</span></code></a> Let a submodel that complies with the <a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V1" title="hydpy.interfaces.tempinterfaces.TempModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V1</span></code></a> or <a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V2" title="hydpy.interfaces.tempinterfaces.TempModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V2</span></code></a> interface determine the air temperature of the individual hydrological response units.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_PotentialInterceptionEvaporation_PETModel_V1" title="hydpy.models.evap.evap_model.Calc_PotentialInterceptionEvaporation_PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialInterceptionEvaporation_PETModel_V1</span></code></a> Let a submodel that complies with the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> interface calculate potential evapotranspiration and assume it as potential interception evaporation.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_PotentialInterceptionEvaporation_PETModel_V2" title="hydpy.models.evap.evap_model.Calc_PotentialInterceptionEvaporation_PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialInterceptionEvaporation_PETModel_V2</span></code></a> Let a submodel that complies with the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V2" title="hydpy.interfaces.petinterfaces.PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V2</span></code></a> interface calculate potential interception evaporation and query it.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_PotentialInterceptionEvaporation_V3" title="hydpy.models.evap.evap_model.Calc_PotentialInterceptionEvaporation_V3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialInterceptionEvaporation_V3</span></code></a> Use a submodel that complies with the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> or <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V2" title="hydpy.interfaces.petinterfaces.PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V2</span></code></a> interface to determine evaporation from water areas.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_PotentialWaterEvaporation_PETModel_V1" title="hydpy.models.evap.evap_model.Calc_PotentialWaterEvaporation_PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialWaterEvaporation_PETModel_V1</span></code></a> Query the already calculated potential evapotranspiration from a submodel that complies with the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> interface and assume it to be water evaporation.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_PotentialWaterEvaporation_PETModel_V2" title="hydpy.models.evap.evap_model.Calc_PotentialWaterEvaporation_PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialWaterEvaporation_PETModel_V2</span></code></a> Let a submodel that complies with the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V2" title="hydpy.interfaces.petinterfaces.PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V2</span></code></a> interface calculate potential water evaporation and query it.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_PotentialWaterEvaporation_V1" title="hydpy.models.evap.evap_model.Calc_PotentialWaterEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialWaterEvaporation_V1</span></code></a> Use a submodel that complies with the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> or <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V2" title="hydpy.interfaces.petinterfaces.PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V2</span></code></a> interface to determine potential soil evapotranspiration.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_WaterEvaporation_V1" title="hydpy.models.evap.evap_model.Calc_WaterEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_WaterEvaporation_V1</span></code></a> Calculate the actual evaporation from water areas according to <span id="id9"><a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em> (1997)</a></span>.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_InterceptedWater_V1" title="hydpy.models.evap.evap_model.Calc_InterceptedWater_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_InterceptedWater_V1</span></code></a> Let a submodel that complies with the <a class="reference internal" href="stateinterfaces.html#hydpy.interfaces.stateinterfaces.IntercModel_V1" title="hydpy.interfaces.stateinterfaces.IntercModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntercModel_V1</span></code></a> interface determine the current amount of intercepted water.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_InterceptionEvaporation_V1" title="hydpy.models.evap.evap_model.Calc_InterceptionEvaporation_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_InterceptionEvaporation_V1</span></code></a> Calculate the actual interception evaporation by setting it equal to potential evapotranspiration.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_SoilWater_V1" title="hydpy.models.evap.evap_model.Calc_SoilWater_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SoilWater_V1</span></code></a> Let a submodel that complies with the <a class="reference internal" href="stateinterfaces.html#hydpy.interfaces.stateinterfaces.SoilWaterModel_V1" title="hydpy.interfaces.stateinterfaces.SoilWaterModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoilWaterModel_V1</span></code></a> interface determine the current soil water amount.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_SnowCover_V1" title="hydpy.models.evap.evap_model.Calc_SnowCover_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SnowCover_V1</span></code></a> Let a submodel that complies with the <a class="reference internal" href="stateinterfaces.html#hydpy.interfaces.stateinterfaces.SnowCoverModel_V1" title="hydpy.interfaces.stateinterfaces.SnowCoverModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnowCoverModel_V1</span></code></a> interface determine the current snow cover degree.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_PotentialSoilEvapotranspiration_PETModel_V1" title="hydpy.models.evap.evap_model.Calc_PotentialSoilEvapotranspiration_PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialSoilEvapotranspiration_PETModel_V1</span></code></a> Query the already calculated potential evapotranspiration from a submodel that complies with the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> interface and assume it as potential soil evapotranspiration.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_PotentialSoilEvapotranspiration_PETModel_V2" title="hydpy.models.evap.evap_model.Calc_PotentialSoilEvapotranspiration_PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialSoilEvapotranspiration_PETModel_V2</span></code></a> Let a submodel that complies with the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V2" title="hydpy.interfaces.petinterfaces.PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V2</span></code></a> interface calculate potential soil evapotranspiration and query it.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_PotentialSoilEvapotranspiration_V2" title="hydpy.models.evap.evap_model.Calc_PotentialSoilEvapotranspiration_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PotentialSoilEvapotranspiration_V2</span></code></a> Use a submodel that complies with the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> or <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V2" title="hydpy.interfaces.petinterfaces.PETModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V2</span></code></a> interface to determine potential soil evapotranspiration.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_SoilEvapotranspiration_V1" title="hydpy.models.evap.evap_model.Calc_SoilEvapotranspiration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SoilEvapotranspiration_V1</span></code></a> Calculate the actual soil evapotranspiration according to <span id="id10"><a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em> (1997)</a></span>.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Update_SoilEvapotranspiration_V1" title="hydpy.models.evap.evap_model.Update_SoilEvapotranspiration_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_SoilEvapotranspiration_V1</span></code></a> Reduce actual soil evapotranspiration if the sum of interception evaporation and soil evapotranspiration exceeds potential evapotranspiration, according to <span id="id11"><a class="reference internal" href="zbibliography.html#id16" title="Göran Lindström, Barbro Johansson, Magnus Persson, Marie Gardelin, and Sten Bergström. Development and test of the distributed hbv-96 hydrological model. Journal of Hydrology, 201(1):272 - 288, 1997. doi:10.1016/S0022-1694(97)00041-3.">Lindström <em>et al.</em> (1997)</a></span>.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Update_SoilEvapotranspiration_V2" title="hydpy.models.evap.evap_model.Update_SoilEvapotranspiration_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_SoilEvapotranspiration_V2</span></code></a> Reduce actual soil evapotranspiration due to snow covering.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_AirTemperature_TempModel_V1" title="hydpy.models.evap.evap_model.Calc_AirTemperature_TempModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AirTemperature_TempModel_V1</span></code></a> Query hydrological response units’ air temperature from a main model referenced as a sub-submodel and follows the <a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V1" title="hydpy.interfaces.tempinterfaces.TempModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V1</span></code></a> interface.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_AirTemperature_TempModel_V2" title="hydpy.models.evap.evap_model.Calc_AirTemperature_TempModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AirTemperature_TempModel_V2</span></code></a> Let a submodel that complies with the <a class="reference internal" href="tempinterfaces.html#hydpy.interfaces.tempinterfaces.TempModel_V2" title="hydpy.interfaces.tempinterfaces.TempModel_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">TempModel_V2</span></code></a> interface determine the air temperature of the hydrological response units.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_InterceptedWater_IntercModel_V1" title="hydpy.models.evap.evap_model.Calc_InterceptedWater_IntercModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_InterceptedWater_IntercModel_V1</span></code></a> Query the current amount of intercepted water from a submodel that follows the <a class="reference internal" href="stateinterfaces.html#hydpy.interfaces.stateinterfaces.IntercModel_V1" title="hydpy.interfaces.stateinterfaces.IntercModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntercModel_V1</span></code></a> interface.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_SoilWater_SoilWaterModel_V1" title="hydpy.models.evap.evap_model.Calc_SoilWater_SoilWaterModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SoilWater_SoilWaterModel_V1</span></code></a> Query the current soil water amount from as submodel that follows the <a class="reference internal" href="stateinterfaces.html#hydpy.interfaces.stateinterfaces.SoilWaterModel_V1" title="hydpy.interfaces.stateinterfaces.SoilWaterModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoilWaterModel_V1</span></code></a> interface.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_model.Calc_SnowCover_SnowCoverModel_V1" title="hydpy.models.evap.evap_model.Calc_SnowCover_SnowCoverModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_SnowCover_SnowCoverModel_V1</span></code></a> Query the current snow cover degree from a submodel that follows the <a class="reference internal" href="stateinterfaces.html#hydpy.interfaces.stateinterfaces.SnowCoverModel_V1" title="hydpy.interfaces.stateinterfaces.SnowCoverModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">SnowCoverModel_V1</span></code></a> interface.</p></li>
+</ul>
+</dd>
+<dt>Users can hook submodels into the defined main model if they satisfy one of the following interfaces:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> Simple interface for calculating all potential evapotranspiration values in one step.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('Evap-AET-HBV96',</span> <span class="pre">'actual</span> <span class="pre">evapotranspiration</span> <span class="pre">after</span> <span class="pre">HBV96')</span></span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.Model.tempmodel">
+<span class="sig-name descname"><span class="pre">tempmodel</span></span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.Model.tempmodel" title="Link to this definition">¶</a></dt>
+<dd><p>Required submodel that complies with one of the following interfaces: TempModel_V1 or TempModel_V2.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.Model.petmodel">
+<span class="sig-name descname"><span class="pre">petmodel</span></span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.Model.petmodel" title="Link to this definition">¶</a></dt>
+<dd><p>Required submodel that complies with one of the following interfaces: PETModel_V1 or PETModel_V2.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.Model.intercmodel">
+<span class="sig-name descname"><span class="pre">intercmodel</span></span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.Model.intercmodel" title="Link to this definition">¶</a></dt>
+<dd><p>Required submodel that complies with the following interface: IntercModel_V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.Model.soilwatermodel">
+<span class="sig-name descname"><span class="pre">soilwatermodel</span></span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.Model.soilwatermodel" title="Link to this definition">¶</a></dt>
+<dd><p>Required submodel that complies with the following interface: SoilWaterModel_V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.Model.snowcovermodel">
+<span class="sig-name descname"><span class="pre">snowcovermodel</span></span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.Model.snowcovermodel" title="Link to this definition">¶</a></dt>
+<dd><p>Required submodel that complies with the following interface: SnowCoverModel_V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.evap_aet_hbv96.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model evap_aet_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.NmbHRU" title="hydpy.models.evap.evap_control.NmbHRU"><code class="xref py py-func docutils literal notranslate"><span class="pre">NmbHRU()</span></code></a> The number of separately modelled hydrological response units [-].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.Water" title="hydpy.models.evap.evap_control.Water"><code class="xref py py-func docutils literal notranslate"><span class="pre">Water()</span></code></a> A flag that indicates whether the individual zones are water areas or not.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.Interception" title="hydpy.models.evap.evap_control.Interception"><code class="xref py py-func docutils literal notranslate"><span class="pre">Interception()</span></code></a> A flag that indicates whether interception evaporation is relevant for the individual zones.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.Soil" title="hydpy.models.evap.evap_control.Soil"><code class="xref py py-func docutils literal notranslate"><span class="pre">Soil()</span></code></a> A flag that indicates whether soil evapotranspiration is relevant for the individual zones.</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.TemperatureThresholdIce" title="hydpy.models.evap.evap_control.TemperatureThresholdIce"><code class="xref py py-func docutils literal notranslate"><span class="pre">TemperatureThresholdIce()</span></code></a> Temperature threshold for evaporation from water areas [°C].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.MaxSoilWater" title="hydpy.models.evap.evap_control.MaxSoilWater"><code class="xref py py-func docutils literal notranslate"><span class="pre">MaxSoilWater()</span></code></a> Maximum soil water content [mm].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.SoilMoistureLimit" title="hydpy.models.evap.evap_control.SoilMoistureLimit"><code class="xref py py-func docutils literal notranslate"><span class="pre">SoilMoistureLimit()</span></code></a> Relative soil moisture limit for potential evapotranspiration [-].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.ExcessReduction" title="hydpy.models.evap.evap_control.ExcessReduction"><code class="xref py py-func docutils literal notranslate"><span class="pre">ExcessReduction()</span></code></a> A factor for restricting actual to potential evapotranspiration [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.FactorSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.evap_aet_hbv96.</span></span><span class="sig-name descname"><span class="pre">FactorSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.FactorSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FactorSequences" title="hydpy.core.sequencetools.FactorSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FactorSequences</span></code></a></p>
+<p>Factor sequences of model evap_aet_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_factors.AirTemperature" title="hydpy.models.evap.evap_factors.AirTemperature"><code class="xref py py-func docutils literal notranslate"><span class="pre">AirTemperature()</span></code></a> Air temperature [°C].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_factors.InterceptedWater" title="hydpy.models.evap.evap_factors.InterceptedWater"><code class="xref py py-func docutils literal notranslate"><span class="pre">InterceptedWater()</span></code></a> Intercepted water [mm].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_factors.SoilWater" title="hydpy.models.evap.evap_factors.SoilWater"><code class="xref py py-func docutils literal notranslate"><span class="pre">SoilWater()</span></code></a> Soil water content [mm].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_factors.SnowCover" title="hydpy.models.evap.evap_factors.SnowCover"><code class="xref py py-func docutils literal notranslate"><span class="pre">SnowCover()</span></code></a> Snow cover degree [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.evap_aet_hbv96.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.evap_aet_hbv96.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.evap_aet_hbv96.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model evap_aet_hbv96.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.PotentialInterceptionEvaporation" title="hydpy.models.evap.evap_fluxes.PotentialInterceptionEvaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">PotentialInterceptionEvaporation()</span></code></a> Potential interception evaporation [mm/T].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.PotentialSoilEvapotranspiration" title="hydpy.models.evap.evap_fluxes.PotentialSoilEvapotranspiration"><code class="xref py py-func docutils literal notranslate"><span class="pre">PotentialSoilEvapotranspiration()</span></code></a> Potential evapotranspiration from soils [mm/T].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.PotentialWaterEvaporation" title="hydpy.models.evap.evap_fluxes.PotentialWaterEvaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">PotentialWaterEvaporation()</span></code></a> Potential evaporation from open water areas [mm/T].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.WaterEvaporation" title="hydpy.models.evap.evap_fluxes.WaterEvaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">WaterEvaporation()</span></code></a> Actual evaporation from open water areas [mm/T].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.InterceptionEvaporation" title="hydpy.models.evap.evap_fluxes.InterceptionEvaporation"><code class="xref py py-func docutils literal notranslate"><span class="pre">InterceptionEvaporation()</span></code></a> Actual interception evaporation [mm/T].</p></li>
+<li><p><a class="reference internal" href="evap.html#hydpy.models.evap.evap_fluxes.SoilEvapotranspiration" title="hydpy.models.evap.evap_fluxes.SoilEvapotranspiration"><code class="xref py py-func docutils literal notranslate"><span class="pre">SoilEvapotranspiration()</span></code></a> Actual soil evapotranspiration [mm/T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="evap_aet_minhas.html" title="evap_aet_minhas"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="evap_pet_hbv96.html" title="evap_pet_hbv96"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-Evap.html" >HydPy-Evap</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">evap_aet_hbv96</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

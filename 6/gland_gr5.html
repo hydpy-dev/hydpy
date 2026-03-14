@@ -1,0 +1,782 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>gland_gr5 &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script>window.MathJax = {"chtml": {"displayAlign": "left"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="gland_gr6" href="gland_gr6.html" />
+    <link rel="prev" title="gland_gr4" href="gland_gr4.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gland_gr6.html" title="gland_gr6"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="gland_gr4.html" title="gland_gr4"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-G.html" accesskey="U">HydPy-G (GR)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">gland_gr5</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="gland.html">gland</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gland_gr4.html">gland_gr4</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">gland_gr5</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-tests">Integration tests</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#base-example">base example</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#groundwater-loss">groundwater loss</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#interception">interception</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#no-rconc-submodels">no rconc submodels</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.gland_gr5.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.gland_gr5.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.gland_gr5.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.gland_gr5.Model.petmodel"><code class="docutils literal notranslate"><span class="pre">Model.petmodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.gland_gr5.Model.rconcmodel"><code class="docutils literal notranslate"><span class="pre">Model.rconcmodel</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.gland_gr5.Model.check_waterbalance"><code class="docutils literal notranslate"><span class="pre">Model.check_waterbalance()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.gland_gr5.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.gland_gr5.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.gland_gr5.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.gland_gr5.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.gland_gr5.InputSequences"><code class="docutils literal notranslate"><span class="pre">InputSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.gland_gr5.OutletSequences"><code class="docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.gland_gr5.StateSequences"><code class="docutils literal notranslate"><span class="pre">StateSequences</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="gland_gr6.html">gland_gr6</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="gland_gr4.html"
+                          title="previous chapter">gland_gr4</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="gland_gr6.html"
+                          title="next chapter">gland_gr6</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/gland_gr5.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/gland_gr5.html">6</a></li>
+<li><a href="../master/gland_gr5.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="gland-gr5">
+<span id="id1"></span><h1>HydPy-G-GR5 (Génie Rural model with 5 parameters)<a class="headerlink" href="#gland-gr5" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.gland_gr5">The GR5 model (modèle du Génie Rural à 5 parametres Journalier) is a daily lumped
+five-parameter rainfall-runoff model and belongs to the family of soil moisture
+accounting models. It was initially published by <span id="id2"><a class="reference internal" href="zbibliography.html#id43" title="Nicolas Le Moine. Le bassin versant de surface vu par le souterrain: une voie d'amélioration des performances et du réalisme des modèles pluie-débit? PhD thesis, Doctorat Géosciences et Ressources Naturelles, Université Pierre et Marie …, 2008.">Le Moine (2008)</a></span> and is a
+modification of GR4J.  Our implementation, <a class="reference internal" href="#module-hydpy.models.gland_gr5" title="hydpy.models.gland_gr5"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gland_gr5</span></code></a>, follows the one of the R
+package airGR <span id="id3">(<a class="reference internal" href="zbibliography.html#id40" title="L. Coron, G. Thirel, O. Delaigue, C. Perrin, and V. Andréassian. The suite of lumped GR hydrological models in an R package. Environmental Modelling and Software, 94:166-171, 2017. doi:10.1016/j.envsoft.2017.05.002.">Coron <em>et al.</em>, 2017</a>)</span> but with a few extensions that we explain in the
+documentation of <a class="reference internal" href="gland_gr4.html#module-hydpy.models.gland_gr4" title="hydpy.models.gland_gr4"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gland_gr4</span></code></a>, which implements and extends GR4J.</p>
+<p>The main differences between GR5 and GR4 are that GR5 only applies a single Unit
+Hydrograph and uses a fifth parameter, <cite>X5</cite>, to allow for a more flexible configuration
+of the groundwater exchange term.  In <a class="reference internal" href="#module-hydpy.models.gland_gr5" title="hydpy.models.gland_gr5"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gland_gr5</span></code></a>, one can choose between different
+types of runoff concentration submodels, as explained for <a class="reference internal" href="gland_gr4.html#module-hydpy.models.gland_gr4" title="hydpy.models.gland_gr4"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gland_gr4</span></code></a>.</p>
+<p>The following figure <span id="id4">(<a class="reference internal" href="zbibliography.html#id41" title="L. Coron, O. Delaigue, G. Thirel, D. Dorchies, C. Perrin, and C. Michel. airGR: Suite of GR Hydrological Models for Precipitation-Runoff Modelling. 2023. R package version 1.7.4. URL: https://CRAN.R-project.org/package=airGR, doi:10.15454/EX11NA.">Coron <em>et al.</em>, 2023</a>)</span> shows the general structure of
+<a class="reference internal" href="#module-hydpy.models.gland_gr5" title="hydpy.models.gland_gr5"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gland_gr5</span></code></a>:</p>
+<img alt="_images/HydPy-G-GR5.png" src="_images/HydPy-G-GR5.png" />
+<section id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to_read_the_reference_manual.html#integration-tests"><span class="std std-ref">Integration Tests</span></a> first.</p>
+</div>
+<p>The settings of the following tests are similar to the ones of application model
+<a class="reference internal" href="gland_gr4.html#module-hydpy.models.gland_gr4" title="hydpy.models.gland_gr4"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gland_gr4</span></code></a>. Hence, comparing the test results gives a good impression of the
+functional differences between both models.</p>
+<p>The following settings are identical:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;1990-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1990-02-20&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.gland_gr5</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;land&quot;</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="s2">&quot;outlet&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">land</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">area</span><span class="p">(</span><span class="mf">360.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_petmodel_v1</span><span class="p">(</span><span class="s2">&quot;evap_ret_io&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">evapotranspirationfactor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span><span class="n">land</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">axis1</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">e</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">qh</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">.%m.&quot;</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">inputs</span><span class="o">.</span><span class="n">p</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">(</span>
+<span class="gp">... </span>    <span class="mf">0.0</span><span class="p">,</span> <span class="mf">9.3</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">7.3</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">2.9</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.3</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">4.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">,</span> <span class="mf">1.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">13.1</span><span class="p">,</span> <span class="mf">14.6</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">3.3</span><span class="p">,</span> <span class="mf">7.7</span><span class="p">,</span> <span class="mf">10.3</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">15.3</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">2.7</span><span class="p">,</span> <span class="mf">2.2</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">14.3</span><span class="p">,</span> <span class="mf">6.3</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">5.9</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">6.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.8</span><span class="p">,</span> <span class="mf">10.6</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">8.8</span><span class="p">,</span> <span class="mf">7.2</span><span class="p">,</span> <span class="mf">4.9</span><span class="p">,</span> <span class="mf">1.8</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">referenceevapotranspiration</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">(</span>
+<span class="gp">... </span>    <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.9</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="base-example">
+<span id="gland-gr5-base-example"></span><h3>base example<a class="headerlink" href="#base-example" title="Link to this heading">¶</a></h3>
+<p>The following parameter values do not agree with the ones of the
+<a class="reference internal" href="gland_gr4.html#gland-gr4-base-example"><span class="std std-ref">base example</span></a> on application model <a class="reference internal" href="gland_gr4.html#module-hydpy.models.gland_gr4" title="hydpy.models.gland_gr4"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gland_gr4</span></code></a> but with the ones of
+the example given by <span id="id5"><a class="reference internal" href="zbibliography.html#id41" title="L. Coron, O. Delaigue, G. Thirel, D. Dorchies, C. Perrin, and C. Michel. airGR: Suite of GR Hydrological Models for Precipitation-Runoff Modelling. 2023. R package version 1.7.4. URL: https://CRAN.R-project.org/package=airGR, doi:10.15454/EX11NA.">Coron <em>et al.</em> (2023)</a></span>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">imax</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x1</span><span class="p">(</span><span class="mf">245.918</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x2</span><span class="p">(</span><span class="mf">1.027</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x3</span><span class="p">(</span><span class="mf">90.017</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x5</span><span class="p">(</span><span class="mf">0.434</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_rconcmodel_v1</span><span class="p">(</span><span class="s2">&quot;rconc_uh&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">uh</span><span class="p">(</span><span class="s2">&quot;gr_uh2&quot;</span><span class="p">,</span> <span class="n">x4</span><span class="o">=</span><span class="mf">2.198</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span> <span class="o">=</span> <span class="p">(</span>
+<span class="gp">... </span>    <span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">i</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">x1</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="p">(</span><span class="n">states</span><span class="o">.</span><span class="n">r</span><span class="p">,</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">x3</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">rconcmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following simulation results agree with those of the GR5J airGR implementation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conditions</span> <span class="o">=</span> <span class="n">test</span><span class="p">(</span><span class="s2">&quot;gland_gr5_base_example&quot;</span><span class="p">,</span> <span class="n">get_conditions</span><span class="o">=</span><span class="s2">&quot;1990-01-01&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_157__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_157__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date |    p |   e |  en |   pn |        ps |  ei |       es |       ae |       pr |      q10 |     perc |       q9 |       q1 |        fd |        fr |       qr |       qd |       qh |        qv |   i |          s |         r |    outlet |</span>
+<span class="go">---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.0 | 0.152869 | 0.152869 | 0.005768 | 0.000403 | 0.005768 | 0.000362 |  0.00004 |  0.067782 |  0.067782 |    0.682 | 0.067822 | 0.749822 |  3.124258 | 0.0 |  73.616763 | 44.394645 |  3.124258 |</span>
+<span class="go">| 02.01. |  9.3 | 0.4 | 0.0 |  8.9 |   8.01214 | 0.4 |      0.0 |      0.4 | 0.897523 | 0.064529 | 0.009664 | 0.058076 | 0.006453 |  0.060779 |  0.060779 | 0.641622 | 0.067231 | 0.708854 |  2.953558 | 0.0 |  81.619239 | 43.871877 |  2.953558 |</span>
+<span class="go">| 03.01. |  3.2 | 0.4 | 0.0 |  2.8 |  2.482079 | 0.4 |      0.0 |      0.4 | 0.329139 | 0.317308 | 0.011218 | 0.285578 | 0.031731 |  0.054814 |  0.054814 | 0.620795 | 0.086545 | 0.707341 |  2.947252 | 0.0 |    84.0901 | 43.591473 |  2.947252 |</span>
+<span class="go">| 04.01. |  7.3 | 0.3 | 0.0 |  7.0 |  6.120298 | 0.3 |      0.0 |      0.3 | 0.895629 | 0.569242 | 0.015927 | 0.512318 | 0.056924 |  0.051615 |  0.051615 | 0.616923 | 0.108539 | 0.725463 |  3.022761 | 0.0 |  90.194471 | 43.538483 |  3.022761 |</span>
+<span class="go">| 05.01. |  0.0 | 0.1 | 0.1 |  0.0 |       0.0 | 0.0 | 0.059886 | 0.059886 |  0.01586 | 0.576643 |  0.01586 | 0.518979 | 0.057664 |  0.051011 |  0.051011 | 0.613741 | 0.108675 | 0.722416 |  3.010067 | 0.0 |  90.118724 | 43.494731 |  3.010067 |</span>
+<span class="go">| 06.01. |  0.0 | 0.1 | 0.1 |  0.0 |       0.0 | 0.0 | 0.059847 | 0.059847 | 0.015794 | 0.461073 | 0.015794 | 0.414966 | 0.046107 |  0.050511 |  0.050511 | 0.603772 | 0.096619 | 0.700391 |  2.918296 | 0.0 |  90.043083 | 43.356436 |  2.918296 |</span>
+<span class="go">| 07.01. |  0.0 | 0.1 | 0.1 |  0.0 |       0.0 | 0.0 | 0.059808 | 0.059808 | 0.015728 | 0.153338 | 0.015728 | 0.138004 | 0.015334 |  0.048934 |  0.048934 | 0.576415 | 0.064267 | 0.640683 |  2.669511 | 0.0 |  89.967547 | 42.966959 |  2.669511 |</span>
+<span class="go">| 08.01. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.119507 | 0.119507 |  0.01561 | 0.021831 |  0.01561 | 0.019648 | 0.002183 |   0.04449 |   0.04449 | 0.544119 | 0.046673 | 0.590792 |  2.461632 | 0.0 |   89.83243 | 42.486978 |  2.461632 |</span>
+<span class="go">| 09.01. |  0.1 | 0.2 | 0.1 |  0.0 |       0.0 | 0.1 | 0.059699 | 0.159699 | 0.015545 | 0.015688 | 0.015545 | 0.014119 | 0.001569 |  0.039014 |  0.039014 | 0.514498 | 0.040583 |  0.55508 |  2.312835 | 0.0 |  89.757186 | 42.025613 |  2.312835 |</span>
+<span class="go">| 10.01. |  0.2 | 0.3 | 0.1 |  0.0 |       0.0 | 0.2 | 0.059661 | 0.259661 |  0.01548 | 0.015599 |  0.01548 | 0.014039 |  0.00156 |   0.03375 |   0.03375 | 0.487516 |  0.03531 | 0.522826 |  2.178444 | 0.0 |  89.682045 | 41.585887 |  2.178444 |</span>
+<span class="go">| 11.01. |  2.9 | 0.3 | 0.0 |  2.6 |  2.245475 | 0.3 |      0.0 |      0.3 | 0.372026 |  0.04042 | 0.017501 | 0.036378 | 0.004042 |  0.028734 |  0.028734 | 0.464056 | 0.032776 | 0.496831 |  2.070131 | 0.0 |   91.91002 | 41.186942 |  2.070131 |</span>
+<span class="go">| 12.01. |  0.2 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.017485 | 0.131537 | 0.017485 | 0.118384 | 0.013154 |  0.024182 |  0.024182 | 0.446796 | 0.037336 | 0.484132 |  2.017217 | 0.0 |  91.892535 | 40.882712 |  2.017217 |</span>
+<span class="go">| 13.01. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.121481 | 0.121481 | 0.017353 | 0.174702 | 0.017353 | 0.157232 |  0.01747 |  0.020711 |  0.020711 |  0.43275 | 0.038181 | 0.470931 |  1.962214 | 0.0 |  91.753702 | 40.627905 |  1.962214 |</span>
+<span class="go">| 14.01. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.121339 | 0.121339 | 0.017222 | 0.071955 | 0.017222 |  0.06476 | 0.007196 |  0.017804 |  0.017804 | 0.414973 | 0.024999 | 0.439973 |  1.833219 | 0.0 |   91.61514 | 40.295495 |  1.833219 |</span>
+<span class="go">| 15.01. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.121198 | 0.121198 | 0.017093 | 0.019756 | 0.017093 |  0.01778 | 0.001976 |  0.014012 |  0.014012 | 0.396179 | 0.015987 | 0.412166 |  1.717358 | 0.0 |   91.47685 | 39.931108 |  1.717358 |</span>
+<span class="go">| 16.01. |  3.3 | 0.3 | 0.0 |  3.0 |  2.573086 | 0.3 |      0.0 |      0.3 |  0.44653 | 0.047171 | 0.019616 | 0.042454 | 0.004717 |  0.009854 |  0.009854 | 0.379885 | 0.014571 | 0.394456 |  1.643566 | 0.0 |   94.03032 | 39.603532 |  1.643566 |</span>
+<span class="go">| 17.01. |  4.6 | 0.3 | 0.0 |  4.3 |  3.646577 | 0.3 |      0.0 |      0.3 | 0.677123 | 0.202792 |   0.0237 | 0.182513 | 0.020279 |  0.006117 |  0.006117 | 0.371051 | 0.026396 | 0.397447 |  1.656031 | 0.0 |  97.653197 |  39.42111 |  1.656031 |</span>
+<span class="go">| 18.01. |  0.8 | 0.2 | 0.0 |  0.6 |  0.504898 | 0.2 |      0.0 |      0.2 | 0.119391 |  0.42963 | 0.024289 | 0.386667 | 0.042963 |  0.004036 |  0.004036 | 0.371951 | 0.046999 |  0.41895 |  1.745626 | 0.0 |  98.133806 | 39.439861 |  1.745626 |</span>
+<span class="go">| 19.01. |  1.8 | 0.2 | 0.0 |  1.6 |  1.341711 | 0.2 |      0.0 |      0.2 | 0.284252 | 0.428366 | 0.025962 | 0.385529 | 0.042837 |   0.00425 |   0.00425 |  0.37277 | 0.047086 | 0.419856 |  1.749399 | 0.0 |  99.449555 |  39.45687 |  1.749399 |</span>
+<span class="go">| 20.01. |  1.1 | 0.3 | 0.0 |  0.8 |  0.668286 | 0.3 |      0.0 |      0.3 | 0.158525 | 0.263775 | 0.026811 | 0.237398 | 0.026378 |  0.004444 |  0.004444 | 0.366794 | 0.030821 | 0.397615 |   1.65673 | 0.0 |  100.09103 | 39.331918 |   1.65673 |</span>
+<span class="go">| 21.01. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 |  0.12961 |  0.12961 | 0.026602 | 0.202737 | 0.026602 | 0.182463 | 0.020274 |  0.003018 |  0.003018 | 0.358643 | 0.023292 | 0.381935 |  1.591395 | 0.0 |  99.934817 | 39.158756 |  1.591395 |</span>
+<span class="go">| 22.01. |  5.0 | 0.2 | 0.0 |  4.8 |   3.97529 | 0.2 |      0.0 |      0.2 | 0.856995 | 0.183471 | 0.032285 | 0.165124 | 0.018347 |  0.001043 |  0.001043 | 0.350146 |  0.01939 | 0.369535 |  1.539731 | 0.0 | 103.877822 | 38.974777 |  1.539731 |</span>
+<span class="go">| 23.01. | 13.1 | 0.3 | 0.0 | 12.8 | 10.280792 | 0.3 |      0.0 |      0.3 | 2.570862 | 0.496227 | 0.051654 | 0.446604 | 0.049623 | -0.001056 | -0.001056 | 0.354338 | 0.048566 | 0.402904 |  1.678766 | 0.0 | 114.106961 | 39.065987 |  1.678766 |</span>
+<span class="go">| 24.01. | 14.6 | 0.6 | 0.0 | 14.0 | 10.691824 | 0.6 |      0.0 |      0.6 | 3.388788 | 1.458315 | 0.080612 | 1.312483 | 0.145831 | -0.000016 | -0.000016 | 0.398649 | 0.145816 | 0.544465 |  2.268604 | 0.0 | 124.718173 | 39.979805 |  2.268604 |</span>
+<span class="go">| 25.01. |  4.0 | 0.4 | 0.0 |  3.6 |  2.654168 | 0.4 |      0.0 |      0.4 | 1.035093 | 2.448346 | 0.089261 | 2.203511 | 0.244835 |   0.01041 |   0.01041 | 0.494365 | 0.255244 | 0.749609 |  3.123371 | 0.0 |  127.28308 | 41.699362 |  3.123371 |</span>
+<span class="go">| 26.01. |  0.8 | 0.4 | 0.0 |  0.4 |  0.292596 | 0.4 |      0.0 |      0.4 | 0.197379 | 2.257582 | 0.089975 | 2.031824 | 0.225758 |  0.030028 |  0.030028 |  0.59059 | 0.255786 | 0.846376 |  3.526568 | 0.0 | 127.485702 | 43.170624 |  3.526568 |</span>
+<span class="go">| 27.01. |  0.1 | 0.4 | 0.3 |  0.0 |       0.0 | 0.1 | 0.230285 | 0.330285 | 0.088853 | 1.069402 | 0.088853 | 0.962462 |  0.10694 |  0.046814 |  0.046814 | 0.618589 | 0.153754 | 0.772343 |  3.218095 | 0.0 | 127.166563 | 43.561311 |  3.218095 |</span>
+<span class="go">| 28.01. |  3.3 | 0.5 | 0.0 |  2.8 |  2.039179 | 0.5 |      0.0 |      0.5 | 0.856684 | 0.358988 | 0.095863 | 0.323089 | 0.035899 |  0.051271 |  0.051271 | 0.602135 |  0.08717 | 0.689305 |  2.872103 | 0.0 | 129.109879 | 43.333537 |  2.872103 |</span>
+<span class="go">| 29.01. |  7.7 | 0.4 | 0.0 |  7.3 |  5.205195 | 0.4 |      0.0 |      0.4 | 2.211145 | 0.509828 | 0.116341 | 0.458845 | 0.050983 |  0.048672 |  0.048672 | 0.595852 | 0.099655 | 0.695507 |  2.897946 | 0.0 | 134.198734 | 43.245202 |  2.897946 |</span>
+<span class="go">| 30.01. | 10.3 | 0.3 | 0.0 | 10.0 |  6.865916 | 0.3 |      0.0 |      0.3 | 3.282676 | 1.343677 | 0.148592 | 1.209309 | 0.134368 |  0.047665 |  0.047665 |  0.64083 | 0.182032 | 0.822862 |  3.428592 | 0.0 | 140.916058 | 43.861346 |  3.428592 |</span>
+<span class="go">| 31.01. |  3.7 | 0.3 | 0.0 |  3.4 |  2.265509 | 0.3 |      0.0 |      0.3 | 1.294546 | 2.272495 | 0.160055 | 2.045246 |  0.22725 |  0.054694 |  0.054694 | 0.749345 | 0.281944 | 1.031289 |  4.297036 | 0.0 | 143.021512 | 45.211941 |  4.297036 |</span>
+<span class="go">| 01.02. | 15.3 | 0.5 | 0.0 | 14.8 |  9.451847 | 0.5 |      0.0 |      0.5 |  5.56716 | 2.614279 | 0.219007 | 2.352851 | 0.261428 |  0.070103 |  0.070103 | 0.890594 | 0.331531 | 1.222125 |  5.092188 | 0.0 | 152.254352 | 46.744301 |  5.092188 |</span>
+<span class="go">| 02.02. |  3.2 | 0.5 | 0.0 |  2.7 |  1.653735 | 0.5 |      0.0 |      0.5 |  1.27574 | 2.994368 | 0.229475 | 2.694931 | 0.299437 |  0.087586 |  0.087586 | 1.073779 | 0.387023 | 1.460802 |  6.086675 | 0.0 | 153.678612 | 48.453038 |  6.086675 |</span>
+<span class="go">| 03.02. |  2.7 | 0.3 | 0.0 |  2.4 |  1.453833 | 0.3 |      0.0 |      0.3 | 1.184887 | 3.193111 |  0.23872 |   2.8738 | 0.319311 |  0.107081 |  0.107081 | 1.285953 | 0.426392 | 1.712345 |  7.134771 | 0.0 | 154.893724 | 50.147966 |  7.134771 |</span>
+<span class="go">| 04.02. |  2.2 | 0.3 | 0.0 |  1.9 |  1.140653 | 0.3 |      0.0 |      0.3 | 1.005065 | 1.887665 | 0.245719 | 1.698899 | 0.188767 |  0.126418 |  0.126418 |   1.3513 | 0.315184 | 1.666484 |  6.943685 | 0.0 | 155.788659 | 50.621983 |  6.943685 |</span>
+<span class="go">| 05.02. |  8.0 | 0.4 | 0.0 |  7.6 |  4.461205 | 0.4 |      0.0 |      0.4 | 3.419425 | 1.326583 | 0.280629 | 1.193925 | 0.132658 |  0.131826 |  0.131826 |  1.34815 | 0.264484 | 1.612634 |  6.719308 | 0.0 | 159.969234 | 50.599584 |  6.719308 |</span>
+<span class="go">| 06.02. | 14.3 | 0.4 | 0.0 | 13.9 |  7.725949 | 0.4 |      0.0 |      0.4 | 6.525911 | 2.204856 |  0.35186 | 1.984371 | 0.220486 |   0.13157 |   0.13157 | 1.445249 | 0.352056 | 1.797305 |   7.48877 | 0.0 | 167.343323 | 51.270276 |   7.48877 |</span>
+<span class="go">| 07.02. |  6.3 | 0.3 | 0.0 |  6.0 |  3.168414 | 0.3 |      0.0 |      0.3 | 3.213866 | 4.028103 |  0.38228 | 3.625292 |  0.40281 |  0.139222 |  0.139222 | 1.770272 | 0.542033 | 2.312305 |  9.634604 | 0.0 | 170.129457 | 53.264518 |  9.634604 |</span>
+<span class="go">| 08.02. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.180959 | 0.180959 | 0.376036 |  4.50396 | 0.376036 | 4.053564 | 0.450396 |  0.161975 |  0.161975 | 2.168109 | 0.612371 | 2.780479 |  11.58533 | 0.0 | 169.572463 | 55.311948 |  11.58533 |</span>
+<span class="go">| 09.02. |  5.9 | 0.1 | 0.0 |  5.8 |     2.993 | 0.1 |      0.0 |      0.1 | 3.212752 | 2.802226 | 0.405752 | 2.522004 | 0.280223 |  0.185334 |  0.185334 | 2.263913 | 0.465556 | 2.729469 | 11.372788 | 0.0 |  172.15971 | 55.755373 | 11.372788 |</span>
+<span class="go">| 10.02. |  9.2 | 0.1 | 0.0 |  9.1 |  4.520933 | 0.1 |      0.0 |      0.1 | 5.035298 | 2.102411 | 0.456231 |  1.89217 | 0.210241 |  0.190393 |  0.190393 | 2.231358 | 0.400634 | 2.631991 |  10.96663 | 0.0 | 176.224413 | 55.606578 |  10.96663 |</span>
+<span class="go">| 11.02. |  6.1 | 0.0 | 0.0 |  6.1 |  2.915155 | 0.0 |      0.0 |      0.0 | 3.673541 | 3.400981 | 0.488695 | 3.060883 | 0.340098 |  0.188695 |  0.188695 | 2.418601 | 0.528793 | 2.947394 | 12.280809 | 0.0 | 178.650872 | 56.437555 | 12.280809 |</span>
+<span class="go">| 12.02. |  0.1 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.482102 | 3.962277 | 0.482102 |  3.56605 | 0.396228 |  0.198176 |  0.198176 | 2.683026 | 0.594403 | 3.277429 | 13.655955 | 0.0 | 178.168771 | 57.518754 | 13.655955 |</span>
+<span class="go">| 13.02. |  0.0 | 0.1 | 0.1 |  0.0 |       0.0 | 0.0 |   0.0924 |   0.0924 |  0.47444 | 2.619068 |  0.47444 | 2.357162 | 0.261907 |  0.210511 |  0.210511 | 2.659586 | 0.472418 | 3.132003 | 13.050014 | 0.0 |  177.60193 | 57.426841 | 13.050014 |</span>
+<span class="go">| 14.02. |  2.8 | 0.0 | 0.0 |  2.8 |  1.328614 | 0.0 |      0.0 |      0.0 | 1.957252 | 1.104949 | 0.485866 | 0.994454 | 0.110495 |  0.209462 |  0.209462 | 2.376212 | 0.319957 | 2.696169 | 11.234038 | 0.0 | 178.444678 | 56.254545 | 11.234038 |</span>
+<span class="go">| 15.02. | 10.6 | 0.2 | 0.0 | 10.4 |  4.774677 | 0.2 |      0.0 |      0.2 |  6.17191 | 1.377418 | 0.546587 | 1.239676 | 0.137742 |  0.196088 |  0.196088 | 2.205107 | 0.333829 | 2.538937 | 10.578903 | 0.0 | 182.672769 | 55.485201 | 10.578903 |</span>
+<span class="go">| 16.02. |  8.8 | 0.9 | 0.0 |  7.9 |  3.457239 | 0.9 |      0.0 |      0.9 | 5.033879 | 3.303845 | 0.591118 |  2.97346 | 0.330384 |   0.18731 |   0.18731 | 2.379056 | 0.517695 | 2.896751 | 12.069796 | 0.0 |  185.53889 | 56.266915 | 12.069796 |</span>
+<span class="go">| 17.02. |  7.2 | 0.9 | 0.0 |  6.3 |  2.661808 | 0.9 |      0.0 |      0.9 | 4.262707 | 4.981016 | 0.624515 | 4.482914 | 0.498102 |  0.196229 |  0.196229 | 2.837811 |  0.69433 | 3.532141 | 14.717255 | 0.0 | 187.576183 | 58.108248 | 14.717255 |</span>
+<span class="go">| 18.02. |  4.9 | 0.5 | 0.0 |  4.4 |  1.815109 | 0.5 |      0.0 |      0.5 | 3.229276 | 4.811099 | 0.644385 |  4.32999 |  0.48111 |  0.217236 |  0.217236 | 3.217024 | 0.698346 |  3.91537 | 16.314042 | 0.0 | 188.746907 |  59.43845 | 16.314042 |</span>
+<span class="go">| 19.02. |  1.8 | 0.9 | 0.0 |  0.9 |  0.368785 | 0.9 |      0.0 |      0.9 | 1.170957 | 3.842725 | 0.639741 | 3.458453 | 0.384273 |  0.232413 |  0.232413 | 3.328116 | 0.616685 | 3.944801 | 16.436671 | 0.0 |  188.47595 | 59.801199 | 16.436671 |</span>
+</pre></div></div></div><a href="gland_gr5_base_example.html" target="_blank" >Click to see the graph</a></pre></div></div><p>There is no indication of an error in the water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">round_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">check_waterbalance</span><span class="p">(</span><span class="n">conditions</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+<section id="groundwater-loss">
+<span id="gland-gr5-groundwater-loss"></span><h3>groundwater loss<a class="headerlink" href="#groundwater-loss" title="Link to this heading">¶</a></h3>
+<p>This integration test corresponds to the <a class="reference internal" href="gland_gr4.html#gland-gr4-groundwater-loss"><span class="std std-ref">groundwater loss</span></a> example on
+<a class="reference internal" href="gland_gr4.html#module-hydpy.models.gland_gr4" title="hydpy.models.gland_gr4"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gland_gr4</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x2</span><span class="p">(</span><span class="o">-</span><span class="mf">1.027</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conditions</span> <span class="o">=</span> <span class="n">test</span><span class="p">(</span><span class="s2">&quot;gland_gr5_groundwater_loss&quot;</span><span class="p">,</span> <span class="n">get_conditions</span><span class="o">=</span><span class="s2">&quot;1990-01-01&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_158__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_158__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date |    p |   e |  en |   pn |        ps |  ei |       es |       ae |       pr |      q10 |     perc |       q9 |       q1 |        fd |        fr |       qr |       qd |       qh |       qv |   i |          s |         r |   outlet |</span>
+<span class="go">-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |  0.445718 |  0.445718 |      0.0 | 0.445718 | 0.445718 | 1.857158 | 0.0 |        0.0 |  0.445718 | 1.857158 |</span>
+<span class="go">| 02.01. |  9.3 | 0.4 | 0.0 |  8.9 |  8.896116 | 0.4 |      0.0 |      0.4 | 0.003884 | 0.000271 |      0.0 | 0.000244 | 0.000027 |  0.440633 |  0.440633 |      0.0 |  0.44066 |  0.44066 | 1.836083 | 0.0 |   8.896116 |  0.886595 | 1.836083 |</span>
+<span class="go">| 03.01. |  3.2 | 0.4 | 0.0 |  2.8 |  2.795064 | 0.4 |      0.0 |      0.4 | 0.004937 | 0.001607 | 0.000001 | 0.001446 | 0.000161 |  0.435603 |  0.435603 |      0.0 | 0.435764 | 0.435764 | 1.815682 | 0.0 |  11.691179 |  1.323644 | 1.815682 |</span>
+<span class="go">| 04.01. |  7.3 | 0.3 | 0.0 |  7.0 |   6.97286 | 0.3 |      0.0 |      0.3 | 0.027146 | 0.005226 | 0.000006 | 0.004703 | 0.000523 |  0.430617 |  0.430617 |      0.0 | 0.431139 | 0.431139 | 1.796413 | 0.0 |  18.664033 |  1.758964 | 1.796413 |</span>
+<span class="go">| 05.01. |  0.0 | 0.1 | 0.1 |  0.0 |       0.0 | 0.0 | 0.014598 | 0.014598 | 0.000006 | 0.011616 | 0.000006 | 0.010455 | 0.001162 |   0.42565 |   0.42565 |      0.0 | 0.426812 | 0.426812 | 1.778383 | 0.0 |   18.64943 |  2.195069 | 1.778383 |</span>
+<span class="go">| 06.01. |  0.0 | 0.1 | 0.1 |  0.0 |       0.0 | 0.0 | 0.014587 | 0.014587 | 0.000006 | 0.012852 | 0.000006 | 0.011567 | 0.001285 |  0.420675 |  0.420675 |      0.0 |  0.42196 |  0.42196 | 1.758168 | 0.0 |  18.634837 |  2.627309 | 1.758168 |</span>
+<span class="go">| 07.01. |  0.0 | 0.1 | 0.1 |  0.0 |       0.0 | 0.0 | 0.014576 | 0.014576 | 0.000006 | 0.004215 | 0.000006 | 0.003794 | 0.000422 |  0.415743 |  0.415743 | 0.000001 | 0.416165 | 0.416166 | 1.734024 | 0.0 |  18.620255 |  3.046845 | 1.734024 |</span>
+<span class="go">| 08.01. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.029118 | 0.029118 | 0.000006 | 0.000193 | 0.000006 | 0.000174 | 0.000019 |  0.410957 |  0.410957 | 0.000002 | 0.410976 | 0.410978 | 1.712408 | 0.0 |  18.591131 |  3.457974 | 1.712408 |</span>
+<span class="go">| 09.01. |  0.1 | 0.2 | 0.1 |  0.0 |       0.0 | 0.1 | 0.014543 | 0.114543 | 0.000006 | 0.000006 | 0.000006 | 0.000005 | 0.000001 |  0.406266 |  0.406266 | 0.000003 | 0.406267 |  0.40627 | 1.692792 | 0.0 |  18.576582 |  3.864242 | 1.692792 |</span>
+<span class="go">| 10.01. |  0.2 | 0.3 | 0.1 |  0.0 |       0.0 | 0.2 | 0.014532 | 0.214532 | 0.000006 | 0.000006 | 0.000006 | 0.000005 | 0.000001 |  0.401631 |  0.401631 | 0.000005 | 0.401632 | 0.401637 | 1.673488 | 0.0 |  18.562045 |  4.265873 | 1.673488 |</span>
+<span class="go">| 11.01. |  2.9 | 0.3 | 0.0 |  2.6 |  2.583029 | 0.3 |      0.0 |      0.3 | 0.016982 | 0.001191 | 0.000011 | 0.001072 | 0.000119 |  0.397049 |  0.397049 | 0.000008 | 0.397168 | 0.397176 | 1.654901 | 0.0 |  21.145063 |  4.663985 | 1.654901 |</span>
+<span class="go">| 12.01. |  0.2 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.000011 | 0.005525 | 0.000011 | 0.004972 | 0.000552 |  0.392507 |  0.392507 | 0.000013 | 0.393059 | 0.393072 |   1.6378 | 0.0 |  21.145052 |  5.061452 |   1.6378 |</span>
+<span class="go">| 13.01. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.032891 | 0.032891 | 0.000011 | 0.007552 | 0.000011 | 0.006797 | 0.000755 |  0.387972 |  0.387972 | 0.000018 | 0.388727 | 0.388746 | 1.619774 | 0.0 |   21.11215 |  5.456202 | 1.619774 |</span>
+<span class="go">| 14.01. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.032842 | 0.032842 | 0.000011 | 0.002622 | 0.000011 |  0.00236 | 0.000262 |  0.383468 |  0.383468 | 0.000026 | 0.383731 | 0.383757 | 1.598986 | 0.0 |  21.079297 |  5.842004 | 1.598986 |</span>
+<span class="go">| 15.01. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.032793 | 0.032793 | 0.000011 | 0.000128 | 0.000011 | 0.000115 | 0.000013 |  0.379067 |  0.379067 | 0.000035 |  0.37908 | 0.379115 | 1.579646 | 0.0 |  21.046493 |  6.221151 | 1.579646 |</span>
+<span class="go">| 16.01. |  3.3 | 0.3 | 0.0 |  3.0 |  2.974773 | 0.3 |      0.0 |      0.3 | 0.025248 | 0.001773 | 0.000021 | 0.001596 | 0.000177 |  0.374741 |  0.374741 | 0.000048 | 0.374918 | 0.374966 | 1.562358 | 0.0 |  24.021245 |   6.59744 | 1.562358 |</span>
+<span class="go">| 17.01. |  4.6 | 0.3 | 0.0 |  4.3 |  4.251278 | 0.3 |      0.0 |      0.3 |  0.04877 | 0.011619 | 0.000048 | 0.010457 | 0.001162 |  0.370448 |  0.370448 | 0.000063 |  0.37161 | 0.371673 | 1.548638 | 0.0 |  28.272474 |  6.978282 | 1.548638 |</span>
+<span class="go">| 18.01. |  0.8 | 0.2 | 0.0 |  0.6 |  0.591902 | 0.2 |      0.0 |      0.2 | 0.008151 | 0.027645 | 0.000053 |  0.02488 | 0.002764 |  0.366103 |  0.366103 | 0.000083 | 0.368868 |  0.36895 | 1.537293 | 0.0 |  28.864323 |  7.369183 | 1.537293 |</span>
+<span class="go">| 19.01. |  1.8 | 0.2 | 0.0 |  1.6 |  1.576731 | 0.2 |      0.0 |      0.2 | 0.023339 | 0.029836 |  0.00007 | 0.026852 | 0.002984 |  0.361643 |  0.361643 | 0.000107 | 0.364627 | 0.364734 | 1.519724 | 0.0 |  30.440985 |  7.757571 | 1.519724 |</span>
+<span class="go">| 20.01. |  1.1 | 0.3 | 0.0 |  0.8 |  0.787422 | 0.3 |      0.0 |      0.3 | 0.012657 |  0.01977 | 0.000079 | 0.017793 | 0.001977 |  0.357212 |  0.357212 | 0.000135 | 0.359189 | 0.359325 | 1.497186 | 0.0 |  31.228327 |  8.132441 | 1.497186 |</span>
+<span class="go">| 21.01. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.047536 | 0.047536 | 0.000079 | 0.016081 | 0.000079 | 0.014473 | 0.001608 |  0.352935 |  0.352935 | 0.000169 | 0.354543 | 0.354712 | 1.477968 | 0.0 |  31.180713 |   8.49968 | 1.477968 |</span>
+<span class="go">| 22.01. |  5.0 | 0.2 | 0.0 |  4.8 |  4.710577 | 0.2 |      0.0 |      0.2 | 0.089582 |  0.01555 | 0.000159 | 0.013995 | 0.001555 |  0.348746 |  0.348746 | 0.000208 | 0.350301 | 0.350509 | 1.460453 | 0.0 |  35.891131 |  8.862213 | 1.460453 |</span>
+<span class="go">| 23.01. | 13.1 | 0.3 | 0.0 | 12.8 | 12.421773 | 0.3 |      0.0 |      0.3 | 0.378929 | 0.057717 | 0.000702 | 0.051945 | 0.005772 |  0.344609 |  0.344609 | 0.000259 | 0.350381 |  0.35064 |    1.461 | 0.0 |  48.312202 |  9.258508 |    1.461 |</span>
+<span class="go">| 24.01. | 14.6 | 0.6 | 0.0 | 14.0 | 13.296594 | 0.6 |      0.0 |      0.6 | 0.705773 | 0.212359 | 0.002367 | 0.191123 | 0.021236 |  0.340088 |  0.340088 | 0.000342 | 0.361324 | 0.361666 | 1.506943 | 0.0 |  61.606429 |  9.789377 | 1.506943 |</span>
+<span class="go">| 25.01. |  4.0 | 0.4 | 0.0 |  3.6 |  3.361502 | 0.4 |      0.0 |      0.4 | 0.241585 | 0.428467 | 0.003087 | 0.385621 | 0.042847 |  0.334031 |  0.334031 | 0.000488 | 0.376878 | 0.377366 | 1.572359 | 0.0 |  64.964845 | 10.508541 | 1.572359 |</span>
+<span class="go">| 26.01. |  0.8 | 0.4 | 0.0 |  0.4 |  0.371925 | 0.4 |      0.0 |      0.4 |  0.03125 | 0.453258 | 0.003175 | 0.407932 | 0.045326 |  0.325827 |  0.325827 | 0.000684 | 0.371152 | 0.371836 | 1.549317 | 0.0 |  65.333594 | 11.241616 | 1.549317 |</span>
+<span class="go">| 27.01. |  0.1 | 0.4 | 0.3 |  0.0 |       0.0 | 0.1 | 0.138105 | 0.238105 | 0.003141 | 0.228924 | 0.003141 | 0.206032 | 0.022892 |  0.317463 |  0.317463 | 0.000858 | 0.340355 | 0.341213 | 1.421722 | 0.0 |  65.192348 | 11.764252 | 1.421722 |</span>
+<span class="go">| 28.01. |  3.3 | 0.5 | 0.0 |  2.8 |  2.595279 | 0.5 |      0.0 |      0.5 | 0.208538 | 0.071495 | 0.003817 | 0.064345 | 0.007149 |    0.3115 |    0.3115 | 0.001004 |  0.31865 | 0.319653 | 1.331889 | 0.0 |   67.78381 | 12.139093 | 1.331889 |</span>
+<span class="go">| 29.01. |  7.7 | 0.4 | 0.0 |  7.3 |  6.688689 | 0.4 |      0.0 |      0.4 | 0.617419 |  0.11876 | 0.006109 | 0.106884 | 0.011876 |  0.307224 |  0.307224 | 0.001187 |   0.3191 | 0.320286 | 1.334526 | 0.0 |  74.466391 | 12.552015 | 1.334526 |</span>
+<span class="go">| 30.01. | 10.3 | 0.3 | 0.0 | 10.0 |  8.967696 | 0.3 |      0.0 |      0.3 | 1.043084 | 0.366894 |  0.01078 | 0.330205 | 0.036689 |  0.302513 |  0.302513 | 0.001517 | 0.339202 | 0.340719 | 1.419661 | 0.0 |  83.423307 | 13.183216 | 1.419661 |</span>
+<span class="go">| 31.01. |  3.7 | 0.3 | 0.0 |  3.4 |  2.994498 | 0.3 |      0.0 |      0.3 | 0.418352 | 0.674762 |  0.01285 | 0.607286 | 0.067476 |  0.295311 |  0.295311 | 0.002111 | 0.362787 | 0.364898 | 1.520408 | 0.0 |  86.404955 | 14.083702 | 1.520408 |</span>
+<span class="go">| 01.02. | 15.3 | 0.5 | 0.0 | 14.8 | 12.689278 | 0.5 |      0.0 |      0.5 | 2.136191 | 0.845065 | 0.025469 | 0.760558 | 0.084506 |  0.285038 |  0.285038 | 0.003017 | 0.369544 | 0.372561 | 1.552337 | 0.0 |  99.068764 | 15.126282 | 1.552337 |</span>
+<span class="go">| 02.02. |  3.2 | 0.5 | 0.0 |  2.7 |  2.251766 | 0.5 |      0.0 |      0.5 | 0.476694 | 1.078349 |  0.02846 | 0.970514 | 0.107835 |  0.273143 |  0.273143 | 0.004473 | 0.380978 | 0.385451 | 1.606044 | 0.0 |  101.29207 | 16.365466 | 1.606044 |</span>
+<span class="go">| 03.02. |  2.7 | 0.3 | 0.0 |  2.4 |  1.984783 | 0.3 |      0.0 |      0.3 | 0.446531 | 1.206951 | 0.031314 | 1.086256 | 0.120695 |  0.259005 |  0.259005 | 0.006629 |   0.3797 | 0.386329 | 1.609703 | 0.0 | 103.245539 | 17.704099 | 1.609703 |</span>
+<span class="go">| 04.02. |  2.2 | 0.3 | 0.0 |  1.9 |  1.560008 | 0.3 |      0.0 |      0.3 | 0.373691 | 0.714606 | 0.033699 | 0.643145 | 0.071461 |  0.243733 |  0.243733 | 0.008446 | 0.315193 | 0.323639 | 1.348498 | 0.0 | 104.771848 | 18.582531 | 1.348498 |</span>
+<span class="go">| 05.02. |  8.0 | 0.4 | 0.0 |  7.6 |  6.137731 | 0.4 |      0.0 |      0.4 | 1.506984 | 0.513159 | 0.044715 | 0.461843 | 0.051316 |  0.233711 |  0.233711 | 0.010125 | 0.285027 | 0.295152 | 1.229798 | 0.0 | 110.864864 |  19.26796 | 1.229798 |</span>
+<span class="go">| 06.02. | 14.3 | 0.4 | 0.0 | 13.9 | 10.788579 | 0.4 |      0.0 |      0.4 | 3.182385 | 0.950088 | 0.070964 | 0.855079 | 0.095009 |  0.225891 |  0.225891 | 0.013263 | 0.320899 | 0.334162 | 1.392344 | 0.0 | 121.582479 | 20.335666 | 1.392344 |</span>
+<span class="go">| 07.02. |  6.3 | 0.3 | 0.0 |  6.0 |  4.478486 | 0.3 |      0.0 |      0.3 |  1.60628 | 1.876899 | 0.084766 | 1.689209 |  0.18769 |  0.213709 |  0.213709 | 0.020662 | 0.401399 | 0.422061 | 1.758588 | 0.0 | 125.976199 | 22.217923 | 1.758588 |</span>
+<span class="go">| 08.02. |  0.0 | 0.2 | 0.2 |  0.0 |       0.0 | 0.0 | 0.152363 | 0.152363 | 0.083973 | 2.176624 | 0.083973 | 1.958962 | 0.217662 |  0.192235 |  0.192235 | 0.032613 | 0.409897 |  0.44251 | 1.843791 | 0.0 | 125.739863 | 24.336507 | 1.843791 |</span>
+<span class="go">| 09.02. |  5.9 | 0.1 | 0.0 |  5.8 |  4.231854 | 0.1 |      0.0 |      0.1 |  1.66688 | 1.357431 | 0.098734 | 1.221688 | 0.135743 |  0.168064 |  0.168064 | 0.042729 | 0.303807 | 0.346536 | 1.443899 | 0.0 | 129.872983 |  25.68353 | 1.443899 |</span>
+<span class="go">| 10.02. |  9.2 | 0.1 | 0.0 |  9.1 |  6.433302 | 0.1 |      0.0 |      0.1 | 2.791906 | 1.043129 | 0.125207 | 0.938816 | 0.104313 |  0.152696 |  0.152696 | 0.052141 | 0.257009 | 0.309149 | 1.288122 | 0.0 | 136.181077 | 26.722902 | 1.288122 |</span>
+<span class="go">| 11.02. |  6.1 | 0.0 | 0.0 |  6.1 |   4.17124 | 0.0 |      0.0 |      0.0 | 2.073646 | 1.817057 | 0.144885 | 1.635352 | 0.181706 |  0.140838 |  0.140838 | 0.071135 | 0.322543 | 0.393678 | 1.640325 | 0.0 | 140.207431 | 28.427956 | 1.640325 |</span>
+<span class="go">| 12.02. |  0.1 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.144141 | 2.181842 | 0.144141 | 1.963658 | 0.218184 |  0.121385 |  0.121385 | 0.099886 | 0.339569 | 0.439455 | 1.831061 | 0.0 |  140.06329 | 30.413113 | 1.831061 |</span>
+<span class="go">| 13.02. |  0.0 | 0.1 | 0.1 |  0.0 |       0.0 | 0.0 | 0.081457 | 0.081457 | 0.142987 | 1.419324 | 0.142987 | 1.277392 | 0.141932 |  0.098736 |  0.098736 | 0.122419 | 0.240669 | 0.363088 | 1.512865 | 0.0 | 139.838846 | 31.666822 | 1.512865 |</span>
+<span class="go">| 14.02. |  2.8 | 0.0 | 0.0 |  2.8 |  1.882347 | 0.0 |      0.0 |      0.0 | 1.069728 | 0.523468 | 0.152075 | 0.471121 | 0.052347 |  0.084433 |  0.084433 |  0.13092 | 0.136779 | 0.267699 | 1.115413 | 0.0 | 141.569118 | 32.091456 | 1.115413 |</span>
+<span class="go">| 15.02. | 10.6 | 0.2 | 0.0 | 10.4 |  6.784199 | 0.2 |      0.0 |      0.2 | 3.806846 | 0.713495 | 0.191045 | 0.642146 |  0.07135 |  0.079588 |  0.079588 | 0.143261 | 0.150938 | 0.294199 | 1.225828 | 0.0 | 148.162273 | 32.669929 | 1.225828 |</span>
+<span class="go">| 16.02. |  8.8 | 0.9 | 0.0 |  7.9 |  4.935164 | 0.9 |      0.0 |      0.9 | 3.188349 | 1.958459 | 0.223512 | 1.762613 | 0.195846 |  0.072988 |  0.072988 | 0.183772 | 0.268834 | 0.452606 | 1.885859 | 0.0 | 152.873924 | 34.321758 | 1.885859 |</span>
+<span class="go">| 17.02. |  7.2 | 0.9 | 0.0 |  6.3 |  3.803992 | 0.9 |      0.0 |      0.9 | 2.746819 | 3.085447 | 0.250812 | 2.776902 | 0.308545 |  0.054143 |  0.054143 | 0.264741 | 0.362687 | 0.627428 | 2.614285 | 0.0 | 156.427105 | 36.888061 | 2.614285 |</span>
+<span class="go">| 18.02. |  4.9 | 0.5 | 0.0 |  4.4 |  2.589936 | 0.5 |      0.0 |      0.5 |   2.0801 | 3.048011 | 0.270036 |  2.74321 | 0.304801 |  0.024864 |  0.024864 | 0.364867 | 0.329665 | 0.694532 | 2.893883 | 0.0 | 158.747005 | 39.291268 | 2.893883 |</span>
+<span class="go">| 19.02. |  1.8 | 0.9 | 0.0 |  0.9 |  0.523724 | 0.9 |      0.0 |      0.9 | 0.648465 | 2.458831 | 0.272189 | 2.212948 | 0.245883 | -0.002554 | -0.002554 | 0.455975 | 0.243329 | 0.699304 | 2.913766 | 0.0 |  158.99854 | 41.045686 | 2.913766 |</span>
+</pre></div></div></div><a href="gland_gr5_groundwater_loss.html" target="_blank" >Click to see the graph</a></pre></div></div><p>There is no indication of an error in the water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">check_waterbalance</span><span class="p">(</span><span class="n">conditions</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+<section id="interception">
+<span id="gland-gr5-interception"></span><h3>interception<a class="headerlink" href="#interception" title="Link to this heading">¶</a></h3>
+<p>This integration test corresponds to the <a class="reference internal" href="gland_gr4.html#gland-gr4-interception"><span class="std std-ref">interception</span></a> example on
+<a class="reference internal" href="gland_gr4.html#module-hydpy.models.gland_gr4" title="hydpy.models.gland_gr4"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gland_gr4</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">imax</span><span class="p">(</span><span class="mf">10.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x2</span><span class="p">(</span><span class="mf">1.027</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">x1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">x3</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conditions</span> <span class="o">=</span> <span class="n">test</span><span class="p">(</span><span class="s2">&quot;gland_gr5_interception&quot;</span><span class="p">,</span> <span class="n">get_conditions</span><span class="o">=</span><span class="s2">&quot;1990-01-01&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_159__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_159__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date |    p |   e |  en |   pn |        ps |  ei |       es |       ae |       pr |      q10 |     perc |       q9 |       q1 |        fd |        fr |       qr |       qd |       qh |        qv |    i |          s |         r |    outlet |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.0 | 0.152869 | 0.152869 | 0.005768 | 0.000403 | 0.005768 | 0.000362 |  0.00004 |  0.067782 |  0.067782 |    0.682 | 0.067822 | 0.749822 |  3.124258 |  0.0 |  73.616763 | 44.394645 |  3.124258 |</span>
+<span class="go">| 02.01. |  9.3 | 0.4 | 0.0 |  0.0 |       0.0 | 0.4 |      0.0 |      0.4 | 0.005766 | 0.002278 | 0.005766 |  0.00205 | 0.000228 |  0.060779 |  0.060779 | 0.637709 | 0.061006 | 0.698715 |  2.911312 |  8.9 |  73.610997 | 43.819764 |  2.911312 |</span>
+<span class="go">| 03.01. |  3.2 | 0.4 | 0.0 |  1.7 |  1.544461 | 0.4 |      0.0 |      0.4 | 0.161933 | 0.015742 | 0.006394 | 0.014167 | 0.001574 |   0.05422 |   0.05422 | 0.598973 | 0.055794 | 0.654767 |  2.728195 | 10.0 |  75.149064 | 43.289179 |  2.728195 |</span>
+<span class="go">| 04.01. |  7.3 | 0.3 | 0.0 |  7.0 |   6.28991 | 0.3 |      0.0 |      0.3 | 0.719642 | 0.106327 | 0.009552 | 0.095695 | 0.010633 |  0.048166 |  0.048166 | 0.569337 | 0.058799 | 0.628136 |  2.617233 | 10.0 |  81.429422 | 42.863703 |  2.617233 |</span>
+<span class="go">| 05.01. |  0.0 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.009546 | 0.307495 | 0.009546 | 0.276745 | 0.030749 |  0.043312 |  0.043312 | 0.553593 | 0.074062 | 0.627654 |  2.615227 |  9.9 |  81.419876 | 42.630167 |  2.615227 |</span>
+<span class="go">| 06.01. |  0.0 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.009541 | 0.348512 | 0.009541 | 0.313661 | 0.034851 |  0.040648 |  0.040648 | 0.541251 | 0.075499 | 0.616749 |  2.569789 |  9.8 |  81.410335 | 42.443225 |  2.569789 |</span>
+<span class="go">| 07.01. |  0.0 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.009535 |  0.11984 | 0.009535 | 0.107856 | 0.011984 |  0.038515 |  0.038515 | 0.517425 | 0.050499 | 0.567924 |   2.36635 |  9.7 |    81.4008 | 42.072171 |   2.36635 |</span>
+<span class="go">| 08.01. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.009529 | 0.014431 | 0.009529 | 0.012987 | 0.001443 |  0.034282 |  0.034282 | 0.490128 | 0.035725 | 0.525852 |  2.191051 |  9.5 |  81.391271 | 41.629312 |  2.191051 |</span>
+<span class="go">| 09.01. |  0.1 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.009524 | 0.009533 | 0.009524 |  0.00858 | 0.000953 |  0.029229 |  0.029229 | 0.464935 | 0.030182 | 0.495117 |  2.062988 |  9.4 |  81.381747 | 41.202187 |  2.062988 |</span>
+<span class="go">| 10.01. |  0.2 | 0.3 | 0.0 |  0.0 |       0.0 | 0.3 |      0.0 |      0.3 | 0.009518 | 0.009528 | 0.009518 | 0.008575 | 0.000953 |  0.024356 |  0.024356 | 0.441825 | 0.025309 | 0.467134 |  1.946391 |  9.3 |  81.372229 | 40.793292 |  1.946391 |</span>
+<span class="go">| 11.01. |  2.9 | 0.3 | 0.0 |  1.9 |  1.687622 | 0.3 |      0.0 |      0.3 | 0.222918 | 0.024419 | 0.010541 | 0.021977 | 0.002442 |  0.019691 |  0.019691 | 0.421226 | 0.022133 | 0.443359 |   1.84733 | 10.0 |  83.049311 | 40.413734 |   1.84733 |</span>
+<span class="go">| 12.01. |  0.2 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.010534 | 0.078963 | 0.010534 | 0.071066 | 0.007896 |  0.015361 |  0.015361 | 0.404574 | 0.023257 | 0.427831 |  1.782628 | 10.0 |  83.038777 | 40.095588 |  1.782628 |</span>
+<span class="go">| 13.01. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.010527 | 0.104748 | 0.010527 | 0.094274 | 0.010475 |  0.011731 |  0.011731 | 0.390161 | 0.022206 | 0.412366 |  1.718194 |  9.8 |  83.028249 | 39.811431 |  1.718194 |</span>
+<span class="go">| 14.01. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.010521 | 0.043199 | 0.010521 | 0.038879 |  0.00432 |  0.008489 |  0.008489 | 0.374111 | 0.012809 | 0.386919 |  1.612164 |  9.6 |  83.017729 | 39.484688 |  1.612164 |</span>
+<span class="go">| 15.01. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.010514 | 0.011988 | 0.010514 | 0.010789 | 0.001199 |  0.004761 |  0.004761 | 0.357879 |  0.00596 | 0.363839 |  1.515995 |  9.4 |  83.007215 |  39.14236 |  1.515995 |</span>
+<span class="go">| 16.01. |  3.3 | 0.3 | 0.0 |  2.4 |  2.119511 | 0.3 |      0.0 |      0.3 | 0.292408 | 0.030197 | 0.011919 | 0.027178 |  0.00302 |  0.000855 |  0.000855 | 0.343438 | 0.003875 | 0.347314 |   1.44714 | 10.0 |  85.114807 | 38.826954 |   1.44714 |</span>
+<span class="go">| 17.01. |  4.6 | 0.3 | 0.0 |  4.3 |  3.761743 | 0.3 |      0.0 |      0.3 | 0.553041 | 0.140026 | 0.014784 | 0.126024 | 0.014003 | -0.002743 | -0.002743 | 0.334057 |  0.01126 | 0.345316 |  1.438818 | 10.0 |  88.861766 | 38.616178 |  1.438818 |</span>
+<span class="go">| 18.01. |  0.8 | 0.2 | 0.0 |  0.6 |  0.521196 | 0.2 |      0.0 |      0.2 | 0.094014 | 0.317975 |  0.01521 | 0.286178 | 0.031798 | -0.005148 | -0.005148 | 0.331827 |  0.02665 | 0.358477 |  1.493655 | 10.0 |  89.367752 | 38.565381 |  1.493655 |</span>
+<span class="go">| 19.01. |  1.8 | 0.2 | 0.0 |  1.6 |  1.385404 | 0.2 |      0.0 |      0.2 | 0.231008 | 0.337504 | 0.016412 | 0.303754 |  0.03375 | -0.005727 | -0.005727 | 0.330412 | 0.028023 | 0.358435 |  1.493481 | 10.0 |  90.736744 | 38.532995 |  1.493481 |</span>
+<span class="go">| 20.01. |  1.1 | 0.3 | 0.0 |  0.8 |  0.690257 | 0.3 |      0.0 |      0.3 | 0.126773 | 0.212822 |  0.01703 |  0.19154 | 0.021282 | -0.006097 | -0.006097 | 0.324397 | 0.015185 | 0.339582 |  1.414927 | 10.0 |  91.409971 | 38.394041 |  1.414927 |</span>
+<span class="go">| 21.01. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.017014 | 0.163327 | 0.017014 | 0.146994 | 0.016333 | -0.007682 | -0.007682 | 0.316842 | 0.008651 | 0.325493 |   1.35622 |  9.8 |  91.392956 | 38.216511 |   1.35622 |</span>
+<span class="go">| 22.01. |  5.0 | 0.2 | 0.0 |  4.6 |  3.936838 | 0.2 |      0.0 |      0.2 | 0.684149 | 0.145812 | 0.020987 | 0.131231 | 0.014581 | -0.009708 | -0.009708 |  0.30902 | 0.004874 | 0.313894 |   1.30789 | 10.0 |  95.308808 | 38.029015 |   1.30789 |</span>
+<span class="go">| 23.01. | 13.1 | 0.3 | 0.0 | 12.8 | 10.652857 | 0.3 |      0.0 |      0.3 | 2.182741 | 0.403432 | 0.035598 | 0.363089 | 0.040343 | -0.011847 | -0.011847 | 0.310698 | 0.028497 | 0.339194 |   1.41331 | 10.0 | 105.926066 | 38.069559 |   1.41331 |</span>
+<span class="go">| 24.01. | 14.6 | 0.6 | 0.0 | 14.0 | 11.117877 | 0.6 |      0.0 |      0.6 | 2.940635 | 1.222357 | 0.058513 | 1.100122 | 0.122236 | -0.011384 | -0.011384 | 0.342918 | 0.110852 | 0.453769 |  1.890706 | 10.0 | 116.985431 | 38.815379 |  1.890706 |</span>
+<span class="go">| 25.01. |  4.0 | 0.4 | 0.0 |  3.6 |  2.765864 | 0.4 |      0.0 |      0.4 | 0.899728 | 2.094082 | 0.065593 | 1.884673 | 0.209408 | -0.002875 | -0.002875 |  0.41431 | 0.206533 | 0.620843 |  2.586845 | 10.0 | 119.685703 | 40.282867 |  2.586845 |</span>
+<span class="go">| 26.01. |  0.8 | 0.4 | 0.0 |  0.4 |  0.305012 | 0.4 |      0.0 |      0.4 | 0.161239 | 1.951006 |  0.06625 | 1.755905 | 0.195101 |  0.013867 |  0.013867 | 0.486342 | 0.208968 |  0.69531 |  2.897125 | 10.0 | 119.924464 | 41.566298 |  2.897125 |</span>
+<span class="go">| 27.01. |  0.1 | 0.4 | 0.0 |  0.0 |       0.0 | 0.4 |      0.0 |      0.4 | 0.066068 |  0.92429 | 0.066068 | 0.831861 | 0.092429 |   0.02851 |   0.02851 | 0.507835 | 0.120939 | 0.628774 |  2.619893 |  9.7 | 119.858396 | 41.918834 |  2.619893 |</span>
+<span class="go">| 28.01. |  3.3 | 0.5 | 0.0 |  2.5 |   1.89666 | 0.5 |      0.0 |      0.5 |   0.6746 | 0.298898 |  0.07126 | 0.269008 |  0.02989 |  0.032532 |  0.032532 | 0.495891 | 0.062422 | 0.558313 |  2.326306 | 10.0 | 121.683796 | 41.724483 |  2.326306 |</span>
+<span class="go">| 29.01. |  7.7 | 0.4 | 0.0 |  7.3 |  5.431286 | 0.4 |      0.0 |      0.4 | 1.957079 | 0.416282 | 0.088365 | 0.374654 | 0.041628 |  0.030315 |  0.030315 | 0.490697 | 0.071943 |  0.56264 |  2.344333 | 10.0 | 127.026717 | 41.638754 |  2.344333 |</span>
+<span class="go">| 30.01. | 10.3 | 0.3 | 0.0 | 10.0 |  7.177146 | 0.3 |      0.0 |      0.3 | 2.938715 | 1.152405 | 0.115861 | 1.037165 | 0.115241 |  0.029337 |  0.029337 | 0.524317 | 0.144577 | 0.668895 |  2.787061 | 10.0 | 134.088002 | 42.180938 |  2.787061 |</span>
+<span class="go">| 31.01. |  3.7 | 0.3 | 0.0 |  3.4 |  2.371144 | 0.3 |      0.0 |      0.3 | 1.154766 | 2.009851 |  0.12591 | 1.808866 | 0.200985 |  0.035522 |  0.035522 | 0.608135 | 0.236508 | 0.844643 |  3.519345 | 10.0 | 136.333237 | 43.417192 |  3.519345 |</span>
+<span class="go">| 01.02. | 15.3 | 0.5 | 0.0 | 14.8 |  9.908769 | 0.5 |      0.0 |      0.5 | 5.069095 | 2.340881 | 0.177864 | 2.106793 | 0.234088 |  0.049627 |  0.049627 | 0.719232 | 0.283715 | 1.002947 |  4.178945 | 10.0 | 146.064141 |  44.85438 |  4.178945 |</span>
+<span class="go">| 02.02. |  3.2 | 0.5 | 0.0 |  2.7 |  1.736097 | 0.5 |      0.0 |      0.5 | 1.151422 | 2.706995 | 0.187519 | 2.436296 |   0.2707 |  0.066024 |  0.066024 |  0.86581 | 0.336723 | 1.202533 |  5.010555 | 10.0 | 147.612719 | 46.490889 |  5.010555 |</span>
+<span class="go">| 03.02. |  2.7 | 0.3 | 0.0 |  2.4 |  1.526285 | 0.3 |      0.0 |      0.3 | 1.069859 | 2.899467 | 0.196144 |  2.60952 | 0.289947 |  0.084695 |  0.084695 | 1.038749 | 0.374641 |  1.41339 |  5.889126 | 10.0 |  148.94286 | 48.146354 |  5.889126 |</span>
+<span class="go">| 04.02. |  2.2 | 0.3 | 0.0 |  1.9 |  1.197406 | 0.3 |      0.0 |      0.3 | 0.905394 | 1.710481 | 0.202799 | 1.539433 | 0.171048 |  0.103582 |  0.103582 | 1.101296 |  0.27463 | 1.375926 |  5.733024 | 10.0 | 149.937467 | 48.688073 |  5.733024 |</span>
+<span class="go">| 05.02. |  8.0 | 0.4 | 0.0 |  7.6 |  4.685004 | 0.4 |      0.0 |      0.4 |  3.14983 | 1.201689 | 0.234834 |  1.08152 | 0.120169 |  0.109762 |  0.109762 | 1.110849 | 0.229931 |  1.34078 |  5.586582 | 10.0 | 154.387637 | 48.768506 |  5.586582 |</span>
+<span class="go">| 06.02. | 14.3 | 0.4 | 0.0 | 13.9 |  8.124579 | 0.4 |      0.0 |      0.4 | 6.076351 | 2.022988 |  0.30093 |  1.82069 | 0.202299 |   0.11068 |   0.11068 | 1.200866 | 0.312979 | 1.513844 |  6.307684 | 10.0 | 162.211285 |  49.49901 |  6.307684 |</span>
+<span class="go">| 07.02. |  6.3 | 0.3 | 0.0 |  6.0 |   3.33511 | 0.3 |      0.0 |      0.3 | 2.994864 | 3.730743 | 0.329974 | 3.357669 | 0.373074 |  0.119014 |  0.119014 | 1.479305 | 0.492088 | 1.971393 |  8.214139 | 10.0 | 165.216421 | 51.496388 |  8.214139 |</span>
+<span class="go">| 08.02. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.326712 | 4.187387 | 0.326712 | 3.768649 | 0.418739 |  0.141802 |  0.141802 | 1.827039 | 0.560541 |  2.38758 |   9.94825 |  9.8 |  164.88971 | 53.579799 |   9.94825 |</span>
+<span class="go">| 09.02. |  5.9 | 0.1 | 0.0 |  5.6 |  3.035483 | 0.1 |      0.0 |      0.1 | 2.918787 | 2.597331 | 0.354269 | 2.337598 | 0.259733 |  0.165572 |  0.165572 | 1.933609 | 0.425305 | 2.358913 |  9.828806 | 10.0 | 167.570923 |  54.14936 |  9.828806 |</span>
+<span class="go">| 10.02. |  9.2 | 0.1 | 0.0 |  9.1 |  4.752687 | 0.1 |      0.0 |      0.1 | 4.750243 | 1.928241 |  0.40293 | 1.735417 | 0.192824 |   0.17207 |   0.17207 | 1.929409 | 0.364894 | 2.294303 |  9.559595 | 10.0 |  171.92068 | 54.127438 |  9.559595 |</span>
+<span class="go">| 11.02. |  6.1 | 0.0 | 0.0 |  6.1 |  3.064924 | 0.0 |      0.0 |      0.0 | 3.469944 | 3.154375 | 0.434868 | 2.838938 | 0.315438 |   0.17182 |   0.17182 | 2.108914 | 0.487257 | 2.596171 | 10.817381 | 10.0 | 174.550736 | 55.029281 | 10.817381 |</span>
+<span class="go">| 12.02. |  0.1 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.429517 | 3.720184 | 0.429517 | 3.348166 | 0.372018 |  0.182109 |  0.182109 | 2.362933 | 0.554127 |  2.91706 | 12.154418 | 10.0 | 174.121219 | 56.196622 | 12.154418 |</span>
+<span class="go">| 13.02. |  0.0 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.424284 |  2.46212 | 0.424284 | 2.215908 | 0.246212 |  0.195427 |  0.195427 | 2.371954 | 0.441639 | 2.813593 | 11.723303 |  9.9 | 173.696935 | 56.236003 | 11.723303 |</span>
+<span class="go">| 14.02. |  2.8 | 0.0 | 0.0 |  2.7 |  1.342535 | 0.0 |      0.0 |      0.0 | 1.792999 | 1.020524 | 0.435534 | 0.918471 | 0.102052 |  0.195876 |  0.195876 | 2.145509 | 0.297928 | 2.443438 | 10.180991 | 10.0 | 174.603936 | 55.204841 | 10.180991 |</span>
+<span class="go">| 15.02. | 10.6 | 0.2 | 0.0 | 10.4 |  5.003995 | 0.2 |      0.0 |      0.2 | 5.891088 | 1.272638 | 0.495082 | 1.145374 | 0.127264 |  0.184112 |  0.184112 | 2.007237 | 0.311375 | 2.318612 |  9.660883 | 10.0 | 179.112849 |  54.52709 |  9.660883 |</span>
+<span class="go">| 16.02. |  8.8 | 0.9 | 0.0 |  7.9 |  3.623151 | 0.9 |      0.0 |      0.9 | 4.816306 | 3.116298 | 0.539457 | 2.804668 |  0.31163 |  0.176379 |  0.176379 | 2.173024 | 0.488009 | 2.661033 | 11.087636 | 10.0 | 182.196543 | 55.335113 | 11.087636 |</span>
+<span class="go">| 17.02. |  7.2 | 0.9 | 0.0 |  6.3 |  2.788346 | 0.9 |      0.0 |      0.9 | 4.084922 |  4.74747 | 0.573268 | 4.272723 | 0.474747 |  0.185598 |  0.185598 | 2.600705 | 0.660345 |  3.26105 | 13.587707 | 10.0 | 184.411621 | 57.192729 | 13.587707 |</span>
+<span class="go">| 18.02. |  4.9 | 0.5 | 0.0 |  4.4 |  1.900026 | 0.5 |      0.0 |      0.5 | 3.093964 |  4.60284 |  0.59399 | 4.142556 | 0.460284 |  0.206791 |  0.206791 |  2.96624 | 0.667075 | 3.633316 | 15.138815 | 10.0 | 185.717657 | 58.575836 | 15.138815 |</span>
+<span class="go">| 19.02. |  1.8 | 0.9 | 0.0 |  0.9 |  0.385636 | 0.9 |      0.0 |      0.9 | 1.105061 | 3.679727 | 0.590697 | 3.311754 | 0.367973 |  0.222571 |  0.222571 | 3.092412 | 0.590544 | 3.682956 | 15.345651 | 10.0 | 185.512596 | 59.017749 | 15.345651 |</span>
+</pre></div></div></div><a href="gland_gr5_interception.html" target="_blank" >Click to see the graph</a></pre></div></div><p>There is no indication of an error in the water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">check_waterbalance</span><span class="p">(</span><span class="n">conditions</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+<section id="no-rconc-submodels">
+<span id="gland-gr5-no-rconc-submodels"></span><h3>no rconc submodels<a class="headerlink" href="#no-rconc-submodels" title="Link to this heading">¶</a></h3>
+<p>This integration test corresponds to the <a class="reference internal" href="gland_gr4.html#gland-gr4-no-rconc-submodels"><span class="std std-ref">no rconc submodels</span></a> example on
+<a class="reference internal" href="gland_gr4.html#module-hydpy.models.gland_gr4" title="hydpy.models.gland_gr4"><code class="xref py py-mod docutils literal notranslate"><span class="pre">gland_gr4</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">rconcmodel</span> <span class="o">=</span> <span class="kc">None</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">conditions</span> <span class="o">=</span> <span class="n">test</span><span class="p">(</span><span class="s2">&quot;gland_gr5_no_rconc_submodels&quot;</span><span class="p">,</span> <span class="n">get_conditions</span><span class="o">=</span><span class="s2">&quot;1990-01-01&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_160__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_160__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|   date |    p |   e |  en |   pn |        ps |  ei |       es |       ae |       pr |      q10 |     perc |       q9 |       q1 |        fd |        fr |       qr |       qd |       qh |        qv |    i |          s |         r |    outlet |</span>
+<span class="go">----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="go">| 01.01. |  0.0 | 0.3 | 0.3 |  0.0 |       0.0 | 0.0 | 0.152869 | 0.152869 | 0.005768 | 0.005768 | 0.005768 | 0.005191 | 0.000577 |  0.067782 |  0.067782 | 0.682354 | 0.068359 | 0.750713 |  3.127971 |  0.0 |  73.616763 | 44.399119 |  3.127971 |</span>
+<span class="go">| 02.01. |  9.3 | 0.4 | 0.0 |  0.0 |       0.0 | 0.4 |      0.0 |      0.4 | 0.005766 | 0.005766 | 0.005766 | 0.005189 | 0.000577 |   0.06083 |   0.06083 | 0.638243 | 0.061406 | 0.699649 |  2.915204 |  8.9 |  73.610997 | 43.826895 |  2.915204 |</span>
+<span class="go">| 03.01. |  3.2 | 0.4 | 0.0 |  1.7 |  1.544461 | 0.4 |      0.0 |      0.4 | 0.161933 | 0.161933 | 0.006394 |  0.14574 | 0.016193 |  0.054301 |  0.054301 | 0.608243 | 0.070494 | 0.678738 |  2.828074 | 10.0 |  75.149064 | 43.418692 |  2.828074 |</span>
+<span class="go">| 04.01. |  7.3 | 0.3 | 0.0 |  7.0 |   6.28991 | 0.3 |      0.0 |      0.3 | 0.719642 | 0.719642 | 0.009552 | 0.647678 | 0.071964 |  0.049644 |  0.049644 | 0.614252 | 0.121608 |  0.73586 |  3.066082 | 10.0 |  81.429422 | 43.501762 |  3.066082 |</span>
+<span class="go">| 05.01. |  0.0 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.009546 | 0.009546 | 0.009546 | 0.008592 | 0.000955 |  0.050592 |  0.050592 | 0.577549 | 0.051546 | 0.629095 |  2.621229 |  9.9 |  81.419876 | 42.983397 |  2.621229 |</span>
+<span class="go">| 06.01. |  0.0 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.009541 | 0.009541 | 0.009541 | 0.008586 | 0.000954 |  0.044678 |  0.044678 | 0.544462 | 0.045632 | 0.590093 |  2.458723 |  9.8 |  81.410335 | 42.492199 |  2.458723 |</span>
+<span class="go">| 07.01. |  0.0 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.009535 | 0.009535 | 0.009535 | 0.008581 | 0.000953 |  0.039074 |  0.039074 | 0.514482 | 0.040027 |  0.55451 |  2.310457 |  9.7 |    81.4008 | 42.025372 |  2.310457 |</span>
+<span class="go">| 08.01. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.009529 | 0.009529 | 0.009529 | 0.008576 | 0.000953 |  0.033748 |  0.033748 | 0.487193 | 0.034701 | 0.521894 |  2.174557 |  9.5 |  81.391271 | 41.580503 |  2.174557 |</span>
+<span class="go">| 09.01. |  0.1 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.009524 | 0.009524 | 0.009524 | 0.008571 | 0.000952 |  0.028672 |  0.028672 | 0.462247 | 0.029625 | 0.491872 |  2.049465 |  9.4 |  81.381747 | 41.155499 |  2.049465 |</span>
+<span class="go">| 10.01. |  0.2 | 0.3 | 0.0 |  0.0 |       0.0 | 0.3 |      0.0 |      0.3 | 0.009518 | 0.009518 | 0.009518 | 0.008566 | 0.000952 |  0.023823 |  0.023823 | 0.439354 | 0.024775 | 0.464129 |  1.933871 |  9.3 |  81.372229 | 40.748535 |  1.933871 |</span>
+<span class="go">| 11.01. |  2.9 | 0.3 | 0.0 |  1.9 |  1.687622 | 0.3 |      0.0 |      0.3 | 0.222918 | 0.222918 | 0.010541 | 0.200627 | 0.022292 |   0.01918 |   0.01918 | 0.428007 | 0.041472 | 0.469479 |  1.956164 | 10.0 |  83.049311 | 40.540335 |  1.956164 |</span>
+<span class="go">| 12.01. |  0.2 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.010534 | 0.010534 | 0.010534 | 0.009481 | 0.001053 |  0.016805 |  0.016805 | 0.407838 | 0.017858 | 0.425696 |  1.773734 | 10.0 |  83.038777 | 40.158782 |  1.773734 |</span>
+<span class="go">| 13.01. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.010527 | 0.010527 | 0.010527 | 0.009475 | 0.001053 |  0.012452 |  0.012452 | 0.389168 | 0.013505 | 0.402672 |  1.677802 |  9.8 |  83.028249 | 39.791541 |  1.677802 |</span>
+<span class="go">| 14.01. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.010521 | 0.010521 | 0.010521 | 0.009469 | 0.001052 |  0.008262 |  0.008262 | 0.371835 | 0.009314 | 0.381149 |  1.588121 |  9.6 |  83.017729 | 39.437436 |  1.588121 |</span>
+<span class="go">| 15.01. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.010514 | 0.010514 | 0.010514 | 0.009463 | 0.001051 |  0.004222 |  0.004222 | 0.355699 | 0.005273 | 0.360972 |  1.504052 |  9.4 |  83.007215 | 39.095422 |  1.504052 |</span>
+<span class="go">| 16.01. |  3.3 | 0.3 | 0.0 |  2.4 |  2.119511 | 0.3 |      0.0 |      0.3 | 0.292408 | 0.292408 | 0.011919 | 0.263167 | 0.029241 |   0.00032 |   0.00032 | 0.351635 | 0.029561 | 0.381195 |  1.588314 | 10.0 |  85.114807 | 39.007274 |  1.588314 |</span>
+<span class="go">| 17.01. |  4.6 | 0.3 | 0.0 |  4.3 |  3.761743 | 0.3 |      0.0 |      0.3 | 0.553041 | 0.553041 | 0.014784 | 0.497737 | 0.055304 | -0.000686 | -0.000686 | 0.358061 | 0.054618 | 0.412679 |  1.719497 | 10.0 |  88.861766 | 39.146265 |  1.719497 |</span>
+<span class="go">| 18.01. |  0.8 | 0.2 | 0.0 |  0.6 |  0.521196 | 0.2 |      0.0 |      0.2 | 0.094014 | 0.094014 |  0.01521 | 0.084612 | 0.009401 |    0.0009 |    0.0009 | 0.346091 | 0.010301 | 0.356392 |  1.484967 | 10.0 |  89.367752 | 38.885687 |  1.484967 |</span>
+<span class="go">| 19.01. |  1.8 | 0.2 | 0.0 |  1.6 |  1.385404 | 0.2 |      0.0 |      0.2 | 0.231008 | 0.231008 | 0.016412 | 0.207907 | 0.023101 | -0.002073 | -0.002073 | 0.340054 | 0.021028 | 0.361082 |  1.504508 | 10.0 |  90.736744 | 38.751467 |  1.504508 |</span>
+<span class="go">| 20.01. |  1.1 | 0.3 | 0.0 |  0.8 |  0.690257 | 0.3 |      0.0 |      0.3 | 0.126773 | 0.126773 |  0.01703 | 0.114096 | 0.012677 | -0.003604 | -0.003604 | 0.330352 | 0.009073 | 0.339425 |   1.41427 | 10.0 |  91.409971 | 38.531607 |   1.41427 |</span>
+<span class="go">| 21.01. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.017014 | 0.017014 | 0.017014 | 0.015313 | 0.001701 | -0.001701 | -0.006113 | 0.317144 |      0.0 | 0.317144 |  1.321432 |  9.8 |  91.392956 | 38.223663 |  1.321432 |</span>
+<span class="go">| 22.01. |  5.0 | 0.2 | 0.0 |  4.6 |  3.936838 | 0.2 |      0.0 |      0.2 | 0.684149 | 0.684149 | 0.020987 | 0.615734 | 0.068415 | -0.009626 | -0.009626 | 0.329009 | 0.058789 | 0.387798 |  1.615824 | 10.0 |  95.308808 | 38.500762 |  1.615824 |</span>
+<span class="go">| 23.01. | 13.1 | 0.3 | 0.0 | 12.8 | 10.652857 | 0.3 |      0.0 |      0.3 | 2.182741 | 2.182741 | 0.035598 | 1.964467 | 0.218274 | -0.006464 | -0.006464 | 0.402551 |  0.21181 | 0.614361 |  2.559836 | 10.0 | 105.926066 | 40.056214 |  2.559836 |</span>
+<span class="go">| 24.01. | 14.6 | 0.6 | 0.0 | 14.0 | 11.117877 | 0.6 |      0.0 |      0.6 | 2.940635 | 2.940635 | 0.058513 | 2.646572 | 0.294064 |  0.011282 |  0.011282 | 0.524846 | 0.305345 | 0.830191 |  3.459128 | 10.0 | 116.985431 | 42.189222 |  3.459128 |</span>
+<span class="go">| 25.01. |  4.0 | 0.4 | 0.0 |  3.6 |  2.765864 | 0.4 |      0.0 |      0.4 | 0.899728 | 0.899728 | 0.065593 | 0.809756 | 0.089973 |  0.035617 |  0.035617 | 0.544334 |  0.12559 | 0.669924 |   2.79135 | 10.0 | 119.685703 |  42.49026 |   2.79135 |</span>
+<span class="go">| 26.01. |  0.8 | 0.4 | 0.0 |  0.4 |  0.305012 | 0.4 |      0.0 |      0.4 | 0.161239 | 0.161239 |  0.06625 | 0.145115 | 0.016124 |  0.039052 |  0.039052 | 0.522473 | 0.055175 | 0.577649 |   2.40687 | 10.0 | 119.924464 | 42.151953 |   2.40687 |</span>
+<span class="go">| 27.01. |  0.1 | 0.4 | 0.0 |  0.0 |       0.0 | 0.4 |      0.0 |      0.4 | 0.066068 | 0.066068 | 0.066068 | 0.059461 | 0.006607 |  0.035192 |  0.035192 | 0.497398 | 0.041799 | 0.539196 |  2.246652 |  9.7 | 119.858396 | 41.749208 |  2.246652 |</span>
+<span class="go">| 28.01. |  3.3 | 0.5 | 0.0 |  2.5 |   1.89666 | 0.5 |      0.0 |      0.5 |   0.6746 |   0.6746 |  0.07126 |  0.60714 |  0.06746 |  0.030597 |  0.030597 | 0.505518 | 0.098057 | 0.603575 |  2.514896 | 10.0 | 121.683796 | 41.881426 |  2.514896 |</span>
+<span class="go">| 29.01. |  7.7 | 0.4 | 0.0 |  7.3 |  5.431286 | 0.4 |      0.0 |      0.4 | 1.957079 | 1.957079 | 0.088365 | 1.761371 | 0.195708 |  0.032105 |  0.032105 | 0.584942 | 0.227813 | 0.812755 |  3.386479 | 10.0 | 127.026717 | 43.089961 |  3.386479 |</span>
+<span class="go">| 30.01. | 10.3 | 0.3 | 0.0 | 10.0 |  7.177146 | 0.3 |      0.0 |      0.3 | 2.938715 | 2.938715 | 0.115861 | 2.644843 | 0.293871 |  0.045893 |  0.045893 |   0.7352 | 0.339765 | 1.074965 |  4.479019 | 10.0 | 134.088002 | 45.045498 |  4.479019 |</span>
+<span class="go">| 31.01. |  3.7 | 0.3 | 0.0 |  3.4 |  2.371144 | 0.3 |      0.0 |      0.3 | 1.154766 | 1.154766 |  0.12591 | 1.039289 | 0.115477 |  0.068204 |  0.068204 | 0.764589 | 0.183681 |  0.94827 |  3.951124 | 10.0 | 136.333237 | 45.388403 |  3.951124 |</span>
+<span class="go">| 01.02. | 15.3 | 0.5 | 0.0 | 14.8 |  9.908769 | 0.5 |      0.0 |      0.5 | 5.069095 | 5.069095 | 0.177864 | 4.562186 |  0.50691 |  0.072116 |  0.072116 | 1.126195 | 0.579026 | 1.705221 |  7.105088 | 10.0 | 146.064141 |  48.89651 |  7.105088 |</span>
+<span class="go">| 02.02. |  3.2 | 0.5 | 0.0 |  2.7 |  1.736097 | 0.5 |      0.0 |      0.5 | 1.151422 | 1.151422 | 0.187519 |  1.03628 | 0.115142 |   0.11214 |   0.11214 | 1.128589 | 0.227282 | 1.355871 |  5.649463 | 10.0 | 147.612719 | 48.916341 |  5.649463 |</span>
+<span class="go">| 03.02. |  2.7 | 0.3 | 0.0 |  2.4 |  1.526285 | 0.3 |      0.0 |      0.3 | 1.069859 | 1.069859 | 0.196144 | 0.962873 | 0.106986 |  0.112366 |  0.112366 |  1.12285 | 0.219352 | 1.342202 |  5.592508 | 10.0 |  148.94286 | 48.868731 |  5.592508 |</span>
+<span class="go">| 04.02. |  2.2 | 0.3 | 0.0 |  1.9 |  1.197406 | 0.3 |      0.0 |      0.3 | 0.905394 | 0.905394 | 0.202799 | 0.814854 | 0.090539 |  0.111823 |  0.111823 | 1.101935 | 0.202363 | 1.304298 |  5.434574 | 10.0 | 149.937467 | 48.693473 |  5.434574 |</span>
+<span class="go">| 05.02. |  8.0 | 0.4 | 0.0 |  7.6 |  4.685004 | 0.4 |      0.0 |      0.4 |  3.14983 |  3.14983 | 0.234834 | 2.834847 | 0.314983 |  0.109824 |  0.109824 | 1.310411 | 0.424807 | 1.735218 |  7.230073 | 10.0 | 154.387637 | 50.327733 |  7.230073 |</span>
+<span class="go">| 06.02. | 14.3 | 0.4 | 0.0 | 13.9 |  8.124579 | 0.4 |      0.0 |      0.4 | 6.076351 | 6.076351 |  0.30093 | 5.468716 | 0.607635 |  0.128469 |  0.128469 |   1.9083 | 0.736104 | 2.644404 | 11.018349 | 10.0 | 162.211285 | 54.016618 | 11.018349 |</span>
+<span class="go">| 07.02. |  6.3 | 0.3 | 0.0 |  6.0 |   3.33511 | 0.3 |      0.0 |      0.3 | 2.994864 | 2.994864 | 0.329974 | 2.695378 | 0.299486 |  0.170555 |  0.170555 | 2.065423 | 0.470042 | 2.535464 | 10.564435 | 10.0 | 165.216421 | 54.817128 | 10.564435 |</span>
+<span class="go">| 08.02. |  0.0 | 0.2 | 0.0 |  0.0 |       0.0 | 0.2 |      0.0 |      0.2 | 0.326712 | 0.326712 | 0.326712 |  0.29404 | 0.032671 |  0.179688 |  0.179688 | 1.809201 | 0.212359 | 2.021561 |  8.423169 |  9.8 |  164.88971 | 53.481655 |  8.423169 |</span>
+<span class="go">| 09.02. |  5.9 | 0.1 | 0.0 |  5.6 |  3.035483 | 0.1 |      0.0 |      0.1 | 2.918787 | 2.918787 | 0.354269 | 2.626908 | 0.291879 |  0.164452 |  0.164452 | 1.964365 | 0.456331 | 2.420696 | 10.086232 | 10.0 | 167.570923 |  54.30865 | 10.086232 |</span>
+<span class="go">| 10.02. |  9.2 | 0.1 | 0.0 |  9.1 |  4.752687 | 0.1 |      0.0 |      0.1 | 4.750243 | 4.750243 |  0.40293 | 4.275219 | 0.475024 |  0.173887 |  0.173887 | 2.400029 | 0.648911 | 3.048941 |  12.70392 | 10.0 |  171.92068 | 56.357727 |  12.70392 |</span>
+<span class="go">| 11.02. |  6.1 | 0.0 | 0.0 |  6.1 |  3.064924 | 0.0 |      0.0 |      0.0 | 3.469944 | 3.469944 | 0.434868 | 3.122949 | 0.346994 |  0.197265 |  0.197265 | 2.577753 | 0.544259 | 3.122012 | 13.008382 | 10.0 | 174.550736 | 57.100188 | 13.008382 |</span>
+<span class="go">| 12.02. |  0.1 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.429517 | 0.429517 | 0.429517 | 0.386565 | 0.042952 |  0.205736 |  0.205736 | 2.205493 | 0.248687 | 2.454181 | 10.225753 | 10.0 | 174.121219 | 55.486996 | 10.225753 |</span>
+<span class="go">| 13.02. |  0.0 | 0.1 | 0.0 |  0.0 |       0.0 | 0.1 |      0.0 |      0.1 | 0.424284 | 0.424284 | 0.424284 | 0.381856 | 0.042428 |  0.187331 |  0.187331 | 1.929302 | 0.229759 | 2.159061 |  8.996088 |  9.9 | 173.696935 |  54.12688 |  8.996088 |</span>
+<span class="go">| 14.02. |  2.8 | 0.0 | 0.0 |  2.7 |  1.342535 | 0.0 |      0.0 |      0.0 | 1.792999 | 1.792999 | 0.435534 | 1.613699 |   0.1793 |  0.171813 |  0.171813 | 1.906304 | 0.351113 | 2.257417 |  9.405906 | 10.0 | 174.603936 | 54.006087 |  9.405906 |</span>
+<span class="go">| 15.02. | 10.6 | 0.2 | 0.0 | 10.4 |  5.003995 | 0.2 |      0.0 |      0.2 | 5.891088 | 5.891088 | 0.495082 | 5.301979 | 0.589109 |  0.170435 |  0.170435 | 2.538459 | 0.759544 | 3.298003 | 13.741678 | 10.0 | 179.112849 | 56.940042 | 13.741678 |</span>
+<span class="go">| 16.02. |  8.8 | 0.9 | 0.0 |  7.9 |  3.623151 | 0.9 |      0.0 |      0.9 | 4.816306 | 4.816306 | 0.539457 | 4.334675 | 0.481631 |  0.203908 |  0.203908 | 2.952377 | 0.685539 | 3.637916 | 15.157982 | 10.0 | 182.196543 | 58.526249 | 15.157982 |</span>
+<span class="go">| 17.02. |  7.2 | 0.9 | 0.0 |  6.3 |  2.788346 | 0.9 |      0.0 |      0.9 | 4.084922 | 4.084922 | 0.573268 |  3.67643 | 0.408492 |  0.222005 |  0.222005 | 3.163864 | 0.630498 | 3.794362 | 15.809842 | 10.0 | 184.411621 |  59.26082 | 15.809842 |</span>
+<span class="go">| 18.02. |  4.9 | 0.5 | 0.0 |  4.4 |  1.900026 | 0.5 |      0.0 |      0.5 | 3.093964 | 3.093964 |  0.59399 | 2.784568 | 0.309396 |  0.230386 |  0.230386 | 3.129893 | 0.539782 | 3.669675 | 15.290314 | 10.0 | 185.717657 | 59.145881 | 15.290314 |</span>
+<span class="go">| 19.02. |  1.8 | 0.9 | 0.0 |  0.9 |  0.385636 | 0.9 |      0.0 |      0.9 | 1.105061 | 1.105061 | 0.590697 | 0.994555 | 0.110506 |  0.229075 |  0.229075 | 2.717371 | 0.339581 | 3.056952 |   12.7373 | 10.0 | 185.512596 | 57.652139 |   12.7373 |</span>
+</pre></div></div></div><a href="gland_gr5_no_rconc_submodels.html" target="_blank" >Click to see the graph</a></pre></div></div><p>There is no indication of an error in the water balance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">round_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">check_waterbalance</span><span class="p">(</span><span class="n">conditions</span><span class="p">))</span>
+<span class="go">0.0</span>
+</pre></div>
+</div>
+</section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.gland_gr5.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/gland_gr5.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.gland_gr5.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Main_PETModel_V1" title="hydpy.models.gland.gland_model.Main_PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_PETModel_V1</span></code></a>, <a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Main_RConcModel_V1" title="hydpy.models.gland.gland_model.Main_RConcModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Main_RConcModel_V1</span></code></a></p>
+<p>HydPy-G-GR5 (Génie Rural model with 5 parameters).</p>
+<dl class="simple">
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_E_V1" title="hydpy.models.gland.gland_model.Calc_E_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_E_V1</span></code></a> Let a submodel that conforms to the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> interface calculate the potential evapotranspiration.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_EI_V1" title="hydpy.models.gland.gland_model.Calc_EI_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_EI_V1</span></code></a> Calculate the actual evaporation from the interception store.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_PN_V1" title="hydpy.models.gland.gland_model.Calc_PN_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PN_V1</span></code></a> Calculate the net precipitation by considering all interception losses.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_EN_V1" title="hydpy.models.gland.gland_model.Calc_EN_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_EN_V1</span></code></a> Calculate the net evapotranspiration capacity by considering interception evaporation.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Update_I_V1" title="hydpy.models.gland.gland_model.Update_I_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_I_V1</span></code></a> Update the interception store based on precipitation, net precipitation, and interception evaporation.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_PS_V1" title="hydpy.models.gland.gland_model.Calc_PS_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_PS_V1</span></code></a> Calculate the part of net precipitation filling the production store.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_ES_V1" title="hydpy.models.gland.gland_model.Calc_ES_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_ES_V1</span></code></a> Calculate the actual evapotranspiration from the production store.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Update_S_V1" title="hydpy.models.gland.gland_model.Update_S_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_S_V1</span></code></a> Update the production store by adding precipitation and evapotranspiration.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_Perc_V1" title="hydpy.models.gland.gland_model.Calc_Perc_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Perc_V1</span></code></a> Calculate the percolation from the production store.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Update_S_V2" title="hydpy.models.gland.gland_model.Update_S_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_S_V2</span></code></a> Update the production store by subtracting percolation.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_AE_V1" title="hydpy.models.gland.gland_model.Calc_AE_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_AE_V1</span></code></a> Calculate the total actual evapotranspiration.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_Pr_V1" title="hydpy.models.gland.gland_model.Calc_Pr_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Pr_V1</span></code></a> Calculate the total inflow into the runoff concentration module.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_Q10_V1" title="hydpy.models.gland.gland_model.Calc_Q10_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q10_V1</span></code></a> Transform <a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.PR" title="hydpy.models.gland.gland_fluxes.PR"><code class="xref py py-class docutils literal notranslate"><span class="pre">PR</span></code></a> into <a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.Q10" title="hydpy.models.gland.gland_fluxes.Q10"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q10</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_Q1_Q9_V2" title="hydpy.models.gland.gland_model.Calc_Q1_Q9_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q1_Q9_V2</span></code></a> Calculate <a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.Q1" title="hydpy.models.gland.gland_fluxes.Q1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q1</span></code></a> and <a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.Q9" title="hydpy.models.gland.gland_fluxes.Q9"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q9</span></code></a> by splitting <a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.Q10" title="hydpy.models.gland.gland_fluxes.Q10"><code class="xref py py-class docutils literal notranslate"><span class="pre">Q10</span></code></a>.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_FR_V2" title="hydpy.models.gland.gland_model.Calc_FR_V2"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_FR_V2</span></code></a> Calculate the groundwater exchange affecting the routing store according to GR5 and GR6.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Update_R_V1" title="hydpy.models.gland.gland_model.Update_R_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_R_V1</span></code></a> Update the level of the non-linear routing store by adding its inflows according to GR4 and GR5.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_QR_V1" title="hydpy.models.gland.gland_model.Calc_QR_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QR_V1</span></code></a> Calculate the outflow of the routing store.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Update_R_V3" title="hydpy.models.gland.gland_model.Update_R_V3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_R_V3</span></code></a> Update the non-linear routing store by subtracting its outflow.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_FD_V1" title="hydpy.models.gland.gland_model.Calc_FD_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_FD_V1</span></code></a> Calculate the groundwater exchange affecting the direct runoff.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_QD_V1" title="hydpy.models.gland.gland_model.Calc_QD_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QD_V1</span></code></a> Calculate the direct runoff.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_QH_V1" title="hydpy.models.gland.gland_model.Calc_QH_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QH_V1</span></code></a> Calculate the total runoff according to GR4 and GR5.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_QV_V1" title="hydpy.models.gland.gland_model.Calc_QV_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QV_V1</span></code></a> Calculate total discharge in m³/s.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Pass_Q_V1" title="hydpy.models.gland.gland_model.Pass_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Q_V1</span></code></a> Update the outlet link sequence.</p></li>
+</ul>
+</dd>
+<dt>The following “additional methods” might be called by one or more of the other methods or are meant to be directly called by the user:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_E_PETModel_V1" title="hydpy.models.gland.gland_model.Calc_E_PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_E_PETModel_V1</span></code></a> Let a submodel that conforms to the <a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> interface calculate the potential evapotranspiration.</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_model.Calc_Q_RConcModel_V1" title="hydpy.models.gland.gland_model.Calc_Q_RConcModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_Q_RConcModel_V1</span></code></a> Let a submodel that follows the <a class="reference internal" href="rconcinterfaces.html#hydpy.interfaces.rconcinterfaces.RConcModel_V1" title="hydpy.interfaces.rconcinterfaces.RConcModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RConcModel_V1</span></code></a> submodel interface perform runoff concentration.</p></li>
+</ul>
+</dd>
+<dt>Users can hook submodels into the defined main model if they satisfy one of the following interfaces:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="petinterfaces.html#hydpy.interfaces.petinterfaces.PETModel_V1" title="hydpy.interfaces.petinterfaces.PETModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PETModel_V1</span></code></a> Simple interface for calculating all potential evapotranspiration values in one step.</p></li>
+<li><p><a class="reference internal" href="rconcinterfaces.html#hydpy.interfaces.rconcinterfaces.RConcModel_V1" title="hydpy.interfaces.rconcinterfaces.RConcModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">RConcModel_V1</span></code></a> Simple interface for calculating runoff concentration processes.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('G-GR5',</span> <span class="pre">'Génie</span> <span class="pre">Rural</span> <span class="pre">model</span> <span class="pre">with</span> <span class="pre">5</span> <span class="pre">parameters')</span></span><a class="headerlink" href="#hydpy.models.gland_gr5.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.gland_gr5.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.Model.petmodel">
+<span class="sig-name descname"><span class="pre">petmodel</span></span><a class="headerlink" href="#hydpy.models.gland_gr5.Model.petmodel" title="Link to this definition">¶</a></dt>
+<dd><p>Required submodel that complies with the following interface: PETModel_V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.Model.rconcmodel">
+<span class="sig-name descname"><span class="pre">rconcmodel</span></span><a class="headerlink" href="#hydpy.models.gland_gr5.Model.rconcmodel" title="Link to this definition">¶</a></dt>
+<dd><p>Optional submodel that complies with the following interface: RConcModel_V1.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.Model.check_waterbalance">
+<span class="sig-name descname"><span class="pre">check_waterbalance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">initial_conditions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/models/gland_gr5.html#Model.check_waterbalance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.gland_gr5.Model.check_waterbalance" title="Link to this definition">¶</a></dt>
+<dd><p>Determine the water balance error of the previous simulation run in mm.</p>
+<p>Method <a class="reference internal" href="#hydpy.models.gland_gr5.Model.check_waterbalance" title="hydpy.models.gland_gr5.Model.check_waterbalance"><code class="xref py py-func docutils literal notranslate"><span class="pre">check_waterbalance()</span></code></a> calculates the balance error as follows:</p>
+<blockquote>
+<div><div class="math notranslate nohighlight">
+\[\begin{split}Error = \Sigma InOut - \Delta Vol - \Delta Rconc
+\\ \\
+\Sigma InOut = \sum_{t=t0}^{t1} P_t - AE_t + FR_t + FD_t - QH_t
+\\
+\Delta Vol  =  \left( I_{t1} - I_{t0} \right)
++ \left( S_{t1} - S_{t0} \right) + \left( R_{t1} - R_{t0} \right)
+\\
+\Delta Rconc  = get\_waterbalance_{runof\!f \ concentration}(*)\end{split}\]</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.gland_gr5.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.gland_gr5.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.gland_gr5.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model gland_gr5.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_control.Area" title="hydpy.models.gland.gland_control.Area"><code class="xref py py-func docutils literal notranslate"><span class="pre">Area()</span></code></a> Subbasin area [km²].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_control.IMax" title="hydpy.models.gland.gland_control.IMax"><code class="xref py py-func docutils literal notranslate"><span class="pre">IMax()</span></code></a> Interception store capacity [mm].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_control.X1" title="hydpy.models.gland.gland_control.X1"><code class="xref py py-func docutils literal notranslate"><span class="pre">X1()</span></code></a> Maximum capacity of the production storage [mm].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_control.X2" title="hydpy.models.gland.gland_control.X2"><code class="xref py py-func docutils literal notranslate"><span class="pre">X2()</span></code></a> Groundwater exchange coefficient (positive for water imports, negative for exports) [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_control.X3" title="hydpy.models.gland.gland_control.X3"><code class="xref py py-func docutils literal notranslate"><span class="pre">X3()</span></code></a> One timestep ahead maximum capacity of the routing store [mm].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_control.X5" title="hydpy.models.gland.gland_control.X5"><code class="xref py py-func docutils literal notranslate"><span class="pre">X5()</span></code></a> Intercatchment exchange threshold [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.gland_gr5.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.gland_gr5.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model gland_gr5.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_derived.Beta" title="hydpy.models.gland.gland_derived.Beta"><code class="xref py py-func docutils literal notranslate"><span class="pre">Beta()</span></code></a> Percolation factor [T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_derived.QFactor" title="hydpy.models.gland.gland_derived.QFactor"><code class="xref py py-func docutils literal notranslate"><span class="pre">QFactor()</span></code></a> Factor for converting mm/stepsize to m³/s.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.gland_gr5.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.gland_gr5.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model gland_gr5.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.E" title="hydpy.models.gland.gland_fluxes.E"><code class="xref py py-func docutils literal notranslate"><span class="pre">E()</span></code></a> Potential evapotranspiration [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.EN" title="hydpy.models.gland.gland_fluxes.EN"><code class="xref py py-func docutils literal notranslate"><span class="pre">EN()</span></code></a> Net evapotranspiration capacity [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.PN" title="hydpy.models.gland.gland_fluxes.PN"><code class="xref py py-func docutils literal notranslate"><span class="pre">PN()</span></code></a> Net precipitation [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.PS" title="hydpy.models.gland.gland_fluxes.PS"><code class="xref py py-func docutils literal notranslate"><span class="pre">PS()</span></code></a> Part of <a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.PN" title="hydpy.models.gland.gland_fluxes.PN"><code class="xref py py-class docutils literal notranslate"><span class="pre">PN</span></code></a> filling the production store [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.EI" title="hydpy.models.gland.gland_fluxes.EI"><code class="xref py py-func docutils literal notranslate"><span class="pre">EI()</span></code></a> Actual evaporation from the interception store [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.ES" title="hydpy.models.gland.gland_fluxes.ES"><code class="xref py py-func docutils literal notranslate"><span class="pre">ES()</span></code></a> Actual evapotranspiration from the production store [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.AE" title="hydpy.models.gland.gland_fluxes.AE"><code class="xref py py-func docutils literal notranslate"><span class="pre">AE()</span></code></a> Total actual evapotranspiration [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.PR" title="hydpy.models.gland.gland_fluxes.PR"><code class="xref py py-func docutils literal notranslate"><span class="pre">PR()</span></code></a> Total inflow into the runoff concentration module [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.Q10" title="hydpy.models.gland.gland_fluxes.Q10"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q10()</span></code></a> Total outflow of runoff concentration module [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.Perc" title="hydpy.models.gland.gland_fluxes.Perc"><code class="xref py py-func docutils literal notranslate"><span class="pre">Perc()</span></code></a> Percolation [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.Q9" title="hydpy.models.gland.gland_fluxes.Q9"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q9()</span></code></a> Outflow of runoff concentration submodel receiving <a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.PR9" title="hydpy.models.gland.gland_fluxes.PR9"><code class="xref py py-class docutils literal notranslate"><span class="pre">PR9</span></code></a> [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.Q1" title="hydpy.models.gland.gland_fluxes.Q1"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q1()</span></code></a> Outflow of runoff concentration submodel receiving <a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.PR1" title="hydpy.models.gland.gland_fluxes.PR1"><code class="xref py py-class docutils literal notranslate"><span class="pre">PR1</span></code></a> [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.FD" title="hydpy.models.gland.gland_fluxes.FD"><code class="xref py py-func docutils literal notranslate"><span class="pre">FD()</span></code></a> Groundwater exchange affecting the direct runoff [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.FR" title="hydpy.models.gland.gland_fluxes.FR"><code class="xref py py-func docutils literal notranslate"><span class="pre">FR()</span></code></a> Groundwater exchange affecting the routing store [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.QR" title="hydpy.models.gland.gland_fluxes.QR"><code class="xref py py-func docutils literal notranslate"><span class="pre">QR()</span></code></a> Outflow of the routing store [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.QD" title="hydpy.models.gland.gland_fluxes.QD"><code class="xref py py-func docutils literal notranslate"><span class="pre">QD()</span></code></a> Direct runoff [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.QH" title="hydpy.models.gland.gland_fluxes.QH"><code class="xref py py-func docutils literal notranslate"><span class="pre">QH()</span></code></a> Total runoff [mm/T].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_fluxes.QV" title="hydpy.models.gland.gland_fluxes.QV"><code class="xref py py-func docutils literal notranslate"><span class="pre">QV()</span></code></a> Total discharge [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.InputSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.gland_gr5.</span></span><span class="sig-name descname"><span class="pre">InputSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.gland_gr5.InputSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InputSequences" title="hydpy.core.sequencetools.InputSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputSequences</span></code></a></p>
+<p>Input sequences of model gland_gr5.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_inputs.P" title="hydpy.models.gland.gland_inputs.P"><code class="xref py py-func docutils literal notranslate"><span class="pre">P()</span></code></a> Precipitation [mm/T].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.OutletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.gland_gr5.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.gland_gr5.OutletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model gland_gr5.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_outlets.Q" title="hydpy.models.gland.gland_outlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Runoff [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.gland_gr5.StateSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.gland_gr5.</span></span><span class="sig-name descname"><span class="pre">StateSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.gland_gr5.StateSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StateSequences" title="hydpy.core.sequencetools.StateSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">StateSequences</span></code></a></p>
+<p>State sequences of model gland_gr5.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_states.I" title="hydpy.models.gland.gland_states.I"><code class="xref py py-func docutils literal notranslate"><span class="pre">I()</span></code></a> Water content of the interception store [mm].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_states.S" title="hydpy.models.gland.gland_states.S"><code class="xref py py-func docutils literal notranslate"><span class="pre">S()</span></code></a> Water content of the production store [mm].</p></li>
+<li><p><a class="reference internal" href="gland.html#hydpy.models.gland.gland_states.R" title="hydpy.models.gland.gland_states.R"><code class="xref py py-func docutils literal notranslate"><span class="pre">R()</span></code></a> Water content of the routing store [mm].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gland_gr6.html" title="gland_gr6"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="gland_gr4.html" title="gland_gr4"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-G.html" >HydPy-G (GR)</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">gland_gr5</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

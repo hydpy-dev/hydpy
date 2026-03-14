@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.core.selectiontools &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.selectiontools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.core.selectiontools</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module implements tools for defining subsets of |Node| and |Element| objects of</span>
+<span class="sd">large *HydPy* projects, called &quot;selections&quot;.&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from standard library</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">collections</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">types</span>
+
+<span class="c1"># ...from site-packages</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">black</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span>
+
+<span class="c1"># ...from HydPy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hydpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">hydpytools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">importtools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">ModelTypesArg</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="Selections">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selections">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Selections</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Collection class for |Selection| objects.</span>
+
+<span class="sd">    You can pass an arbitrary number of |Selection| objects to the constructor of class</span>
+<span class="sd">    |Selections|:</span>
+
+<span class="sd">    &gt;&gt;&gt; sel1 = Selection(&quot;sel1&quot;, [&quot;node1&quot;, &quot;node2&quot;], [&quot;element1&quot;])</span>
+<span class="sd">    &gt;&gt;&gt; sel2 = Selection(&quot;sel2&quot;, [&quot;node1&quot;, &quot;node3&quot;], [&quot;element2&quot;])</span>
+<span class="sd">    &gt;&gt;&gt; selections = Selections(sel1, sel2)</span>
+<span class="sd">    &gt;&gt;&gt; selections</span>
+<span class="sd">    Selections(&quot;sel1&quot;, &quot;sel2&quot;)</span>
+
+<span class="sd">    Also, you can query, add, and remove |Selection| objects via attribute access:</span>
+
+<span class="sd">    &gt;&gt;&gt; selections.sel3  # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: The actual Selections object handles neither a normal attribute \</span>
+<span class="sd">nor a Selection object called `sel3`...</span>
+<span class="sd">    &gt;&gt;&gt; sel3 = Selection(&quot;sel3&quot;, [&quot;node1&quot;, &quot;node4&quot;], [&quot;element3&quot;])</span>
+<span class="sd">    &gt;&gt;&gt; selections.sel3 = sel3</span>
+<span class="sd">    &gt;&gt;&gt; selections.sel3</span>
+<span class="sd">    Selection(&quot;sel3&quot;,</span>
+<span class="sd">              nodes=(&quot;node1&quot;, &quot;node4&quot;),</span>
+<span class="sd">              elements=&quot;element3&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; &quot;sel3&quot; in dir(selections)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; del selections.sel3</span>
+<span class="sd">    &gt;&gt;&gt; &quot;sel3&quot; in dir(selections)</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; del selections.sel3</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: The actual Selections object handles neither a normal attribute \</span>
+<span class="sd">nor a Selection object called `sel3` that could be deleted.</span>
+
+<span class="sd">    Attribute names must be consistent with the `name` attribute of the respective</span>
+<span class="sd">    |Selection| object:</span>
+
+<span class="sd">    &gt;&gt;&gt; selections.sel4 = sel3</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: To avoid inconsistencies when handling Selection objects as \</span>
+<span class="sd">attributes of a Selections object, attribute name and Selection name must be \</span>
+<span class="sd">identical.  However,  for selection `sel3` the given attribute name is `sel4`.</span>
+
+<span class="sd">    You can use item access alternatively:</span>
+
+<span class="sd">    &gt;&gt;&gt; selections[&quot;sel4&quot;]</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    KeyError: &#39;The actual Selections object does not handle a Selection object called \</span>
+<span class="sd">`sel4`.&#39;</span>
+<span class="sd">    &gt;&gt;&gt; selections[&quot;sel4&quot;] = Selection(&quot;sel4&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; selections[&quot;sel4&quot;]</span>
+<span class="sd">    Selection(&quot;sel4&quot;,</span>
+<span class="sd">              nodes=(),</span>
+<span class="sd">              elements=())</span>
+<span class="sd">    &gt;&gt;&gt; del selections[&quot;sel4&quot;]</span>
+<span class="sd">    &gt;&gt;&gt; del selections[&quot;sel4&quot;]</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    KeyError: &#39;The actual Selections object does not handle a Selection object called \</span>
+<span class="sd">`sel4` that could be deleted.&#39;</span>
+
+<span class="sd">    You can ask for the existence of specific |Selection| objects within a |Selections|</span>
+<span class="sd">    object both via its name and via the object itself:</span>
+
+<span class="sd">    &gt;&gt;&gt; sel1 in selections</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; &quot;sel1&quot; in selections</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; sel3 in selections</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; &quot;sel3&quot; in selections</span>
+<span class="sd">    False</span>
+
+<span class="sd">    Class |Selections| supports both the |iter| and |len| operators:</span>
+
+<span class="sd">    &gt;&gt;&gt; for selection in selections:</span>
+<span class="sd">    ...     print(selection.name)</span>
+<span class="sd">    sel1</span>
+<span class="sd">    sel2</span>
+<span class="sd">    &gt;&gt;&gt; len(selections)</span>
+<span class="sd">    2</span>
+
+<span class="sd">    For convenience, use the &quot;+&quot;, &quot;-&quot;, &quot;+=&quot;, and &quot;-=&quot; operators to compare and modify</span>
+<span class="sd">    |Selections| objects either based on single |Selection| objects or collections of</span>
+<span class="sd">    |Selection| objects:</span>
+
+<span class="sd">    &gt;&gt;&gt; larger = selections + sel3</span>
+<span class="sd">    &gt;&gt;&gt; smaller = selections - sel2</span>
+<span class="sd">    &gt;&gt;&gt; sorted(selections.names)</span>
+<span class="sd">    [&#39;sel1&#39;, &#39;sel2&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; sorted(larger.names)</span>
+<span class="sd">    [&#39;sel1&#39;, &#39;sel2&#39;, &#39;sel3&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; smaller.names</span>
+<span class="sd">    (&#39;sel1&#39;,)</span>
+
+<span class="sd">    &gt;&gt;&gt; smaller += larger</span>
+<span class="sd">    &gt;&gt;&gt; sorted(smaller.names)</span>
+<span class="sd">    [&#39;sel1&#39;, &#39;sel2&#39;, &#39;sel3&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; smaller -= sel1, sel2</span>
+<span class="sd">    &gt;&gt;&gt; smaller.names</span>
+<span class="sd">    (&#39;sel3&#39;,)</span>
+
+<span class="sd">    Note that trying to remove non-existing |Selection| objects does not raise errors:</span>
+
+<span class="sd">    &gt;&gt;&gt; smaller -= sel2</span>
+<span class="sd">    &gt;&gt;&gt; smaller.names</span>
+<span class="sd">    (&#39;sel3&#39;,)</span>
+<span class="sd">    &gt;&gt;&gt; smaller - (sel1, sel2, sel3)</span>
+<span class="sd">    Selections()</span>
+
+<span class="sd">    The binary operators do not support types other than the mentioned ones:</span>
+
+<span class="sd">    &gt;&gt;&gt; smaller -= &quot;sel3&quot;</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: Binary operations on Selections objects are defined for other \</span>
+<span class="sd">Selections objects, single Selection objects, or iterables containing `Selection` \</span>
+<span class="sd">objects, but the type of the given argument is `str`.</span>
+<span class="sd">    &gt;&gt;&gt; smaller -= 1   # doctest: +ELLIPSIS</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    TypeError: ... is `int`.</span>
+
+<span class="sd">    Use the &quot;==&quot; operator to compare two |Selections| objects:</span>
+
+<span class="sd">    &gt;&gt;&gt; larger == smaller</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; larger == (smaller + selections)</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; larger == (sel1, sel2, sel3)</span>
+<span class="sd">    False</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">selections</span><span class="p">:</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Selection</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_selections</span><span class="p">(</span><span class="o">*</span><span class="n">selections</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The names of the actual |Selection| objects.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Selection, Selections</span>
+<span class="sd">        &gt;&gt;&gt; selections = Selections(</span>
+<span class="sd">        ...     Selection(&quot;sel1&quot;, [&quot;node1&quot;, &quot;node2&quot;], [&quot;element1&quot;]),</span>
+<span class="sd">        ...     Selection(&quot;sel2&quot;, [&quot;node1&quot;, &quot;node3&quot;], [&quot;element2&quot;]))</span>
+<span class="sd">        &gt;&gt;&gt; sorted(selections.names)</span>
+<span class="sd">        [&#39;sel1&#39;, &#39;sel2&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The |Node| objects of all handled |Selection| objects.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Selection, Selections</span>
+<span class="sd">        &gt;&gt;&gt; selections = Selections(</span>
+<span class="sd">        ...     Selection(&quot;sel1&quot;, [&quot;node1&quot;, &quot;node2&quot;], [&quot;element1&quot;]),</span>
+<span class="sd">        ...     Selection(&quot;sel2&quot;, [&quot;node1&quot;, &quot;node3&quot;], [&quot;element2&quot;]))</span>
+<span class="sd">        &gt;&gt;&gt; selections.nodes</span>
+<span class="sd">        Nodes(&quot;node1&quot;, &quot;node2&quot;, &quot;node3&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">selection</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">nodes</span> <span class="o">+=</span> <span class="n">selection</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="k">return</span> <span class="n">nodes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">elements</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The |Element| objects of all handled |Selection| objects.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Selection, Selections</span>
+<span class="sd">        &gt;&gt;&gt; selections = Selections(</span>
+<span class="sd">        ...     Selection(&quot;sel1&quot;, [&quot;node1&quot;], [&quot;element1&quot;]),</span>
+<span class="sd">        ...     Selection(&quot;sel2&quot;, [&quot;node1&quot;], [&quot;element2&quot;, &quot;element3&quot;]))</span>
+<span class="sd">        &gt;&gt;&gt; selections.elements</span>
+<span class="sd">        Elements(&quot;element1&quot;, &quot;element2&quot;, &quot;element3&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">elements</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">selection</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">elements</span> <span class="o">+=</span> <span class="n">selection</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="n">elements</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">complete</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;An automatically created selection that comprises the nodes and elements of</span>
+<span class="sd">        all currently available, user-defined selections.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Selection, Selections</span>
+<span class="sd">        &gt;&gt;&gt; selections = Selections(</span>
+<span class="sd">        ...     Selection(&quot;sel1&quot;, [&quot;node1&quot;], [&quot;element1&quot;]),</span>
+<span class="sd">        ...     Selection(&quot;sel2&quot;, [&quot;node1&quot;], [&quot;element2&quot;, &quot;element3&quot;]))</span>
+<span class="sd">        &gt;&gt;&gt; selections.complete</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=&quot;node1&quot;,</span>
+<span class="sd">                  elements=(&quot;element1&quot;, &quot;element2&quot;, &quot;element3&quot;))</span>
+
+<span class="sd">        The selection |Selections.complete| is always freshly created and so reflects</span>
+<span class="sd">        the current state |Selections| instance:</span>
+
+<span class="sd">        &gt;&gt;&gt; selections.sel1.nodes.add_device(&quot;node2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; selections.complete</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=(&quot;node1&quot;, &quot;node2&quot;),</span>
+<span class="sd">                  elements=(&quot;element1&quot;, &quot;element2&quot;, &quot;element3&quot;))</span>
+
+<span class="sd">        Therefore, changing the |Selection| object returned by property</span>
+<span class="sd">        |Selections.complete| does neither change the |Selections| object nor</span>
+<span class="sd">        subsequentially returned |Selections.complete| selections:</span>
+
+<span class="sd">        &gt;&gt;&gt; selections.complete.nodes.add_device(&quot;node3&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; assert &quot;node3&quot; not in selections.nodes</span>
+<span class="sd">        &gt;&gt;&gt; selections.complete</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=(&quot;node1&quot;, &quot;node2&quot;),</span>
+<span class="sd">                  elements=(&quot;element1&quot;, &quot;element2&quot;, &quot;element3&quot;))</span>
+
+<span class="sd">        Item access is provided:</span>
+
+<span class="sd">        &gt;&gt;&gt; assert selections[&quot;complete&quot;] == selections.complete</span>
+
+<span class="sd">        Selection |Selections.complete| is ignored when iterating through the</span>
+<span class="sd">        user-defined selections:</span>
+
+<span class="sd">        &gt;&gt;&gt; assert len(selections) == 2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Selection</span><span class="p">(</span><span class="s2">&quot;complete&quot;</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">elements</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Selections.add_selections">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selections.add_selections">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_selections</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">selections</span><span class="p">:</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the given |Selection| object(s) to the current |Selections| object.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Selection, Selections</span>
+<span class="sd">        &gt;&gt;&gt; selections = Selections(Selection(&quot;sel1&quot;, [&quot;node1&quot;], [&quot;element1&quot;]))</span>
+<span class="sd">        &gt;&gt;&gt; selections.add_selections(</span>
+<span class="sd">        ...     Selection(&quot;sel2&quot;, [&quot;node1&quot;], [&quot;element2&quot;, &quot;element3&quot;]),</span>
+<span class="sd">        ...     Selection(&quot;sel3&quot;, [&quot;node2&quot;], []))</span>
+<span class="sd">        &gt;&gt;&gt; selections</span>
+<span class="sd">        Selections(&quot;sel1&quot;, &quot;sel2&quot;, &quot;sel3&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; selections.nodes</span>
+<span class="sd">        Nodes(&quot;node1&quot;, &quot;node2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; selections.elements</span>
+<span class="sd">        Elements(&quot;element1&quot;, &quot;element2&quot;, &quot;element3&quot;)</span>
+
+<span class="sd">        |Selections| rejects any |Selection| objects named `complete` to avoid conflicts</span>
+<span class="sd">        with the automatically created |Selections.complete| selection:</span>
+
+<span class="sd">        &gt;&gt;&gt; selections.add_selections(Selection(&quot;complete&quot;))</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        ValueError: You cannot assign a selection with the name `complete` to a \</span>
+<span class="sd">`Selections` object because it would conflict with the selection automatically \</span>
+<span class="sd">created by its property `Selections.complete`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">selection</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">selection</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;complete&quot;</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;You cannot assign a selection with the name `complete` to a &quot;</span>
+                    <span class="s2">&quot;`Selections` object because it would conflict with the selection &quot;</span>
+                    <span class="s2">&quot;automatically created by its property `Selections.complete`.&quot;</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="p">[</span><span class="n">selection</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">selection</span></div>
+
+
+<div class="viewcode-block" id="Selections.remove_selections">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selections.remove_selections">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_selections</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">selections</span><span class="p">:</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove the given |Selection| object(s) from the current |Selections| object.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Selection, Selections</span>
+<span class="sd">        &gt;&gt;&gt; selections = Selections(</span>
+<span class="sd">        ...     Selection(&quot;sel1&quot;, [&quot;node1&quot;], [&quot;element1&quot;]),</span>
+<span class="sd">        ...     Selection(&quot;sel2&quot;, [&quot;node1&quot;], [&quot;element2&quot;, &quot;element3&quot;]))</span>
+<span class="sd">        &gt;&gt;&gt; selections.remove_selections(</span>
+<span class="sd">        ...     Selection(&quot;sel3&quot;, [&quot;node2&quot;], []), selections[&quot;sel1&quot;])</span>
+<span class="sd">        &gt;&gt;&gt; selections</span>
+<span class="sd">        Selections(&quot;sel2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; selections.nodes</span>
+<span class="sd">        Nodes(&quot;node1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; selections.elements</span>
+<span class="sd">        Elements(&quot;element2&quot;, &quot;element3&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">selection</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="n">selection</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Selections.find">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selections.find">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selections</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return all |Selection| objects containing the given |Node| or |Element|</span>
+<span class="sd">        object.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Elements, Nodes, Selection, Selections</span>
+<span class="sd">        &gt;&gt;&gt; nodes = Nodes(&quot;n1&quot;, &quot;n2&quot;, &quot;n3&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; elements = Elements(&quot;e1&quot;, &quot;e2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; selections = Selections(</span>
+<span class="sd">        ...     Selection(&quot;s1&quot;, [&quot;n1&quot;, &quot;n2&quot;], [&quot;e1&quot;]),</span>
+<span class="sd">        ...     Selection(&quot;s2&quot;, [&quot;n1&quot;]))</span>
+<span class="sd">        &gt;&gt;&gt; selections.find(nodes.n1)</span>
+<span class="sd">        Selections(&quot;s1&quot;, &quot;s2&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; selections.find(nodes.n2)</span>
+<span class="sd">        Selections(&quot;s1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; selections.find(nodes.n3)</span>
+<span class="sd">        Selections()</span>
+<span class="sd">        &gt;&gt;&gt; selections.find(elements.e1)</span>
+<span class="sd">        Selections(&quot;s1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; selections.find(elements.e2)</span>
+<span class="sd">        Selections()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="s2">&quot;nodes&quot;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;elements&quot;</span>
+        <span class="n">selections</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">selection</span> <span class="k">for</span> <span class="n">selection</span> <span class="ow">in</span> <span class="bp">self</span> <span class="k">if</span> <span class="n">device</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">selection</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">Selections</span><span class="p">(</span><span class="o">*</span><span class="n">selections</span><span class="p">)</span></div>
+
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">query_intersections</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">selection2element</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">=</span> <span class="o">...</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Selection</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Selection</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">]]:</span> <span class="o">...</span>
+
+    <span class="nd">@overload</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">query_intersections</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">selection2element</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">,</span> <span class="n">Selections</span><span class="p">]:</span> <span class="o">...</span>
+
+<div class="viewcode-block" id="Selections.query_intersections">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selections.query_intersections">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">query_intersections</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">selection2element</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span>
+        <span class="nb">dict</span><span class="p">[</span><span class="n">Selection</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Selection</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">]]</span>
+        <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">,</span> <span class="n">Selections</span><span class="p">]</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A dictionary covering all cases where one |Element| object is a member of</span>
+<span class="sd">        multiple |Selection| objects.</span>
+
+<span class="sd">        The dictionary&#39;s structure depends on the value of the optional argument</span>
+<span class="sd">        `selection2element`.  See method |Selections.print_intersections| for an</span>
+<span class="sd">        example.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">selection2element</span><span class="p">:</span>
+            <span class="n">intersections</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Selection</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Selection</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">selection1</span><span class="p">,</span> <span class="n">selection2</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">intersection</span> <span class="o">=</span> <span class="n">selection1</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="o">*</span><span class="n">selection2</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">intersection</span><span class="p">:</span>
+                    <span class="n">intersections</span><span class="p">[</span><span class="n">selection1</span><span class="p">][</span><span class="n">selection2</span><span class="p">]</span> <span class="o">=</span> <span class="n">intersection</span>
+                    <span class="n">intersections</span><span class="p">[</span><span class="n">selection2</span><span class="p">][</span><span class="n">selection1</span><span class="p">]</span> <span class="o">=</span> <span class="n">intersection</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">intersections</span><span class="p">)</span>
+        <span class="n">intersections_</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">,</span> <span class="n">Selections</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+            <span class="n">selections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">selections</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">intersections_</span><span class="p">[</span><span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="n">selections</span>
+        <span class="k">return</span> <span class="n">intersections_</span></div>
+
+
+<div class="viewcode-block" id="Selections.print_intersections">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selections.print_intersections">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">print_intersections</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selection2element</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Print the result of method |Selections.query_intersections|.</span>
+
+<span class="sd">        We use method |Selections.print_intersections| to check if any combination of</span>
+<span class="sd">        the following selections handles the same elements.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Selection, Selections</span>
+<span class="sd">        &gt;&gt;&gt; selections = Selections(</span>
+<span class="sd">        ...     Selection(&quot;s1&quot;, nodes=&quot;n1&quot;,elements=(&quot;e1&quot;, &quot;e2&quot;, &quot;e3&quot;)),</span>
+<span class="sd">        ...     Selection(&quot;s2&quot;, nodes=&quot;n1&quot;, elements=(&quot;e2&quot;, &quot;e3&quot;, &quot;e4&quot;)),</span>
+<span class="sd">        ...     Selection(&quot;s3&quot;, nodes=&quot;n1&quot;, elements=&quot;e3&quot;),</span>
+<span class="sd">        ...     Selection(&quot;s4&quot;, nodes=&quot;n1&quot;, elements=(&quot;e5&quot;, &quot;e6&quot;)),</span>
+<span class="sd">        ... )</span>
+
+<span class="sd">        If we call method |Selections.print_intersections| with argument</span>
+<span class="sd">        `selection2element` |True|, we find out which selection intersects with which</span>
+<span class="sd">        other and which elements are affected:</span>
+
+<span class="sd">        &gt;&gt;&gt; selections.print_intersections()</span>
+<span class="sd">        selection s1 intersects with...</span>
+<span class="sd">           ...selection s2 due to the following elements: e2 and e3</span>
+<span class="sd">           ...selection s3 due to the following elements: e3</span>
+<span class="sd">        selection s2 intersects with...</span>
+<span class="sd">           ...selection s1 due to the following elements: e2 and e3</span>
+<span class="sd">           ...selection s3 due to the following elements: e3</span>
+<span class="sd">        selection s3 intersects with...</span>
+<span class="sd">           ...selection s1 due to the following elements: e3</span>
+<span class="sd">           ...selection s2 due to the following elements: e3</span>
+
+<span class="sd">        If we call method |Selections.print_intersections| with argument</span>
+<span class="sd">        `selection2element` |False|, we find out which element occurs multiple times in</span>
+<span class="sd">        which selections:</span>
+
+<span class="sd">        &gt;&gt;&gt; selections.print_intersections(selection2element=False)</span>
+<span class="sd">        element e2 is a member of multiple selections: s1 and s2</span>
+<span class="sd">        element e3 is a member of multiple selections: s1, s2, and s3</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">selection2element</span><span class="p">:</span>
+            <span class="n">intersections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_intersections</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">selection1</span><span class="p">,</span> <span class="n">selection2elements</span> <span class="ow">in</span> <span class="n">intersections</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;selection&quot;</span><span class="p">,</span> <span class="n">selection1</span><span class="p">,</span> <span class="s2">&quot;intersects with...&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">selection2</span><span class="p">,</span> <span class="n">elements</span> <span class="ow">in</span> <span class="n">selection2elements</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;   ...selection&quot;</span><span class="p">,</span>
+                        <span class="n">selection2</span><span class="p">,</span>
+                        <span class="s2">&quot;due to the following elements:&quot;</span><span class="p">,</span>
+                        <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">elements</span><span class="o">.</span><span class="n">names</span><span class="p">),</span>
+                    <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">intersections_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_intersections</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">element</span><span class="p">,</span> <span class="n">selections</span> <span class="ow">in</span> <span class="n">intersections_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;element&quot;</span><span class="p">,</span>
+                    <span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s2">&quot;is a member of multiple selections:&quot;</span><span class="p">,</span>
+                    <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">selections</span><span class="o">.</span><span class="n">names</span><span class="p">),</span>
+                <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The actual Selections object handles neither a normal attribute nor &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;a Selection object called `</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">`.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Selection</span><span class="p">):</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The actual Selections object handles neither a normal attribute nor &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;a Selection object called `</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">` that could be deleted.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;complete&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">complete</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The actual Selections object does not handle a Selection object &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;called `</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">`.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="n">value</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;To avoid inconsistencies when handling Selection objects as &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;attributes of a Selections object, attribute name and Selection &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;name must be identical.  However,  for selection `</span><span class="si">{</span><span class="n">value</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` the &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;given attribute name is `</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">`.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_selections</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The actual Selections object does not handle a Selection object &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;called `</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">` that could be deleted.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Selection</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__getiterable</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Mayberable1</span><span class="p">[</span><span class="n">Selection</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Selection</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Try to convert the given argument to a |list| of  |Selection| objects and</span>
+<span class="sd">        return it.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">objecttools</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="n">Selection</span><span class="p">,)))</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Binary operations on Selections objects are defined for other &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Selections objects, single Selection objects, or iterables &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;containing `Selection` objects, but the type of the given argument &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;is `</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`.&quot;</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Mayberable1</span><span class="p">[</span><span class="n">Selection</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Selections</span><span class="p">:</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">new</span><span class="o">.</span><span class="n">add_selections</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">__getiterable</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">new</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Mayberable1</span><span class="p">[</span><span class="n">Selection</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Selections</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_selections</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">__getiterable</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Mayberable1</span><span class="p">[</span><span class="n">Selection</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Selections</span><span class="p">:</span>
+        <span class="n">selections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getiterable</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">selection</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">new</span><span class="p">[</span><span class="n">selection</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">new</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__isub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Mayberable1</span><span class="p">[</span><span class="n">Selection</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Selections</span><span class="p">:</span>
+        <span class="n">selections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getiterable</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">selection</span> <span class="ow">in</span> <span class="n">selections</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="p">[</span><span class="n">selection</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">Selection</span><span class="p">,</span> <span class="n">Selections</span><span class="p">,</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">HydPy</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selections</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">__selections</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assignrepr</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Selections.assignrepr">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selections.assignrepr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assignrepr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a |repr| string with a prefixed assignment.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="o">.</span><span class="n">preserve_strings</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span>
+            <span class="k">with</span> <span class="n">options</span><span class="o">.</span><span class="n">ellipsis</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(&quot;</span>
+                <span class="k">return</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_values</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">),</span><span class="w"> </span><span class="n">prefix</span><span class="p">,</span><span class="w"> </span><span class="mi">70</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Selection">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Selection</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles and modifies combinations of |Node| and |Element| objects.</span>
+
+<span class="sd">    In *HydPy*, |Node|, and |Element| objects are the fundamental means to structure</span>
+<span class="sd">    projects.  However, keeping the overview of huge projects involving thousands of</span>
+<span class="sd">    nodes and elements requires additional strategies.</span>
+
+<span class="sd">    One such strategy is to define different instances of class |Selection| for</span>
+<span class="sd">    different aspects of a project.  Often, a selection contains all nodes and elements</span>
+<span class="sd">    of a certain subcatchment or all elements handling certain model types. Selections</span>
+<span class="sd">    can be overlapping, meaning, for example, that an element can be part of a</span>
+<span class="sd">    subcatchment selection and of model-type selection at the same time.</span>
+
+<span class="sd">    Selections can be written to and read from individual network files, as explained</span>
+<span class="sd">    in the documentation on class |NetworkManager|.  Read selections are available via</span>
+<span class="sd">    the |pub| module.  In most application scripts (e.g. for parameter calibration),</span>
+<span class="sd">    one performs different operations on the nodes and elements of the different</span>
+<span class="sd">    selections (e.g. change parameter &quot;a&quot; and &quot;b&quot; for models of selection &quot;x&quot; and &quot;y&quot;,</span>
+<span class="sd">    respectively).  However, class |Selection| also provides features for creating</span>
+<span class="sd">    combinations of |Node| and |Element| objects suitable for different tasks, as</span>
+<span class="sd">    explained in the documentation of the respective methods.  Here we only show its</span>
+<span class="sd">    basic usage with the help of the `HydPy-H-Lahn` example project prepared by</span>
+<span class="sd">    function |prepare_full_example_2|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.core.testtools import prepare_full_example_2</span>
+<span class="sd">    &gt;&gt;&gt; _, pub, _ = prepare_full_example_2()</span>
+
+<span class="sd">    For example, `HydPy-H-Lahn` defines a `headwaters` selection:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters</span>
+<span class="sd">    Selection(&quot;headwaters&quot;,</span>
+<span class="sd">              nodes=(&quot;dill_assl&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">              elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_marb&quot;))</span>
+
+<span class="sd">    You can compare this selection with other new or already available selections, with</span>
+<span class="sd">    &quot;headwaters &lt; complete&quot; returning |True| meaning that all nodes and elements of the</span>
+<span class="sd">    headwater catchments are also part of the entire catchment:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Selection</span>
+<span class="sd">    &gt;&gt;&gt; test = Selection(&quot;test&quot;,</span>
+<span class="sd">    ...                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_marb&quot;),</span>
+<span class="sd">    ...                  nodes=(&quot;dill_assl&quot;, &quot;lahn_marb&quot;))</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters &lt; test</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters &lt;= test</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters == test</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters != test</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters &gt;= test</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters &gt; test</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters &lt; pub.selections.complete</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters &lt;= pub.selections.complete</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters == pub.selections.complete</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters != pub.selections.complete</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters &gt;= pub.selections.complete</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; pub.selections.headwaters &gt; pub.selections.complete</span>
+<span class="sd">    False</span>
+
+<span class="sd">    The |len| operator returns the total number of handled node and element objects:</span>
+
+<span class="sd">    &gt;&gt;&gt; len(test)</span>
+<span class="sd">    4</span>
+
+<span class="sd">    Use the &quot;+=&quot; and &quot;-=&quot; operators to add or remove nodes and elements:</span>
+
+<span class="sd">    &gt;&gt;&gt; test += pub.selections.complete</span>
+<span class="sd">    &gt;&gt;&gt; len(test)</span>
+<span class="sd">    11</span>
+<span class="sd">    &gt;&gt;&gt; test -= pub.selections.complete</span>
+<span class="sd">    &gt;&gt;&gt; len(test)</span>
+<span class="sd">    0</span>
+
+<span class="sd">    Passing a wrong argument to the binary operators results in errors like the</span>
+<span class="sd">    following:</span>
+
+<span class="sd">    &gt;&gt;&gt; test += 1</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: While trying to add selection `test` with object `1` of type \</span>
+<span class="sd">`int`, the following error occurred: &#39;int&#39; object has no attribute &#39;nodes&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test -= pub.selections.complete.nodes.dill_assl</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: While trying to subtract selection `test` with object `dill_assl` \</span>
+<span class="sd">of type `Node`, the following error occurred: &#39;Node&#39; object has no attribute &#39;nodes&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test &lt; &quot;wrong&quot;</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    AttributeError: While trying to compare selection `test` with object `wrong` of \</span>
+<span class="sd">type `str`, the following error occurred: &#39;str&#39; object has no attribute &#39;nodes&#39;</span>
+
+<span class="sd">    But as usual, checking for equality or inequality returns |False| and |True| for</span>
+<span class="sd">    uncomparable objects:</span>
+
+<span class="sd">    &gt;&gt;&gt; test == &quot;wrong&quot;</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; test != &quot;wrong&quot;</span>
+<span class="sd">    True</span>
+
+<span class="sd">    Applying the |str| function only returns the selection name:</span>
+
+<span class="sd">    &gt;&gt;&gt; str(test)</span>
+<span class="sd">    &#39;test&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The selection&#39;s name.&quot;&quot;&quot;</span>
+    <span class="n">nodes</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The explicitly handled |Node| objects (m).</span>
+<span class="sd">    </span>
+<span class="sd">    |Selection.nodes| does not necessarily contain all nodes to which the elements in </span>
+<span class="sd">    |Selection.elements| are linked.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">elements</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The explicitly handled |Element| objects.</span>
+<span class="sd">    </span>
+<span class="sd">    |Selection.elements| does not necessarily contain all nodes to which the elements </span>
+<span class="sd">    in |Selection.nodes| are linked.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">nodes</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodesConstrArg</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">elements</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">ElementsConstrArg</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">(</span><span class="n">elements</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_device</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">TypeNodeElement</span><span class="p">,</span> <span class="n">type_of_device</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">TypeNodeElement</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">device</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">device</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Either a `Node` or an `Element` object is required as the &quot;</span>
+            <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">type_of_device</span><span class="si">}</span><span class="s1"> device&quot;, but the given `device` value is of type &#39;</span>
+            <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">`.&quot;</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Selection.search_upstream">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.search_upstream">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search_upstream</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;upstream&quot;</span><span class="p">,</span>
+        <span class="n">inclusive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the network upstream of the given starting point, including the</span>
+<span class="sd">        starting point itself.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.testtools import prepare_full_example_2</span>
+<span class="sd">        &gt;&gt;&gt; hp, pub, _ = prepare_full_example_2()</span>
+
+<span class="sd">        You can pass both |Node| and |Element| objects and, optionally, the name of the</span>
+<span class="sd">        newly created |Selection| object:</span>
+
+<span class="sd">        &gt;&gt;&gt; test = pub.selections.complete.copy(&quot;test&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; test.search_upstream(hp.nodes.lahn_leun)</span>
+<span class="sd">        Selection(&quot;upstream&quot;,</span>
+<span class="sd">                  nodes=(&quot;dill_assl&quot;, &quot;lahn_leun&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;land_lahn_marb&quot;, &quot;stream_dill_assl_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; test.search_upstream(hp.elements.stream_lahn_marb_lahn_leun, &quot;UPSTREAM&quot;)</span>
+<span class="sd">        Selection(&quot;UPSTREAM&quot;,</span>
+<span class="sd">                  nodes=(&quot;lahn_leun&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=(&quot;land_lahn_marb&quot;, &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+
+<span class="sd">        Method |Selection.search_upstream| generally selects all |Node| objects</span>
+<span class="sd">        directly connected to any upstream |Element| object.  Set the `inclusive`</span>
+<span class="sd">        argument to |False| to circumvent this:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.search_upstream(hp.elements.stream_lahn_marb_lahn_leun, &quot;UPSTREAM&quot;,</span>
+<span class="sd">        ...                      False)</span>
+<span class="sd">        Selection(&quot;UPSTREAM&quot;,</span>
+<span class="sd">                  nodes=&quot;lahn_marb&quot;,</span>
+<span class="sd">                  elements=(&quot;land_lahn_marb&quot;, &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+
+<span class="sd">        Wrong device specifications result in errors like the following:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.search_upstream(1)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        TypeError: While trying to determine an upstream network of selection `test`, \</span>
+<span class="sd">the following error occurred: Either a `Node` or an `Element` object is required as \</span>
+<span class="sd">the &quot;outlet device&quot;, but the given `device` value is of type `int`.</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.selections.headwaters.search_upstream(hp.nodes.lahn_kalk)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        KeyError: &quot;While trying to determine an upstream network of selection \</span>
+<span class="sd">`headwaters`, the following error occurred: &#39;No node named `lahn_kalk` available.&#39;&quot;</span>
+
+<span class="sd">        Method |Selection.select_upstream| restricts the current selection to the one</span>
+<span class="sd">        determined with the method |Selection.search_upstream|:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.select_upstream(hp.nodes.lahn_leun)</span>
+<span class="sd">        Selection(&quot;test&quot;,</span>
+<span class="sd">                  nodes=(&quot;dill_assl&quot;, &quot;lahn_leun&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;land_lahn_marb&quot;, &quot;stream_dill_assl_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+
+<span class="sd">        On the contrary, the method |Selection.deselect_upstream| restricts the current</span>
+<span class="sd">        selection to all devices not determined by method |Selection.search_upstream|:</span>
+
+<span class="sd">        &gt;&gt;&gt; complete = pub.selections.complete.deselect_upstream(hp.nodes.lahn_leun)</span>
+<span class="sd">        &gt;&gt;&gt; complete</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=&quot;lahn_kalk&quot;,</span>
+<span class="sd">                  elements=(&quot;land_lahn_kalk&quot;, &quot;stream_lahn_leun_lahn_kalk&quot;))</span>
+
+<span class="sd">        If necessary, include the &quot;outlet device&quot; manually afterwards:</span>
+
+<span class="sd">        &gt;&gt;&gt; complete.nodes.add_device(hp.nodes.lahn_leun)</span>
+<span class="sd">        &gt;&gt;&gt; complete</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=(&quot;lahn_kalk&quot;, &quot;lahn_leun&quot;),</span>
+<span class="sd">                  elements=(&quot;land_lahn_kalk&quot;, &quot;stream_lahn_leun_lahn_kalk&quot;))</span>
+
+<span class="sd">        Method |Selection.search_downstream| generally selects all |Node| objects</span>
+<span class="sd">        directly connected to any upstream |Element| object.  Set the `inclusive`</span>
+<span class="sd">        argument to |False| to circumvent this:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Element, Nodes, Selection</span>
+<span class="sd">        &gt;&gt;&gt; nodes = Nodes(</span>
+<span class="sd">        ...     &quot;inlet&quot;, &quot;outlet1&quot;, &quot;outlet2&quot;, &quot;input_&quot;, &quot;output&quot;, &quot;receiver&quot;, &quot;sender&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; upper = Element(&quot;upper&quot;,</span>
+<span class="sd">        ...                 inlets=nodes.inlet, outlets=(nodes.outlet1, nodes.outlet2),</span>
+<span class="sd">        ...                 inputs=nodes.input_, outputs=nodes.output,</span>
+<span class="sd">        ...                 receivers=nodes.receiver, senders=nodes.sender)</span>
+<span class="sd">        &gt;&gt;&gt; test = Selection(&quot;test&quot;, nodes=nodes, elements=upper)</span>
+<span class="sd">        &gt;&gt;&gt; test.search_upstream(nodes.outlet1, inclusive=True)</span>
+<span class="sd">        Selection(&quot;upstream&quot;,</span>
+<span class="sd">                  nodes=(&quot;inlet&quot;, &quot;input_&quot;, &quot;outlet1&quot;, &quot;outlet2&quot;, &quot;output&quot;,</span>
+<span class="sd">                         &quot;receiver&quot;, &quot;sender&quot;),</span>
+<span class="sd">                  elements=&quot;upper&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; test.search_upstream(nodes.outlet1, inclusive=False)</span>
+<span class="sd">        Selection(&quot;upstream&quot;,</span>
+<span class="sd">                  nodes=(&quot;inlet&quot;, &quot;input_&quot;, &quot;outlet1&quot;),</span>
+<span class="sd">                  elements=&quot;upper&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_device</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="s2">&quot;outlet&quot;</span><span class="p">)</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">create_directedgraph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+            <span class="n">devices</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">ancestors</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">devices</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">selection</span> <span class="o">=</span> <span class="n">Selection</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">nodes</span><span class="o">=</span><span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">devices</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">)],</span>
+                <span class="n">elements</span><span class="o">=</span><span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">devices</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">)],</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">inclusive</span><span class="p">:</span>
+                <span class="n">add_device</span> <span class="o">=</span> <span class="n">selection</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">add_device</span>
+                <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">selection</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="p">(</span>
+                        <span class="n">element</span><span class="o">.</span><span class="n">outlets</span><span class="p">,</span>
+                        <span class="n">element</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span>
+                        <span class="n">element</span><span class="o">.</span><span class="n">receivers</span><span class="p">,</span>
+                        <span class="n">element</span><span class="o">.</span><span class="n">senders</span><span class="p">,</span>
+                    <span class="p">):</span>
+                        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                            <span class="n">add_device</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">selection</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to determine an upstream network of selection &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Selection.select_upstream">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.select_upstream">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_upstream</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="n">inclusive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restrict the current selection to the network upstream of the given starting</span>
+<span class="sd">        point, including the starting point itself.</span>
+
+<span class="sd">        See the documentation on method |Selection.search_upstream| for additional</span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">upstream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_upstream</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">inclusive</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Selection.deselect_upstream">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.deselect_upstream">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deselect_upstream</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="n">inclusive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove the network upstream of the given starting point from the current</span>
+<span class="sd">        selection, including the starting point itself.</span>
+
+<span class="sd">        See the documentation on method |Selection.search_upstream| for additional</span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">upstream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_upstream</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">inclusive</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">-=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">-=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Selection.search_downstream">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.search_downstream">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search_downstream</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;downstream&quot;</span><span class="p">,</span>
+        <span class="n">inclusive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the network downstream of the given starting point, including the</span>
+<span class="sd">        starting point itself.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.testtools import prepare_full_example_2</span>
+<span class="sd">        &gt;&gt;&gt; hp, pub, _ = prepare_full_example_2()</span>
+
+<span class="sd">        You can pass both |Node| and |Element| objects and, optionally, the name of the</span>
+<span class="sd">        newly created |Selection| object:</span>
+
+<span class="sd">        &gt;&gt;&gt; test = pub.selections.complete.copy(&quot;test&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; test.search_downstream(hp.nodes.lahn_marb)</span>
+<span class="sd">        Selection(&quot;downstream&quot;,</span>
+<span class="sd">                  nodes=(&quot;lahn_kalk&quot;, &quot;lahn_leun&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=(&quot;stream_lahn_leun_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; test.search_downstream(hp.elements.land_lahn_marb, &quot;DOWNSTREAM&quot;)</span>
+<span class="sd">        Selection(&quot;DOWNSTREAM&quot;,</span>
+<span class="sd">                  nodes=(&quot;lahn_kalk&quot;, &quot;lahn_leun&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=(&quot;land_lahn_marb&quot;, &quot;stream_lahn_leun_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+
+<span class="sd">        Wrong device specifications result in errors like the following:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.search_downstream(1)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        TypeError: While trying to determine a downstream network of selection \</span>
+<span class="sd">`test`, the following error occurred: Either a `Node` or an `Element` object is \</span>
+<span class="sd">required as the &quot;inlet device&quot;, but the given `device` value is of type `int`.</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.selections.headwaters.search_downstream(hp.nodes.lahn_kalk)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        KeyError: &quot;While trying to determine a downstream network of selection \</span>
+<span class="sd">`headwaters`, the following error occurred: &#39;No node named `lahn_kalk` available.&#39;&quot;</span>
+
+<span class="sd">        Method |Selection.select_downstream| restricts the current selection to the one</span>
+<span class="sd">        determined with the method |Selection.search_upstream|:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.select_downstream(hp.nodes.lahn_marb)</span>
+<span class="sd">        Selection(&quot;test&quot;,</span>
+<span class="sd">                  nodes=(&quot;lahn_kalk&quot;, &quot;lahn_leun&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=(&quot;stream_lahn_leun_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+
+<span class="sd">        On the contrary, the method |Selection.deselect_downstream| restricts the</span>
+<span class="sd">        current selection to all devices not determined by method</span>
+<span class="sd">        |Selection.search_downstream|:</span>
+
+<span class="sd">        &gt;&gt;&gt; complete = pub.selections.complete.deselect_downstream(</span>
+<span class="sd">        ...     hp.nodes.lahn_marb)</span>
+<span class="sd">        &gt;&gt;&gt; complete</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=&quot;dill_assl&quot;,</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;land_lahn_leun&quot;, &quot;land_lahn_marb&quot;,</span>
+<span class="sd">                            &quot;stream_dill_assl_lahn_leun&quot;))</span>
+
+<span class="sd">        If necessary, include the &quot;inlet device&quot; manually afterwards:</span>
+
+<span class="sd">        &gt;&gt;&gt; complete.nodes.add_device(hp.nodes.lahn_marb)</span>
+<span class="sd">        &gt;&gt;&gt; complete</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=(&quot;dill_assl&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;land_lahn_leun&quot;, &quot;land_lahn_marb&quot;,</span>
+<span class="sd">                            &quot;stream_dill_assl_lahn_leun&quot;))</span>
+
+<span class="sd">        Method |Selection.search_downstream| generally selects all |Node| objects</span>
+<span class="sd">        directly connected to any upstream |Element| object.  Set the `inclusive`</span>
+<span class="sd">        argument to |False| to circumvent this:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Element, Nodes, Selection</span>
+<span class="sd">        &gt;&gt;&gt; nodes = Nodes(</span>
+<span class="sd">        ...     &quot;inlet1&quot;, &quot;inlet2&quot;, &quot;outlet&quot;, &quot;input_&quot;, &quot;output&quot;, &quot;receiver&quot;, &quot;sender&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; lower = Element(&quot;lower&quot;,</span>
+<span class="sd">        ...                 inlets=(nodes.inlet1, nodes.inlet2), outlets=nodes.outlet,</span>
+<span class="sd">        ...                 inputs=nodes.input_, outputs=nodes.output,</span>
+<span class="sd">        ...                 receivers=nodes.receiver, senders=nodes.sender)</span>
+<span class="sd">        &gt;&gt;&gt; test = Selection(&quot;test&quot;, nodes=nodes, elements=lower)</span>
+<span class="sd">        &gt;&gt;&gt; test.search_downstream(nodes.inlet1, inclusive=True)</span>
+<span class="sd">        Selection(&quot;downstream&quot;,</span>
+<span class="sd">                  nodes=(&quot;inlet1&quot;, &quot;inlet2&quot;, &quot;input_&quot;, &quot;outlet&quot;, &quot;output&quot;,</span>
+<span class="sd">                         &quot;receiver&quot;, &quot;sender&quot;),</span>
+<span class="sd">                  elements=&quot;lower&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; test.search_downstream(nodes.inlet1, inclusive=False)</span>
+<span class="sd">        Selection(&quot;downstream&quot;,</span>
+<span class="sd">                  nodes=(&quot;inlet1&quot;, &quot;outlet&quot;, &quot;output&quot;, &quot;sender&quot;),</span>
+<span class="sd">                  elements=&quot;lower&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">device</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_device</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="s2">&quot;inlet&quot;</span><span class="p">)</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">create_directedgraph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+            <span class="n">devices</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">descendants</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">devices</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">selection</span> <span class="o">=</span> <span class="n">Selection</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">nodes</span><span class="o">=</span><span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">devices</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">)],</span>
+                <span class="n">elements</span><span class="o">=</span><span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">devices</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">)],</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">inclusive</span><span class="p">:</span>
+                <span class="n">add_device</span> <span class="o">=</span> <span class="n">selection</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">add_device</span>
+                <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">selection</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="p">(</span>
+                        <span class="n">element</span><span class="o">.</span><span class="n">inlets</span><span class="p">,</span>
+                        <span class="n">element</span><span class="o">.</span><span class="n">inputs</span><span class="p">,</span>
+                        <span class="n">element</span><span class="o">.</span><span class="n">receivers</span><span class="p">,</span>
+                        <span class="n">element</span><span class="o">.</span><span class="n">senders</span><span class="p">,</span>
+                    <span class="p">):</span>
+                        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                            <span class="n">add_device</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">selection</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to determine a downstream network of selection &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Selection.select_downstream">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.select_downstream">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_downstream</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="n">inclusive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restrict the current selection to the network downstream of the given</span>
+<span class="sd">        starting point, including the starting point itself.</span>
+
+<span class="sd">        See the documentation on method |Selection.search_downstream| for additional</span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">downstream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_downstream</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">inclusive</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">downstream</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="n">downstream</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Selection.deselect_downstream">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.deselect_downstream">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deselect_downstream</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span> <span class="n">inclusive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove the network downstream of the given starting point from the current</span>
+<span class="sd">        selection, including the starting point itself.</span>
+
+<span class="sd">        See the documentation on method |Selection.search_downstream| for additional</span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">downstream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_downstream</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">inclusive</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">-=</span> <span class="n">downstream</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">-=</span> <span class="n">downstream</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Selection.search_modeltypes">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.search_modeltypes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search_modeltypes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">models</span><span class="p">:</span> <span class="n">ModelTypesArg</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;modeltypes&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a |Selection| object containing only the elements currently handling</span>
+<span class="sd">        models of the given types.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.testtools import prepare_full_example_2</span>
+<span class="sd">        &gt;&gt;&gt; hp, pub, _ = prepare_full_example_2()</span>
+
+<span class="sd">        You can pass both |Model| objects and names and, as a keyword argument, the</span>
+<span class="sd">        name of the newly created |Selection| object:</span>
+
+<span class="sd">        &gt;&gt;&gt; test = pub.selections.complete.copy(&quot;test&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">        &gt;&gt;&gt; hland_96 = prepare_model(&quot;hland_96&quot;)</span>
+
+<span class="sd">        &gt;&gt;&gt; test.search_modeltypes(hland_96)</span>
+<span class="sd">        Selection(&quot;modeltypes&quot;,</span>
+<span class="sd">                  nodes=(),</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;land_lahn_leun&quot;, &quot;land_lahn_marb&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; test.search_modeltypes(</span>
+<span class="sd">        ...     hland_96, &quot;musk_classic&quot;, &quot;lland_dd&quot;, name=&quot;MODELTYPES&quot;)</span>
+<span class="sd">        Selection(&quot;MODELTYPES&quot;,</span>
+<span class="sd">                  nodes=(),</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;land_lahn_leun&quot;, &quot;land_lahn_marb&quot;,</span>
+<span class="sd">                            &quot;stream_dill_assl_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_leun_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+
+<span class="sd">        Wrong model specifications result in errors like the following:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.search_modeltypes(&quot;wrong&quot;)</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        ModuleNotFoundError: While trying to determine the elements of selection \</span>
+<span class="sd">`test` handling the model defined by the argument(s) `wrong` of type(s) `str`, the \</span>
+<span class="sd">following error occurred: No module named &#39;hydpy.models.wrong&#39;</span>
+
+<span class="sd">        Method |Selection.select_modeltypes| restricts the current selection to the one</span>
+<span class="sd">        determined with the method the |Selection.search_modeltypes|:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.select_modeltypes(hland_96)</span>
+<span class="sd">        Selection(&quot;test&quot;,</span>
+<span class="sd">                  nodes=(),</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;land_lahn_leun&quot;, &quot;land_lahn_marb&quot;))</span>
+
+<span class="sd">        On the contrary, the method |Selection.deselect_upstream| restricts the current</span>
+<span class="sd">        selection to all devices not determined by method the</span>
+<span class="sd">        |Selection.search_upstream|:</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.selections.complete.deselect_modeltypes(hland_96)</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=(),</span>
+<span class="sd">                  elements=(&quot;stream_dill_assl_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_leun_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">typelist</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+                    <span class="n">model</span> <span class="o">=</span> <span class="n">importtools</span><span class="o">.</span><span class="n">prepare_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+                <span class="n">typelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
+            <span class="n">typetuple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">typelist</span><span class="p">)</span>
+            <span class="n">selection</span> <span class="o">=</span> <span class="n">Selection</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">typetuple</span><span class="p">):</span>
+                    <span class="n">selection</span><span class="o">.</span><span class="n">elements</span> <span class="o">+=</span> <span class="n">element</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">models</span><span class="p">)</span>
+            <span class="n">classes</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">models</span><span class="p">)</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to determine the elements of selection `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;handling the model defined by the argument(s) `</span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="s2">` of type(s) &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">classes</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">selection</span></div>
+
+
+<div class="viewcode-block" id="Selection.select_modeltypes">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.select_modeltypes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_modeltypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">models</span><span class="p">:</span> <span class="n">ModelTypesArg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restrict the current |Selection| object to all elements containing the given</span>
+<span class="sd">        model types (removes all nodes).</span>
+
+<span class="sd">        See the documentation on method |Selection.search_modeltypes| for additional</span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_modeltypes</span><span class="p">(</span><span class="o">*</span><span class="n">models</span><span class="p">)</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Selection.deselect_modeltypes">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.deselect_modeltypes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deselect_modeltypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">models</span><span class="p">:</span> <span class="n">ModelTypesArg</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restrict the current selection to all elements not containing the given</span>
+<span class="sd">        model types (removes all nodes).</span>
+
+<span class="sd">        See the documentation on method |Selection.search_modeltypes| for additional</span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_modeltypes</span><span class="p">(</span><span class="o">*</span><span class="n">models</span><span class="p">)</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Selection.search_nodenames">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.search_nodenames">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search_nodenames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">substrings</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;nodenames&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new selection containing all nodes of the current selection with a</span>
+<span class="sd">        name containing at least one of the given substrings.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.testtools import prepare_full_example_2</span>
+<span class="sd">        &gt;&gt;&gt; hp, pub, _ = prepare_full_example_2()</span>
+
+<span class="sd">        Pass the (sub)strings as positional arguments and, optionally, the name of the</span>
+<span class="sd">        newly created |Selection| object as a keyword argument:</span>
+
+<span class="sd">        &gt;&gt;&gt; test = pub.selections.complete.copy(&quot;test&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">        &gt;&gt;&gt; test.search_nodenames(&quot;dill_assl&quot;, &quot;lahn_marb&quot;)</span>
+<span class="sd">        Selection(&quot;nodenames&quot;,</span>
+<span class="sd">                  nodes=(&quot;dill_assl&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=())</span>
+
+<span class="sd">        Wrong string specifications result in errors like the following:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.search_nodenames([&quot;dill_assl&quot;, &quot;lahn_marb&quot;])</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        TypeError: While trying to determine the nodes of selection `test` with names \</span>
+<span class="sd">containing at least one of the given substrings `[&#39;dill_assl&#39;, &#39;lahn_marb&#39;]`, the \</span>
+<span class="sd">following error occurred: &#39;in &lt;string&gt;&#39; requires string as left operand, not list</span>
+
+<span class="sd">        Method |Selection.select_nodenames| restricts the current selection to the one</span>
+<span class="sd">        determined with the the method |Selection.search_nodenames|:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.select_nodenames(&quot;dill_assl&quot;, &quot;lahn_marb&quot;)</span>
+<span class="sd">        Selection(&quot;test&quot;,</span>
+<span class="sd">                  nodes=(&quot;dill_assl&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;land_lahn_leun&quot;, &quot;land_lahn_marb&quot;,</span>
+<span class="sd">                            &quot;stream_dill_assl_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_leun_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+
+<span class="sd">        On the contrary, the method |Selection.deselect_nodenames| restricts the</span>
+<span class="sd">        current selection to all devices not determined by the method</span>
+<span class="sd">        |Selection.search_nodenames|:</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.selections.complete.deselect_nodenames(&quot;dill_assl&quot;, &quot;lahn_marb&quot;)</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=(&quot;lahn_kalk&quot;, &quot;lahn_leun&quot;),</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;land_lahn_leun&quot;, &quot;land_lahn_marb&quot;,</span>
+<span class="sd">                            &quot;stream_dill_assl_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_leun_lahn_kalk&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">selection</span> <span class="o">=</span> <span class="n">Selection</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">substring</span> <span class="ow">in</span> <span class="n">substrings</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">substring</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                        <span class="n">selection</span><span class="o">.</span><span class="n">nodes</span> <span class="o">+=</span> <span class="n">node</span>
+                        <span class="k">break</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">substrings</span><span class="p">)</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to determine the nodes of selection `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` with &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;names containing at least one of the given substrings `</span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">selection</span></div>
+
+
+<div class="viewcode-block" id="Selection.select_nodenames">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.select_nodenames">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_nodenames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">substrings</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restrict the current selection to all nodes with a name containing at least</span>
+<span class="sd">        one of the given substrings  (does not affect any elements).</span>
+
+<span class="sd">        See the documentation on method |Selection.search_nodenames| for additional</span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_nodenames</span><span class="p">(</span><span class="o">*</span><span class="n">substrings</span><span class="p">)</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Selection.deselect_nodenames">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.deselect_nodenames">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deselect_nodenames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">substrings</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restrict the current selection to all nodes with a name not containing at</span>
+<span class="sd">        least one of the given substrings (does not affect any elements).</span>
+
+<span class="sd">        See the documentation on method |Selection.search_nodenames| for additional</span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_nodenames</span><span class="p">(</span><span class="o">*</span><span class="n">substrings</span><span class="p">)</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Selection.search_elementnames">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.search_elementnames">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search_elementnames</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">substrings</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;elementnames&quot;</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new selection containing all elements of the current selection with</span>
+<span class="sd">        a name containing at least one of the given substrings.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.testtools import prepare_full_example_2</span>
+<span class="sd">        &gt;&gt;&gt; hp, pub, _ = prepare_full_example_2()</span>
+
+<span class="sd">        Pass the (sub)strings as positional arguments and, optionally, the name of the</span>
+<span class="sd">        newly created |Selection| object as a keyword argument:</span>
+
+<span class="sd">        &gt;&gt;&gt; test = pub.selections.complete.copy(&quot;test&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">        &gt;&gt;&gt; test.search_elementnames(&quot;dill&quot;, &quot;lahn_marb&quot;)</span>
+<span class="sd">        Selection(&quot;elementnames&quot;,</span>
+<span class="sd">                  nodes=(),</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_marb&quot;,</span>
+<span class="sd">                            &quot;stream_dill_assl_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+
+<span class="sd">        Wrong string specifications result in errors like the following:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.search_elementnames([&quot;dill&quot;, &quot;lahn_marb&quot;])</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        TypeError: While trying to determine the elements of selection `test` with \</span>
+<span class="sd">names containing at least one of the given substrings `[&#39;dill&#39;, &#39;lahn_marb&#39;]`, the \</span>
+<span class="sd">following error occurred: &#39;in &lt;string&gt;&#39; requires string as left operand, not list</span>
+
+<span class="sd">        Method |Selection.select_elementnames| restricts the current selection to the</span>
+<span class="sd">        one determined with the method |Selection.search_elementnames|:</span>
+
+<span class="sd">        &gt;&gt;&gt; test.select_elementnames(&quot;dill&quot;, &quot;lahn_marb&quot;)</span>
+<span class="sd">        Selection(&quot;test&quot;,</span>
+<span class="sd">                  nodes=(&quot;dill_assl&quot;, &quot;lahn_kalk&quot;, &quot;lahn_leun&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_marb&quot;,</span>
+<span class="sd">                            &quot;stream_dill_assl_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_marb_lahn_leun&quot;))</span>
+
+<span class="sd">        On the contrary, the method |Selection.deselect_elementnames| restricts the</span>
+<span class="sd">        current selection to all devices not determined by the method</span>
+<span class="sd">        |Selection.search_elementnames|:</span>
+
+<span class="sd">        &gt;&gt;&gt; pub.selections.complete.deselect_elementnames(&quot;dill&quot;, &quot;lahn_marb&quot;)</span>
+<span class="sd">        Selection(&quot;complete&quot;,</span>
+<span class="sd">                  nodes=(&quot;dill_assl&quot;, &quot;lahn_kalk&quot;, &quot;lahn_leun&quot;, &quot;lahn_marb&quot;),</span>
+<span class="sd">                  elements=(&quot;land_lahn_kalk&quot;, &quot;land_lahn_leun&quot;,</span>
+<span class="sd">                            &quot;stream_lahn_leun_lahn_kalk&quot;))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">selection</span> <span class="o">=</span> <span class="n">Selection</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">substring</span> <span class="ow">in</span> <span class="n">substrings</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">substring</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                        <span class="n">selection</span><span class="o">.</span><span class="n">elements</span> <span class="o">+=</span> <span class="n">element</span>
+                        <span class="k">break</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">substrings</span><span class="p">)</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to determine the elements of selection `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;with names containing at least one of the given substrings `</span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="s2">`&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">selection</span></div>
+
+
+<div class="viewcode-block" id="Selection.select_elementnames">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.select_elementnames">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_elementnames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">substrings</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restrict the current selection to all elements with a name containing at</span>
+<span class="sd">        least one of the given substrings (does not affect any nodes).</span>
+
+<span class="sd">        See the documentation on method |Selection.search_elementnames| for additional</span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_elementnames</span><span class="p">(</span><span class="o">*</span><span class="n">substrings</span><span class="p">)</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Selection.deselect_elementnames">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.deselect_elementnames">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">deselect_elementnames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">substrings</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Restrict the current selection to all elements with a name not containing at</span>
+<span class="sd">        least one of the given substrings.   (does not affect any nodes).</span>
+
+<span class="sd">        See the documentation on method |Selection.search_elementnames| for additional</span>
+<span class="sd">        information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">search_elementnames</span><span class="p">(</span><span class="o">*</span><span class="n">substrings</span><span class="p">)</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Selection.copy">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.copy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a new |Selection| object with the given name and copies of the</span>
+<span class="sd">        handled |Nodes| and |Elements| objects based on method |Devices.copy|.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)(</span><span class="n">name</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">),</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Selection.add_remotes">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.add_remotes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_remotes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add all remote nodes linked to at least one of the currently handled</span>
+<span class="sd">        elements.</span>
+
+<span class="sd">        One often encounters the situation (for example, after calling method</span>
+<span class="sd">        |Selection.select_upstream|), when a selection does not explicitly include all</span>
+<span class="sd">        relevant remote nodes, like in the following example:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Element, Selection</span>
+<span class="sd">        &gt;&gt;&gt; dam = Element(&quot;dam&quot;, inlets=&quot;inflow&quot;, outlets=&quot;outflow&quot;,</span>
+<span class="sd">        ...               receivers=&quot;discharge_downstream&quot;, senders=&quot;water_level&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; sel = Selection(&quot;Dam&quot;, elements=dam, nodes=(&quot;inflow&quot;, &quot;outflow&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; sel</span>
+<span class="sd">        Selection(&quot;Dam&quot;,</span>
+<span class="sd">                  nodes=(&quot;inflow&quot;, &quot;outflow&quot;),</span>
+<span class="sd">                  elements=&quot;dam&quot;)</span>
+
+<span class="sd">        The method |Selection.add_remotes| is a small auxiliary function that takes</span>
+<span class="sd">        care of this:</span>
+
+<span class="sd">        &gt;&gt;&gt; sel.add_remotes()</span>
+<span class="sd">        &gt;&gt;&gt; sel</span>
+<span class="sd">        Selection(&quot;Dam&quot;,</span>
+<span class="sd">                  nodes=(&quot;discharge_downstream&quot;, &quot;inflow&quot;, &quot;outflow&quot;,</span>
+<span class="sd">                         &quot;water_level&quot;),</span>
+<span class="sd">                  elements=&quot;dam&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">receivers</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">senders</span><span class="p">):</span>
+                <span class="n">nodes</span><span class="o">.</span><span class="n">add_device</span><span class="p">(</span><span class="n">node</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Selection.save_networkfile">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.save_networkfile">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_networkfile</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">write_defaultnodes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the selection as a network file.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.core.testtools import prepare_full_example_2</span>
+<span class="sd">        &gt;&gt;&gt; _, pub, TestIO = prepare_full_example_2()</span>
+
+<span class="sd">        In most cases, one should conveniently write network files via method</span>
+<span class="sd">        |NetworkManager.save_files| of class |NetworkManager|.  However, using the</span>
+<span class="sd">        method |Selection.save_networkfile| allows for additional configuration via the</span>
+<span class="sd">        arguments `filepath` and `write_defaultnodes`:</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     pub.selections.headwaters.save_networkfile()</span>
+<span class="sd">        ...     with open(&quot;headwaters.py&quot;) as networkfile:</span>
+<span class="sd">        ...         print(networkfile.read())</span>
+<span class="sd">        from hydpy import Element, Node</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Node(&quot;dill_assl&quot;, variable=&quot;Q&quot;,</span>
+<span class="sd">             keywords=&quot;gauge&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Node(&quot;lahn_marb&quot;, variable=&quot;Q&quot;,</span>
+<span class="sd">             keywords=&quot;gauge&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Element(&quot;land_dill_assl&quot;,</span>
+<span class="sd">                outlets=&quot;dill_assl&quot;,</span>
+<span class="sd">                keywords=&quot;catchment&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Element(&quot;land_lahn_marb&quot;,</span>
+<span class="sd">                outlets=&quot;lahn_marb&quot;,</span>
+<span class="sd">                keywords=&quot;catchment&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     pub.selections.headwaters.save_networkfile(</span>
+<span class="sd">        ...         &quot;test.py&quot;, write_defaultnodes=False)</span>
+<span class="sd">        ...     with open(&quot;test.py&quot;) as networkfile:</span>
+<span class="sd">        ...         print(networkfile.read())</span>
+<span class="sd">        from hydpy import Element, Node</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Element(&quot;land_dill_assl&quot;,</span>
+<span class="sd">                outlets=&quot;dill_assl&quot;,</span>
+<span class="sd">                keywords=&quot;catchment&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Element(&quot;land_lahn_marb&quot;,</span>
+<span class="sd">                outlets=&quot;lahn_marb&quot;,</span>
+<span class="sd">                keywords=&quot;catchment&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+
+<span class="sd">        The `write_defaultnodes` argument does only affect nodes handling the default</span>
+<span class="sd">        variable `Q`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import FusedVariable, Node</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.aliases import (</span>
+<span class="sd">        ...     hland_inputs_P, hland_inputs_T, lland_inputs_Nied, dam_receivers_OWL,</span>
+<span class="sd">        ...     hland_fluxes_Perc, hland_fluxes_Q0, hland_fluxes_Q1,</span>
+<span class="sd">        ...     dam_factors_WaterLevel)</span>
+<span class="sd">        &gt;&gt;&gt; Precip = FusedVariable(&quot;Precip&quot;, hland_inputs_P, lland_inputs_Nied)</span>
+<span class="sd">        &gt;&gt;&gt; Runoff = FusedVariable(&quot;Runoff&quot;, hland_fluxes_Q0, hland_fluxes_Q1)</span>
+<span class="sd">        &gt;&gt;&gt; Level = FusedVariable(&quot;Level&quot;, dam_receivers_OWL, dam_factors_WaterLevel)</span>
+<span class="sd">        &gt;&gt;&gt; nodes = pub.selections.headwaters.nodes</span>
+<span class="sd">        &gt;&gt;&gt; nodes.add_device(Node(&quot;test1&quot;, variable=&quot;X&quot;))</span>
+<span class="sd">        &gt;&gt;&gt; nodes.add_device(Node(&quot;test2&quot;, variable=hland_inputs_T))</span>
+<span class="sd">        &gt;&gt;&gt; nodes.add_device(Node(&quot;test3&quot;, variable=Precip))</span>
+<span class="sd">        &gt;&gt;&gt; nodes.add_device(Node(&quot;test4&quot;, variable=hland_fluxes_Perc))</span>
+<span class="sd">        &gt;&gt;&gt; nodes.add_device(Node(&quot;test5&quot;, variable=Runoff))</span>
+<span class="sd">        &gt;&gt;&gt; nodes.add_device(Node(&quot;test6&quot;, variable=Level))</span>
+<span class="sd">        &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">        ...     pub.selections.headwaters.save_networkfile(</span>
+<span class="sd">        ...         &quot;test.py&quot;, write_defaultnodes=False)</span>
+<span class="sd">        ...     with open(&quot;test.py&quot;) as networkfile:</span>
+<span class="sd">        ...         print(networkfile.read())</span>
+<span class="sd">        from hydpy import Element, FusedVariable, Node</span>
+<span class="sd">        from hydpy.aliases import (</span>
+<span class="sd">            dam_factors_WaterLevel,</span>
+<span class="sd">            dam_receivers_OWL,</span>
+<span class="sd">            hland_fluxes_Perc,</span>
+<span class="sd">            hland_fluxes_Q0,</span>
+<span class="sd">            hland_fluxes_Q1,</span>
+<span class="sd">            hland_inputs_P,</span>
+<span class="sd">            hland_inputs_T,</span>
+<span class="sd">            lland_inputs_Nied,</span>
+<span class="sd">        )</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Level = FusedVariable(&quot;Level&quot;, dam_factors_WaterLevel, dam_receivers_OWL)</span>
+<span class="sd">        Precip = FusedVariable(&quot;Precip&quot;, hland_inputs_P, lland_inputs_Nied)</span>
+<span class="sd">        Runoff = FusedVariable(&quot;Runoff&quot;, hland_fluxes_Q0, hland_fluxes_Q1)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Node(&quot;test1&quot;, variable=&quot;X&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Node(&quot;test2&quot;, variable=hland_inputs_T)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Node(&quot;test3&quot;, variable=Precip)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Node(&quot;test4&quot;, variable=hland_fluxes_Perc)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Node(&quot;test5&quot;, variable=Runoff)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Node(&quot;test6&quot;, variable=Level)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Element(&quot;land_dill_assl&quot;,</span>
+<span class="sd">                outlets=&quot;dill_assl&quot;,</span>
+<span class="sd">                keywords=&quot;catchment&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        Element(&quot;land_lahn_marb&quot;,</span>
+<span class="sd">                outlets=&quot;lahn_marb&quot;,</span>
+<span class="sd">                keywords=&quot;catchment&quot;)</span>
+<span class="sd">        &lt;BLANKLINE&gt;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">aliases</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">fusedvariables</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">FusedVariable</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">FusedVariable</span><span class="p">):</span>
+                <span class="n">fusedvariables</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">variable</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">aliases</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">sequence2alias</span><span class="p">[</span><span class="n">variable</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">fusedvariable</span> <span class="ow">in</span> <span class="n">fusedvariables</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="n">fusedvariable</span><span class="p">:</span>
+                <span class="n">aliases</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hydpy</span><span class="o">.</span><span class="n">sequence2alias</span><span class="p">[</span><span class="n">sequence</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.py&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fusedvariables</span><span class="p">:</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;from hydpy import Element, FusedVariable, Node&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;from hydpy import Element, Node&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">aliases</span><span class="p">:</span>
+                <span class="n">import_aliases</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">aliases</span><span class="p">))</span>
+                <span class="n">import_aliases</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;from hydpy.aliases import </span><span class="si">{</span><span class="n">import_aliases</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">import_aliases</span> <span class="o">=</span> <span class="n">black</span><span class="o">.</span><span class="n">format_str</span><span class="p">(</span><span class="n">import_aliases</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">black</span><span class="o">.</span><span class="n">FileMode</span><span class="p">())</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">import_aliases</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">fusedvariable</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">fusedvariables</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">fusedvariable</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">fusedvariable</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fusedvariables</span><span class="p">:</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">written</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">write_defaultnodes</span> <span class="ow">or</span> <span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">variable</span> <span class="o">!=</span> <span class="s2">&quot;Q&quot;</span><span class="p">):</span>
+                    <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">written</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">written</span><span class="p">:</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+                <span class="n">file_</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="nb">repr</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+
+    <span class="n">_ERRORMESSAGE</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;selection `</span><span class="si">{self.name}</span><span class="s2">` with object `</span><span class="si">{other}</span><span class="s2">` of type `{classname(other)}`&quot;</span>
+    <span class="p">)</span>
+
+    <span class="nd">@objecttools</span><span class="o">.</span><span class="n">excmessage_decorator</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;add </span><span class="si">{</span><span class="n">_ERRORMESSAGE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="nd">@objecttools</span><span class="o">.</span><span class="n">excmessage_decorator</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;subtract </span><span class="si">{</span><span class="n">_ERRORMESSAGE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__isub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Selection</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">-=</span> <span class="n">other</span><span class="o">.</span><span class="n">nodes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">-=</span> <span class="n">other</span><span class="o">.</span><span class="n">elements</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="nd">@objecttools</span><span class="o">.</span><span class="n">excmessage_decorator</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;compare </span><span class="si">{</span><span class="n">_ERRORMESSAGE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>  <span class="c1"># type: ignore[has-type]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+
+    <span class="nd">@objecttools</span><span class="o">.</span><span class="n">excmessage_decorator</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;compare </span><span class="si">{</span><span class="n">_ERRORMESSAGE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>  <span class="c1"># type: ignore[has-type]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">&lt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">&lt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">hydpytools</span><span class="o">.</span><span class="n">HydPy</span><span class="p">,</span> <span class="n">Selection</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="n">hydpytools</span><span class="o">.</span><span class="n">HydPy</span><span class="p">,</span> <span class="n">Selection</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@objecttools</span><span class="o">.</span><span class="n">excmessage_decorator</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;compare </span><span class="si">{</span><span class="n">_ERRORMESSAGE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">&gt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">&gt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+
+    <span class="nd">@objecttools</span><span class="o">.</span><span class="n">excmessage_decorator</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;compare </span><span class="si">{</span><span class="n">_ERRORMESSAGE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Selection</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elements</span> <span class="o">&gt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assignrepr</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Selection.assignrepr">
+<a class="viewcode-back" href="../../../selectiontools.html#hydpy.core.selectiontools.Selection.assignrepr">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assignrepr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a |repr| string with a prefixed assignment.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">repr_</span><span class="o">.</span><span class="n">preserve_strings</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span>
+            <span class="k">with</span> <span class="n">options</span><span class="o">.</span><span class="n">ellipsis</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+                <span class="k">with</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_tuple</span><span class="o">.</span><span class="n">always_bracketed</span><span class="p">(</span><span class="kc">False</span><span class="p">):</span>
+                    <span class="n">classname</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+                    <span class="n">blanks</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">classname</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">nodestr</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_tuple</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="n">blanks</span> <span class="o">+</span> <span class="s2">&quot;nodes=&quot;</span><span class="p">,</span> <span class="mi">70</span>
+                    <span class="p">)</span>
+                    <span class="n">elementstr</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_tuple</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">names</span><span class="p">,</span> <span class="n">blanks</span> <span class="o">+</span> <span class="s2">&quot;elements=&quot;</span><span class="p">,</span> <span class="mi">70</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">classname</span><span class="si">}</span><span class="s1">(&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;,</span><span class="se">\n</span><span class="s1">&#39;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">nodestr</span><span class="si">}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">elementstr</span><span class="si">}</span><span class="s2">)&quot;</span>
+                    <span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.core.selectiontools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

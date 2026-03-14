@@ -1,0 +1,294 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>soilinterfaces &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="stateinterfaces" href="stateinterfaces.html" />
+    <link rel="prev" title="routinginterfaces" href="routinginterfaces.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="stateinterfaces.html" title="stateinterfaces"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="routinginterfaces.html" title="routinginterfaces"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" accesskey="U">Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">soilinterfaces</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_families.html">Model Families</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aetinterfaces.html">aetinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="exchangeinterfaces.html">exchangeinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="dischargeinterfaces.html">dischargeinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="petinterfaces.html">petinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="precipinterfaces.html">precipinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="radiationinterfaces.html">radiationinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="rconcinterfaces.html">rconcinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="routinginterfaces.html">routinginterfaces</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">soilinterfaces</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.typeid"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.typeid</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.prepare_nmbzones"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.prepare_nmbzones()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.set_initialsurfacewater"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.set_initialsurfacewater()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.set_actualsurfacewater"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.set_actualsurfacewater()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.set_soilwatersupply"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.set_soilwatersupply()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.set_soilwaterdemand"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.set_soilwaterdemand()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.execute_infiltration"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.execute_infiltration()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.add_soilwater"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.add_soilwater()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.remove_soilwater"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.remove_soilwater()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_infiltration"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.get_infiltration()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_percolation"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.get_percolation()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwateraddition"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.get_soilwateraddition()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwaterremoval"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.get_soilwaterremoval()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwatercontent"><code class="docutils literal notranslate"><span class="pre">SoilModel_V1.get_soilwatercontent()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="stateinterfaces.html">stateinterfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tempinterfaces.html">tempinterfaces</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="routinginterfaces.html"
+                          title="previous chapter">routinginterfaces</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="stateinterfaces.html"
+                          title="next chapter">stateinterfaces</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/soilinterfaces.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   
+<h3>Versions</h3>
+<ul>
+<li><a href="../6/soilinterfaces.html">6</a></li>
+<li><a href="../master/soilinterfaces.html">master</a></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="soilinterfaces">
+<span id="id1"></span><h1>soilinterfaces<a class="headerlink" href="#soilinterfaces" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.interfaces.soilinterfaces">This module defines submodel interfaces for soil-related processes.</p>
+<p>Module <a class="reference internal" href="#module-hydpy.interfaces.soilinterfaces" title="hydpy.interfaces.soilinterfaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">soilinterfaces</span></code></a> implements the following members:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1" title="hydpy.interfaces.soilinterfaces.SoilModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoilModel_V1</span></code></a> Soil submodel interface for calculating infiltration and percolation in multiple soil compartments.</p></li>
+</ul>
+</div></blockquote>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.interfaces.soilinterfaces.</span></span><span class="sig-name descname"><span class="pre">SoilModel_V1</span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.SubmodelInterface" title="hydpy.core.modeltools.SubmodelInterface"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubmodelInterface</span></code></a></p>
+<p>Soil submodel interface for calculating infiltration and percolation in multiple
+soil compartments.</p>
+<p><a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1" title="hydpy.interfaces.soilinterfaces.SoilModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoilModel_V1</span></code></a> is for submodels that update their states internally.   If the
+submodel calculates infiltration and percolation based on the given soil surface
+water supply, it also adjusts its soil moisture content.  Hence, it offers a method
+for getting the current soil water content (<a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwatercontent" title="hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwatercontent"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_soilwatercontent()</span></code></a>)
+but not for setting it.</p>
+<p>The reason for implementing <a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1" title="hydpy.interfaces.soilinterfaces.SoilModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoilModel_V1</span></code></a> was to couple <a class="reference internal" href="lland.html#module-hydpy.models.lland" title="hydpy.models.lland"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lland</span></code></a> with <a class="reference internal" href="ga_garto.html#module-hydpy.models.ga_garto" title="hydpy.models.ga_garto"><code class="xref py py-mod docutils literal notranslate"><span class="pre">ga_garto</span></code></a>,
+as discussed in <a class="reference external" href="https://github.com/hydpy-dev/hydpy/issues/89">issue 89</a>.</p>
+<p>All units in mm or mm/T.  The method parameter “k” is the index of the considered
+soil compartment.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.typeid">
+<span class="sig-name descname"><span class="pre">typeid</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="m"><span class="pre">1</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.typeid" title="Link to this definition">¶</a></dt>
+<dd><p>Type identifier for <a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1" title="hydpy.interfaces.soilinterfaces.SoilModel_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoilModel_V1</span></code></a> submodels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.prepare_nmbzones">
+<span class="sig-name descname"><span class="pre">prepare_nmbzones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nmbzones</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.prepare_nmbzones"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.prepare_nmbzones" title="Link to this definition">¶</a></dt>
+<dd><p>Set the number of zones in which the actual calculations take place.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.set_initialsurfacewater">
+<span class="sig-name descname"><span class="pre">set_initialsurfacewater</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.set_initialsurfacewater"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.set_initialsurfacewater" title="Link to this definition">¶</a></dt>
+<dd><p>Set the surface water depth initially ponded at the soil’s surface.</p>
+<p>If the caller subtracts a fraction from the water reaching the surface before
+executing <a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.execute_infiltration" title="hydpy.interfaces.soilinterfaces.SoilModel_V1.execute_infiltration"><code class="xref py py-func docutils literal notranslate"><span class="pre">execute_infiltration()</span></code></a>, he should pass the original
+(unreduced) water amount to <a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.set_initialsurfacewater" title="hydpy.interfaces.soilinterfaces.SoilModel_V1.set_initialsurfacewater"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_initialsurfacewater()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.set_actualsurfacewater">
+<span class="sig-name descname"><span class="pre">set_actualsurfacewater</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.set_actualsurfacewater"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.set_actualsurfacewater" title="Link to this definition">¶</a></dt>
+<dd><p>Set the surface water depth that is actually available for infiltration.</p>
+<p>If the caller subtracts a fraction from the water reaching the surface before
+executing <a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.execute_infiltration" title="hydpy.interfaces.soilinterfaces.SoilModel_V1.execute_infiltration"><code class="xref py py-func docutils literal notranslate"><span class="pre">execute_infiltration()</span></code></a>, he should pass the resulting
+(reduced) water amount to <a class="reference internal" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.set_actualsurfacewater" title="hydpy.interfaces.soilinterfaces.SoilModel_V1.set_actualsurfacewater"><code class="xref py py-func docutils literal notranslate"><span class="pre">set_actualsurfacewater()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.set_soilwatersupply">
+<span class="sig-name descname"><span class="pre">set_soilwatersupply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.set_soilwatersupply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.set_soilwatersupply" title="Link to this definition">¶</a></dt>
+<dd><p>Set the direct water supply to the soil’s body (e.g. due to capillary
+rise).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.set_soilwaterdemand">
+<span class="sig-name descname"><span class="pre">set_soilwaterdemand</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.set_soilwaterdemand"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.set_soilwaterdemand" title="Link to this definition">¶</a></dt>
+<dd><p>Set the direct water demand from the soil’s body (e.g. due to
+evapotranspiration).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.execute_infiltration">
+<span class="sig-name descname"><span class="pre">execute_infiltration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.execute_infiltration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.execute_infiltration" title="Link to this definition">¶</a></dt>
+<dd><p>Execute the infiltration routine (that might also calculate percolation)
+based on the given surface water supply.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.add_soilwater">
+<span class="sig-name descname"><span class="pre">add_soilwater</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.add_soilwater"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.add_soilwater" title="Link to this definition">¶</a></dt>
+<dd><p>Add the given (direct) soil water supply.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.remove_soilwater">
+<span class="sig-name descname"><span class="pre">remove_soilwater</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.remove_soilwater"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.remove_soilwater" title="Link to this definition">¶</a></dt>
+<dd><p>Remove the given (direct) soil water demand.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.get_infiltration">
+<span class="sig-name descname"><span class="pre">get_infiltration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.get_infiltration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_infiltration" title="Link to this definition">¶</a></dt>
+<dd><p>Get the previously calculated infiltration rate.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.get_percolation">
+<span class="sig-name descname"><span class="pre">get_percolation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.get_percolation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_percolation" title="Link to this definition">¶</a></dt>
+<dd><p>Get the previously calculated percolation rate.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwateraddition">
+<span class="sig-name descname"><span class="pre">get_soilwateraddition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.get_soilwateraddition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwateraddition" title="Link to this definition">¶</a></dt>
+<dd><p>Get the previously calculated actual soil water addition.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwaterremoval">
+<span class="sig-name descname"><span class="pre">get_soilwaterremoval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.get_soilwaterremoval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwaterremoval" title="Link to this definition">¶</a></dt>
+<dd><p>Get the previously calculated actual soil water removal.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwatercontent">
+<span class="sig-name descname"><span class="pre">get_soilwatercontent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></span><a class="reference internal" href="_modules/hydpy/interfaces/soilinterfaces.html#SoilModel_V1.get_soilwatercontent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.interfaces.soilinterfaces.SoilModel_V1.get_soilwatercontent" title="Link to this definition">¶</a></dt>
+<dd><p>Get the current soil water content.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="stateinterfaces.html" title="stateinterfaces"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="routinginterfaces.html" title="routinginterfaces"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="submodel_interfaces.html" >Submodel Interfaces</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">soilinterfaces</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

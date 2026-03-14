@@ -1,0 +1,24 @@
+.. |LinearStorageCascade| replace:: :class:`~hydpy.auxs.iuhtools.LinearStorageCascade`
+.. |LogIn| replace:: :class:`~hydpy.models.arma.arma_logs.LogIn`
+.. |LogOut| replace:: :class:`~hydpy.models.arma.arma_logs.LogOut`
+.. |MaxQ| replace:: :class:`~hydpy.models.arma.arma_derived.MaxQ`
+.. |QIn| replace:: :class:`~hydpy.models.arma.arma_fluxes.QIn`
+.. |QOut| replace:: :class:`~hydpy.models.arma.arma_fluxes.QOut`
+.. |QPIn| replace:: :class:`~hydpy.models.arma.arma_fluxes.QPIn`
+.. |QPOut| replace:: :class:`~hydpy.models.arma.arma_fluxes.QPOut`
+.. |Responses| replace:: :class:`~hydpy.models.arma.arma_control.Responses`
+.. |TranslationDiffusionEquation| replace:: :class:`~hydpy.auxs.iuhtools.TranslationDiffusionEquation`
+.. |arma_rimorido.DOCNAME.complete| replace:: HydPy-ARMA-RIMO/RIDO (nonlinear routing by multiple ARMA processes)
+.. |arma_rimorido| replace:: :mod:`~hydpy.models.arma_rimorido`
+.. |armatools| replace:: :mod:`~hydpy.auxs.armatools`
+.. |iuhtools| replace:: :mod:`~hydpy.auxs.iuhtools`
+
+.. _arma_rimorido:
+
+arma_rimorido
+=============
+
+.. automodule:: hydpy.models.arma_rimorido
+    :members:
+    :show-inheritance:
+    :exclude-members: Pattern, SUBMODELINTERFACES, AsyncGenerator, RECEIVER_METHODS, ParamSpecKwargs, subseqs, BinaryIO, get_overloads, ValuesView, INTERFACE_METHODS, Sentinel, final, MutableMapping, ObserverSequences, subpars, Awaitable, get_args, Protocol, deprecated, ClassVar, Literal, OrderedDict, get_original_bases, OUTLET_METHODS, Any, MutableSequence, SUBMODELS, Format, Type, StateSequences, Hashable, Collection, ChainMap, disjoint_base, fastaccess, Generator, ByteString, UPDATEDSEQUENCES, TypeVarTuple, ADD_METHODS, Coroutine, get_origin, Optional, SOLVERPARAMETERS, LiteralString, NamedTuple, fastaccess_old, TypeVar, Concatenate, KeysView, Buffer, MutableSet, AsyncContextManager, TypeGuard, Sequence, FactorSequences, Union, subvars, TypeAliasType, ParamSpec, DefaultDict, SupportsIndex, AbstractSet, pars, runtime, runtime_checkable, InputSequences, SupportsComplex, Mapping, TYPE_CHECKING, Required, Tuple, Match, overload, SupportsRound, type_repr, is_protocol, Final, RUN_METHODS, SupportsAbs, Self, seqs, clear_overloads, AnyStr, dataclass_transform, Sized, NoExtraItems, is_typeddict, Annotated, IntVar, no_type_check, Dict, SenderSequences, ForwardRef, SUBMETHODS, SENDER_METHODS, get_type_hints, Counter, cast, Unpack, FULL_ODE_METHODS, ContextManager, AsyncIterable, Reader, override, Iterator, NoReturn, SOLVERSEQUENCES, Writer, IO, AideSequences, TypeIs, Generic, PART_ODE_METHODS, OBSERVER_METHODS, reveal_type, NewType, Deque, TypedDict, DERIVEDPARAMETERS, Never, Text, evaluate_forward_ref, SupportsInt, SupportsFloat, RESULTSEQUENCES, Set, Reversible, Doc, CapsuleType, NoDefault, NotRequired, ParamSpecArgs, REQUIREDSEQUENCES, ItemsView, AsyncIterator, ReadOnly, TextIO, assert_never, get_annotations, CONTROLPARAMETERS, get_protocol_members, ReceiverSequences, CLASSES, Iterable, TypeAlias, FIXEDPARAMETERS, assert_type, Container, List, FrozenSet, fastaccess_new, MappingView, no_type_check_decorator, TypeForm, Callable, SupportsBytes, INLET_METHODS

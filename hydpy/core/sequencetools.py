@@ -3791,7 +3791,7 @@ class AideSequence(ModelSequence):
 class LinkSequence(BaseLinkInputSequence):
     """Base class for link sequences of |Model| objects.
 
-    |LinkSequence| objects do not only handle values themselves but also point to the
+    |LinkSequence| objects not only handle values themselves but also point to the
     values handled by |NodeSequence| objects, using the functionalities provided by the
     Cython module |pointerutils|.  Multiple |LinkSequence| objects of different
     application models can query and modify the same |NodeSequence| values, allowing
@@ -3999,6 +3999,21 @@ requested, but not prepared yet via `set_pointer`.
         """The actual value(s) referenced by the pointer(s) of the |LinkSequence|
         object."""
         return self.fastaccess.get_pointervalue(self.name)
+
+    def prepare_series(
+        self,
+        allocate_ram: bool | None = True,
+        read_jit: bool | None = False,
+        write_jit: bool | None = False,
+    ) -> None:
+        """Apply the general behaviour implemented by class |IOSequence|, but stay
+        silent if the shape is not ready (which is normal in case of unused optional
+        connections).
+        """
+        if (self.NDIM == 0) or self._shapeready:
+            super().prepare_series(
+                allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+            )
 
 
 class InletSequence(LinkSequence):

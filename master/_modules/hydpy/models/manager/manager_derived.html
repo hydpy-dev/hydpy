@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.manager.manager_derived &#8212; HydPy 6.3dev2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=fc520d38"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.manager.manager_derived</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.manager.manager_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">inflect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">hydpytools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.auxs</span><span class="w"> </span><span class="kn">import</span> <span class="n">smoothtools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">manager_parameters</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">manager_control</span>
+
+<span class="c1"># from hydpy.models import manager_lwc   actual import below</span>
+
+
+<div class="viewcode-block" id="Seconds">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.Seconds">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Seconds</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">SecondsParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Length of the actual simulation step size [s].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="DischargeSmoothPar">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.DischargeSmoothPar">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DischargeSmoothPar</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Smoothing parameter related to |DischargeTolerance| [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">manager_control</span><span class="o">.</span><span class="n">DischargeTolerance</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="DischargeSmoothPar.update">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.DischargeSmoothPar.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the smoothing parameter value.</span>
+
+<span class="sd">        The documentation on module |smoothtools| explains the following example in</span>
+<span class="sd">        detail:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.manager import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; dischargetolerance(0.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.dischargesmoothpar.update()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.cythons.smoothutils import smooth_max1, smooth_min1</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_max1(4.0, 1.5, derived.dischargesmoothpar))</span>
+<span class="sd">        4.0</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_min1(4.0, 1.5, derived.dischargesmoothpar))</span>
+<span class="sd">        1.5</span>
+<span class="sd">        &gt;&gt;&gt; dischargetolerance(2.5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.dischargesmoothpar.update()</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_max1(4.0, 1.5, derived.dischargesmoothpar))</span>
+<span class="sd">        4.01</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_min1(4.0, 1.5, derived.dischargesmoothpar))</span>
+<span class="sd">        1.49</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metapar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">dischargetolerance</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">smoothtools</span><span class="o">.</span><span class="n">calc_smoothpar_max1</span><span class="p">(</span><span class="n">metapar</span><span class="o">.</span><span class="n">value</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="VolumeSmoothPar">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.VolumeSmoothPar">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VolumeSmoothPar</span><span class="p">(</span><span class="n">manager_parameters</span><span class="o">.</span><span class="n">ParameterSource</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Smoothing parameter related to |VolumeTolerance| [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">manager_control</span><span class="o">.</span><span class="n">VolumeTolerance</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="VolumeSmoothPar.update">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.VolumeSmoothPar.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the smoothing parameter value.</span>
+
+<span class="sd">        The documentation on module |smoothtools| explains the following example in</span>
+<span class="sd">        detail:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.manager import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; sources(&quot;a&quot;, &quot;b&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; volumetolerance(0.0, 2.5)</span>
+<span class="sd">        &gt;&gt;&gt; derived.volumesmoothpar.update()</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.cythons.smoothutils import smooth_max1, smooth_min1</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import round_</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_max1(4.0, 1.5, derived.volumesmoothpar.values[0]))</span>
+<span class="sd">        4.0</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_min1(4.0, 1.5, derived.volumesmoothpar.values[0]))</span>
+<span class="sd">        1.5</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_max1(4.0, 1.5, derived.volumesmoothpar.values[1]))</span>
+<span class="sd">        4.01</span>
+<span class="sd">        &gt;&gt;&gt; round_(smooth_min1(4.0, 1.5, derived.volumesmoothpar.values[1]))</span>
+<span class="sd">        1.49</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">volumetolerance</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+            <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">smoothtools</span><span class="o">.</span><span class="n">calc_smoothpar_max1</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MemoryLength">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.MemoryLength">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MemoryLength</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Number of simulation steps to be covered by some log sequences [-].&quot;&quot;&quot;</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">manager_control</span><span class="o">.</span><span class="n">TimeDelay</span><span class="p">,</span> <span class="n">manager_control</span><span class="o">.</span><span class="n">TimeWindow</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MemoryLength.update">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.MemoryLength.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the memory length according to</span>
+<span class="sd">        :math:`MemoryLength = TimeDelay + TimeWindow`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.manager import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; timedelay(2)</span>
+<span class="sd">        &gt;&gt;&gt; timewindow(3)</span>
+<span class="sd">        &gt;&gt;&gt; derived.memorylength.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.memorylength</span>
+<span class="sd">        memorylength(5)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">timedelay</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">control</span><span class="o">.</span><span class="n">timewindow</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Adjacency">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.Adjacency">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Adjacency</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;An (incomplete) adjacency matrix of the target node and all source elements [-].</span>
+
+<span class="sd">    See method |Adjacency.update| for more information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">bool</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__hydpy__let_par_set_shape__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">manager_control</span><span class="o">.</span><span class="n">Sources</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__hydpy__change_shape_if_necessary__</span><span class="p">((</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Adjacency.update">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.Adjacency.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine a directed subgraph that contains only the target node and all</span>
+<span class="sd">        selected source elements.</span>
+
+<span class="sd">        We create the following setting where the sources `d_1` and `d_2` release their</span>
+<span class="sd">        water toward the target node `t`, `d_1a` releases its water to `d_1`, `d_2a`</span>
+<span class="sd">        and `d_2b` release their water to `d_2`, and `d_2b1` releases its water to</span>
+<span class="sd">        `d_2b`:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Element, FusedVariable, Node, Nodes</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy.aliases import (</span>
+<span class="sd">        ...     dam_observers_A,</span>
+<span class="sd">        ...     dam_states_WaterVolume,</span>
+<span class="sd">        ...     manager_senders_Request,</span>
+<span class="sd">        ...     manager_receivers_WaterVolume,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; t = Node(&quot;t&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; WaterVolume = FusedVariable(</span>
+<span class="sd">        ...     &quot;WaterVolume&quot;, dam_states_WaterVolume, manager_receivers_WaterVolume</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; v_1, v_1a, v_2, v_2a, v_2b, v_2b1 = Nodes(</span>
+<span class="sd">        ...     &quot;v_1&quot;, &quot;v_1a&quot;, &quot;v_2&quot;, &quot;v_2a&quot;, &quot;v_2b&quot;, &quot;v_2b1&quot;,</span>
+<span class="sd">        ...     defaultvariable=WaterVolume,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; Request = FusedVariable(&quot;Request&quot;, dam_observers_A, manager_senders_Request)</span>
+<span class="sd">        &gt;&gt;&gt; r_1, r_1a, r_2, r_2a, r_2b, r_2b1 = Nodes(</span>
+<span class="sd">        ...     &quot;r_1&quot;, &quot;r_1a&quot;, &quot;r_2&quot;, &quot;r_2a&quot;, &quot;r_2b&quot;, &quot;r_2b1&quot;, defaultvariable=Request,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; d_1 = Element(&quot;d_1&quot;, inlets=&quot;q_1a_1&quot;, outlets=t, observers=r_1, outputs=v_1)</span>
+<span class="sd">        &gt;&gt;&gt; d_1a = Element(&quot;d_1a&quot;, outlets=&quot;q_1a_1&quot;, observers=r_1a, outputs=v_1a)</span>
+<span class="sd">        &gt;&gt;&gt; d_2 = Element(</span>
+<span class="sd">        ...     &quot;d_2&quot;, inlets=(&quot;q_2a_2&quot;, &quot;q_2b_2&quot;),</span>
+<span class="sd">        ...     outlets=t, observers=r_2, outputs=v_2,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; d_2a = Element(&quot;d_2a&quot;, outlets=&quot;q_2a_2&quot;, observers=r_2a, outputs=v_2a)</span>
+<span class="sd">        &gt;&gt;&gt; d_2b = Element(</span>
+<span class="sd">        ...     &quot;d_2b&quot;, inlets=&quot;q_2b1_2b&quot;,</span>
+<span class="sd">        ...     outlets=&quot;q_2b_2&quot;, observers=r_2b, outputs=v_2b,</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; d_2b1 = Element(&quot;d_2b1&quot;, outlets=&quot;q_2b1_2b&quot;, observers=r_2b1, outputs=v_2b1)</span>
+
+<span class="sd">        &gt;&gt;&gt; lwc = Element(</span>
+<span class="sd">        ...     &quot;lwc&quot;,</span>
+<span class="sd">        ...     receivers=[t, v_1, v_1a, v_2, v_2a, v_2b, v_2b1],</span>
+<span class="sd">        ...     senders=[r_1, r_1a, r_2, r_2a, r_2b, r_2b1],</span>
+<span class="sd">        ... )</span>
+
+<span class="sd">        Method |Adjacency.update| converts this setting into an adjacency matrix.  The</span>
+<span class="sd">        first column marks those sources (`d1` and `d_2`) that release their water</span>
+<span class="sd">        directly to the target node.  The second column marks those sources (`d_1a`)</span>
+<span class="sd">        that release their water to the first source (`d1`); the third column marks</span>
+<span class="sd">        those sources (none) that release their water to the second source (`d_1a`),</span>
+<span class="sd">        and so on.  Note that the adjacency matrix is not square because we know that</span>
+<span class="sd">        the target node does not release any water towards of the sources, which means</span>
+<span class="sd">        we can omit the corresponding (first) row:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.manager_lwc import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; sources(&quot;d_1&quot;, &quot;d_1a&quot;, &quot;d_2&quot;, &quot;d_2a&quot;, &quot;d_2b&quot;, &quot;d_2b1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; lwc.model = model</span>
+<span class="sd">        &gt;&gt;&gt; derived.adjacency.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.adjacency</span>
+<span class="sd">        adjacency([[True, False, False, False, False, False, False],</span>
+<span class="sd">                   [False, True, False, False, False, False, False],</span>
+<span class="sd">                   [True, False, False, False, False, False, False],</span>
+<span class="sd">                   [False, False, False, True, False, False, False],</span>
+<span class="sd">                   [False, False, False, True, False, False, False],</span>
+<span class="sd">                   [False, False, False, False, False, True, False]])</span>
+
+<span class="sd">        The adjacency matrix only represents the subgraph of the relevant source</span>
+<span class="sd">        elements:</span>
+
+<span class="sd">        &gt;&gt;&gt; sources(&quot;d_1a&quot;, &quot;d_2&quot;, &quot;d_2a&quot;, &quot;d_2b1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.adjacency.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.adjacency</span>
+<span class="sd">        adjacency([[True, False, False, False, False],</span>
+<span class="sd">                   [True, False, False, False, False],</span>
+<span class="sd">                   [False, False, True, False, False],</span>
+<span class="sd">                   [False, False, True, False, False]])</span>
+
+<span class="sd">        All source elements must, of course, lie upstream of the target node:</span>
+
+<span class="sd">        &gt;&gt;&gt; d_3 = Element(&quot;d_3&quot;, outlets=&quot;q_3&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; sources(&quot;d_1&quot;, &quot;d_2&quot;, &quot;d_3&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.adjacency.update()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to update parameter `adjacency` of element `lwc`, \</span>
+<span class="sd">the following error occurred: There are zero paths between the source element `d_3` \</span>
+<span class="sd">and the target node `t`, but there must be exactly one.</span>
+
+<span class="sd">        A branching of the river network above the target node can mean trouble.</span>
+<span class="sd">        |Adjacency.update| thus searches for multiple paths between the target node and</span>
+<span class="sd">        all source elements (this strategy might not cover all problematic cases and</span>
+<span class="sd">        might also complain about some unproblematic ones - we might improve the</span>
+<span class="sd">        algorithm later):</span>
+
+<span class="sd">        &gt;&gt;&gt; sources(&quot;d_1&quot;, &quot;d_1a&quot;, &quot;d_2&quot;, &quot;d_2a&quot;, &quot;d_2b&quot;, &quot;d_2b1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; d_1a.outlets.add_device(&quot;b&quot;, force=True)</span>
+<span class="sd">        &gt;&gt;&gt; d_2a.inlets.add_device(&quot;b&quot;, force=True)</span>
+<span class="sd">        &gt;&gt;&gt; derived.adjacency.update()</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: While trying to update parameter `adjacency` of element `lwc`, \</span>
+<span class="sd">the following error occurred: There are two paths between the source element `d_1a` \</span>
+<span class="sd">and the target node `t`, but there must be exactly one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="n">registry</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">_registry</span>  <span class="c1"># pylint: disable=protected-access</span>
+            <span class="n">_nodes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">registry</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Nodes</span><span class="p">(</span><span class="n">_nodes</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="n">_elements</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">registry</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+            <span class="n">elements</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Elements</span><span class="p">(</span><span class="n">_elements</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">hydpytools</span><span class="o">.</span><span class="n">create_directedgraph</span><span class="p">(</span><span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span> <span class="n">elements</span><span class="o">=</span><span class="n">elements</span><span class="p">)</span>
+
+            <span class="n">sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">sources</span>
+            <span class="n">name2element</span> <span class="o">=</span> <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">elements</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">sources</span><span class="o">.</span><span class="n">sourcenames</span><span class="p">}</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_target</span>
+
+            <span class="n">subgraph</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span>
+            <span class="n">subgraph</span><span class="o">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+            <span class="n">subgraph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">name2element</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">_fill_subgraph</span><span class="p">(</span>
+                <span class="n">downstream</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">NodeOrElement</span><span class="p">,</span>
+                <span class="n">upstream</span><span class="p">:</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">,</span>
+                <span class="n">check</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">all_simple_paths</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">downstream</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">upstream</span><span class="p">)</span>
+                <span class="n">paths</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">e</span> <span class="o">=</span> <span class="n">inflect</span><span class="o">.</span><span class="n">engine</span><span class="p">()</span>
+                        <span class="n">number</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">number_to_words</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;There </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="s1">&#39;is&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">number</span><span class="si">}</span><span class="s2"> &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">plural</span><span class="p">(</span><span class="s1">&#39;path&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2"> between the source element &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">upstream</span><span class="si">}</span><span class="s2">` and the target node `</span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s2">`, but there &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;must be exactly one.&quot;</span>
+                        <span class="p">)</span>
+                <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name2element</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                        <span class="n">subgraph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="n">downstream</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">name2element</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">_fill_subgraph</span><span class="p">(</span><span class="n">upstream</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="n">target</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">source</span><span class="p">,</span> <span class="n">subtarget</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">permutations</span><span class="p">(</span><span class="n">name2element</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">_fill_subgraph</span><span class="p">(</span><span class="n">upstream</span><span class="o">=</span><span class="n">source</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="n">subtarget</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">to_numpy_array</span><span class="p">(</span>
+                <span class="n">subgraph</span><span class="p">,</span> <span class="n">nodelist</span><span class="o">=</span><span class="p">(</span><span class="n">target</span><span class="p">,)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">name2element</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span>
+            <span class="p">)[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
+
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;While trying to update parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_target</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">:</span>
+        <span class="n">receivers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">receivers</span>
+        <span class="n">potential_targets</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">receivers</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">variable</span> <span class="o">==</span> <span class="s2">&quot;Q&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">potential_targets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">potential_targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="Order">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.Order">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Order</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The processing order of all source elements [-].</span>
+
+<span class="sd">    See method |Order.update| for more information.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">int</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__hydpy__let_par_set_shape__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">,</span> <span class="o">/</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">manager_control</span><span class="o">.</span><span class="n">Sources</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__hydpy__change_shape_if_necessary__</span><span class="p">((</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="p">,))</span>
+
+<div class="viewcode-block" id="Order.update">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_derived.Order.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine the processing order based on a (reversed) topological sort.</span>
+
+<span class="sd">        The following order ensures we do not process a source element before we have</span>
+<span class="sd">        processed its downstream source elements:</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.manager import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; sources(&quot;d_1&quot;, &quot;d_1a&quot;, &quot;d_2&quot;, &quot;d_2a&quot;, &quot;d_2b&quot;, &quot;d_2b1&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; derived.adjacency([[True, False, False, False, False, False, False],</span>
+<span class="sd">        ...                    [False, True, False, False, False, False, False],</span>
+<span class="sd">        ...                    [True, False, False, False, False, False, False],</span>
+<span class="sd">        ...                    [False, False, False, True, False, False, False],</span>
+<span class="sd">        ...                    [False, False, False, True, False, False, False],</span>
+<span class="sd">        ...                    [False, False, False, False, False, True, False]])</span>
+<span class="sd">        &gt;&gt;&gt; derived.order.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.order</span>
+<span class="sd">        order(2, 4, 0, 5, 3, 1)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">subgraph</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">from_numpy_array</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">adjacency</span><span class="o">.</span><span class="n">values</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">create_using</span><span class="o">=</span><span class="n">networkx</span><span class="o">.</span><span class="n">DiGraph</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">networkx</span><span class="o">.</span><span class="n">topological_sort</span><span class="p">(</span><span class="n">subgraph</span><span class="p">))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.manager.manager_derived</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.manager.manager_control &#8212; HydPy 6.3dev2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=fc520d38"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.manager.manager_control</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.manager.manager_control</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">inflect</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">manager_parameters</span>
+
+
+<div class="viewcode-block" id="Commission">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_control.Commission">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Commission</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">DateParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Commission date [-].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="DischargeThreshold">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_control.DischargeThreshold">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DischargeThreshold</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Discharge threshold for estimating release requests [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="DischargeTolerance">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_control.DischargeTolerance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DischargeTolerance</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Discharge tolerance for estimating release requests [m³/s].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TimeDelay">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_control.TimeDelay">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimeDelay</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time delay (in terms of simulation steps) between the release of additional</span>
+<span class="sd">    water and its effect on the target cross-section [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">int</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TimeWindow">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_control.TimeWindow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TimeWindow</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">Parameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Time window (in terms of simulation steps) used for calculating multiple &quot;free</span>
+<span class="sd">    discharge&quot; estimates [-].&quot;&quot;&quot;</span>
+
+    <span class="n">NDIM</span><span class="p">:</span> <span class="n">Final</span><span class="p">[</span><span class="n">Literal</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">int</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Sources">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_control.Sources">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Sources</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">NmbParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The sources (e.g. dams) that are instructible to release additional water [-].</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.manager import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; sources</span>
+<span class="sd">    sources(?)</span>
+
+<span class="sd">    |Sources| expects the names of the elements which handle the relevant source models</span>
+<span class="sd">    and sorts them alphabetically, if necessary:</span>
+
+<span class="sd">    &gt;&gt;&gt; sources(&quot;c&quot;, &quot;a&quot;, &quot;b&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; sources</span>
+<span class="sd">    sources(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)</span>
+
+<span class="sd">    |Sources| provides the number of sources as its property |Variable.value| and the</span>
+<span class="sd">    names of the individual sources by its property |Sources.sourcenames|:</span>
+
+<span class="sd">    &gt;&gt;&gt; sources.value</span>
+<span class="sd">    3</span>
+<span class="sd">    &gt;&gt;&gt; sources.sourcenames</span>
+<span class="sd">    (&#39;a&#39;, &#39;b&#39;, &#39;c&#39;)</span>
+
+<span class="sd">    |Sources| raises the following errors if the user gives invalid element names or</span>
+<span class="sd">    tries to pass information via keyword arguments:</span>
+
+<span class="sd">    &gt;&gt;&gt; sources(3)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to define the sources to be controlled by the model \</span>
+<span class="sd">`manager` of element `?`, the following error occurred: Parameter `sources` requires \</span>
+<span class="sd">a list of the names of the elements which handle the relevant source models, but the \</span>
+<span class="sd">following argument is not a valid element name: `3`</span>
+
+<span class="sd">    &gt;&gt;&gt; sources(&quot;not valid&quot;, &quot;valid&quot;, &quot; invalid&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to define the sources to be controlled by the model \</span>
+<span class="sd">`manager` of element `?`, the following error occurred: Parameter `sources` requires \</span>
+<span class="sd">a list of the names of the elements which handle the relevant source models, but the \</span>
+<span class="sd">following arguments are not some valid element names: `not valid` and ` invalid`</span>
+
+<span class="sd">    &gt;&gt;&gt; sources(&quot;valid&quot;, invalid=1)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    ValueError: While trying to define the sources to be controlled by the model \</span>
+<span class="sd">`manager` of element `?`, the following error occurred: Parameter `sources` cannot \</span>
+<span class="sd">handle keyword arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">_sourcenames</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">sourcenames</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The names of the elements which handle the relevant source models.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.manager import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; sources.sourcenames</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">        RuntimeError: Parameter `sources` of element `?` does not know the names of \</span>
+<span class="sd">the relevant sources so far.</span>
+
+<span class="sd">        &gt;&gt;&gt; sources(&quot;c&quot;, &quot;a&quot;, &quot;b&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; sources.sourcenames</span>
+<span class="sd">        (&#39;a&#39;, &#39;b&#39;, &#39;c&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sourcenames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Parameter </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="si">}</span><span class="s2"> does not know the names &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;of the relevant sources so far.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sourcenames</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ivvi</span> <span class="o">=</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">is_valid_variable_identifier</span>
+            <span class="k">if</span> <span class="n">wrong</span> <span class="o">:=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ivvi</span><span class="p">(</span><span class="n">a</span><span class="p">)):</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">inflect</span><span class="o">.</span><span class="n">engine</span><span class="p">()</span><span class="o">.</span><span class="n">plural</span>
+                <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrong</span><span class="p">)</span>
+                <span class="n">wrong</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">`&quot;</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wrong</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Parameter `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` requires a list of the names of the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;elements which handle the relevant source models, but the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;following </span><span class="si">{</span><span class="n">p</span><span class="p">(</span><span class="s1">&#39;argument&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">p</span><span class="p">(</span><span class="s1">&#39;is&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2"> not </span><span class="si">{</span><span class="n">p</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2"> valid &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;element </span><span class="si">{</span><span class="n">p</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">wrong</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Parameter `</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">` cannot handle keyword arguments.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">sourcenames</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sourcenames</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sourcenames</span> <span class="o">=</span> <span class="n">sourcenames</span>
+        <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+            <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+                <span class="s2">&quot;While trying to define the sources to be controlled by the model &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">elementphrase</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">model</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sourcenames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(?)&quot;</span>
+        <span class="n">sourcenames</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">sn</span><span class="si">}</span><span class="s1">&quot;&#39;</span> <span class="k">for</span> <span class="n">sn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sourcenames</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">objecttools</span><span class="o">.</span><span class="n">assignrepr_values</span><span class="p">(</span><span class="n">sourcenames</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">(&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="VolumeThreshold">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_control.VolumeThreshold">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VolumeThreshold</span><span class="p">(</span><span class="n">manager_parameters</span><span class="o">.</span><span class="n">ParameterSource</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Water volume below which the sources do not fulfil additional water release</span>
+<span class="sd">    requests [million m³].</span>
+
+<span class="sd">    The documentation of the base class |ParameterSource| provides information on the</span>
+<span class="sd">    different ways to set source-specific values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="VolumeTolerance">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_control.VolumeTolerance">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VolumeTolerance</span><span class="p">(</span><span class="n">manager_parameters</span><span class="o">.</span><span class="n">ParameterSource</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Water volume tolerance for determining the water demand of the individual</span>
+<span class="sd">    sources [million m³].</span>
+
+<span class="sd">    The documentation of the base class |ParameterSource| provides information on the</span>
+<span class="sd">    different ways to set source-specific values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ReleaseMax">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_control.ReleaseMax">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReleaseMax</span><span class="p">(</span><span class="n">manager_parameters</span><span class="o">.</span><span class="n">ParameterSource</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum additional release of the individual sources [m³/s].</span>
+
+<span class="sd">    The documentation of the base class |ParameterSource| provides information on the</span>
+<span class="sd">    different ways to set source-specific values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">float</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Active">
+<a class="viewcode-back" href="../../../../manager.html#hydpy.models.manager.manager_control.Active">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Active</span><span class="p">(</span><span class="n">manager_parameters</span><span class="o">.</span><span class="n">ParameterSource</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Flag to activate/deactivate sending requests to individual sources [-].</span>
+
+<span class="sd">    The documentation of the base class |ParameterSource| provides information on the</span>
+<span class="sd">    different ways to set source-specific values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">:</span> <span class="n">Final</span> <span class="o">=</span> <span class="nb">bool</span>
+    <span class="n">SPAN</span> <span class="o">=</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.3dev2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.manager.manager_control</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

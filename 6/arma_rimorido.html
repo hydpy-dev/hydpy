@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>arma_rimorido &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="HydPy-Conv" href="HydPy-Conv.html" />
+    <link rel="prev" title="arma" href="arma.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Conv.html" title="HydPy-Conv"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="arma.html" title="arma"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-ARMA.html" accesskey="U">HydPy-ARMA</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">arma_rimorido</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="reference_manual.html">Reference Manual</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="framework_tools.html">Framework Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="model_families.html">Model Families</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="HydPy-ARMA.html">HydPy-ARMA</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="arma.html">arma</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">arma_rimorido</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#integration-tests">Integration tests</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#ma-coefficients">MA coefficients</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#arma-coefficients">ARMA coefficients</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#increased-delay">Increased delay</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#negative-discharge">Negative discharge</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#plausibility">Plausibility</a></li>
+<li class="toctree-l6"><a class="reference internal" href="#nonlinearity">Nonlinearity</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.arma_rimorido.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.arma_rimorido.Model.DOCNAME"><code class="docutils literal notranslate"><span class="pre">Model.DOCNAME</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.arma_rimorido.Model.OBSERVER_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.OBSERVER_METHODS</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#hydpy.models.arma_rimorido.Model.REUSABLE_METHODS"><code class="docutils literal notranslate"><span class="pre">Model.REUSABLE_METHODS</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.arma_rimorido.ControlParameters"><code class="docutils literal notranslate"><span class="pre">ControlParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.arma_rimorido.DerivedParameters"><code class="docutils literal notranslate"><span class="pre">DerivedParameters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.arma_rimorido.FluxSequences"><code class="docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.arma_rimorido.InletSequences"><code class="docutils literal notranslate"><span class="pre">InletSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.arma_rimorido.LogSequences"><code class="docutils literal notranslate"><span class="pre">LogSequences</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#hydpy.models.arma_rimorido.OutletSequences"><code class="docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Conv.html">HydPy-Conv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Exch.html">HydPy-Exch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Evap.html">HydPy-Evap</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dam.html">HydPy-Dam</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Dummy.html">HydPy-Dummy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-G.html">HydPy-G (GR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-GA.html">HydPy-GA (Green-Ampt)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-H.html">HydPy-H (HBV)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-KinW.html">HydPy-KinW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-L.html">HydPy-L (LARSIM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Meteo.html">HydPy-Meteo</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Musk.html">HydPy-Musk (Muskingum)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Rconc.html">HydPy-Rconc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Snow.html">HydPy-Snow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-SW1D.html">HydPy-SW1D (Shallow Water 1D)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-Test.html">HydPy-Test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-W.html">HydPy-W (WALRUS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WHMod.html">HydPy-WHMod</a></li>
+<li class="toctree-l3"><a class="reference internal" href="HydPy-WQ.html">HydPy-WQ</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submodel_interfaces.html">Submodel Interfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="arma.html"
+                          title="previous chapter">arma</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="HydPy-Conv.html"
+                          title="next chapter">HydPy-Conv</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/arma_rimorido.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="arma-rimorido">
+<span id="id1"></span><h1>HydPy-ARMA-RIMO/RIDO (nonlinear routing by multiple ARMA processes)<a class="headerlink" href="#arma-rimorido" title="Link to this heading">¶</a></h1>
+<p id="module-hydpy.models.arma_rimorido"><a class="reference internal" href="#module-hydpy.models.arma_rimorido" title="hydpy.models.arma_rimorido"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arma_rimorido</span></code></a> relies on the RIMO/RIDO method, which is based on the <cite>translation
+diffusion equation</cite>, which is a linear approximation of the Saint-Venant equations
+involving only two parameters - one for the celerity and one for the diffusivity of the
+flood wave.  The linearity of the approach allows for constructing Unit Hydrograph
+ordinates for each specific combination of celerity, diffusivity, and the length of the
+considered river section.  One can understand these ordinates as coefficients of a
+moving average (MA) process.</p>
+<p><a class="reference internal" href="#module-hydpy.models.arma_rimorido" title="hydpy.models.arma_rimorido"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arma_rimorido</span></code></a> adds two additional features to this conventional approach.</p>
+<p>Firstly, RIMO/RIDO approximates the response function described by the MA coefficients
+by an ARMA process, which is helpful for response functions with long tails.  Very
+often, autoregressive (AR) modelscan approximate long-tailed responses sufficiently
+with few parameters.  Hence, ARMA models (which reflect the rising limb of a response
+function with their MA coefficients and its falling limb with their AR coefficients)
+are often more parameter efficient than pure MA models.</p>
+<p>Secondly, RIMO/RIDO separates the flow into the river section into different “portions”
+based on discharge thresholds.  Each portion is routed by a separate ARMA model,
+allowing RIMO/RIDO to reflect the nonlinearity of rating curves to a certain degree.
+For example, the bank-full discharge can serve as a threshold.  Then, one can apply
+smaller celerity values and larger diffusivity values on the “upper” flow portion to
+simulate retention processes on floodplains.</p>
+<p>If you want to apply <a class="reference internal" href="#module-hydpy.models.arma_rimorido" title="hydpy.models.arma_rimorido"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arma_rimorido</span></code></a> precisely like RIMO/RIDO, consider using
+<a class="reference internal" href="iuhtools.html#hydpy.auxs.iuhtools.TranslationDiffusionEquation" title="hydpy.auxs.iuhtools.TranslationDiffusionEquation"><code class="xref py py-class docutils literal notranslate"><span class="pre">TranslationDiffusionEquation</span></code></a> for calculating its coefficients.  But you can also
+define them differently, e.g. using <a class="reference internal" href="iuhtools.html#hydpy.auxs.iuhtools.LinearStorageCascade" title="hydpy.auxs.iuhtools.LinearStorageCascade"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearStorageCascade</span></code></a>. Additionally, you are free
+to apply combined ARMA coefficients or pure MA coefficients only, as described in the
+following examples.</p>
+<section id="integration-tests">
+<h2>Integration tests<a class="headerlink" href="#integration-tests" title="Link to this heading">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When new to <em>HydPy</em>, consider reading section <a class="reference internal" href="how_to_read_the_reference_manual.html#integration-tests"><span class="std std-ref">Integration Tests</span></a> first.</p>
+</div>
+<p>We perform the following tests over 20 hours:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">pub</span><span class="p">,</span> <span class="n">Nodes</span><span class="p">,</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;01.01.2000 00:00&quot;</span><span class="p">,</span>  <span class="s2">&quot;01.01.2000 20:00&quot;</span><span class="p">,</span> <span class="s2">&quot;1h&quot;</span>
+</pre></div>
+</div>
+<p>Import the model and define the time settings:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.arma_rimorido</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For testing purposes, <a class="reference internal" href="#module-hydpy.models.arma_rimorido" title="hydpy.models.arma_rimorido"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arma_rimorido</span></code></a> shall retrieve its input from the nodes <cite>input1</cite>
+and <cite>input2</cite> and pass its output to the node <cite>output</cite>.  Firstly, we define all nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span> <span class="o">=</span> <span class="n">Nodes</span><span class="p">(</span><span class="s2">&quot;input1&quot;</span><span class="p">,</span> <span class="s2">&quot;input2&quot;</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Define the element <cite>stream</cite> and build the connections between the nodes defined above
+and the <a class="reference internal" href="#module-hydpy.models.arma_rimorido" title="hydpy.models.arma_rimorido"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arma_rimorido</span></code></a> model instance:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;stream&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                 <span class="n">inlets</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;input1&quot;</span><span class="p">,</span> <span class="s2">&quot;input2&quot;</span><span class="p">],</span>
+<span class="gp">... </span>                 <span class="n">outlets</span><span class="o">=</span><span class="s2">&quot;output&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+</pre></div>
+</div>
+<p>Prepare a test function object, which prints the respective values of the model
+sequences <a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QIn" title="hydpy.models.arma.arma_fluxes.QIn"><code class="xref py py-class docutils literal notranslate"><span class="pre">QIn</span></code></a>, <a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QPIn" title="hydpy.models.arma.arma_fluxes.QPIn"><code class="xref py py-class docutils literal notranslate"><span class="pre">QPIn</span></code></a>, <a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QPOut" title="hydpy.models.arma.arma_fluxes.QPOut"><code class="xref py py-class docutils literal notranslate"><span class="pre">QPOut</span></code></a>, and <a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QOut" title="hydpy.models.arma.arma_fluxes.QOut"><code class="xref py py-class docutils literal notranslate"><span class="pre">QOut</span></code></a>.  The node sequence <cite>sim</cite> is added in
+to that the values calculated for <a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QOut" title="hydpy.models.arma.arma_fluxes.QOut"><code class="xref py py-class docutils literal notranslate"><span class="pre">QOut</span></code></a> are actually passed to <cite>sim</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">IntegrationTest</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">IntegrationTest</span><span class="o">.</span><span class="n">plotting_options</span><span class="o">.</span><span class="n">activated</span><span class="o">=</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">fluxes</span><span class="o">.</span><span class="n">qin</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">qout</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="n">IntegrationTest</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">stream</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">seqs</span><span class="o">=</span><span class="p">(</span><span class="n">fluxes</span><span class="o">.</span><span class="n">qin</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">qpin</span><span class="p">,</span> <span class="n">fluxes</span><span class="o">.</span><span class="n">qpout</span><span class="p">,</span>
+<span class="gp">... </span>          <span class="n">fluxes</span><span class="o">.</span><span class="n">qout</span><span class="p">,</span> <span class="n">nodes</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>To start the respective example runs from stationary conditions, a base flow value of
+2 m³/s is set for all values of the log sequences <a class="reference internal" href="arma.html#hydpy.models.arma.arma_logs.LogIn" title="hydpy.models.arma.arma_logs.LogIn"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogIn</span></code></a> and <a class="reference internal" href="arma.html#hydpy.models.arma.arma_logs.LogOut" title="hydpy.models.arma.arma_logs.LogOut"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogOut</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span> <span class="o">=</span> <span class="p">((</span><span class="n">logs</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span>
+<span class="gp">... </span>              <span class="p">(</span><span class="n">logs</span><span class="o">.</span><span class="n">logout</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>We want to print just the time instead of the whole date:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">dateformat</span> <span class="o">=</span> <span class="s2">&quot;%H:%M&quot;</span>
+</pre></div>
+</div>
+<p>We define two flood events, one for each inlet node:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">(</span>
+<span class="gp">... </span>    <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input2</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">=</span> <span class="p">(</span>
+<span class="gp">... </span>    <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="ma-coefficients">
+<span id="arma-rimorido-ma"></span><h3>MA coefficients<a class="headerlink" href="#ma-coefficients" title="Link to this heading">¶</a></h3>
+<p>In the first example, we define a pure fourth-order moving average (MA) process via the
+control parameter <a class="reference internal" href="arma.html#hydpy.models.arma.arma_control.Responses" title="hydpy.models.arma.arma_control.Responses"><code class="xref py py-class docutils literal notranslate"><span class="pre">Responses</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">responses</span><span class="p">(((),</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>This configuration leads to a usual “unit hydrograph” convolution result, where all
+inflow “impulses” are separated into the actual and the three subsequent time steps:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;arma_rimorido_ma&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_1__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_1__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date |  qin | qpin | qpout | qout | output |</span>
+<span class="go">-----------------------------------------------</span>
+<span class="go">| 00:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |</span>
+<span class="go">| 01:00 |  3.0 |  3.0 |   2.2 |  2.2 |    2.2 |</span>
+<span class="go">| 02:00 |  8.0 |  8.0 |   3.6 |  3.6 |    3.6 |</span>
+<span class="go">| 03:00 | 13.0 | 13.0 |   6.9 |  6.9 |    6.9 |</span>
+<span class="go">| 04:00 | 11.0 | 11.0 |  10.1 | 10.1 |   10.1 |</span>
+<span class="go">| 05:00 |  8.0 |  8.0 |  10.7 | 10.7 |   10.7 |</span>
+<span class="go">| 06:00 |  5.0 |  5.0 |   8.8 |  8.8 |    8.8 |</span>
+<span class="go">| 07:00 |  4.0 |  4.0 |   6.3 |  6.3 |    6.3 |</span>
+<span class="go">| 08:00 |  3.0 |  3.0 |   4.5 |  4.5 |    4.5 |</span>
+<span class="go">| 09:00 |  2.0 |  2.0 |   3.3 |  3.3 |    3.3 |</span>
+<span class="go">| 10:00 |  2.0 |  2.0 |   2.5 |  2.5 |    2.5 |</span>
+<span class="go">| 11:00 |  2.0 |  2.0 |   2.1 |  2.1 |    2.1 |</span>
+<span class="go">| 12:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |</span>
+<span class="go">| 13:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |</span>
+<span class="go">| 14:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |</span>
+<span class="go">| 15:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |</span>
+<span class="go">| 16:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |</span>
+<span class="go">| 17:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |</span>
+<span class="go">| 18:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |</span>
+<span class="go">| 19:00 |  2.0 |  2.0 |   2.0 |  2.0 |    2.0 |</span>
+</pre></div></div></div><a href="arma_rimorido_ma.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+<section id="arma-coefficients">
+<span id="arma-rimorido-arma"></span><h3>ARMA coefficients<a class="headerlink" href="#arma-coefficients" title="Link to this heading">¶</a></h3>
+<p>Now, we set the order of the MA process to the smallest possible value, which is one.
+The autoregression (AR) process is of order two.  Note that negative AR coefficients
+are allowed (also note the opposite signs of the coefficients in contrast to the
+statistical literature):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">responses</span><span class="p">(((</span><span class="mf">1.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,)))</span>
+</pre></div>
+</div>
+<p>Due to the AR process, the maximum time delay of some fractions of each input impulse
+is theoretically infinite:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;arma_rimorido_arma&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_2__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_2__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date |  qin | qpin |    qpout |     qout |   output |</span>
+<span class="go">--------------------------------------------------------</span>
+<span class="go">| 00:00 |  2.0 |  2.0 |      2.0 |      2.0 |      2.0 |</span>
+<span class="go">| 01:00 |  3.0 |  3.0 |      2.2 |      2.2 |      2.2 |</span>
+<span class="go">| 02:00 |  8.0 |  8.0 |     3.42 |     3.42 |     3.42 |</span>
+<span class="go">| 03:00 | 13.0 | 13.0 |    5.702 |    5.702 |    5.702 |</span>
+<span class="go">| 04:00 | 11.0 | 11.0 |   7.4462 |   7.4462 |   7.4462 |</span>
+<span class="go">| 05:00 |  8.0 |  8.0 |  8.08022 |  8.08022 |  8.08022 |</span>
+<span class="go">| 06:00 |  5.0 |  5.0 | 7.654382 | 7.654382 | 7.654382 |</span>
+<span class="go">| 07:00 |  4.0 |  4.0 | 6.795754 | 6.795754 | 6.795754 |</span>
+<span class="go">| 08:00 |  3.0 |  3.0 | 5.779015 | 5.779015 | 5.779015 |</span>
+<span class="go">| 09:00 |  2.0 |  2.0 |  4.71819 |  4.71819 |  4.71819 |</span>
+<span class="go">| 10:00 |  2.0 |  2.0 | 3.856305 | 3.856305 | 3.856305 |</span>
+<span class="go">| 11:00 |  2.0 |  2.0 | 3.226478 | 3.226478 | 3.226478 |</span>
+<span class="go">| 12:00 |  2.0 |  2.0 | 2.792235 | 2.792235 | 2.792235 |</span>
+<span class="go">| 13:00 |  2.0 |  2.0 | 2.503515 | 2.503515 | 2.503515 |</span>
+<span class="go">| 14:00 |  2.0 |  2.0 | 2.316196 | 2.316196 | 2.316196 |</span>
+<span class="go">| 15:00 |  2.0 |  2.0 | 2.196761 | 2.196761 | 2.196761 |</span>
+<span class="go">| 16:00 |  2.0 |  2.0 | 2.121578 | 2.121578 | 2.121578 |</span>
+<span class="go">| 17:00 |  2.0 |  2.0 | 2.074708 | 2.074708 | 2.074708 |</span>
+<span class="go">| 18:00 |  2.0 |  2.0 | 2.045705 | 2.045705 | 2.045705 |</span>
+<span class="go">| 19:00 |  2.0 |  2.0 | 2.027863 | 2.027863 | 2.027863 |</span>
+</pre></div></div></div><a href="arma_rimorido_arma.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+<section id="increased-delay">
+<span id="arma-rimorido-delay"></span><h3>Increased delay<a class="headerlink" href="#increased-delay" title="Link to this heading">¶</a></h3>
+<p>This example is identical to the second one, except for the additional time delay of
+exactly one hour due to the changed MA process:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">responses</span><span class="p">(((</span><span class="mf">1.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)))</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;arma_rimorido_delay&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_3__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_3__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date |  qin | qpin |    qpout |     qout |   output |</span>
+<span class="go">--------------------------------------------------------</span>
+<span class="go">| 00:00 |  2.0 |  2.0 |      2.0 |      2.0 |      2.0 |</span>
+<span class="go">| 01:00 |  3.0 |  3.0 |      2.0 |      2.0 |      2.0 |</span>
+<span class="go">| 02:00 |  8.0 |  8.0 |      2.2 |      2.2 |      2.2 |</span>
+<span class="go">| 03:00 | 13.0 | 13.0 |     3.42 |     3.42 |     3.42 |</span>
+<span class="go">| 04:00 | 11.0 | 11.0 |    5.702 |    5.702 |    5.702 |</span>
+<span class="go">| 05:00 |  8.0 |  8.0 |   7.4462 |   7.4462 |   7.4462 |</span>
+<span class="go">| 06:00 |  5.0 |  5.0 |  8.08022 |  8.08022 |  8.08022 |</span>
+<span class="go">| 07:00 |  4.0 |  4.0 | 7.654382 | 7.654382 | 7.654382 |</span>
+<span class="go">| 08:00 |  3.0 |  3.0 | 6.795754 | 6.795754 | 6.795754 |</span>
+<span class="go">| 09:00 |  2.0 |  2.0 | 5.779015 | 5.779015 | 5.779015 |</span>
+<span class="go">| 10:00 |  2.0 |  2.0 |  4.71819 |  4.71819 |  4.71819 |</span>
+<span class="go">| 11:00 |  2.0 |  2.0 | 3.856305 | 3.856305 | 3.856305 |</span>
+<span class="go">| 12:00 |  2.0 |  2.0 | 3.226478 | 3.226478 | 3.226478 |</span>
+<span class="go">| 13:00 |  2.0 |  2.0 | 2.792235 | 2.792235 | 2.792235 |</span>
+<span class="go">| 14:00 |  2.0 |  2.0 | 2.503515 | 2.503515 | 2.503515 |</span>
+<span class="go">| 15:00 |  2.0 |  2.0 | 2.316196 | 2.316196 | 2.316196 |</span>
+<span class="go">| 16:00 |  2.0 |  2.0 | 2.196761 | 2.196761 | 2.196761 |</span>
+<span class="go">| 17:00 |  2.0 |  2.0 | 2.121578 | 2.121578 | 2.121578 |</span>
+<span class="go">| 18:00 |  2.0 |  2.0 | 2.074708 | 2.074708 | 2.074708 |</span>
+<span class="go">| 19:00 |  2.0 |  2.0 | 2.045705 | 2.045705 | 2.045705 |</span>
+</pre></div></div></div><a href="arma_rimorido_delay.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+<section id="negative-discharge">
+<span id="arma-rimorido-negative-discharge"></span><h3>Negative discharge<a class="headerlink" href="#negative-discharge" title="Link to this heading">¶</a></h3>
+<p>In some hydrological applications, the inflow into a channel might sometimes be lower
+than 0 m³/s.  <a class="reference internal" href="#module-hydpy.models.arma_rimorido" title="hydpy.models.arma_rimorido"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arma_rimorido</span></code></a> generally routes such negative discharges using the
+response function with the lowest discharge threshold.  When we repeat the calculation
+of the <a class="reference internal" href="#arma-rimorido-delay"><span class="std std-ref">Increased delay</span></a> example with inflow constantly decreased by 3 m³/s,
+the outflow is also constantly decreased by 3 m³/s, and many simulated values are
+negative:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">-=</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span> <span class="o">=</span> <span class="p">((</span><span class="n">logs</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>              <span class="p">(</span><span class="n">logs</span><span class="o">.</span><span class="n">logout</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;arma_rimorido_negative_discharge&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_4__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_4__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date |  qin | qpin |     qpout |      qout |    output |</span>
+<span class="go">-----------------------------------------------------------</span>
+<span class="go">| 00:00 | -1.0 | -1.0 |      -1.0 |      -1.0 |      -1.0 |</span>
+<span class="go">| 01:00 |  0.0 |  0.0 |      -1.0 |      -1.0 |      -1.0 |</span>
+<span class="go">| 02:00 |  5.0 |  5.0 |      -0.8 |      -0.8 |      -0.8 |</span>
+<span class="go">| 03:00 | 10.0 | 10.0 |      0.42 |      0.42 |      0.42 |</span>
+<span class="go">| 04:00 |  8.0 |  8.0 |     2.702 |     2.702 |     2.702 |</span>
+<span class="go">| 05:00 |  5.0 |  5.0 |    4.4462 |    4.4462 |    4.4462 |</span>
+<span class="go">| 06:00 |  2.0 |  2.0 |   5.08022 |   5.08022 |   5.08022 |</span>
+<span class="go">| 07:00 |  1.0 |  1.0 |  4.654382 |  4.654382 |  4.654382 |</span>
+<span class="go">| 08:00 |  0.0 |  0.0 |  3.795754 |  3.795754 |  3.795754 |</span>
+<span class="go">| 09:00 | -1.0 | -1.0 |  2.779015 |  2.779015 |  2.779015 |</span>
+<span class="go">| 10:00 | -1.0 | -1.0 |   1.71819 |   1.71819 |   1.71819 |</span>
+<span class="go">| 11:00 | -1.0 | -1.0 |  0.856305 |  0.856305 |  0.856305 |</span>
+<span class="go">| 12:00 | -1.0 | -1.0 |  0.226478 |  0.226478 |  0.226478 |</span>
+<span class="go">| 13:00 | -1.0 | -1.0 | -0.207765 | -0.207765 | -0.207765 |</span>
+<span class="go">| 14:00 | -1.0 | -1.0 | -0.496485 | -0.496485 | -0.496485 |</span>
+<span class="go">| 15:00 | -1.0 | -1.0 | -0.683804 | -0.683804 | -0.683804 |</span>
+<span class="go">| 16:00 | -1.0 | -1.0 | -0.803239 | -0.803239 | -0.803239 |</span>
+<span class="go">| 17:00 | -1.0 | -1.0 | -0.878422 | -0.878422 | -0.878422 |</span>
+<span class="go">| 18:00 | -1.0 | -1.0 | -0.925292 | -0.925292 | -0.925292 |</span>
+<span class="go">| 19:00 | -1.0 | -1.0 | -0.954295 | -0.954295 | -0.954295 |</span>
+</pre></div></div></div><a href="arma_rimorido_negative_discharge.html" target="_blank" >Click to see the graph</a></pre></div></div><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nodes</span><span class="o">.</span><span class="n">input1</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">sim</span><span class="o">.</span><span class="n">series</span> <span class="o">+=</span> <span class="mf">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span> <span class="o">=</span> <span class="p">((</span><span class="n">logs</span><span class="o">.</span><span class="n">login</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">),</span>
+<span class="gp">... </span>              <span class="p">(</span><span class="n">logs</span><span class="o">.</span><span class="n">logout</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="plausibility">
+<span id="arma-rimorido-plausibility"></span><h3>Plausibility<a class="headerlink" href="#plausibility" title="Link to this heading">¶</a></h3>
+<p>Be aware that neither parameter <a class="reference internal" href="arma.html#hydpy.models.arma.arma_control.Responses" title="hydpy.models.arma.arma_control.Responses"><code class="xref py py-class docutils literal notranslate"><span class="pre">Responses</span></code></a> checks the assigned coefficients nor does
+<a class="reference internal" href="#module-hydpy.models.arma_rimorido" title="hydpy.models.arma_rimorido"><code class="xref py py-mod docutils literal notranslate"><span class="pre">arma_rimorido</span></code></a> check the calculated outflow for plausibility (one can use the features
+provided in modules <a class="reference internal" href="iuhtools.html#module-hydpy.auxs.iuhtools" title="hydpy.auxs.iuhtools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">iuhtools</span></code></a> and <a class="reference internal" href="armatools.html#module-hydpy.auxs.armatools" title="hydpy.auxs.armatools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">armatools</span></code></a> to calculate reliable coefficients).
+The fourth example increases the span of the AR coefficients used in the third example.
+The complete ARMA process is still mass conservative, but some response values of the
+recession curve are negative:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">responses</span><span class="p">(((</span><span class="mf">1.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;arma_rimorido_plausibility&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_5__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_5__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date |  qin | qpin |     qpout |      qout |    output |</span>
+<span class="go">-----------------------------------------------------------</span>
+<span class="go">| 00:00 |  2.0 |  2.0 |       2.0 |       2.0 |       2.0 |</span>
+<span class="go">| 01:00 |  3.0 |  3.0 |       2.0 |       2.0 |       2.0 |</span>
+<span class="go">| 02:00 |  8.0 |  8.0 |       2.2 |       2.2 |       2.2 |</span>
+<span class="go">| 03:00 | 13.0 | 13.0 |       3.5 |       3.5 |       3.5 |</span>
+<span class="go">| 04:00 | 11.0 | 11.0 |      6.31 |      6.31 |      6.31 |</span>
+<span class="go">| 05:00 |  8.0 |  8.0 |     9.215 |     9.215 |     9.215 |</span>
+<span class="go">| 06:00 |  5.0 |  5.0 |   11.0055 |   11.0055 |   11.0055 |</span>
+<span class="go">| 07:00 |  4.0 |  4.0 |  11.05775 |  11.05775 |  11.05775 |</span>
+<span class="go">| 08:00 |  3.0 |  3.0 |  9.682775 |  9.682775 |  9.682775 |</span>
+<span class="go">| 09:00 |  2.0 |  2.0 |  7.383738 |  7.383738 |  7.383738 |</span>
+<span class="go">| 10:00 |  2.0 |  2.0 |  4.697664 |  4.697664 |  4.697664 |</span>
+<span class="go">| 11:00 |  2.0 |  2.0 |  2.277879 |  2.277879 |  2.277879 |</span>
+<span class="go">| 12:00 |  2.0 |  2.0 |  0.528454 |  0.528454 |  0.528454 |</span>
+<span class="go">| 13:00 |  2.0 |  2.0 | -0.401834 | -0.401834 | -0.401834 |</span>
+<span class="go">| 14:00 |  2.0 |  2.0 | -0.572669 | -0.572669 | -0.572669 |</span>
+<span class="go">| 15:00 |  2.0 |  2.0 |  -0.17772 |  -0.17772 |  -0.17772 |</span>
+<span class="go">| 16:00 |  2.0 |  2.0 |  0.534289 |  0.534289 |  0.534289 |</span>
+<span class="go">| 17:00 |  2.0 |  2.0 |  1.325837 |  1.325837 |  1.325837 |</span>
+<span class="go">| 18:00 |  2.0 |  2.0 |  2.014753 |  2.014753 |  2.014753 |</span>
+<span class="go">| 19:00 |  2.0 |  2.0 |  2.494044 |  2.494044 |  2.494044 |</span>
+</pre></div></div></div><a href="arma_rimorido_plausibility.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+<section id="nonlinearity">
+<span id="arma-rimorido-nonlinearity"></span><h3>Nonlinearity<a class="headerlink" href="#nonlinearity" title="Link to this heading">¶</a></h3>
+<p>In the following example, we combine the coefficients of the first two examples.
+Between inflow values of 0 and 7 m³/s, the pure AR process is applied.  For inflow
+discharges exceeding 7 m³/s, inflow is separated.  The AR process is still applied on
+the portion of 7 m³/s, but for the inflow exceeding this threshold, the mixed ARMA
+model is applied:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">responses</span><span class="p">(</span><span class="n">_0</span><span class="o">=</span><span class="p">((),</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)),</span>
+<span class="gp">... </span>          <span class="n">_7</span><span class="o">=</span><span class="p">((</span><span class="mf">1.1</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.3</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,)))</span>
+</pre></div>
+</div>
+<p>To start from stationary conditions again, one has to apply different values to both
+log sequences.  The base flow value of 2 m³/s is only given to the (low flow) MA model;
+the (high flow) ARMA model is initialized with zero values instead:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span><span class="o">.</span><span class="n">login</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="o">.</span><span class="n">inits</span><span class="o">.</span><span class="n">logout</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">2.0</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>The separate handling of the inflow can be studied by inspecting the columns of
+sequence <a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QPIn" title="hydpy.models.arma.arma_fluxes.QPIn"><code class="xref py py-class docutils literal notranslate"><span class="pre">QPIn</span></code></a> and sequence <a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QPOut" title="hydpy.models.arma.arma_fluxes.QPOut"><code class="xref py py-class docutils literal notranslate"><span class="pre">QPOut</span></code></a>.  The respective left columns show the input and
+output of the MA model, and the respective right columns show the input and output of
+the ARMA model:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;arma_rimorido_nonlinearity&quot;</span><span class="p">)</span>
+<script type="text/javascript">
+    function showhide(element){
+        if (!document.getElementById)
+            return
+        if (element.style.display == "block")
+            element.style.display = "none"
+        else
+            element.style.display = "block"
+    };
+</script><a href="javascript:showhide(document.getElementById('__hydpy_integrationtest_6__'))">Click to see the table</a><br /><div id="__hydpy_integrationtest_6__" style="display: none"><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="go">|  date |  qin |      qpin |         qpout |     qout |   output |</span>
+<span class="go">------------------------------------------------------------------</span>
+<span class="go">| 00:00 |  2.0 | 2.0   0.0 | 2.0       0.0 |      2.0 |      2.0 |</span>
+<span class="go">| 01:00 |  3.0 | 3.0   0.0 | 2.2       0.0 |      2.2 |      2.2 |</span>
+<span class="go">| 02:00 |  8.0 | 7.0   1.0 | 3.4       0.2 |      3.6 |      3.6 |</span>
+<span class="go">| 03:00 | 13.0 | 7.0   6.0 | 5.3      1.42 |     6.72 |     6.72 |</span>
+<span class="go">| 04:00 | 11.0 | 7.0   4.0 | 6.6     2.302 |    8.902 |    8.902 |</span>
+<span class="go">| 05:00 |  8.0 | 7.0   1.0 | 7.0    2.3062 |   9.3062 |   9.3062 |</span>
+<span class="go">| 06:00 |  5.0 | 5.0   0.0 | 6.6   1.84622 |  8.44622 |  8.44622 |</span>
+<span class="go">| 07:00 |  4.0 | 4.0   0.0 | 5.6  1.338982 | 6.938982 | 6.938982 |</span>
+<span class="go">| 08:00 |  3.0 | 3.0   0.0 | 4.4  0.919014 | 5.319014 | 5.319014 |</span>
+<span class="go">| 09:00 |  2.0 | 2.0   0.0 | 3.3  0.609221 | 3.909221 | 3.909221 |</span>
+<span class="go">| 10:00 |  2.0 | 2.0   0.0 | 2.5  0.394439 | 2.894439 | 2.894439 |</span>
+<span class="go">| 11:00 |  2.0 | 2.0   0.0 | 2.1  0.251116 | 2.351116 | 2.351116 |</span>
+<span class="go">| 12:00 |  2.0 | 2.0   0.0 | 2.0  0.157896 | 2.157896 | 2.157896 |</span>
+<span class="go">| 13:00 |  2.0 | 2.0   0.0 | 2.0  0.098351 | 2.098351 | 2.098351 |</span>
+<span class="go">| 14:00 |  2.0 | 2.0   0.0 | 2.0  0.060817 | 2.060817 | 2.060817 |</span>
+<span class="go">| 15:00 |  2.0 | 2.0   0.0 | 2.0  0.037394 | 2.037394 | 2.037394 |</span>
+<span class="go">| 16:00 |  2.0 | 2.0   0.0 | 2.0  0.022888 | 2.022888 | 2.022888 |</span>
+<span class="go">| 17:00 |  2.0 | 2.0   0.0 | 2.0  0.013959 | 2.013959 | 2.013959 |</span>
+<span class="go">| 18:00 |  2.0 | 2.0   0.0 | 2.0  0.008488 | 2.008488 | 2.008488 |</span>
+<span class="go">| 19:00 |  2.0 | 2.0   0.0 | 2.0  0.005149 | 2.005149 | 2.005149 |</span>
+</pre></div></div></div><a href="arma_rimorido_nonlinearity.html" target="_blank" >Click to see the graph</a></pre></div></div></section>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.arma_rimorido.Model">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.arma_rimorido.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/hydpy/models/arma_rimorido.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#hydpy.models.arma_rimorido.Model" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="modeltools.html#hydpy.core.modeltools.AdHocModel" title="hydpy.core.modeltools.AdHocModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">AdHocModel</span></code></a></p>
+<p>HydPy-ARMA-RIMO/RIDO (nonlinear routing by multiple ARMA processes).</p>
+<dl class="simple">
+<dt>The following “inlet update methods” are called in the given sequence at the beginning of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_model.Pick_Q_V1" title="hydpy.models.arma.arma_model.Pick_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pick_Q_V1</span></code></a> Update inflow.</p></li>
+</ul>
+</dd>
+<dt>The following “run methods” are called in the given sequence during each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_model.Calc_QPIn_V1" title="hydpy.models.arma.arma_model.Calc_QPIn_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QPIn_V1</span></code></a> Calculate the input discharge portions of the different response functions.</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_model.Update_LogIn_V1" title="hydpy.models.arma.arma_model.Update_LogIn_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_LogIn_V1</span></code></a> Refresh the input log sequence for the different MA processes.</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_model.Calc_QMA_V1" title="hydpy.models.arma.arma_model.Calc_QMA_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QMA_V1</span></code></a> Calculate the discharge responses of the different MA processes.</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_model.Calc_QAR_V1" title="hydpy.models.arma.arma_model.Calc_QAR_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QAR_V1</span></code></a> Calculate the discharge responses of the different AR processes.</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_model.Calc_QPOut_V1" title="hydpy.models.arma.arma_model.Calc_QPOut_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QPOut_V1</span></code></a> Calculate the ARMA results for the different response functions.</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_model.Update_LogOut_V1" title="hydpy.models.arma.arma_model.Update_LogOut_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update_LogOut_V1</span></code></a> Refresh the log sequence for the different AR processes.</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_model.Calc_QOut_V1" title="hydpy.models.arma.arma_model.Calc_QOut_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Calc_QOut_V1</span></code></a> Sum up the results of the different response functions.</p></li>
+</ul>
+</dd>
+<dt>The following “outlet update methods” are called in the given sequence at the end of each simulation step:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_model.Pass_Q_V1" title="hydpy.models.arma.arma_model.Pass_Q_V1"><code class="xref py py-class docutils literal notranslate"><span class="pre">Pass_Q_V1</span></code></a> Update outflow.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.arma_rimorido.Model.DOCNAME">
+<span class="sig-name descname"><span class="pre">DOCNAME</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('ARMA-RIMO/RIDO',</span> <span class="pre">'nonlinear</span> <span class="pre">routing</span> <span class="pre">by</span> <span class="pre">multiple</span> <span class="pre">ARMA</span> <span class="pre">processes')</span></span><a class="headerlink" href="#hydpy.models.arma_rimorido.Model.DOCNAME" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.arma_rimorido.Model.OBSERVER_METHODS">
+<span class="sig-name descname"><span class="pre">OBSERVER_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.arma_rimorido.Model.OBSERVER_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hydpy.models.arma_rimorido.Model.REUSABLE_METHODS">
+<span class="sig-name descname"><span class="pre">REUSABLE_METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#hydpy.models.arma_rimorido.Model.REUSABLE_METHODS" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.arma_rimorido.ControlParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.arma_rimorido.</span></span><span class="sig-name descname"><span class="pre">ControlParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.arma_rimorido.ControlParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Control parameters of model arma_rimorido.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_control.Responses" title="hydpy.models.arma.arma_control.Responses"><code class="xref py py-func docutils literal notranslate"><span class="pre">Responses()</span></code></a> Assigns different ARMA models to different discharge thresholds.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.arma_rimorido.DerivedParameters">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.arma_rimorido.</span></span><span class="sig-name descname"><span class="pre">DerivedParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.Parameters" title="hydpy.core.parametertools.Parameters"><span class="pre">Parameters</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="parametertools.html#hydpy.core.parametertools.FastAccessParameter" title="hydpy.core.parametertools.FastAccessParameter"><span class="pre">FastAccessParameter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.arma_rimorido.DerivedParameters" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="parametertools.html#hydpy.core.parametertools.SubParameters" title="hydpy.core.parametertools.SubParameters"><code class="xref py py-class docutils literal notranslate"><span class="pre">SubParameters</span></code></a></p>
+<p>Derived parameters of model arma_rimorido.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_derived.Nmb" title="hydpy.models.arma.arma_derived.Nmb"><code class="xref py py-func docutils literal notranslate"><span class="pre">Nmb()</span></code></a> Number of response functions [-].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_derived.MaxQ" title="hydpy.models.arma.arma_derived.MaxQ"><code class="xref py py-func docutils literal notranslate"><span class="pre">MaxQ()</span></code></a> Maximum discharge values of the respective ARMA models [m³/s].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_derived.DiffQ" title="hydpy.models.arma.arma_derived.DiffQ"><code class="xref py py-func docutils literal notranslate"><span class="pre">DiffQ()</span></code></a> Differences between the values of <a class="reference internal" href="arma.html#hydpy.models.arma.arma_derived.MaxQ" title="hydpy.models.arma.arma_derived.MaxQ"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaxQ</span></code></a> [m³/s].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_derived.AR_Order" title="hydpy.models.arma.arma_derived.AR_Order"><code class="xref py py-func docutils literal notranslate"><span class="pre">AR_Order()</span></code></a> Number of AR coefficients of the different responses [-].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_derived.MA_Order" title="hydpy.models.arma.arma_derived.MA_Order"><code class="xref py py-func docutils literal notranslate"><span class="pre">MA_Order()</span></code></a> Number of MA coefficients of the different responses [-].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_derived.AR_Coefs" title="hydpy.models.arma.arma_derived.AR_Coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">AR_Coefs()</span></code></a> AR coefficients of the different responses [-].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_derived.MA_Coefs" title="hydpy.models.arma.arma_derived.MA_Coefs"><code class="xref py py-func docutils literal notranslate"><span class="pre">MA_Coefs()</span></code></a> MA coefficients of the different responses [-].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.arma_rimorido.FluxSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.arma_rimorido.</span></span><span class="sig-name descname"><span class="pre">FluxSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.arma_rimorido.FluxSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.FluxSequences" title="hydpy.core.sequencetools.FluxSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">FluxSequences</span></code></a></p>
+<p>Flux sequences of model arma_rimorido.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QIn" title="hydpy.models.arma.arma_fluxes.QIn"><code class="xref py py-func docutils literal notranslate"><span class="pre">QIn()</span></code></a> Total inflow [m³/s].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QPIn" title="hydpy.models.arma.arma_fluxes.QPIn"><code class="xref py py-func docutils literal notranslate"><span class="pre">QPIn()</span></code></a> Inflow portions corresponding to the different thresholds [m³/s].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QMA" title="hydpy.models.arma.arma_fluxes.QMA"><code class="xref py py-func docutils literal notranslate"><span class="pre">QMA()</span></code></a> MA result for the different thresholds [m³/s].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QAR" title="hydpy.models.arma.arma_fluxes.QAR"><code class="xref py py-func docutils literal notranslate"><span class="pre">QAR()</span></code></a> AR result for the different thresholds [m³/s].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QPOut" title="hydpy.models.arma.arma_fluxes.QPOut"><code class="xref py py-func docutils literal notranslate"><span class="pre">QPOut()</span></code></a> Outflow portions corresponding to the different thresholds [m³/s].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_fluxes.QOut" title="hydpy.models.arma.arma_fluxes.QOut"><code class="xref py py-func docutils literal notranslate"><span class="pre">QOut()</span></code></a> Total outflow [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.arma_rimorido.InletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.arma_rimorido.</span></span><span class="sig-name descname"><span class="pre">InletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.arma_rimorido.InletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.InletSequences" title="hydpy.core.sequencetools.InletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">InletSequences</span></code></a></p>
+<p>Inlet sequences of model arma_rimorido.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_inlets.Q" title="hydpy.models.arma.arma_inlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Runoff [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.arma_rimorido.LogSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.arma_rimorido.</span></span><span class="sig-name descname"><span class="pre">LogSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.arma_rimorido.LogSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.LogSequences" title="hydpy.core.sequencetools.LogSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">LogSequences</span></code></a></p>
+<p>Log sequences of model arma_rimorido.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_logs.LogIn" title="hydpy.models.arma.arma_logs.LogIn"><code class="xref py py-func docutils literal notranslate"><span class="pre">LogIn()</span></code></a> The recent and the past inflow portions for the application of the different MA processes [m³/s].</p></li>
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_logs.LogOut" title="hydpy.models.arma.arma_logs.LogOut"><code class="xref py py-func docutils literal notranslate"><span class="pre">LogOut()</span></code></a> The past outflow portions for the application of the different AR processes [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hydpy.models.arma_rimorido.OutletSequences">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">hydpy.models.arma_rimorido.</span></span><span class="sig-name descname"><span class="pre">OutletSequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.Sequences" title="hydpy.core.sequencetools.Sequences"><span class="pre">Sequences</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_fastaccess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.14)"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">TypeFastAccess_co</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cymodel</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="typingtools.html#hydpy.core.typingtools.CyModelProtocol" title="hydpy.core.typingtools.CyModelProtocol"><span class="pre">CyModelProtocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hydpy.models.arma_rimorido.OutletSequences" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.OutletSequences" title="hydpy.core.sequencetools.OutletSequences"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutletSequences</span></code></a></p>
+<p>Outlet sequences of model arma_rimorido.</p>
+<dl class="simple">
+<dt>The following classes are selected:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="arma.html#hydpy.models.arma.arma_outlets.Q" title="hydpy.models.arma.arma_outlets.Q"><code class="xref py py-func docutils literal notranslate"><span class="pre">Q()</span></code></a> Runoff [m³/s].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="HydPy-Conv.html" title="HydPy-Conv"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="arma.html" title="arma"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="reference_manual.html" >Reference Manual</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="model_families.html" >Model Families</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="HydPy-ARMA.html" >HydPy-ARMA</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">arma_rimorido</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

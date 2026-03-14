@@ -1,0 +1,60 @@
+.. |ACKER| replace:: :const:`~hydpy.models.lland.lland_constants.ACKER`
+.. |AETModel_V1| replace:: :class:`~hydpy.interfaces.aetinterfaces.AETModel_V1`
+.. |BAUMB| replace:: :const:`~hydpy.models.lland.lland_constants.BAUMB`
+.. |BODEN| replace:: :const:`~hydpy.models.lland.lland_constants.BODEN`
+.. |Calc_NBesInz_V1| replace:: :class:`~hydpy.models.lland.lland_model.Calc_NBesInz_V1`
+.. |Calc_NetShortwaveRadiationInz_V1| replace:: :class:`~hydpy.models.lland.lland_model.Calc_NetShortwaveRadiationInz_V1`
+.. |Calc_SnowIntRate_V1| replace:: :class:`~hydpy.models.lland.lland_model.Calc_SnowIntRate_V1`
+.. |ESnowInz| replace:: :class:`~hydpy.models.lland.lland_states.ESnowInz`
+.. |ESnow| replace:: :class:`~hydpy.models.lland.lland_states.ESnow`
+.. |EvI| replace:: :class:`~hydpy.models.lland.lland_fluxes.EvI`
+.. |EvSInz| replace:: :class:`~hydpy.models.lland.lland_fluxes.EvSInz`
+.. |FEUCHT| replace:: :const:`~hydpy.models.lland.lland_constants.FEUCHT`
+.. |FLUSS| replace:: :const:`~hydpy.models.lland.lland_constants.FLUSS`
+.. |GLETS| replace:: :const:`~hydpy.models.lland.lland_constants.GLETS`
+.. |GRUE_E| replace:: :const:`~hydpy.models.lland.lland_constants.GRUE_E`
+.. |GRUE_I| replace:: :const:`~hydpy.models.lland.lland_constants.GRUE_I`
+.. |LAUBW| replace:: :const:`~hydpy.models.lland.lland_constants.LAUBW`
+.. |MISCHW| replace:: :const:`~hydpy.models.lland.lland_constants.MISCHW`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.lland_knauf_ic.Model.check_waterbalance`
+.. |NADELW| replace:: :const:`~hydpy.models.lland.lland_constants.NADELW`
+.. |NetRadiationInz| replace:: :class:`~hydpy.models.lland.lland_fluxes.NetRadiationInz`
+.. |NetRadiationSnow| replace:: :class:`~hydpy.models.lland.lland_fluxes.NetRadiationSnow`
+.. |OBSTB| replace:: :const:`~hydpy.models.lland.lland_constants.OBSTB`
+.. |RadiationModel_V1| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V1`
+.. |RadiationModel_V4| replace:: :class:`~hydpy.interfaces.radiationinterfaces.RadiationModel_V4`
+.. |Return_NetLongwaveRadiationInz_V1| replace:: :class:`~hydpy.models.lland.lland_model.Return_NetLongwaveRadiationInz_V1`
+.. |Return_WSurfInz_V1| replace:: :class:`~hydpy.models.lland.lland_model.Return_WSurfInz_V1`
+.. |SEE| replace:: :const:`~hydpy.models.lland.lland_constants.SEE`
+.. |SIED_D| replace:: :const:`~hydpy.models.lland.lland_constants.SIED_D`
+.. |SIED_L| replace:: :const:`~hydpy.models.lland.lland_constants.SIED_L`
+.. |SInz| replace:: :class:`~hydpy.models.lland.lland_states.SInz`
+.. |STInz| replace:: :class:`~hydpy.models.lland.lland_states.STInz`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |SoilModel_V1| replace:: :class:`~hydpy.interfaces.soilinterfaces.SoilModel_V1`
+.. |TempSInz| replace:: :class:`~hydpy.models.lland.lland_aides.TempSInz`
+.. |VERS| replace:: :const:`~hydpy.models.lland.lland_constants.VERS`
+.. |VolBMax| replace:: :class:`~hydpy.models.lland.lland_control.VolBMax`
+.. |WASSER| replace:: :const:`~hydpy.models.lland.lland_constants.WASSER`
+.. |WATS| replace:: :class:`~hydpy.models.lland.lland_states.WATS`
+.. |WAeS| replace:: :class:`~hydpy.models.lland.lland_states.WAeS`
+.. |WEINB| replace:: :const:`~hydpy.models.lland.lland_constants.WEINB`
+.. |WG| replace:: :class:`~hydpy.models.lland.lland_fluxes.WG`
+.. |WSurfInz| replace:: :class:`~hydpy.models.lland.lland_fluxes.WSurfInz`
+.. |WSurf| replace:: :class:`~hydpy.models.lland.lland_fluxes.WSurf`
+.. |WaDaInz| replace:: :class:`~hydpy.models.lland.lland_fluxes.WaDaInz`
+.. |WaDa| replace:: :class:`~hydpy.models.lland.lland_fluxes.WaDa`
+.. |lland_knauf_ic.DOCNAME.complete| replace:: HydPy-L-Knauf-Ic (adoption of LARSIM with Knauf-based snow modelling including snow interception)
+.. |lland_knauf_ic| replace:: :mod:`~hydpy.models.lland_knauf_ic`
+.. |lland_knauf| replace:: :mod:`~hydpy.models.lland_knauf`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+
+.. _lland_knauf_ic:
+
+lland_knauf_ic
+==============
+
+.. automodule:: hydpy.models.lland_knauf_ic
+    :members:
+    :show-inheritance:
+    :exclude-members: Pattern, SUBMODELINTERFACES, AsyncGenerator, RECEIVER_METHODS, ParamSpecKwargs, subseqs, BinaryIO, get_overloads, ValuesView, INTERFACE_METHODS, Sentinel, final, MutableMapping, ObserverSequences, subpars, Awaitable, get_args, Protocol, deprecated, ClassVar, Literal, OrderedDict, get_original_bases, OUTLET_METHODS, Any, MutableSequence, SUBMODELS, Format, Type, Hashable, Collection, ChainMap, disjoint_base, fastaccess, Generator, ByteString, UPDATEDSEQUENCES, TypeVarTuple, ADD_METHODS, Coroutine, get_origin, Optional, SOLVERPARAMETERS, LiteralString, NamedTuple, fastaccess_old, TypeVar, Concatenate, KeysView, Buffer, MutableSet, AsyncContextManager, TypeGuard, Sequence, Union, subvars, TypeAliasType, ParamSpec, DefaultDict, SupportsIndex, AbstractSet, pars, runtime, runtime_checkable, SupportsComplex, Mapping, TYPE_CHECKING, Required, Tuple, Match, overload, SupportsRound, type_repr, is_protocol, Final, RUN_METHODS, SupportsAbs, Self, seqs, clear_overloads, AnyStr, dataclass_transform, Sized, NoExtraItems, is_typeddict, Annotated, IntVar, no_type_check, Dict, SenderSequences, ForwardRef, SUBMETHODS, SENDER_METHODS, get_type_hints, Counter, cast, Unpack, FULL_ODE_METHODS, ContextManager, AsyncIterable, Reader, override, Iterator, NoReturn, SOLVERSEQUENCES, Writer, IO, TypeIs, Generic, PART_ODE_METHODS, OBSERVER_METHODS, reveal_type, NewType, Deque, TypedDict, DERIVEDPARAMETERS, Never, Text, evaluate_forward_ref, SupportsInt, SupportsFloat, RESULTSEQUENCES, Set, Reversible, Doc, CapsuleType, NoDefault, NotRequired, ParamSpecArgs, REQUIREDSEQUENCES, ItemsView, AsyncIterator, ReadOnly, TextIO, assert_never, get_annotations, CONTROLPARAMETERS, get_protocol_members, ReceiverSequences, CLASSES, Iterable, TypeAlias, FIXEDPARAMETERS, assert_type, Container, List, FrozenSet, fastaccess_new, MappingView, no_type_check_decorator, TypeForm, Callable, SupportsBytes, INLET_METHODS

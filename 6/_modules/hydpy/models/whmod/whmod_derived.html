@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.whmod.whmod_derived &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../../_static/documentation_options.js?v=f13f159b"></script>
+    <script src="../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_derived</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.whmod.whmod_derived</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=missing-module-docstring</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">hydpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">parametertools</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod.whmod_constants</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod</span><span class="w"> </span><span class="kn">import</span> <span class="n">whmod_parameters</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.whmod</span><span class="w"> </span><span class="kn">import</span> <span class="n">whmod_control</span>
+
+
+<div class="viewcode-block" id="MOY">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.MOY">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MOY</span><span class="p">(</span><span class="n">parametertools</span><span class="o">.</span><span class="n">MOYParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;References the &quot;global&quot; month of the year index array [-].&quot;&quot;&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="ZoneRatio">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.ZoneRatio">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ZoneRatio</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">LandTypeCompleteParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative zone area [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">whmod_control</span><span class="o">.</span><span class="n">Area</span><span class="p">,</span> <span class="n">whmod_control</span><span class="o">.</span><span class="n">ZoneArea</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ZoneRatio.update">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.ZoneRatio.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the relative zone areas based on</span>
+<span class="sd">        :math:`ZoneRation = ZoneArea / Area`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(3)</span>
+<span class="sd">        &gt;&gt;&gt; landtype(GRASS, WATER, SEALED)</span>
+<span class="sd">        &gt;&gt;&gt; area(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; zonearea(20.0, 30.0, 50.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.zoneratio.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.zoneratio</span>
+<span class="sd">        zoneratio(grass=0.2, sealed=0.5, water=0.3)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">zonearea</span> <span class="o">/</span> <span class="n">control</span><span class="o">.</span><span class="n">area</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="SoilDepth">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.SoilDepth">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoilDepth</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">SoilTypeParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Effective soil depth [m].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">whmod_control</span><span class="o">.</span><span class="n">RootingDepth</span><span class="p">,</span> <span class="n">whmod_control</span><span class="o">.</span><span class="n">GroundwaterDepth</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SoilDepth.update">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.SoilDepth.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the effective soil depth</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(4)</span>
+<span class="sd">        &gt;&gt;&gt; landtype(GRASS, DECIDUOUS, CONIFER, WATER)</span>
+<span class="sd">        &gt;&gt;&gt; soiltype(SAND, SILT, CLAY, NONE)</span>
+<span class="sd">        &gt;&gt;&gt; groundwaterdepth(1.0)</span>
+<span class="sd">        &gt;&gt;&gt; rootingdepth(0.5, 1.0, 1.5, 2.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.soildepth.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.soildepth</span>
+<span class="sd">        soildepth(clay=1.0, sand=0.5, silt=1.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
+            <span class="n">control</span><span class="o">.</span><span class="n">rootingdepth</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">control</span><span class="o">.</span><span class="n">groundwaterdepth</span><span class="o">.</span><span class="n">values</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MaxSoilWater">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.MaxSoilWater">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MaxSoilWater</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">SoilTypeParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Maximum water content of the considered soil column [mm].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">whmod_control</span><span class="o">.</span><span class="n">AvailableFieldCapacity</span><span class="p">,</span>
+        <span class="n">whmod_control</span><span class="o">.</span><span class="n">RootingDepth</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">SoilDepth</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="MaxSoilWater.update">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.MaxSoilWater.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the maximum soil water content based on</span>
+<span class="sd">        :math:`AvailableFieldCapacity \cdot max(SoilDepth, \, 0.3)`</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(7)</span>
+<span class="sd">        &gt;&gt;&gt; landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)</span>
+<span class="sd">        &gt;&gt;&gt; soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)</span>
+<span class="sd">        &gt;&gt;&gt; availablefieldcapacity(200.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.soildepth(</span>
+<span class="sd">        ...     sand=0.0, sand_cohesive=0.2, loam=0.3, clay=0.4, silt=1.0, peat=1.0</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; derived.maxsoilwater.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.maxsoilwater</span>
+<span class="sd">        maxsoilwater(clay=80.0, loam=60.0, peat=200.0, sand=60.0,</span>
+<span class="sd">                     sand_cohesive=60.0, silt=200.0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">availablefieldcapacity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">availablefieldcapacity</span>
+        <span class="n">soildepth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">soildepth</span>
+        <span class="bp">self</span><span class="p">(</span><span class="n">availablefieldcapacity</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">soildepth</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Beta">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.Beta">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Beta</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">SoilTypeParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Nonlinearity parameter for calculating percolation [-].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">whmod_control</span><span class="o">.</span><span class="n">SoilType</span><span class="p">,)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">MaxSoilWater</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="Beta.update">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.Beta.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate |Beta| based on</span>
+<span class="sd">        :math:`1 + \frac{6}{1 + (MaxSoilWater / 118.25)^{-6.5}}`</span>
+<span class="sd">        :cite:p:`ref-Armbruster2002`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(7)</span>
+<span class="sd">        &gt;&gt;&gt; landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)</span>
+<span class="sd">        &gt;&gt;&gt; soiltype(SAND, SAND_COHESIVE, LOAM, CLAY, SILT, PEAT, NONE)</span>
+<span class="sd">        &gt;&gt;&gt; derived.maxsoilwater(</span>
+<span class="sd">        ...     sand=0.0, sand_cohesive=50.0, loam=100.0, clay=150.0, silt=200.0,</span>
+<span class="sd">        ...     peat=250.0</span>
+<span class="sd">        ... )</span>
+<span class="sd">        &gt;&gt;&gt; derived.beta.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.beta</span>
+<span class="sd">        beta(clay=5.945944, loam=2.510161, peat=6.954142, sand=1.0,</span>
+<span class="sd">             sand_cohesive=1.022215, silt=6.809179)</span>
+
+<span class="sd">        &gt;&gt;&gt; nmbzones(2)</span>
+<span class="sd">        &gt;&gt;&gt; landtype(WATER, SEALED)</span>
+<span class="sd">        &gt;&gt;&gt; soiltype(NONE)</span>
+<span class="sd">        &gt;&gt;&gt; derived.maxsoilwater(100.0)</span>
+<span class="sd">        &gt;&gt;&gt; derived.beta.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.beta</span>
+<span class="sd">        beta(nan)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">maxsoilwater</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">maxsoilwater</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">idxs1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">soiltype</span><span class="o">.</span><span class="n">values</span> <span class="o">!=</span> <span class="n">NONE</span>
+        <span class="n">idxs2</span> <span class="o">=</span> <span class="n">maxsoilwater</span><span class="o">.</span><span class="n">values</span> <span class="o">&lt;=</span> <span class="mf">0.0</span>
+        <span class="n">idxs3</span> <span class="o">=</span> <span class="n">idxs1</span> <span class="o">*</span> <span class="n">idxs2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idxs3</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">idxs4</span> <span class="o">=</span> <span class="n">idxs1</span> <span class="o">*</span> <span class="o">~</span><span class="n">idxs2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idxs4</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="mf">6.0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="p">(</span><span class="n">maxsoilwater</span><span class="p">[</span><span class="n">idxs4</span><span class="p">]</span> <span class="o">/</span> <span class="mf">118.25</span><span class="p">)</span> <span class="o">**</span> <span class="o">-</span><span class="mf">6.5</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PotentialCapillaryRise">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.PotentialCapillaryRise">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PotentialCapillaryRise</span><span class="p">(</span><span class="n">whmod_parameters</span><span class="o">.</span><span class="n">SoilTypeParameter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Potential capillary rise [mm/T].&quot;&quot;&quot;</span>
+
+    <span class="n">TYPE</span><span class="p">,</span> <span class="n">TIME</span><span class="p">,</span> <span class="n">SPAN</span> <span class="o">=</span> <span class="nb">float</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">CONTROLPARAMETERS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">whmod_control</span><span class="o">.</span><span class="n">SoilType</span><span class="p">,</span>
+        <span class="n">whmod_control</span><span class="o">.</span><span class="n">CapillaryThreshold</span><span class="p">,</span>
+        <span class="n">whmod_control</span><span class="o">.</span><span class="n">CapillaryLimit</span><span class="p">,</span>
+        <span class="n">whmod_control</span><span class="o">.</span><span class="n">RootingDepth</span><span class="p">,</span>
+        <span class="n">whmod_control</span><span class="o">.</span><span class="n">GroundwaterDepth</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">DERIVEDPARAMETERS</span> <span class="o">=</span> <span class="p">(</span><span class="n">SoilDepth</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="PotentialCapillaryRise.update">
+<a class="viewcode-back" href="../../../../whmod.html#hydpy.models.whmod.whmod_derived.PotentialCapillaryRise.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the potential capillary rise based on</span>
+<span class="sd">        :math:`5 \cdot Days \cdot</span>
+<span class="sd">        \frac{(GroundwaterDepth - SoilDepth) - CapillaryThreshold}</span>
+<span class="sd">        {CapillaryLimit - CapillaryThreshold}`.</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy.models.whmod import *</span>
+<span class="sd">        &gt;&gt;&gt; simulationstep(&quot;1h&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; parameterstep(&quot;1d&quot;)</span>
+<span class="sd">        &gt;&gt;&gt; nmbzones(7)</span>
+<span class="sd">        &gt;&gt;&gt; landtype(GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, SEALED)</span>
+<span class="sd">        &gt;&gt;&gt; soiltype(SAND, SAND, SAND, SAND, SAND, SAND, NONE)</span>
+<span class="sd">        &gt;&gt;&gt; capillarythreshold(sand=0.8)</span>
+<span class="sd">        &gt;&gt;&gt; capillarylimit(sand=0.4)</span>
+<span class="sd">        &gt;&gt;&gt; derived.soildepth(sand=1.0)</span>
+<span class="sd">        &gt;&gt;&gt; groundwaterdepth(1.2, 1.4, 1.6, 1.8, 2.0, nan, nan)</span>
+<span class="sd">        &gt;&gt;&gt; derived.potentialcapillaryrise.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.potentialcapillaryrise</span>
+<span class="sd">        potentialcapillaryrise(5.0, 5.0, 2.5, 0.0, 0.0, nan, nan)</span>
+<span class="sd">        &gt;&gt;&gt; from hydpy import print_vector</span>
+<span class="sd">        &gt;&gt;&gt; print_vector(derived.potentialcapillaryrise.values)</span>
+<span class="sd">        0.208333, 0.208333, 0.104167, 0.0, 0.0, nan, nan</span>
+
+<span class="sd">        &gt;&gt;&gt; capillarythreshold(sand=0.6)</span>
+<span class="sd">        &gt;&gt;&gt; capillarylimit(sand=0.6)</span>
+<span class="sd">        &gt;&gt;&gt; derived.potentialcapillaryrise.update()</span>
+<span class="sd">        &gt;&gt;&gt; derived.potentialcapillaryrise</span>
+<span class="sd">        potentialcapillaryrise(5.0, 5.0, 0.0, 0.0, 0.0, nan, nan)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">maxrise</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">*</span> <span class="n">hydpy</span><span class="o">.</span><span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">simulationstep</span><span class="o">.</span><span class="n">days</span>
+        <span class="n">control</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">pars</span><span class="o">.</span><span class="n">control</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">soiltype</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">delta</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">soiltype</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">capillarythreshold</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">capillarylimit</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                <span class="n">control</span><span class="o">.</span><span class="n">groundwaterdepth</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">subpars</span><span class="o">.</span><span class="n">soildepth</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="n">soiltype</span> <span class="o">!=</span> <span class="n">NONE</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">delta</span> <span class="o">&gt;=</span> <span class="n">threshold</span><span class="p">:</span>
+                    <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">elif</span> <span class="n">delta</span> <span class="o">&lt;=</span> <span class="n">limit</span><span class="p">:</span>
+                    <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxrise</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxrise</span> <span class="o">*</span> <span class="p">((</span><span class="n">delta</span> <span class="o">-</span> <span class="n">threshold</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">limit</span> <span class="o">-</span> <span class="n">threshold</span><span class="p">))</span></div>
+</div>
+
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.whmod.whmod_derived</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

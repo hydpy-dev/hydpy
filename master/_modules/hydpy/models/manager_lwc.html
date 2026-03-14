@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.models.manager_lwc &#8212; HydPy 6.3dev2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="../../../_static/documentation_options.js?v=fc520d38"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.manager_lwc</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="../../../index.html">Table of Contents</a></h3>
+    <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.models.manager_lwc</h1><div class="highlight"><pre>
+<span></span><span class="c1"># pylint: disable=line-too-long, unused-wildcard-import</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The application model |manager_lwc| detects severe low flow conditions at a specific</span>
+<span class="sd">point in the river network (called the &quot;target node&quot; or &quot;target location&quot;) and tries</span>
+<span class="sd">increase the flow by requesting additional water releases by controlled lakes or dams</span>
+<span class="sd">lying upstream (called &quot;source elements&quot; or just &quot;sources&quot;).</span>
+
+<span class="sd">.. warning::</span>
+
+<span class="sd">    We already tested |manager_lwc| in quite complex scenarios and achieved good</span>
+<span class="sd">    results.  However, there is still room for further improvements.  Hence, be aware</span>
+<span class="sd">    that we might change some aspects of |manager_lwc| in the future.</span>
+
+<span class="sd">Integration tests</span>
+<span class="sd">=================</span>
+
+<span class="sd">.. how_to_understand_integration_tests::</span>
+
+<span class="sd">We prepare a simulation period of two months:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import pub</span>
+<span class="sd">&gt;&gt;&gt; pub.timegrids = &quot;2000-01-01&quot;, &quot;2000-03-01&quot;, &quot;1d&quot;</span>
+
+<span class="sd">We initialise a |manager_lwc| instance and &quot;activate&quot; it by setting its commission date</span>
+<span class="sd">to the start of the simulation period:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.models.manager_lwc import *</span>
+<span class="sd">&gt;&gt;&gt; parameterstep()</span>
+<span class="sd">&gt;&gt;&gt; commission(&quot;2000-01-01&quot;)</span>
+
+<span class="sd">The following scalar parameters determine how |manager_lwc| estimates the demand for</span>
+<span class="sd">additional water releases based on memorised discharge at the target location and</span>
+<span class="sd">additional releases from the sources:</span>
+
+<span class="sd">&gt;&gt;&gt; dischargethreshold(1.0)</span>
+<span class="sd">&gt;&gt;&gt; dischargetolerance(0.0)</span>
+<span class="sd">&gt;&gt;&gt; timedelay(0)</span>
+<span class="sd">&gt;&gt;&gt; timewindow(1)</span>
+
+<span class="sd">The scalar parameter |Sources| tells |manager_lwc| the names of those elements which</span>
+<span class="sd">handle the |dam| models we will initialise below:</span>
+
+<span class="sd">&gt;&gt;&gt; sources(&quot;d_1&quot;, &quot;d_1a&quot;, &quot;d_2&quot;, &quot;d_2a&quot;, &quot;d_2b&quot;, &quot;d_2b1&quot;)</span>
+
+<span class="sd">The following 1-dimensional parameters allow for specific configurations for handling</span>
+<span class="sd">individual sources.  However, we simplify the following test cases by defining</span>
+<span class="sd">identical settings for all of them:</span>
+
+<span class="sd">&gt;&gt;&gt; releasemax(0.5)</span>
+<span class="sd">&gt;&gt;&gt; volumethreshold(0.0)</span>
+<span class="sd">&gt;&gt;&gt; volumetolerance(0.0)</span>
+<span class="sd">&gt;&gt;&gt; active(True)</span>
+
+<span class="sd">Next, we define a network structure containing elements with the previously defined</span>
+<span class="sd">names.  We try to keep things simple by omitting routing processes, so the following</span>
+<span class="sd">tests are more educational than a showcase of the capabilities of |manager_lwc| in</span>
+<span class="sd">real-world projects.</span>
+
+<span class="sd">We start with discharge nodes to be placed between (`q_1a_1`, `q_2a_2`, `q_2b1_2b`,</span>
+<span class="sd">and `q_2b_2`) and below the most downstream (`n` and `t`) source elements:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import Element, FusedVariable, Node, Nodes</span>
+<span class="sd">&gt;&gt;&gt; n, q_1a_1, q_2a_2, q_2b1_2b, q_2b_2, t = Nodes(</span>
+<span class="sd">...     &quot;n&quot;, &quot;q_1a_1&quot;, &quot;q_2a_2&quot;, &quot;q_2b1_2b&quot;, &quot;q_2b_2&quot;, &quot;t&quot;</span>
+<span class="sd">... )</span>
+
+<span class="sd">|manager_lwc| sends its requests for additional water releases via the sender sequence</span>
+<span class="sd">|manager_senders.Request|, which some models of the HydPy-DAM model family can receive</span>
+<span class="sd">via the observer sequence |dam_observers.A|:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.aliases import dam_observers_A, manager_senders_Request</span>
+<span class="sd">&gt;&gt;&gt; R = FusedVariable(&quot;Request&quot;, dam_observers_A, manager_senders_Request)</span>
+<span class="sd">&gt;&gt;&gt; r_1, r_1a, r_2, r_2a, r_2b, r_2b1 = Nodes(</span>
+<span class="sd">...     &quot;r_1&quot;, &quot;r_1a&quot;, &quot;r_2&quot;, &quot;r_2a&quot;, &quot;r_2b&quot;, &quot;r_2b1&quot;, defaultvariable=R</span>
+<span class="sd">... )</span>
+
+<span class="sd">Additionally, |manager_lwc| needs to know the current water volume of the instructible</span>
+<span class="sd">sources.  All HydPy-Dam models can provide this information via the state sequence</span>
+<span class="sd">|dam_states.WaterVolume|, and |manager_lwc| queries it via its receiver sequence</span>
+<span class="sd">|WaterVolume|:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.aliases import dam_states_WaterVolume, manager_receivers_WaterVolume</span>
+<span class="sd">&gt;&gt;&gt; V = FusedVariable(&quot;V&quot;, dam_states_WaterVolume, manager_receivers_WaterVolume)</span>
+<span class="sd">&gt;&gt;&gt; v_1, v_1a, v_2, v_2a, v_2b, v_2b1 = Nodes(</span>
+<span class="sd">...     &quot;v_1&quot;, &quot;v_1a&quot;, &quot;v_2&quot;, &quot;v_2a&quot;, &quot;v_2b&quot;, &quot;v_2b1&quot;, defaultvariable=V</span>
+<span class="sd">... )</span>
+
+<span class="sd">Now we initialise the source elements and connect them with the previously defined</span>
+<span class="sd">nodes so that `d_1` and `d_2` are directly upstream of the target node `t`, while all</span>
+<span class="sd">other source elements are further upstream behind one (`d_1a`, `d_2a`, and `d_2b`) or</span>
+<span class="sd">two (`d_2b1`) source elements:</span>
+
+<span class="sd">&gt;&gt;&gt; d_1 = Element(&quot;d_1&quot;, inlets=q_1a_1, outlets=t, observers=r_1, outputs=v_1)</span>
+<span class="sd">&gt;&gt;&gt; d_1a = Element(&quot;d_1a&quot;, outlets=q_1a_1, observers=r_1a, outputs=v_1a)</span>
+<span class="sd">&gt;&gt;&gt; d_2 = Element(&quot;d_2&quot;, inlets=(q_2a_2, q_2b_2), outlets=t, observers=r_2, outputs=v_2)</span>
+<span class="sd">&gt;&gt;&gt; d_2a = Element(&quot;d_2a&quot;, outlets=q_2a_2, observers=r_2a, outputs=v_2a)</span>
+<span class="sd">&gt;&gt;&gt; d_2b = Element(&quot;d_2b&quot;, inlets=q_2b1_2b, outlets=q_2b_2, observers=r_2b, outputs=v_2b)</span>
+<span class="sd">&gt;&gt;&gt; d_2b1 = Element(&quot;d_2b1&quot;, outlets=q_2b1_2b, observers=r_2b1, outputs=v_2b1)</span>
+<span class="sd">&gt;&gt;&gt; dams = d_1, d_1a, d_2, d_2a, d_2b, d_2b1</span>
+
+<span class="sd">The manager element needs connections to the single target node and the volume and</span>
+<span class="sd">request nodes that are already connected to source elements:</span>
+
+<span class="sd">&gt;&gt;&gt; lwc = Element(</span>
+<span class="sd">...     &quot;lwc&quot;,</span>
+<span class="sd">...     receivers=[t, v_1, v_1a, v_2, v_2a, v_2b, v_2b1],</span>
+<span class="sd">...     senders=[r_1, r_1a, r_2, r_2a, r_2b, r_2b1],</span>
+<span class="sd">... )</span>
+<span class="sd">&gt;&gt;&gt; lwc.model = model</span>
+
+<span class="sd">Additionally, we define an element that adds natural inflow to the target node:</span>
+
+<span class="sd">&gt;&gt;&gt; i = Element(&quot;i&quot;, inlets=n, outlets=t)</span>
+<span class="sd">&gt;&gt;&gt; from hydpy import prepare_model</span>
+<span class="sd">&gt;&gt;&gt; i.model = prepare_model(&quot;dummy_node2node&quot;)</span>
+
+<span class="sd">All source elements get identically configured model instances of |dam_llake|:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy import PPoly</span>
+<span class="sd">&gt;&gt;&gt; for dam in dams:</span>
+<span class="sd">...     dam.model = prepare_model(&quot;dam_llake&quot;)</span>
+<span class="sd">...     control = dam.model.parameters.control</span>
+<span class="sd">...     control.catchmentarea(1.0)</span>
+<span class="sd">...     control.surfacearea(1.0)</span>
+<span class="sd">...     control.correctionprecipitation(1.0)</span>
+<span class="sd">...     control.correctionevaporation(1.0)</span>
+<span class="sd">...     control.weightevaporation(1.0)</span>
+<span class="sd">...     control.thresholdevaporation(0.0)</span>
+<span class="sd">...     control.dischargetolerance(0.0)</span>
+<span class="sd">...     control.toleranceevaporation(0.0)</span>
+<span class="sd">...     control.allowedwaterleveldrop(inf)</span>
+<span class="sd">...     control.watervolume2waterlevel(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0]))</span>
+<span class="sd">...     control.waterlevel2flooddischarge(PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.1]))</span>
+<span class="sd">...     control.commission(&quot;2000-01-01&quot;)</span>
+<span class="sd">...     control.pars.update()</span>
+
+<span class="sd">Finally, we create our test object, prepare the initial conditions, and define the</span>
+<span class="sd">natural inflow time series:</span>
+
+<span class="sd">&gt;&gt;&gt; from hydpy.core.testtools import IntegrationTest</span>
+<span class="sd">&gt;&gt;&gt; test = IntegrationTest(lwc)</span>
+<span class="sd">&gt;&gt;&gt; test.plotting_options.axis1 = (fluxes.freedischarge, fluxes.request)</span>
+<span class="sd">&gt;&gt;&gt; inits = [</span>
+<span class="sd">...     (logs.loggeddischarge, 1.5),</span>
+<span class="sd">...     (logs.loggedrequest, 0.0),</span>
+<span class="sd">...     (logs.loggedwatervolume, 0.5),</span>
+<span class="sd">... ]</span>
+<span class="sd">&gt;&gt;&gt; for dam in dams:</span>
+<span class="sd">...     inits.append((dam.model.sequences.states.watervolume, 0.5))</span>
+<span class="sd">...     inits.append((dam.model.sequences.logs.loggedadjustedevaporation, 0.0))</span>
+<span class="sd">&gt;&gt;&gt; test.inits = inits</span>
+<span class="sd">&gt;&gt;&gt; import numpy</span>
+<span class="sd">&gt;&gt;&gt; n.sequences.sim.series[:10] = numpy.linspace(1.2, 0.0, 10)</span>
+<span class="sd">&gt;&gt;&gt; n.sequences.sim.series[10:] = 0.0</span>
+
+<span class="sd">.. _manager_lwc_base_scenario:</span>
+
+<span class="sd">base scenario</span>
+<span class="sd">_____________</span>
+
+<span class="sd">Initially, the &quot;free discharge&quot; (the sum of the &quot;normal&quot; water releases of the sources</span>
+<span class="sd">`d_1` and `d_2` and the additional inflow of node `n`) is above the discharge threshold,</span>
+<span class="sd">so there is no demand for any extra water release.  On January 5th, the threshold is</span>
+<span class="sd">first undercut and |manager_lwc| is &quot;alerted&quot;.  It then continually calculates</span>
+<span class="sd">increasing demands and sends them to the source elements.  The actual requests to the</span>
+<span class="sd">individual sources are first split equally due to the equal additional release limit.</span>
+<span class="sd">During the further course of the simulation, starting with `d_1a`, the most &quot;upstream</span>
+<span class="sd">leaf&quot; of the smaller &quot;source branch&quot;, the source elements run dry.  At the end of</span>
+<span class="sd">January, `d_1` is empty.  As `d_2` is not allowed to add more than 0.5 m³/s to its</span>
+<span class="sd">&quot;normal&quot; discharge, the actual discharge at the target location is then only around</span>
+<span class="sd">0.55 m³/s and slowly decreases further, until, finally, also `d_2` runs dry and the</span>
+<span class="sd">target location&#39;s discharge falls to zero:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;manager_lwc_base_scenario&quot;)</span>
+<span class="sd">    |                date | alertness | demandtarget | freedischarge |                                                   demandsources |                                                  possiblerelease |                                                    request |        n |   q_1a_1 |   q_2a_2 | q_2b1_2b |   q_2b_2 |      r_1 |     r_1a |      r_2 |     r_2a |     r_2b |    r_2b1 |        t |       v_1 |      v_1a |       v_2 |     v_2a |      v_2b |     v_2b1 |</span>
+<span class="sd">    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 |       0.0 |          0.0 |           1.5 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      1.2 | 0.049785 | 0.049785 | 0.049785 | 0.049999 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 1.300214 |  0.499981 |  0.495699 |  0.504283 | 0.495699 |  0.499981 |  0.495699 |</span>
+<span class="sd">    | 2000-01-02 00:00:00 |       0.0 |          0.0 |      1.300214 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 | 1.066667 | 0.049356 | 0.049356 | 0.049356 | 0.049995 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 1.167301 |  0.499926 |  0.491434 |  0.508492 | 0.491434 |  0.499926 |  0.491434 |</span>
+<span class="sd">    | 2000-01-03 00:00:00 |       0.0 |          0.0 |      1.167301 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 | 0.933333 | 0.048932 | 0.048932 | 0.048932 | 0.049988 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 1.034378 |  0.499835 |  0.487207 |  0.512627 | 0.487207 |  0.499835 |  0.487207 |</span>
+<span class="sd">    | 2000-01-04 00:00:00 |       0.0 |          0.0 |      1.034378 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.8 | 0.048511 | 0.048511 | 0.048511 | 0.049977 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.901443 |  0.499708 |  0.483015 |   0.51669 | 0.483015 |  0.499708 |  0.483015 |</span>
+<span class="sd">    | 2000-01-05 00:00:00 |       1.0 |     0.098557 |      0.901443 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.049278  0.049278  0.049278  0.024639  0.024639  0.024639 | 0.666667 |  0.09716 | 0.072627 | 0.072627 | 0.074601 | 0.049278 | 0.049278 | 0.049278 | 0.024639 | 0.024639 | 0.024639 | 0.867054 |  0.499529 |  0.474621 |  0.520671 |  0.47674 |  0.499538 |   0.47674 |</span>
+<span class="sd">    | 2000-01-06 00:00:00 |       1.0 |     0.231503 |      0.768497 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.115752  0.115752  0.115752  0.057876  0.057876  0.057876 | 0.533333 | 0.162511 | 0.105095 | 0.105095 | 0.107818 | 0.115752 | 0.115752 | 0.115752 | 0.057876 | 0.057876 | 0.057876 | 0.867037 |  0.499254 |   0.46058 |   0.52455 |  0.46766 |  0.499302 |   0.46766 |</span>
+<span class="sd">    | 2000-01-07 00:00:00 |       1.0 |     0.364466 |      0.635534 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.182233  0.182233  0.182233  0.091117  0.091117  0.091117 |      0.4 | 0.227308 | 0.137289 | 0.137289 | 0.141031 | 0.182233 | 0.182233 | 0.182233 | 0.091117 | 0.091117 | 0.091117 | 0.867014 |  0.498836 |   0.44094 |  0.528304 | 0.455798 |  0.498979 |  0.455798 |</span>
+<span class="sd">    | 2000-01-08 00:00:00 |       1.0 |     0.497453 |      0.502547 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.248726  0.248726  0.248726  0.124363  0.124363  0.124363 | 0.266667 | 0.291559 | 0.169211 | 0.169211 | 0.174239 | 0.248726 | 0.248726 | 0.248726 | 0.124363 | 0.124363 | 0.124363 | 0.866983 |   0.49823 |   0.41575 |  0.531908 | 0.441178 |  0.498545 |  0.441178 |</span>
+<span class="sd">    | 2000-01-09 00:00:00 |       1.0 |     0.630469 |      0.369531 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.315235  0.315235  0.315235  0.157617  0.157617  0.157617 | 0.133333 | 0.355273 | 0.200866 | 0.200866 | 0.207443 | 0.315235 | 0.315235 | 0.315235 | 0.157617 | 0.157617 | 0.157617 | 0.866946 |  0.497388 |  0.385054 |  0.535339 | 0.423824 |  0.497976 |  0.423824 |</span>
+<span class="sd">    | 2000-01-10 00:00:00 |       1.0 |     0.763523 |      0.236477 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.381762  0.381762  0.381762  0.190881  0.190881  0.190881 |      0.0 | 0.418457 | 0.232258 | 0.232258 | 0.240642 | 0.381762 | 0.381762 | 0.381762 | 0.190881 | 0.190881 | 0.190881 | 0.866902 |  0.496266 |  0.348899 |  0.538574 | 0.403757 |  0.497252 |  0.403757 |</span>
+<span class="sd">    | 2000-01-11 00:00:00 |       1.0 |     0.896621 |      0.103379 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.448311  0.448311  0.448311  0.224155  0.224155  0.224155 |      0.0 | 0.481119 | 0.263392 | 0.263392 | 0.273835 | 0.448311 | 0.448311 | 0.448311 | 0.224155 | 0.224155 | 0.224155 | 1.000184 |  0.494819 |  0.307331 |   0.54159 | 0.380999 |   0.49635 |  0.380999 |</span>
+<span class="sd">    | 2000-01-12 00:00:00 |       1.0 |     0.896437 |      0.103563 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.448219  0.448219  0.448219  0.224109  0.224109  0.224109 |      0.0 | 0.476889 |  0.26108 |  0.26108 |  0.27369 | 0.448219 | 0.448219 | 0.448219 | 0.224109 | 0.224109 | 0.224109 | 1.000128 |  0.493029 |  0.266128 |  0.544377 | 0.358442 |   0.49526 |  0.358442 |</span>
+<span class="sd">    | 2000-01-13 00:00:00 |       1.0 |     0.896309 |      0.103691 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.448155  0.448155  0.448155  0.224077  0.224077  0.224077 |      0.0 | 0.472722 | 0.258802 | 0.258802 |  0.27354 | 0.448155 | 0.448155 | 0.448155 | 0.224077 | 0.224077 | 0.224077 | 1.000071 |  0.490901 |  0.225284 |  0.546936 | 0.336082 |  0.493987 |  0.336082 |</span>
+<span class="sd">    | 2000-01-14 00:00:00 |       1.0 |     0.896238 |      0.103762 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.448119  0.448119  0.448119  0.224059  0.224059  0.224059 |      0.0 |  0.46862 | 0.256558 | 0.256558 | 0.273385 | 0.448119 | 0.448119 | 0.448119 | 0.224059 | 0.224059 | 0.224059 | 1.000015 |  0.488441 |  0.184796 |   0.54927 | 0.313915 |  0.492533 |  0.313915 |</span>
+<span class="sd">    | 2000-01-15 00:00:00 |       1.0 |     0.896223 |      0.103777 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.448111  0.448111  0.448111  0.224056  0.224056  0.224056 |      0.0 | 0.464581 | 0.254347 | 0.254347 | 0.273227 | 0.448111 | 0.448111 | 0.448111 | 0.224056 | 0.224056 | 0.224056 |  0.99996 |  0.485656 |  0.144656 |  0.551381 |  0.29194 |  0.490902 |   0.29194 |</span>
+<span class="sd">    | 2000-01-16 00:00:00 |       1.0 |     0.896263 |      0.103737 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.448131  0.448131  0.448131  0.224066  0.224066  0.224066 |      0.0 | 0.460604 | 0.252169 | 0.252169 | 0.273065 | 0.448131 | 0.448131 | 0.448131 | 0.224066 | 0.224066 | 0.224066 | 0.999905 |  0.482551 |   0.10486 |   0.55327 | 0.270152 |  0.489096 |  0.270152 |</span>
+<span class="sd">    | 2000-01-17 00:00:00 |       1.0 |     0.896357 |      0.103643 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.448179  0.448179  0.448179  0.224089  0.224089  0.224089 |      0.0 | 0.456689 | 0.250023 | 0.250023 |   0.2729 | 0.448179 | 0.448179 | 0.448179 | 0.224089 | 0.224089 | 0.224089 | 0.999852 |  0.479132 |  0.065402 |  0.554941 |  0.24855 |   0.48712 |   0.24855 |</span>
+<span class="sd">    | 2000-01-18 00:00:00 |       1.0 |     0.896505 |      0.103495 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5      0.5       0.5       0.5       0.5              0.5 | 0.448253  0.448253  0.448253  0.224126  0.224126  0.224126 |      0.0 | 0.452834 | 0.247909 | 0.247909 | 0.272731 | 0.448253 | 0.448253 | 0.448253 | 0.224126 | 0.224126 | 0.224126 | 0.999799 |  0.475404 |  0.026277 |  0.556394 | 0.227131 |  0.484975 |  0.227131 |</span>
+<span class="sd">    | 2000-01-19 00:00:00 |       1.0 |     0.896707 |      0.103293 |      0.0       0.0       0.0       0.0       0.0            0.0 |      0.5  0.30413       0.5       0.5       0.5              0.5 | 0.448353   0.30413  0.448353  0.224177  0.224177  0.224177 |      0.0 | 0.305437 | 0.245826 | 0.245826 | 0.272558 | 0.448353 |  0.30413 | 0.448353 | 0.224177 | 0.224177 | 0.224177 | 0.999128 |   0.45902 | -0.000113 |  0.557632 | 0.205891 |  0.482665 |  0.205891 |</span>
+<span class="sd">    | 2000-01-20 00:00:00 |       1.0 |     0.897579 |      0.102421 |      0.0  0.001307       0.0       0.0       0.0            0.0 |      0.5      0.0       0.5       0.5       0.5              0.5 | 0.448789       0.0  0.448789  0.224395  0.224395  0.224395 |      0.0 |      0.0 | 0.243929 | 0.243929 | 0.272537 | 0.448789 |      0.0 | 0.448789 | 0.224395 | 0.224395 | 0.224395 | 0.997164 |  0.416463 | -0.000113 |  0.558657 | 0.184816 |  0.480194 |  0.184816 |</span>
+<span class="sd">    | 2000-01-21 00:00:00 |       1.0 |     0.900414 |      0.099586 |      0.0  0.001307       0.0       0.0       0.0            0.0 |      0.5      0.0       0.5       0.5       0.5              0.5 | 0.450207       0.0  0.450207  0.225104  0.225104  0.225104 |      0.0 |      0.0 | 0.242536 | 0.242536 | 0.272991 | 0.450207 |      0.0 | 0.450207 | 0.225104 | 0.225104 | 0.225104 | 0.995848 |  0.374149 | -0.000113 |   0.55947 | 0.163861 |  0.477562 |  0.163861 |</span>
+<span class="sd">    | 2000-01-22 00:00:00 |       1.0 |     0.904566 |      0.095434 |      0.0  0.001307       0.0       0.0       0.0            0.0 |      0.5      0.0       0.5       0.5       0.5              0.5 | 0.452283       0.0  0.452283  0.226142  0.226142  0.226142 |      0.0 |      0.0 | 0.241483 | 0.241483 | 0.273758 | 0.452283 |      0.0 | 0.452283 | 0.226142 | 0.226142 | 0.226142 | 0.995849 |  0.332022 | -0.000113 |  0.560074 | 0.142997 |  0.474774 |  0.142997 |</span>
+<span class="sd">    | 2000-01-23 00:00:00 |       1.0 |     0.908717 |      0.091283 |      0.0  0.001307       0.0       0.0       0.0            0.0 |      0.5      0.0       0.5       0.5       0.5              0.5 | 0.454359       0.0  0.454359  0.227179  0.227179  0.227179 |      0.0 |      0.0 | 0.240439 | 0.240439 | 0.274509 | 0.454359 |      0.0 | 0.454359 | 0.227179 | 0.227179 | 0.227179 | 0.995846 |  0.290078 | -0.000113 |  0.560468 | 0.122223 |   0.47183 |  0.122223 |</span>
+<span class="sd">    | 2000-01-24 00:00:00 |       1.0 |     0.912871 |      0.087129 |      0.0  0.001307       0.0       0.0       0.0            0.0 |      0.5      0.0       0.5       0.5       0.5              0.5 | 0.456435       0.0  0.456435  0.228218  0.228218  0.228218 |      0.0 |      0.0 | 0.239404 | 0.239404 | 0.275246 | 0.456435 |      0.0 | 0.456435 | 0.228218 | 0.228218 | 0.228218 | 0.995844 |  0.248316 | -0.000113 |  0.560654 | 0.101538 |  0.468733 |  0.101538 |</span>
+<span class="sd">    | 2000-01-25 00:00:00 |       1.0 |     0.917027 |      0.082973 |      0.0  0.001307       0.0       0.0       0.0            0.0 |      0.5      0.0       0.5       0.5       0.5              0.5 | 0.458514       0.0  0.458514  0.229257  0.229257  0.229257 |      0.0 |      0.0 | 0.238379 | 0.238379 | 0.275968 | 0.458514 |      0.0 | 0.458514 | 0.229257 | 0.229257 | 0.229257 | 0.995841 |  0.206735 | -0.000113 |  0.560634 | 0.080942 |  0.465486 |  0.080942 |</span>
+<span class="sd">    | 2000-01-26 00:00:00 |       1.0 |     0.921186 |      0.078814 |      0.0  0.001307       0.0       0.0       0.0            0.0 |      0.5      0.0       0.5       0.5       0.5              0.5 | 0.460593       0.0  0.460593  0.230296  0.230296  0.230296 |      0.0 |      0.0 | 0.237364 | 0.237364 | 0.276675 | 0.460593 |      0.0 | 0.460593 | 0.230296 | 0.230296 | 0.230296 | 0.995839 |  0.165333 | -0.000113 |  0.560409 | 0.060434 |  0.462089 |  0.060434 |</span>
+<span class="sd">    | 2000-01-27 00:00:00 |       1.0 |     0.925347 |      0.074653 |      0.0  0.001307       0.0       0.0       0.0            0.0 |      0.5      0.0       0.5       0.5       0.5              0.5 | 0.462674       0.0  0.462674  0.231337  0.231337  0.231337 |      0.0 |      0.0 | 0.236358 | 0.236358 | 0.277368 | 0.462674 |      0.0 | 0.462674 | 0.231337 | 0.231337 | 0.231337 | 0.995836 |  0.124108 | -0.000113 |   0.55998 | 0.040013 |  0.458546 |  0.040013 |</span>
+<span class="sd">    | 2000-01-28 00:00:00 |       1.0 |     0.929512 |      0.070488 |      0.0  0.001307       0.0       0.0       0.0            0.0 |      0.5      0.0       0.5  0.463112       0.5         0.463112 | 0.464756       0.0  0.464756  0.223478  0.241278  0.241278 |      0.0 |      0.0 | 0.226499 | 0.244223 | 0.286948 | 0.464756 |      0.0 | 0.464756 | 0.223478 | 0.241278 | 0.241278 | 0.995833 |  0.083058 | -0.000113 |  0.559351 | 0.020443 |  0.454854 |  0.018912 |</span>
+<span class="sd">    | 2000-01-29 00:00:00 |       1.0 |     0.933678 |      0.066322 |      0.0  0.001307       0.0       0.0       0.0            0.0 |      0.5      0.0       0.5  0.236613       0.5         0.218889 | 0.466839       0.0  0.466839  0.149957  0.316882  0.218889 |      0.0 |      0.0 | 0.151346 |  0.21983 | 0.361754 | 0.466839 |      0.0 | 0.466839 | 0.149957 | 0.316882 | 0.218889 | 0.995831 |  0.042183 | -0.000113 |  0.558519 | 0.007367 |  0.442592 | -0.000081 |</span>
+<span class="sd">    | 2000-01-30 00:00:00 |       1.0 |     0.937847 |      0.062153 |      0.0  0.001307       0.0       0.0       0.0       0.000941 | 0.488224      0.0       0.5  0.085267       0.5              0.0 | 0.463336       0.0  0.474512  0.069131  0.405381       0.0 |      0.0 |      0.0 | 0.069567 |      0.0 | 0.447703 | 0.463336 |      0.0 | 0.474512 | 0.069131 | 0.405381 |      0.0 | 0.995847 |   0.00196 | -0.000113 |  0.557393 | 0.001356 |  0.403911 | -0.000081 |</span>
+<span class="sd">    | 2000-01-31 00:00:00 |       1.0 |        0.942 |         0.058 |      0.0  0.001307       0.0       0.0       0.0       0.000941 | 0.022684      0.0       0.5    0.0157       0.5              0.0 | 0.022684       0.0       0.5  0.015222  0.484778       0.0 |      0.0 |      0.0 | 0.015291 |      0.0 | 0.522907 | 0.022684 |      0.0 |      0.5 | 0.015222 | 0.484778 |      0.0 | 0.578445 | -0.000008 | -0.000113 |  0.555884 | 0.000035 |  0.358731 | -0.000081 |</span>
+<span class="sd">    | 2000-02-01 00:00:00 |       1.0 |     0.944239 |      0.055761 | 0.000098  0.001307       0.0       0.0       0.0       0.000941 |      0.0      0.0       0.5  0.000408       0.5              0.0 |      0.0       0.0       0.5  0.000408  0.499592       0.0 |      0.0 |      0.0 |  0.00041 |      0.0 | 0.533158 |      0.0 |      0.0 |      0.5 | 0.000408 | 0.499592 |      0.0 | 0.555494 | -0.000008 | -0.000113 |  0.553989 |      0.0 |  0.312667 | -0.000081 |</span>
+<span class="sd">    | 2000-02-02 00:00:00 |       1.0 |     0.944506 |      0.055494 | 0.000098  0.001307       0.0  0.000001       0.0       0.000941 |      0.0      0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.528978 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.555285 | -0.000008 | -0.000113 |  0.551716 |      0.0 |  0.266963 | -0.000081 |</span>
+<span class="sd">    | 2000-02-03 00:00:00 |       1.0 |     0.944715 |      0.055285 | 0.000098  0.001307       0.0  0.000001       0.0       0.000941 |      0.0      0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.524427 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.555039 | -0.000008 | -0.000113 |  0.549071 |      0.0 |  0.221652 | -0.000081 |</span>
+<span class="sd">    | 2000-02-04 00:00:00 |       1.0 |     0.944961 |      0.055039 | 0.000098  0.001307       0.0  0.000001       0.0       0.000941 |      0.0      0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.519916 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.554756 | -0.000008 | -0.000113 |  0.546061 |      0.0 |  0.176732 | -0.000081 |</span>
+<span class="sd">    | 2000-02-05 00:00:00 |       1.0 |     0.945244 |      0.054756 | 0.000098  0.001307       0.0  0.000001       0.0       0.000941 |      0.0      0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.515443 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.554437 | -0.000008 | -0.000113 |  0.542692 |      0.0 |  0.132197 | -0.000081 |</span>
+<span class="sd">    | 2000-02-06 00:00:00 |       1.0 |     0.945563 |      0.054437 | 0.000098  0.001307       0.0  0.000001       0.0       0.000941 |      0.0      0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.511009 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.554083 | -0.000008 | -0.000113 |  0.538971 |      0.0 |  0.088046 | -0.000081 |</span>
+<span class="sd">    | 2000-02-07 00:00:00 |       1.0 |     0.945917 |      0.054083 | 0.000098  0.001307       0.0  0.000001       0.0       0.000941 |      0.0      0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.506613 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.553693 | -0.000008 | -0.000113 |  0.534903 |      0.0 |  0.044275 | -0.000081 |</span>
+<span class="sd">    | 2000-02-08 00:00:00 |       1.0 |     0.946307 |      0.053693 | 0.000098  0.001307       0.0  0.000001       0.0       0.000941 |      0.0      0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.502255 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 |  0.55327 | -0.000008 | -0.000113 |  0.530495 |      0.0 |   0.00088 | -0.000081 |</span>
+<span class="sd">    | 2000-02-09 00:00:00 |       1.0 |      0.94673 |       0.05327 | 0.000098  0.001307       0.0  0.000001       0.0       0.000941 |      0.0      0.0       0.5       0.0  0.010185              0.0 |      0.0       0.0       0.5       0.0  0.010185       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.010228 |      0.0 |      0.0 |      0.5 |      0.0 | 0.010185 |      0.0 | 0.550711 | -0.000008 | -0.000113 |  0.483797 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-10 00:00:00 |       1.0 |     0.949289 |      0.050711 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.546018 | -0.000008 | -0.000113 |  0.436622 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-11 00:00:00 |       1.0 |     0.953982 |      0.046018 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 |  0.54132 | -0.000008 | -0.000113 |  0.389851 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-12 00:00:00 |       1.0 |      0.95868 |       0.04132 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.536663 | -0.000008 | -0.000113 |  0.343484 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-13 00:00:00 |       1.0 |     0.963337 |      0.036663 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.532047 | -0.000008 | -0.000113 |  0.297515 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-14 00:00:00 |       1.0 |     0.967953 |      0.032047 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 |  0.52747 | -0.000008 | -0.000113 |  0.251942 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-15 00:00:00 |       1.0 |      0.97253 |       0.02747 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.522932 | -0.000008 | -0.000113 |   0.20676 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-16 00:00:00 |       1.0 |     0.977068 |      0.022932 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.518433 | -0.000008 | -0.000113 |  0.161968 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-17 00:00:00 |       1.0 |     0.981567 |      0.018433 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.513973 | -0.000008 | -0.000113 |   0.11756 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-18 00:00:00 |       1.0 |     0.986027 |      0.013973 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.509552 | -0.000008 | -0.000113 |  0.073535 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-19 00:00:00 |       1.0 |     0.990448 |      0.009552 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.505168 | -0.000008 | -0.000113 |  0.029889 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-20 00:00:00 |       1.0 |     0.994832 |      0.005168 | 0.000098  0.001307       0.0  0.000001  0.000044       0.000941 |      0.0      0.0  0.345932       0.0       0.0              0.0 |      0.0       0.0  0.345932       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.345932 |      0.0 |      0.0 |      0.0 | 0.347419 | -0.000008 | -0.000113 | -0.000128 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-21 00:00:00 |       1.0 |     0.998513 |      0.001487 | 0.000098  0.001307  0.001487  0.000001  0.000044       0.000941 |      0.0      0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000008 | -0.000113 | -0.000128 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-22 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000098  0.001307  0.001487  0.000001  0.000044       0.000941 |      0.0      0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000008 | -0.000113 | -0.000128 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-23 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000098  0.001307  0.001487  0.000001  0.000044       0.000941 |      0.0      0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000008 | -0.000113 | -0.000128 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-24 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000098  0.001307  0.001487  0.000001  0.000044       0.000941 |      0.0      0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000008 | -0.000113 | -0.000128 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-25 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000098  0.001307  0.001487  0.000001  0.000044       0.000941 |      0.0      0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000008 | -0.000113 | -0.000128 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-26 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000098  0.001307  0.001487  0.000001  0.000044       0.000941 |      0.0      0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000008 | -0.000113 | -0.000128 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-27 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000098  0.001307  0.001487  0.000001  0.000044       0.000941 |      0.0      0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000008 | -0.000113 | -0.000128 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-28 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000098  0.001307  0.001487  0.000001  0.000044       0.000941 |      0.0      0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000008 | -0.000113 | -0.000128 |      0.0 | -0.000004 | -0.000081 |</span>
+<span class="sd">    | 2000-02-29 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000098  0.001307  0.001487  0.000001  0.000044       0.000941 |      0.0      0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000008 | -0.000113 | -0.000128 |      0.0 | -0.000004 | -0.000081 |</span>
+
+<span class="sd">.. _manager_lwc_extrapolation:</span>
+
+<span class="sd">Extrapolation</span>
+<span class="sd">_____________</span>
+
+<span class="sd">In the last example, during the linear decrease of the natural inflow, there is a long</span>
+<span class="sd">period during which the actual discharge is significantly below the defined threshold of</span>
+<span class="sd">1 m³/s.  This deficit is due to |manager_lwc| using the last logged discharge and</span>
+<span class="sd">request values for predicting the next free discharge.  To improve the situation, we can</span>
+<span class="sd">increase the considered time window for memorising discharges and requests.</span>
+<span class="sd">|manager_lwc| then uses the linear extrapolation approach of method</span>
+<span class="sd">|Calc_FreeDischarge_V1| to estimate the free discharge.  The larger the window, the</span>
+<span class="sd">safer the estimate (with a greater risk of more pronounced overestimation):</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; timewindow(2)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;manager_lwc_extrapolation&quot;)</span>
+<span class="sd">    |                date | alertness | demandtarget | freedischarge |                                                  demandsources |                                                   possiblerelease |                                                    request |        n |   q_1a_1 |   q_2a_2 | q_2b1_2b |   q_2b_2 |      r_1 |     r_1a |      r_2 |     r_2a |     r_2b |    r_2b1 |        t |       v_1 |     v_1a |      v_2 |     v_2a |      v_2b |     v_2b1 |</span>
+<span class="sd">    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 |       0.0 |          0.0 |           1.5 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      1.2 | 0.049785 | 0.049785 | 0.049785 | 0.049999 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 1.300214 |  0.499981 | 0.495699 | 0.504283 | 0.495699 |  0.499981 |  0.495699 |</span>
+<span class="sd">    | 2000-01-02 00:00:00 |       0.0 |          0.0 |      1.100427 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 | 1.066667 | 0.049356 | 0.049356 | 0.049356 | 0.049995 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 1.167301 |  0.499926 | 0.491434 | 0.508492 | 0.491434 |  0.499926 |  0.491434 |</span>
+<span class="sd">    | 2000-01-03 00:00:00 |       0.0 |          0.0 |      1.034389 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 | 0.933333 | 0.048932 | 0.048932 | 0.048932 | 0.049988 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 1.034378 |  0.499835 | 0.487207 | 0.512627 | 0.487207 |  0.499835 |  0.487207 |</span>
+<span class="sd">    | 2000-01-04 00:00:00 |       1.0 |     0.098546 |      0.901454 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.049273  0.049273  0.049273  0.024636  0.024636  0.024636 |      0.8 | 0.097571 | 0.073041 | 0.073041 | 0.074613 | 0.049273 | 0.049273 | 0.049273 | 0.024636 | 0.024636 | 0.024636 | 0.999988 |   0.49969 | 0.478776 |  0.51668 | 0.480896 |  0.499699 |  0.480896 |</span>
+<span class="sd">    | 2000-01-05 00:00:00 |       1.0 |     0.231494 |      0.768506 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.115747  0.115747  0.115747  0.057873  0.057873  0.057873 | 0.666667 |  0.16292 | 0.105507 | 0.105507 | 0.107833 | 0.115747 | 0.115747 | 0.115747 | 0.057873 | 0.057873 | 0.057873 | 0.999983 |  0.499449 |   0.4647 | 0.520631 |  0.47178 |  0.499498 |   0.47178 |</span>
+<span class="sd">    | 2000-01-06 00:00:00 |       1.0 |     0.364463 |      0.635537 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.182231  0.182231  0.182231  0.091116  0.091116  0.091116 | 0.533333 | 0.227716 | 0.137698 | 0.137698 | 0.141051 | 0.182231 | 0.182231 | 0.182231 | 0.091116 | 0.091116 | 0.091116 | 0.999977 |  0.499066 | 0.445025 | 0.524456 | 0.459883 |  0.499208 |  0.459883 |</span>
+<span class="sd">    | 2000-01-07 00:00:00 |       1.0 |     0.497462 |      0.502538 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.248731  0.248731  0.248731  0.124366  0.124366  0.124366 |      0.4 |  0.29197 |  0.16962 |  0.16962 | 0.174266 | 0.248731 | 0.248731 | 0.248731 | 0.124366 | 0.124366 | 0.124366 |  0.99997 |  0.498492 | 0.419799 |  0.52813 | 0.445228 |  0.498807 |  0.445228 |</span>
+<span class="sd">    | 2000-01-08 00:00:00 |       1.0 |     0.630499 |      0.369501 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.315249  0.315249  0.315249  0.157625  0.157625  0.157625 | 0.266667 | 0.355691 | 0.201277 | 0.201277 | 0.207479 | 0.315249 | 0.315249 | 0.315249 | 0.157625 | 0.157625 | 0.157625 | 0.999963 |  0.497683 | 0.389067 | 0.531631 | 0.427837 |  0.498271 |  0.427837 |</span>
+<span class="sd">    | 2000-01-09 00:00:00 |       1.0 |      0.76358 |       0.23642 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 |  0.38179   0.38179   0.38179  0.190895  0.190895  0.190895 | 0.133333 | 0.418885 | 0.232672 | 0.232672 | 0.240687 |  0.38179 |  0.38179 |  0.38179 | 0.190895 | 0.190895 | 0.190895 | 0.999956 |  0.496593 | 0.352876 | 0.534935 | 0.407735 |  0.497579 |  0.407735 |</span>
+<span class="sd">    | 2000-01-10 00:00:00 |       1.0 |     0.896713 |      0.103287 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448356  0.448356  0.448356  0.224178  0.224178  0.224178 |      0.0 | 0.481561 |  0.26381 |  0.26381 | 0.273892 | 0.448356 | 0.448356 | 0.448356 | 0.224178 | 0.224178 | 0.224178 | 0.999949 |  0.495177 | 0.311269 | 0.538019 | 0.384941 |  0.496708 |  0.384941 |</span>
+<span class="sd">    | 2000-01-11 00:00:00 |       1.0 |          1.0 |           0.0 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 |      0.5       0.5       0.5      0.25      0.25      0.25 |      0.0 | 0.528839 | 0.287251 | 0.287251 | 0.299617 |      0.5 |      0.5 |      0.5 |     0.25 |     0.25 |     0.25 | 1.103373 |  0.493398 | 0.265577 | 0.540864 | 0.360123 |  0.495639 |  0.360123 |</span>
+<span class="sd">    | 2000-01-12 00:00:00 |       1.0 |     0.896627 |      0.103373 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448314  0.448314  0.448314  0.224157  0.224157  0.224157 |      0.0 | 0.472826 | 0.259048 | 0.259048 | 0.273657 | 0.448314 | 0.448314 | 0.448314 | 0.224157 | 0.224157 | 0.224157 | 1.000077 |  0.491262 | 0.224725 | 0.543471 | 0.337741 |  0.494377 |  0.337741 |</span>
+<span class="sd">    | 2000-01-13 00:00:00 |       1.0 |      0.89655 |       0.10345 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448275  0.448275  0.448275  0.224138  0.224138  0.224138 |      0.0 |  0.46872 | 0.256801 | 0.256801 | 0.273503 | 0.448275 | 0.448275 | 0.448275 | 0.224138 | 0.224138 | 0.224138 | 1.000019 |  0.488795 | 0.184228 | 0.545852 | 0.315553 |  0.492934 |  0.315553 |</span>
+<span class="sd">    | 2000-01-14 00:00:00 |       1.0 |     0.896531 |      0.103469 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448266  0.448266  0.448266  0.224133  0.224133  0.224133 |      0.0 | 0.464678 | 0.254587 | 0.254587 | 0.273345 | 0.448266 | 0.448266 | 0.448266 | 0.224133 | 0.224133 | 0.224133 | 0.999964 |  0.486002 |  0.14408 |  0.54801 | 0.293557 |  0.491313 |  0.293557 |</span>
+<span class="sd">    | 2000-01-15 00:00:00 |       1.0 |     0.896603 |      0.103397 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448302  0.448302  0.448302  0.224151  0.224151  0.224151 |      0.0 | 0.460716 | 0.252415 | 0.252415 | 0.273192 | 0.448302 | 0.448302 | 0.448302 | 0.224151 | 0.224151 | 0.224151 | 0.999945 |  0.482889 | 0.104274 | 0.549946 | 0.271749 |  0.489518 |  0.271749 |</span>
+<span class="sd">    | 2000-01-16 00:00:00 |       1.0 |     0.896748 |      0.103252 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448374  0.448374  0.448374  0.224187  0.224187  0.224187 |      0.0 | 0.456825 | 0.250279 | 0.250279 |  0.27304 | 0.448374 | 0.448374 | 0.448374 | 0.224187 | 0.224187 | 0.224187 | 0.999946 |  0.479462 | 0.064804 | 0.551662 | 0.250124 |  0.487551 |  0.250124 |</span>
+<span class="sd">    | 2000-01-17 00:00:00 |       1.0 |     0.896947 |      0.103053 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448473  0.448473  0.448473  0.224237  0.224237  0.224237 |      0.0 | 0.452994 | 0.248175 | 0.248175 | 0.272885 | 0.448473 | 0.448473 | 0.448473 | 0.224237 | 0.224237 | 0.224237 | 0.999947 |  0.475726 | 0.025665 | 0.553161 | 0.228682 |  0.485416 |  0.228682 |</span>
+<span class="sd">    | 2000-01-18 00:00:00 |       1.0 |     0.897197 |      0.102803 |      0.0       0.0      0.0       0.0       0.0            0.0 |      0.5  0.297052       0.5       0.5       0.5              0.5 | 0.448599  0.297052  0.448599  0.224299  0.224299  0.224299 |      0.0 | 0.298329 | 0.246103 | 0.246103 | 0.272726 | 0.448599 | 0.297052 | 0.448599 | 0.224299 | 0.224299 | 0.224299 | 0.999298 |  0.458706 | -0.00011 | 0.554444 | 0.207419 |  0.483116 |  0.207419 |</span>
+<span class="sd">    | 2000-01-19 00:00:00 |       1.0 |     0.898799 |      0.101201 |      0.0  0.001277      0.0       0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.449399       0.0  0.449399    0.2247    0.2247    0.2247 |      0.0 |      0.0 | 0.244384 | 0.244384 | 0.272888 | 0.449399 |      0.0 | 0.449399 |   0.2247 |   0.2247 |   0.2247 | 0.998034 |  0.416099 | -0.00011 | 0.555513 | 0.186304 |  0.480654 |  0.186304 |</span>
+<span class="sd">    | 2000-01-20 00:00:00 |       1.0 |     0.903631 |      0.096369 |      0.0  0.001277      0.0       0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.451815       0.0  0.451815  0.225908  0.225908  0.225908 |      0.0 |      0.0 | 0.243485 | 0.243485 | 0.273842 | 0.451815 |      0.0 | 0.451815 | 0.225908 | 0.225908 | 0.225908 | 0.998709 |  0.373651 | -0.00011 |  0.55637 | 0.165267 |  0.478031 |  0.165267 |</span>
+<span class="sd">    | 2000-01-21 00:00:00 |       1.0 |     0.909078 |      0.090922 |      0.0  0.001277      0.0       0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.454539       0.0  0.454539  0.227269  0.227269  0.227269 |      0.0 |      0.0 | 0.242746 | 0.242746 | 0.274933 | 0.454539 |      0.0 | 0.454539 | 0.227269 | 0.227269 | 0.227269 | 0.999993 |  0.331333 | -0.00011 | 0.557015 | 0.144294 |   0.47525 |  0.144294 |</span>
+<span class="sd">    | 2000-01-22 00:00:00 |       1.0 |     0.913248 |      0.086752 |      0.0  0.001277      0.0       0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.456624       0.0  0.456624  0.228312  0.228312  0.228312 |      0.0 |      0.0 | 0.241696 | 0.241696 |  0.27569 | 0.456624 |      0.0 | 0.456624 | 0.228312 | 0.228312 | 0.228312 | 0.999995 |    0.2892 | -0.00011 | 0.557451 | 0.123411 |  0.472313 |  0.123411 |</span>
+<span class="sd">    | 2000-01-23 00:00:00 |       1.0 |     0.917421 |      0.082579 |      0.0  0.001277      0.0       0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.458711       0.0  0.458711  0.229355  0.229355  0.229355 |      0.0 |      0.0 | 0.240655 | 0.240655 | 0.276432 | 0.458711 |      0.0 | 0.458711 | 0.229355 | 0.229355 | 0.229355 | 0.999997 |  0.247251 | -0.00011 | 0.557677 | 0.102619 |  0.469221 |  0.102619 |</span>
+<span class="sd">    | 2000-01-24 00:00:00 |       1.0 |     0.921595 |      0.078405 |      0.0  0.001277      0.0       0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.460798       0.0  0.460798  0.230399  0.230399  0.230399 |      0.0 |      0.0 | 0.239624 | 0.239624 | 0.277159 | 0.460798 |      0.0 | 0.460798 | 0.230399 | 0.230399 | 0.230399 | 0.999997 |  0.205482 | -0.00011 | 0.557696 | 0.081915 |  0.465979 |  0.081915 |</span>
+<span class="sd">    | 2000-01-25 00:00:00 |       1.0 |     0.925771 |      0.074229 |      0.0  0.001277      0.0       0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.462886       0.0  0.462886  0.231443  0.231443  0.231443 |      0.0 |      0.0 | 0.238602 | 0.238602 | 0.277871 | 0.462886 |      0.0 | 0.462886 | 0.231443 | 0.231443 | 0.231443 | 0.999997 |  0.163893 | -0.00011 | 0.557508 |   0.0613 |  0.462586 |    0.0613 |</span>
+<span class="sd">    | 2000-01-26 00:00:00 |       1.0 |      0.92995 |       0.07005 |      0.0  0.001277      0.0       0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.464975       0.0  0.464975  0.232488  0.232488  0.232488 |      0.0 |      0.0 |  0.23759 |  0.23759 | 0.278569 | 0.464975 |      0.0 | 0.464975 | 0.232488 | 0.232488 | 0.232488 | 0.999997 |  0.122483 | -0.00011 | 0.557115 | 0.040772 |  0.459045 |  0.040772 |</span>
+<span class="sd">    | 2000-01-27 00:00:00 |       1.0 |     0.934132 |      0.065868 |      0.0  0.001277      0.0       0.0       0.0            0.0 |      0.5       0.0       0.5  0.471899       0.5         0.471899 | 0.467066       0.0  0.467066  0.226781  0.240285  0.240285 |      0.0 |      0.0 | 0.229863 |  0.24331 | 0.286005 | 0.467066 |      0.0 | 0.467066 | 0.226781 | 0.240285 | 0.240285 | 0.999997 |  0.081248 | -0.00011 | 0.556521 | 0.020912 |  0.455356 |   0.01975 |</span>
+<span class="sd">    | 2000-01-28 00:00:00 |       1.0 |     0.938316 |      0.061684 |      0.0  0.001277      0.0       0.0       0.0            0.0 |      0.5       0.0       0.5  0.242035       0.5         0.228589 | 0.469158       0.0  0.469158  0.153029  0.316129  0.228589 |      0.0 |      0.0 | 0.154452 | 0.229571 | 0.361096 | 0.469158 |      0.0 | 0.469158 | 0.153029 | 0.316129 | 0.228589 | 0.999997 |  0.040189 | -0.00011 | 0.555724 | 0.007567 |  0.443992 | -0.000085 |</span>
+<span class="sd">    | 2000-01-29 00:00:00 |       1.0 |     0.942503 |      0.057497 |      0.0  0.001277      0.0       0.0       0.0       0.000983 | 0.465147       0.0       0.5  0.087583       0.5              0.0 | 0.454234       0.0  0.488269   0.07278   0.41549       0.0 |      0.0 |      0.0 |  0.07322 |      0.0 | 0.457908 | 0.454234 |      0.0 | 0.488269 |  0.07278 |  0.41549 |      0.0 | 1.000066 |  0.000766 | -0.00011 |  0.55463 | 0.001241 |  0.404429 | -0.000085 |</span>
+<span class="sd">    | 2000-01-30 00:00:00 |       1.0 |     0.946556 |      0.053444 |      0.0  0.001277      0.0       0.0       0.0       0.000983 | 0.008868       0.0       0.5  0.014363       0.5              0.0 | 0.008868       0.0       0.5  0.013962  0.486038       0.0 |      0.0 |      0.0 | 0.014026 |      0.0 | 0.524213 | 0.008868 |      0.0 |      0.5 | 0.013962 | 0.486038 |      0.0 | 0.564295 | -0.000003 | -0.00011 | 0.553148 | 0.000029 |  0.359137 | -0.000085 |</span>
+<span class="sd">    | 2000-01-31 00:00:00 |       1.0 |     0.946709 |      0.053291 | 0.000038  0.001277      0.0       0.0       0.0       0.000983 |      0.0       0.0       0.5  0.000338       0.5              0.0 |      0.0       0.0       0.5  0.000337  0.499663       0.0 |      0.0 |      0.0 | 0.000339 |      0.0 | 0.533269 |      0.0 |      0.0 |      0.5 | 0.000337 | 0.499663 |      0.0 | 0.555221 | -0.000003 | -0.00011 | 0.551281 |      0.0 |  0.313063 | -0.000085 |</span>
+<span class="sd">    | 2000-02-01 00:00:00 |       1.0 |     0.944984 |      0.055016 | 0.000038  0.001277      0.0  0.000001       0.0       0.000983 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.529018 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.555016 | -0.000003 | -0.00011 | 0.549035 |      0.0 |  0.267356 | -0.000085 |</span>
+<span class="sd">    | 2000-02-02 00:00:00 |       1.0 |      0.94519 |       0.05481 | 0.000038  0.001277      0.0  0.000001       0.0       0.000983 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.524467 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.554772 | -0.000003 | -0.00011 | 0.546416 |      0.0 |  0.222042 | -0.000085 |</span>
+<span class="sd">    | 2000-02-03 00:00:00 |       1.0 |     0.945471 |      0.054529 | 0.000038  0.001277      0.0  0.000001       0.0       0.000983 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.519955 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.554492 | -0.000003 | -0.00011 | 0.543432 |      0.0 |  0.177118 | -0.000085 |</span>
+<span class="sd">    | 2000-02-04 00:00:00 |       1.0 |     0.945788 |      0.054212 | 0.000038  0.001277      0.0  0.000001       0.0       0.000983 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.515482 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.554176 | -0.000003 | -0.00011 | 0.540089 |      0.0 |   0.13258 | -0.000085 |</span>
+<span class="sd">    | 2000-02-05 00:00:00 |       1.0 |     0.946141 |      0.053859 | 0.000038  0.001277      0.0  0.000001       0.0       0.000983 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.511047 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.553824 | -0.000003 | -0.00011 | 0.536393 |      0.0 |  0.088426 | -0.000085 |</span>
+<span class="sd">    | 2000-02-06 00:00:00 |       1.0 |     0.946528 |      0.053472 | 0.000038  0.001277      0.0  0.000001       0.0       0.000983 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.506651 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.553437 | -0.000003 | -0.00011 | 0.532351 |      0.0 |  0.044651 | -0.000085 |</span>
+<span class="sd">    | 2000-02-07 00:00:00 |       1.0 |      0.94695 |       0.05305 | 0.000038  0.001277      0.0  0.000001       0.0       0.000983 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.502292 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.553016 | -0.000003 | -0.00011 | 0.527968 |      0.0 |  0.001253 | -0.000085 |</span>
+<span class="sd">    | 2000-02-08 00:00:00 |       1.0 |     0.947406 |      0.052594 | 0.000038  0.001277      0.0  0.000001       0.0       0.000983 |      0.0       0.0       0.5       0.0  0.014502              0.0 |      0.0       0.0       0.5       0.0  0.014502       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.014564 |      0.0 |      0.0 |      0.5 |      0.0 | 0.014502 |      0.0 | 0.550478 | -0.000003 | -0.00011 | 0.481665 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-09 00:00:00 |       1.0 |     0.952059 |      0.047941 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.545805 | -0.000003 | -0.00011 | 0.434508 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-10 00:00:00 |       1.0 |     0.958868 |      0.041132 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 |  0.54111 | -0.000003 | -0.00011 | 0.387756 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-11 00:00:00 |       1.0 |     0.963586 |      0.036414 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.536455 | -0.000003 | -0.00011 | 0.341406 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-12 00:00:00 |       1.0 |       0.9682 |        0.0318 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 |  0.53184 | -0.000003 | -0.00011 | 0.295455 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-13 00:00:00 |       1.0 |     0.972775 |      0.027225 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.527264 | -0.000003 | -0.00011 |   0.2499 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-14 00:00:00 |       1.0 |     0.977311 |      0.022689 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.522729 | -0.000003 | -0.00011 | 0.204736 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-15 00:00:00 |       1.0 |     0.981807 |      0.018193 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.518232 | -0.000003 | -0.00011 | 0.159961 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-16 00:00:00 |       1.0 |     0.986265 |      0.013735 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.513773 | -0.000003 | -0.00011 | 0.115571 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-17 00:00:00 |       1.0 |     0.990685 |      0.009315 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.509353 | -0.000003 | -0.00011 | 0.071562 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-18 00:00:00 |       1.0 |     0.995066 |      0.004934 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.504972 | -0.000003 | -0.00011 | 0.027933 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-19 00:00:00 |       1.0 |      0.99941 |       0.00059 | 0.000038  0.001277      0.0  0.000001  0.000062       0.000983 |      0.0       0.0  0.323297       0.0       0.0              0.0 |      0.0       0.0  0.323297       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.323297 |      0.0 |      0.0 |      0.0 | 0.324687 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-20 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000038  0.001277  0.00139  0.000001  0.000062       0.000983 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-21 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000038  0.001277  0.00139  0.000001  0.000062       0.000983 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-22 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000038  0.001277  0.00139  0.000001  0.000062       0.000983 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-23 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000038  0.001277  0.00139  0.000001  0.000062       0.000983 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-24 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000038  0.001277  0.00139  0.000001  0.000062       0.000983 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-25 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000038  0.001277  0.00139  0.000001  0.000062       0.000983 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-26 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000038  0.001277  0.00139  0.000001  0.000062       0.000983 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-27 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000038  0.001277  0.00139  0.000001  0.000062       0.000983 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-28 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000038  0.001277  0.00139  0.000001  0.000062       0.000983 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+<span class="sd">    | 2000-02-29 00:00:00 |       1.0 |          1.0 |           0.0 | 0.000038  0.001277  0.00139  0.000001  0.000062       0.000983 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000003 | -0.00011 | -0.00012 |      0.0 | -0.000005 | -0.000085 |</span>
+
+
+<span class="sd">.. _manager_lwc_smooth_transitions:</span>
+
+<span class="sd">Smooth transitions</span>
+<span class="sd">__________________</span>
+
+<span class="sd">Parameters like |DischargeTolerance| help smooth otherwise sharp transitions and may</span>
+<span class="sd">reduce small fluctuations around the target discharge:</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; dischargetolerance(0.5)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;manager_lwc_smooth_transitions&quot;)</span>
+<span class="sd">    |                date | alertness | demandtarget | freedischarge |                                              demandsources |                                                   possiblerelease |                                                    request |        n |   q_1a_1 |   q_2a_2 | q_2b1_2b |   q_2b_2 |      r_1 |     r_1a |      r_2 |     r_2a |     r_2b |    r_2b1 |        t |       v_1 |     v_1a |       v_2 |     v_2a |      v_2b |     v_2b1 |</span>
+<span class="sd">    --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 |  0.055213 |         0.01 |           1.5 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 |    0.005     0.005     0.005    0.0025    0.0025    0.0025 |      1.2 | 0.054763 | 0.052274 | 0.052274 | 0.052499 |    0.005 |    0.005 |    0.005 |   0.0025 |   0.0025 |   0.0025 | 1.310213 |   0.49998 | 0.495268 |  0.504282 | 0.495484 |  0.499981 |  0.495484 |</span>
+<span class="sd">    | 2000-01-02 00:00:00 |   0.36115 |     0.078895 |      1.100427 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.039447  0.039447  0.039447  0.019724  0.019724  0.019724 | 1.066667 | 0.088591 | 0.068974 | 0.068974 | 0.069718 | 0.039447 | 0.039447 | 0.039447 | 0.019724 | 0.019724 | 0.019724 | 1.246194 |  0.499906 | 0.487614 |  0.508481 | 0.489524 |  0.499916 |  0.489524 |</span>
+<span class="sd">    | 2000-01-03 00:00:00 |  0.451331 |     0.105688 |      1.034385 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.052844  0.052844  0.052844  0.026422  0.026422  0.026422 | 0.933333 | 0.101168 |  0.07505 |  0.07505 | 0.076408 | 0.052844 | 0.052844 | 0.052844 | 0.026422 | 0.026422 | 0.026422 | 1.140059 |  0.499763 | 0.478873 |  0.512591 |  0.48304 |  0.499799 |   0.48304 |</span>
+<span class="sd">    | 2000-01-04 00:00:00 |  0.636398 |      0.17813 |      0.901442 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.089065  0.089065  0.089065  0.044532  0.044532  0.044532 |      0.8 | 0.136362 | 0.092437 | 0.092437 | 0.094503 | 0.089065 | 0.089065 | 0.089065 | 0.044532 | 0.044532 | 0.044532 | 1.079555 |  0.499532 | 0.467092 |  0.516601 | 0.475053 |   0.49962 |  0.475053 |</span>
+<span class="sd">    | 2000-01-05 00:00:00 |  0.788338 |     0.273396 |      0.768479 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.136698  0.136698  0.136698  0.068349  0.068349  0.068349 | 0.666667 | 0.182617 | 0.115355 | 0.115355 | 0.118298 | 0.136698 | 0.136698 | 0.136698 | 0.068349 | 0.068349 | 0.068349 | 1.041854 |  0.499185 | 0.451313 |  0.520498 | 0.465087 |  0.499366 |  0.465087 |</span>
+<span class="sd">    | 2000-01-06 00:00:00 |  0.887977 |     0.385428 |      0.635491 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.192714  0.192714  0.192714  0.096357  0.096357  0.096357 | 0.533333 | 0.236821 |  0.14225 |  0.14225 | 0.146276 | 0.192714 | 0.192714 | 0.192714 | 0.096357 | 0.096357 | 0.096357 | 1.020893 |  0.498685 | 0.430852 |  0.524262 | 0.452796 |  0.499018 |  0.452796 |</span>
+<span class="sd">    | 2000-01-07 00:00:00 |   0.94405 |     0.507665 |      0.502472 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.253832  0.253832  0.253832  0.126916  0.126916  0.126916 |      0.4 | 0.295639 | 0.171454 | 0.171454 | 0.176795 | 0.253832 | 0.253832 | 0.253832 | 0.126916 | 0.126916 | 0.126916 | 1.010106 |  0.497992 | 0.405309 |  0.527875 | 0.437983 |  0.498557 |  0.437983 |</span>
+<span class="sd">    | 2000-01-08 00:00:00 |  0.972918 |     0.635417 |      0.369417 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.317709  0.317709  0.317709  0.158854  0.158854  0.158854 | 0.266667 | 0.356696 |  0.20178 |  0.20178 |  0.20868 | 0.317709 | 0.317709 | 0.317709 | 0.158854 | 0.158854 | 0.158854 | 1.004796 |  0.497062 |  0.37449 |  0.531313 | 0.420549 |  0.497961 |  0.420549 |</span>
+<span class="sd">    | 2000-01-09 00:00:00 |  0.987098 |      0.76597 |      0.236317 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.382985  0.382985  0.382985  0.191492  0.191492  0.191492 | 0.133333 | 0.418623 | 0.232541 | 0.232541 | 0.241251 | 0.382985 | 0.382985 | 0.382985 | 0.191492 | 0.191492 | 0.191492 | 1.002242 |  0.495851 | 0.338321 |  0.534554 | 0.400457 |  0.497208 |  0.400457 |</span>
+<span class="sd">    | 2000-01-10 00:00:00 |  0.993902 |     0.897911 |      0.103166 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448956  0.448956  0.448956  0.224478  0.224478  0.224478 |      0.0 | 0.480708 | 0.263384 | 0.263384 | 0.274152 | 0.448956 | 0.448956 | 0.448956 | 0.224478 | 0.224478 | 0.224478 | 1.001026 |  0.494317 | 0.296788 |  0.537576 | 0.377701 |  0.496278 |  0.377701 |</span>
+<span class="sd">    | 2000-01-11 00:00:00 |  0.996596 |       1.0006 |           0.0 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 |      0.5       0.5       0.5      0.25      0.25      0.25 |      0.0 | 0.527397 |  0.28653 |  0.28653 | 0.299571 |      0.5 |      0.5 |      0.5 |     0.25 |     0.25 |     0.25 | 1.103234 |  0.492422 | 0.251221 |  0.540358 | 0.352945 |  0.495151 |  0.352945 |</span>
+<span class="sd">    | 2000-01-12 00:00:00 |  0.993899 |     0.897844 |      0.103234 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448922  0.448922  0.448922  0.224461  0.224461  0.224461 |      0.0 | 0.472002 | 0.258636 | 0.258636 |  0.27391 | 0.448922 | 0.448922 | 0.448922 | 0.224461 | 0.224461 | 0.224461 | 1.001137 |  0.490171 |  0.21044 |  0.542904 | 0.330598 |  0.493831 |  0.330598 |</span>
+<span class="sd">    | 2000-01-13 00:00:00 |  0.993897 |     0.897785 |      0.103293 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448893  0.448893  0.448893  0.224446  0.224446  0.224446 |      0.0 | 0.467912 | 0.256397 | 0.256397 | 0.273754 | 0.448893 | 0.448893 | 0.448893 | 0.224446 | 0.224446 | 0.224446 | 1.001079 |   0.48759 | 0.170013 |  0.545224 | 0.308446 |  0.492332 |  0.308446 |</span>
+<span class="sd">    | 2000-01-14 00:00:00 |  0.993897 |     0.897783 |      0.103294 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448892  0.448892  0.448892  0.224446  0.224446  0.224446 |      0.0 | 0.463886 | 0.254191 | 0.254191 | 0.273595 | 0.448892 | 0.448892 | 0.448892 | 0.224446 | 0.224446 | 0.224446 | 1.001024 |  0.484686 | 0.129933 |   0.54732 | 0.286484 |  0.490655 |  0.286484 |</span>
+<span class="sd">    | 2000-01-15 00:00:00 |  0.993901 |      0.89789 |      0.103187 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.448945  0.448945  0.448945  0.224472  0.224472  0.224472 |      0.0 | 0.459948 |  0.25203 |  0.25203 | 0.273445 | 0.448945 | 0.448945 | 0.448945 | 0.224472 | 0.224472 | 0.224472 | 1.001023 |  0.481463 | 0.090193 |  0.549196 | 0.264708 |  0.488805 |  0.264708 |</span>
+<span class="sd">    | 2000-01-16 00:00:00 |  0.993906 |     0.898051 |      0.103025 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.449025  0.449025  0.449025  0.224513  0.224513  0.224513 |      0.0 | 0.456072 | 0.249902 | 0.249902 | 0.273292 | 0.449025 | 0.449025 | 0.449025 | 0.224513 | 0.224513 | 0.224513 | 1.001023 |  0.477927 | 0.050789 |  0.550852 | 0.243117 |  0.486784 |  0.243117 |</span>
+<span class="sd">    | 2000-01-17 00:00:00 |  0.993914 |     0.898265 |       0.10281 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5       0.5       0.5       0.5       0.5              0.5 | 0.449132  0.449132  0.449132  0.224566  0.224566  0.224566 |      0.0 | 0.452255 | 0.247806 | 0.247806 | 0.273135 | 0.449132 | 0.449132 | 0.449132 | 0.224566 | 0.224566 | 0.224566 | 1.001022 |  0.474084 | 0.011714 |   0.55229 | 0.221706 |  0.484596 |  0.221706 |</span>
+<span class="sd">    | 2000-01-18 00:00:00 |  0.993923 |      0.89853 |      0.102543 |      0.0       0.0       0.0  0.0       0.0            0.0 |      0.5  0.135577       0.5       0.5       0.5              0.5 | 0.449265  0.135577  0.449265  0.224633  0.224633  0.224633 |      0.0 | 0.136159 |  0.24574 |  0.24574 | 0.272974 | 0.449265 | 0.135577 | 0.449265 | 0.224633 | 0.224633 | 0.224633 | 0.999676 |   0.44307 | -0.00005 |  0.553514 | 0.200474 |  0.482243 |  0.200474 |</span>
+<span class="sd">    | 2000-01-19 00:00:00 |  0.994025 |     0.901521 |      0.099534 |      0.0  0.000579       0.0  0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.450761       0.0  0.450761   0.22538   0.22538   0.22538 |      0.0 |      0.0 | 0.244371 | 0.244371 | 0.273479 | 0.450761 |      0.0 | 0.450761 |  0.22538 |  0.22538 |  0.22538 | 0.999097 |   0.40048 | -0.00005 |  0.554523 | 0.179361 |  0.479728 |  0.179361 |</span>
+<span class="sd">    | 2000-01-20 00:00:00 |  0.994209 |     0.907016 |      0.094007 |      0.0  0.000579       0.0  0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.453508       0.0  0.453508  0.226754  0.226754  0.226754 |      0.0 |      0.0 | 0.243636 | 0.243636 | 0.274593 | 0.453508 |      0.0 | 0.453508 | 0.226754 | 0.226754 | 0.226754 |  1.00043 |  0.358021 | -0.00005 |  0.555321 | 0.158311 |  0.477053 |  0.158311 |</span>
+<span class="sd">    | 2000-01-21 00:00:00 |  0.994362 |     0.911743 |      0.089252 |      0.0  0.000579       0.0  0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.455872       0.0  0.455872  0.227936  0.227936  0.227936 |      0.0 |      0.0 | 0.242717 | 0.242717 | 0.275499 | 0.455872 |      0.0 | 0.455872 | 0.227936 | 0.227936 | 0.227936 | 1.000989 |  0.315723 | -0.00005 |  0.555907 |  0.13734 |   0.47422 |   0.13734 |</span>
+<span class="sd">    | 2000-01-22 00:00:00 |  0.994494 |     0.915895 |      0.085077 |      0.0   0.00058       0.0  0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.457948       0.0  0.457948  0.228974  0.228974  0.228974 |      0.0 |      0.0 | 0.241662 | 0.241662 | 0.276246 | 0.457948 |      0.0 | 0.457948 | 0.228974 | 0.228974 | 0.228974 | 1.000968 |  0.273611 | -0.00005 |  0.556283 |  0.11646 |  0.471232 |   0.11646 |</span>
+<span class="sd">    | 2000-01-23 00:00:00 |  0.994622 |     0.920049 |      0.080901 |      0.0   0.00058       0.0  0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.460024       0.0  0.460024  0.230012  0.230012  0.230012 |      0.0 |      0.0 | 0.240617 | 0.240617 | 0.276978 | 0.460024 |      0.0 | 0.460024 | 0.230012 | 0.230012 | 0.230012 | 1.000947 |  0.231682 | -0.00005 |   0.55645 | 0.095671 |  0.468091 |  0.095671 |</span>
+<span class="sd">    | 2000-01-24 00:00:00 |  0.994747 |     0.924204 |      0.076723 |      0.0   0.00058       0.0  0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.462102       0.0  0.462102  0.231051  0.231051  0.231051 |      0.0 |      0.0 | 0.239582 | 0.239582 | 0.277695 | 0.462102 |      0.0 | 0.462102 | 0.231051 | 0.231051 | 0.231051 | 1.000925 |  0.189935 | -0.00005 |  0.556409 | 0.074971 |  0.464798 |  0.074971 |</span>
+<span class="sd">    | 2000-01-25 00:00:00 |   0.99487 |     0.928362 |      0.072543 |      0.0   0.00058       0.0  0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.464181       0.0  0.464181  0.232091  0.232091  0.232091 |      0.0 |      0.0 | 0.238556 | 0.238556 | 0.278398 | 0.464181 |      0.0 | 0.464181 | 0.232091 | 0.232091 | 0.232091 | 1.000903 |  0.148369 | -0.00005 |  0.556163 |  0.05436 |  0.461355 |   0.05436 |</span>
+<span class="sd">    | 2000-01-26 00:00:00 |   0.99499 |     0.932524 |      0.068361 |      0.0   0.00058       0.0  0.0       0.0            0.0 |      0.5       0.0       0.5       0.5       0.5              0.5 | 0.466262       0.0  0.466262  0.233131  0.233131  0.233131 |      0.0 |      0.0 | 0.237539 | 0.237539 | 0.279087 | 0.466262 |      0.0 | 0.466262 | 0.233131 | 0.233131 | 0.233131 | 1.000882 |  0.106981 | -0.00005 |  0.555711 | 0.033836 |  0.457766 |  0.033836 |</span>
+<span class="sd">    | 2000-01-27 00:00:00 |  0.995107 |     0.936688 |      0.064175 |      0.0   0.00058       0.0  0.0       0.0            0.0 |      0.5       0.0       0.5  0.391626       0.5         0.391626 | 0.468344       0.0  0.468344  0.205709  0.262635  0.262635 |      0.0 |      0.0 | 0.208192 | 0.264873 | 0.308224 | 0.468344 |      0.0 | 0.468344 | 0.205709 | 0.262635 | 0.262635 | 1.000861 |   0.06577 | -0.00005 |  0.555066 | 0.015849 |   0.45402 |  0.010951 |</span>
+<span class="sd">    | 2000-01-28 00:00:00 |  0.995221 |     0.940855 |      0.059989 |      0.0   0.00058       0.0  0.0       0.0            0.0 |      0.5       0.0       0.5  0.183434       0.5         0.126753 | 0.470427       0.0  0.470427  0.126263  0.344165  0.126753 |      0.0 |      0.0 | 0.127297 | 0.127298 | 0.388437 | 0.470427 |      0.0 | 0.470427 | 0.126263 | 0.344165 | 0.126753 |  1.00084 |  0.024734 | -0.00005 |  0.554188 |  0.00485 |  0.431458 | -0.000047 |</span>
+<span class="sd">    | 2000-01-29 00:00:00 |  0.995333 |     0.945027 |      0.055796 |      0.0   0.00058       0.0  0.0       0.0       0.000542 | 0.286277       0.0       0.5  0.056137       0.5              0.0 | 0.286277       0.0       0.5   0.05047   0.44953       0.0 |      0.0 |      0.0 | 0.050736 |      0.0 | 0.490553 | 0.286277 |      0.0 |      0.5 |  0.05047 |  0.44953 |      0.0 | 0.842865 | -0.000106 | -0.00005 |  0.552973 | 0.000467 |  0.389074 | -0.000047 |</span>
+<span class="sd">    | 2000-01-30 00:00:00 |  0.995402 |      0.94762 |      0.053192 | 0.001225   0.00058       0.0  0.0       0.0       0.000542 |      0.0       0.0       0.5  0.005401       0.5              0.0 |      0.0       0.0       0.5  0.005343  0.494657       0.0 |      0.0 |      0.0 | 0.005367 |      0.0 | 0.531266 |      0.0 |      0.0 |      0.5 | 0.005343 | 0.494657 |      0.0 | 0.555217 | -0.000106 | -0.00005 |  0.551367 | 0.000003 |  0.343173 | -0.000047 |</span>
+<span class="sd">    | 2000-01-31 00:00:00 |  0.995385 |     0.946969 |      0.053845 | 0.001225   0.00058       0.0  0.0       0.0       0.000542 |      0.0       0.0       0.5  0.000034       0.5              0.0 |      0.0       0.0       0.5  0.000034  0.499966       0.0 |      0.0 |      0.0 | 0.000034 |      0.0 | 0.531982 |      0.0 |      0.0 |      0.5 | 0.000034 | 0.499966 |      0.0 | 0.555037 | -0.000106 | -0.00005 |  0.549378 |      0.0 |  0.297209 | -0.000047 |</span>
+<span class="sd">    | 2000-02-01 00:00:00 |  0.995358 |     0.945962 |      0.054857 | 0.001225   0.00058       0.0  0.0       0.0       0.000542 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.527439 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.554819 | -0.000106 | -0.00005 |  0.547012 |      0.0 |  0.251639 | -0.000047 |</span>
+<span class="sd">    | 2000-02-02 00:00:00 |  0.995365 |     0.946216 |      0.054602 | 0.001225   0.00058       0.0  0.0       0.0       0.000542 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.522902 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.554564 | -0.000106 | -0.00005 |  0.544277 |      0.0 |   0.20646 | -0.000047 |</span>
+<span class="sd">    | 2000-02-03 00:00:00 |  0.995372 |     0.946508 |      0.054309 | 0.001225   0.00058       0.0  0.0       0.0       0.000542 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.518403 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.554272 | -0.000106 | -0.00005 |  0.541177 |      0.0 |   0.16167 | -0.000047 |</span>
+<span class="sd">    | 2000-02-04 00:00:00 |  0.995381 |     0.946834 |      0.053981 | 0.001225   0.00058       0.0  0.0       0.0       0.000542 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.513944 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.553945 | -0.000106 | -0.00005 |  0.537721 |      0.0 |  0.117265 | -0.000047 |</span>
+<span class="sd">    | 2000-02-05 00:00:00 |  0.995391 |     0.947197 |      0.053617 | 0.001225   0.00058       0.0  0.0       0.0       0.000542 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.509522 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.553582 | -0.000106 | -0.00005 |  0.533915 |      0.0 |  0.073243 | -0.000047 |</span>
+<span class="sd">    | 2000-02-06 00:00:00 |  0.995401 |     0.947593 |      0.053218 | 0.001225   0.00058       0.0  0.0       0.0       0.000542 |      0.0       0.0       0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.505139 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.553184 | -0.000106 | -0.00005 |  0.529764 |      0.0 |  0.029599 | -0.000047 |</span>
+<span class="sd">    | 2000-02-07 00:00:00 |  0.995412 |     0.948024 |      0.052786 | 0.001225   0.00058       0.0  0.0       0.0       0.000542 |      0.0       0.0       0.5       0.0  0.342575              0.0 |      0.0       0.0       0.5       0.0  0.342575       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.344048 |      0.0 |      0.0 |      0.5 |      0.0 | 0.342575 |      0.0 | 0.552076 | -0.000106 | -0.00005 |   0.51179 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-08 00:00:00 |  0.995459 |     0.949832 |      0.050969 | 0.001225   0.00058       0.0  0.0  0.001466       0.000542 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.548805 | -0.000106 | -0.00005 |  0.464373 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-09 00:00:00 |  0.995596 |     0.955244 |      0.045533 | 0.001225   0.00058       0.0  0.0  0.001466       0.000542 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.544083 | -0.000106 | -0.00005 |  0.417364 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-10 00:00:00 |  0.995747 |     0.961388 |      0.039362 | 0.001225   0.00058       0.0  0.0  0.001466       0.000543 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.539403 | -0.000106 | -0.00005 |   0.37076 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-11 00:00:00 |  0.995858 |     0.966009 |      0.034722 | 0.001225   0.00058       0.0  0.0  0.001466       0.000543 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.534762 | -0.000106 | -0.00005 |  0.324556 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-12 00:00:00 |  0.995964 |      0.97059 |      0.030122 | 0.001226   0.00058       0.0  0.0  0.001467       0.000543 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.530162 | -0.000106 | -0.00005 |   0.27875 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-13 00:00:00 |  0.996067 |     0.975132 |      0.025562 | 0.001226   0.00058       0.0  0.0  0.001467       0.000543 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.525601 | -0.000106 | -0.00005 |  0.233339 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-14 00:00:00 |  0.996166 |     0.979636 |       0.02104 | 0.001226  0.000581       0.0  0.0  0.001467       0.000543 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 |  0.52108 | -0.000106 | -0.00005 |  0.188317 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-15 00:00:00 |  0.996262 |     0.984101 |      0.016558 | 0.001226  0.000581       0.0  0.0  0.001467       0.000543 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.516597 | -0.000106 | -0.00005 |  0.143683 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-16 00:00:00 |  0.996355 |     0.988529 |      0.012114 | 0.001226  0.000581       0.0  0.0  0.001467       0.000543 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.512153 | -0.000106 | -0.00005 |  0.099433 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-17 00:00:00 |  0.996445 |     0.992919 |      0.007708 | 0.001226  0.000581       0.0  0.0  0.001467       0.000543 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.507747 | -0.000106 | -0.00005 |  0.055564 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-18 00:00:00 |  0.996532 |     0.997271 |      0.003341 | 0.001226  0.000581       0.0  0.0  0.001467       0.000543 |      0.0       0.0       0.5       0.0       0.0              0.0 |      0.0       0.0       0.5       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.5 |      0.0 |      0.0 |      0.0 | 0.503379 | -0.000106 | -0.00005 |  0.012072 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-19 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581       0.0  0.0  0.001467       0.000543 |      0.0       0.0  0.139723       0.0       0.0              0.0 |      0.0       0.0  0.139723       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.139723 |      0.0 |      0.0 |      0.0 | 0.140324 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-20 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581  0.000599  0.0  0.001467       0.000543 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-21 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581  0.000599  0.0  0.001467       0.000543 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-22 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581  0.000599  0.0  0.001467       0.000543 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-23 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581  0.000599  0.0  0.001467       0.000543 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-24 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581  0.000599  0.0  0.001467       0.000543 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-25 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581  0.000599  0.0  0.001467       0.000543 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-26 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581  0.000599  0.0  0.001467       0.000543 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-27 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581  0.000599  0.0  0.001467       0.000543 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-28 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581  0.000599  0.0  0.001467       0.000543 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+<span class="sd">    | 2000-02-29 00:00:00 |  0.996596 |       1.0006 |           0.0 | 0.001226  0.000581  0.000599  0.0  0.001467       0.000543 |      0.0       0.0       0.0       0.0       0.0              0.0 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | -0.000106 | -0.00005 | -0.000052 |      0.0 | -0.000127 | -0.000047 |</span>
+
+<span class="sd">.. _manager_lwc_commissioning:</span>
+
+<span class="sd">Commissioning</span>
+<span class="sd">_____________</span>
+
+<span class="sd">You can use the |Commission| parameter to let |manager_lwc| only send requests during</span>
+<span class="sd">the end part of the simulation period:</span>
+
+<span class="sd">&gt;&gt;&gt; commission(&quot;2000-02-01&quot;)</span>
+
+<span class="sd">.. integration-test::</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;manager_lwc_commissioning&quot;)</span>
+<span class="sd">    |                date | alertness | demandtarget | freedischarge |                                    demandsources |                                              possiblerelease |                                                    request |        n |   q_1a_1 |   q_2a_2 | q_2b1_2b |   q_2b_2 |      r_1 |     r_1a |      r_2 |     r_2a |     r_2b |    r_2b1 |        t |       v_1 |      v_1a |      v_2 |     v_2a |      v_2b |     v_2b1 |</span>
+<span class="sd">    -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</span>
+<span class="sd">    | 2000-01-01 00:00:00 |  0.055213 |         0.01 |           1.5 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      1.2 | 0.049785 | 0.049785 | 0.049785 | 0.049999 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 1.300214 |  0.499981 |  0.495699 | 0.504283 | 0.495699 |  0.499981 |  0.495699 |</span>
+<span class="sd">    | 2000-01-02 00:00:00 |  0.361149 |     0.078895 |      1.100427 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 | 1.066667 | 0.049356 | 0.049356 | 0.049356 | 0.049995 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 1.167301 |  0.499926 |  0.491434 | 0.508492 | 0.491434 |  0.499926 |  0.491434 |</span>
+<span class="sd">    | 2000-01-03 00:00:00 |  0.451327 |     0.105687 |      1.034389 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 | 0.933333 | 0.048932 | 0.048932 | 0.048932 | 0.049988 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 1.034378 |  0.499835 |  0.487207 | 0.512627 | 0.487207 |  0.499835 |  0.487207 |</span>
+<span class="sd">    | 2000-01-04 00:00:00 |  0.636382 |     0.178122 |      0.901454 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.8 | 0.048511 | 0.048511 | 0.048511 | 0.049977 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.901443 |  0.499708 |  0.483015 |  0.51669 | 0.483015 |  0.499708 |  0.483015 |</span>
+<span class="sd">    | 2000-01-05 00:00:00 |  0.788309 |     0.273372 |      0.768509 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 | 0.666667 | 0.048093 | 0.048093 | 0.048093 | 0.049963 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.768498 |  0.499547 |   0.47886 |  0.52068 |  0.47886 |  0.499547 |   0.47886 |</span>
+<span class="sd">    | 2000-01-06 00:00:00 |  0.887942 |     0.385373 |      0.635553 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 | 0.533333 |  0.04768 |  0.04768 |  0.04768 | 0.049945 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.635542 |  0.499351 |   0.47474 | 0.524599 |  0.47474 |  0.499351 |   0.47474 |</span>
+<span class="sd">    | 2000-01-07 00:00:00 |  0.944016 |     0.507557 |      0.502587 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.4 |  0.04727 |  0.04727 |  0.04727 | 0.049924 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.502576 |  0.499122 |  0.470656 | 0.528448 | 0.470656 |  0.499122 |  0.470656 |</span>
+<span class="sd">    | 2000-01-08 00:00:00 |  0.972889 |     0.635229 |       0.36961 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 | 0.266667 | 0.046863 | 0.046863 | 0.046863 | 0.049899 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |   0.3696 |  0.498859 |  0.466607 | 0.532226 | 0.466607 |  0.498859 |  0.466607 |</span>
+<span class="sd">    | 2000-01-09 00:00:00 |  0.987076 |     0.765667 |      0.236623 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 | 0.133333 |  0.04646 |  0.04646 |  0.04646 | 0.049871 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.236613 |  0.498565 |  0.462593 | 0.535934 | 0.462593 |  0.498565 |  0.462593 |</span>
+<span class="sd">    | 2000-01-10 00:00:00 |  0.993886 |     0.897454 |      0.103626 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 |  0.04606 |  0.04606 |  0.04606 |  0.04984 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.103616 |  0.498238 |  0.458614 | 0.539574 | 0.458614 |  0.498238 |  0.458614 |</span>
+<span class="sd">    | 2000-01-11 00:00:00 |  0.996596 |       1.0006 |           0.0 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.045664 | 0.045664 | 0.045664 | 0.049806 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.103942 |   0.49788 |  0.454668 | 0.543145 | 0.454668 |   0.49788 |  0.454668 |</span>
+<span class="sd">    | 2000-01-12 00:00:00 |  0.993875 |      0.89714 |      0.103942 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.045271 | 0.045271 | 0.045271 | 0.049769 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.104258 |  0.497492 |  0.450757 | 0.546649 | 0.450757 |  0.497492 |  0.450757 |</span>
+<span class="sd">    | 2000-01-13 00:00:00 |  0.993864 |     0.896825 |      0.104258 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.044882 | 0.044882 | 0.044882 | 0.049728 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.104565 |  0.497073 |  0.446879 | 0.550085 | 0.446879 |  0.497073 |  0.446879 |</span>
+<span class="sd">    | 2000-01-14 00:00:00 |  0.993853 |      0.89652 |      0.104565 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.044495 | 0.044495 | 0.044495 | 0.049685 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.104862 |  0.496625 |  0.443035 | 0.553455 | 0.443035 |  0.496625 |  0.443035 |</span>
+<span class="sd">    | 2000-01-15 00:00:00 |  0.993843 |     0.896225 |      0.104862 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.044113 | 0.044113 | 0.044113 | 0.049639 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.105149 |  0.496147 |  0.439223 | 0.556759 | 0.439223 |  0.496147 |  0.439223 |</span>
+<span class="sd">    | 2000-01-16 00:00:00 |  0.993833 |      0.89594 |      0.105149 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.043733 | 0.043733 | 0.043733 | 0.049589 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.105427 |  0.495641 |  0.435445 | 0.559997 | 0.435445 |  0.495641 |  0.435445 |</span>
+<span class="sd">    | 2000-01-17 00:00:00 |  0.993823 |     0.895664 |      0.105427 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.043357 | 0.043357 | 0.043357 | 0.049537 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.105696 |  0.495107 |  0.431699 | 0.563171 | 0.431699 |  0.495107 |  0.431699 |</span>
+<span class="sd">    | 2000-01-18 00:00:00 |  0.993814 |     0.895397 |      0.105696 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.042984 | 0.042984 | 0.042984 | 0.049483 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.105955 |  0.494546 |  0.427985 | 0.566281 | 0.427985 |  0.494546 |  0.427985 |</span>
+<span class="sd">    | 2000-01-19 00:00:00 |  0.993805 |     0.895139 |      0.105955 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.042614 | 0.042614 | 0.042614 | 0.049425 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.106206 |  0.493957 |  0.424303 | 0.569328 | 0.424303 |  0.493957 |  0.424303 |</span>
+<span class="sd">    | 2000-01-20 00:00:00 |  0.993796 |      0.89489 |      0.106206 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.042248 | 0.042248 | 0.042248 | 0.049365 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.106447 |  0.493342 |  0.420653 | 0.572311 | 0.420653 |  0.493342 |  0.420653 |</span>
+<span class="sd">    | 2000-01-21 00:00:00 |  0.993788 |      0.89465 |      0.106447 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.041884 | 0.041884 | 0.041884 | 0.049302 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.106679 |  0.492701 |  0.417034 | 0.575232 | 0.417034 |  0.492701 |  0.417034 |</span>
+<span class="sd">    | 2000-01-22 00:00:00 |  0.993779 |     0.894419 |      0.106679 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.041524 | 0.041524 | 0.041524 | 0.049237 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.106903 |  0.492035 |  0.413446 | 0.578091 | 0.413446 |  0.492035 |  0.413446 |</span>
+<span class="sd">    | 2000-01-23 00:00:00 |  0.993772 |     0.894197 |      0.106903 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.041167 | 0.041167 | 0.041167 | 0.049169 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.107118 |  0.491343 |   0.40989 |  0.58089 |  0.40989 |  0.491343 |   0.40989 |</span>
+<span class="sd">    | 2000-01-24 00:00:00 |  0.993764 |     0.893983 |      0.107118 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.040812 | 0.040812 | 0.040812 | 0.049099 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.107325 |  0.490628 |  0.406364 | 0.583627 | 0.406364 |  0.490628 |  0.406364 |</span>
+<span class="sd">    | 2000-01-25 00:00:00 |  0.993757 |     0.893778 |      0.107325 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.040461 | 0.040461 | 0.040461 | 0.049026 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.107522 |  0.489888 |  0.402868 | 0.586305 | 0.402868 |  0.489888 |  0.402868 |</span>
+<span class="sd">    | 2000-01-26 00:00:00 |   0.99375 |     0.893581 |      0.107522 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.040113 | 0.040113 | 0.040113 | 0.048951 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.107712 |  0.489124 |  0.399402 | 0.588923 | 0.399402 |  0.489124 |  0.399402 |</span>
+<span class="sd">    | 2000-01-27 00:00:00 |  0.993743 |     0.893393 |      0.107712 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.039768 | 0.039768 | 0.039768 | 0.048873 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.107893 |  0.488337 |  0.395966 | 0.591482 | 0.395966 |  0.488337 |  0.395966 |</span>
+<span class="sd">    | 2000-01-28 00:00:00 |  0.993737 |     0.893213 |      0.107893 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.039426 | 0.039426 | 0.039426 | 0.048793 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.108067 |  0.487528 |  0.392559 | 0.593983 | 0.392559 |  0.487528 |  0.392559 |</span>
+<span class="sd">    | 2000-01-29 00:00:00 |   0.99373 |     0.893041 |      0.108067 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.039087 | 0.039087 | 0.039087 | 0.048711 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.108232 |  0.486697 |  0.389182 | 0.596426 | 0.389182 |  0.486697 |  0.389182 |</span>
+<span class="sd">    | 2000-01-30 00:00:00 |  0.993725 |     0.892877 |      0.108232 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.038751 | 0.038751 | 0.038751 | 0.048627 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.108389 |  0.485843 |  0.385834 | 0.598812 | 0.385834 |  0.485843 |  0.385834 |</span>
+<span class="sd">    | 2000-01-31 00:00:00 |  0.993719 |      0.89272 |      0.108389 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |      0.0       0.0       0.0       0.0       0.0       0.0 |      0.0 | 0.038417 | 0.038417 | 0.038417 | 0.048541 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.108538 |  0.484969 |  0.382515 | 0.601141 | 0.382515 |  0.484969 |  0.382515 |</span>
+<span class="sd">    | 2000-02-01 00:00:00 |  0.993714 |     0.892572 |      0.108538 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 | 0.446286  0.446286  0.446286  0.223143  0.223143  0.223143 |      0.0 |  0.48245 | 0.260269 | 0.260269 | 0.271591 | 0.446286 | 0.446286 | 0.446286 | 0.223143 | 0.223143 | 0.223143 | 1.001239 |  0.483908 |  0.340831 | 0.603332 | 0.360028 |   0.48399 |  0.360028 |</span>
+<span class="sd">    | 2000-02-02 00:00:00 |  0.993709 |     0.892444 |      0.108668 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 | 0.446222  0.446222  0.446222  0.223111  0.223111  0.223111 |      0.0 | 0.478236 | 0.257998 | 0.257998 | 0.271452 | 0.446222 | 0.446222 | 0.446222 | 0.223111 | 0.223111 | 0.223111 | 1.001196 |  0.482499 |  0.299512 | 0.605301 | 0.337737 |  0.482828 |  0.337737 |</span>
+<span class="sd">    | 2000-02-03 00:00:00 |  0.993706 |      0.89236 |      0.108752 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 |  0.44618   0.44618   0.44618   0.22309   0.22309   0.22309 |      0.0 |  0.47408 | 0.255757 | 0.255757 | 0.271305 |  0.44618 |  0.44618 |  0.44618 |  0.22309 |  0.22309 |  0.22309 |  1.00114 |  0.480748 |  0.258551 | 0.607052 | 0.315639 |  0.481485 |  0.315639 |</span>
+<span class="sd">    | 2000-02-04 00:00:00 |  0.993705 |     0.892332 |       0.10878 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 | 0.446166  0.446166  0.446166  0.223083  0.223083  0.223083 |      0.0 | 0.469988 |  0.25355 |  0.25355 | 0.271155 | 0.446166 | 0.446166 | 0.446166 | 0.223083 | 0.223083 | 0.223083 | 1.001084 |  0.478662 |  0.217944 | 0.608586 | 0.293733 |  0.479963 |  0.293733 |</span>
+<span class="sd">    | 2000-02-05 00:00:00 |  0.993707 |     0.892387 |      0.108725 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 | 0.446193  0.446193  0.446193  0.223097  0.223097  0.223097 |      0.0 | 0.465972 | 0.251382 | 0.251382 | 0.271008 | 0.446193 | 0.446193 | 0.446193 | 0.223097 | 0.223097 | 0.223097 | 1.001057 |  0.476245 |  0.177684 | 0.609906 | 0.272013 |  0.478268 |  0.272013 |</span>
+<span class="sd">    | 2000-02-06 00:00:00 |  0.993712 |     0.892523 |      0.108587 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 | 0.446262  0.446262  0.446262  0.223131  0.223131  0.223131 |      0.0 | 0.462031 | 0.249254 | 0.249254 | 0.270864 | 0.446262 | 0.446262 | 0.446262 | 0.223131 | 0.223131 | 0.223131 | 1.001057 |  0.473505 |  0.137765 | 0.611013 | 0.250478 |  0.476401 |  0.250478 |</span>
+<span class="sd">    | 2000-02-07 00:00:00 |  0.993719 |     0.892713 |      0.108397 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 | 0.446356  0.446356  0.446356  0.223178  0.223178  0.223178 |      0.0 | 0.458151 | 0.247157 | 0.247157 | 0.270716 | 0.446356 | 0.446356 | 0.446356 | 0.223178 | 0.223178 | 0.223178 | 1.001056 |  0.470446 |  0.098181 | 0.611909 | 0.229123 |  0.474365 |  0.229123 |</span>
+<span class="sd">    | 2000-02-08 00:00:00 |  0.993727 |     0.892954 |      0.108154 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 | 0.446477  0.446477  0.446477  0.223239  0.223239  0.223239 |      0.0 |  0.45433 | 0.245091 | 0.245091 | 0.270565 | 0.446477 | 0.446477 | 0.446477 | 0.223239 | 0.223239 | 0.223239 | 1.001055 |  0.467075 |  0.058927 | 0.612596 | 0.207948 |  0.472164 |  0.207948 |</span>
+<span class="sd">    | 2000-02-09 00:00:00 |  0.993738 |     0.893247 |      0.107859 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5       0.5  0.5       0.5       0.5              0.5 | 0.446624  0.446624  0.446624  0.223312  0.223312  0.223312 |      0.0 | 0.450567 | 0.243055 | 0.243055 |  0.27041 | 0.446624 | 0.446624 | 0.446624 | 0.223312 | 0.223312 | 0.223312 | 1.001054 |  0.463396 |  0.019998 | 0.613076 | 0.186948 |  0.469801 |  0.186948 |</span>
+<span class="sd">    | 2000-02-10 00:00:00 |   0.99375 |     0.893591 |      0.107513 |      0.0       0.0  0.0  0.0  0.0            0.0 |      0.5  0.231453  0.5       0.5       0.5              0.5 | 0.446796  0.231453  0.446796  0.223398  0.223398  0.223398 |      0.0 | 0.232448 |  0.24105 |  0.24105 | 0.270252 | 0.446796 | 0.231453 | 0.446796 | 0.223398 | 0.223398 | 0.223398 | 1.000129 |  0.440969 | -0.000086 | 0.613351 | 0.166121 |  0.467278 |  0.166121 |</span>
+<span class="sd">    | 2000-02-11 00:00:00 |  0.993829 |     0.895821 |      0.105269 |      0.0  0.000989  0.0  0.0  0.0            0.0 |      0.5       0.0  0.5       0.5       0.5              0.5 |  0.44791       0.0   0.44791  0.223955  0.223955  0.223955 |      0.0 |      0.0 | 0.239531 | 0.239531 | 0.270549 |  0.44791 |      0.0 |  0.44791 | 0.223955 | 0.223955 | 0.223955 | 0.999137 |  0.398643 | -0.000086 | 0.613423 | 0.145425 |  0.464598 |  0.145425 |</span>
+<span class="sd">    | 2000-02-12 00:00:00 |  0.994006 |     0.900964 |      0.100095 |      0.0  0.000989  0.0  0.0  0.0            0.0 |      0.5       0.0  0.5       0.5       0.5              0.5 | 0.450482       0.0  0.450482  0.225241  0.225241  0.225241 |      0.0 |      0.0 | 0.238751 | 0.238751 | 0.271559 | 0.450482 |      0.0 | 0.450482 | 0.225241 | 0.225241 | 0.225241 | 1.000052 |   0.35646 | -0.000086 | 0.613293 | 0.124797 |  0.461763 |  0.124797 |</span>
+<span class="sd">    | 2000-02-13 00:00:00 |  0.994181 |     0.906168 |      0.094859 |      0.0  0.000989  0.0  0.0  0.0            0.0 |      0.5       0.0  0.5       0.5       0.5              0.5 | 0.453084       0.0  0.453084  0.226542  0.226542  0.226542 |      0.0 |      0.0 | 0.237992 | 0.237992 | 0.272569 | 0.453084 |      0.0 | 0.453084 | 0.226542 | 0.226542 | 0.226542 | 1.001021 |  0.314415 | -0.000086 | 0.612961 | 0.104235 |  0.458776 |  0.104235 |</span>
+<span class="sd">    | 2000-02-14 00:00:00 |  0.994319 |     0.910384 |      0.090619 |      0.0  0.000989  0.0  0.0  0.0            0.0 |      0.5       0.0  0.5       0.5       0.5              0.5 | 0.455192       0.0  0.455192  0.227596  0.227596  0.227596 |      0.0 |      0.0 | 0.236994 | 0.236994 | 0.273316 | 0.455192 |      0.0 | 0.455192 | 0.227596 | 0.227596 | 0.227596 | 1.000999 |  0.272551 | -0.000086 |  0.61243 | 0.083759 |  0.455637 |  0.083759 |</span>
+<span class="sd">    | 2000-02-15 00:00:00 |  0.994453 |     0.914603 |      0.086376 |      0.0  0.000989  0.0  0.0  0.0            0.0 |      0.5       0.0  0.5       0.5       0.5              0.5 | 0.457302       0.0  0.457302  0.228651  0.228651  0.228651 |      0.0 |      0.0 | 0.236006 | 0.236006 |  0.27405 | 0.457302 |      0.0 | 0.457302 | 0.228651 | 0.228651 | 0.228651 | 1.000977 |  0.230866 | -0.000086 | 0.611699 | 0.063368 |   0.45235 |  0.063368 |</span>
+<span class="sd">    | 2000-02-16 00:00:00 |  0.994584 |     0.918822 |      0.082134 |      0.0  0.000989  0.0  0.0  0.0            0.0 |      0.5       0.0  0.5       0.5       0.5              0.5 | 0.459411       0.0  0.459411  0.229706  0.229706  0.229706 |      0.0 |      0.0 | 0.235026 | 0.235026 | 0.274769 | 0.459411 |      0.0 | 0.459411 | 0.229706 | 0.229706 | 0.229706 | 1.000954 |  0.189358 | -0.000086 | 0.610771 | 0.043062 |  0.448917 |  0.043062 |</span>
+<span class="sd">    | 2000-02-17 00:00:00 |  0.994713 |     0.923044 |      0.077889 |      0.0   0.00099  0.0  0.0  0.0            0.0 |      0.5       0.0  0.5  0.498397       0.5         0.498397 | 0.461522       0.0  0.461522  0.230391  0.231132  0.231132 |      0.0 |      0.0 | 0.233686 | 0.234424 | 0.275844 | 0.461522 |      0.0 | 0.461522 | 0.230391 | 0.231132 | 0.231132 | 1.000931 |  0.148025 | -0.000086 | 0.609647 | 0.022871 |  0.445338 |  0.022807 |</span>
+<span class="sd">    | 2000-02-18 00:00:00 |  0.994838 |     0.927269 |      0.073642 |      0.0   0.00099  0.0  0.0  0.0            0.0 |      0.5       0.0  0.5  0.264711       0.5         0.263973 | 0.463634       0.0  0.463634  0.160491  0.303143  0.263973 |      0.0 |      0.0 | 0.162077 | 0.265108 | 0.347322 | 0.463634 |      0.0 | 0.463634 | 0.160491 | 0.303143 | 0.263973 |  1.00091 |  0.106866 | -0.000086 | 0.608339 | 0.008868 |  0.438235 | -0.000098 |</span>
+<span class="sd">    | 2000-02-19 00:00:00 |  0.994961 |     0.931495 |      0.069395 |      0.0   0.00099  0.0  0.0  0.0       0.001129 |      0.5       0.0  0.5  0.102634       0.5              0.0 | 0.465747       0.0  0.465747  0.079321  0.386426       0.0 |      0.0 |      0.0 | 0.079862 |      0.0 | 0.428396 | 0.465747 |      0.0 | 0.465747 | 0.079321 | 0.386426 |      0.0 | 1.000884 |  0.065879 | -0.000086 | 0.606763 | 0.001967 |  0.401221 | -0.000098 |</span>
+<span class="sd">    | 2000-02-20 00:00:00 |   0.99508 |      0.93573 |      0.065138 |      0.0   0.00099  0.0  0.0  0.0       0.001129 |      0.5       0.0  0.5  0.022772       0.5              0.0 | 0.467865       0.0  0.467865   0.02038  0.447485       0.0 |      0.0 |      0.0 | 0.020488 |      0.0 | 0.485507 | 0.467865 |      0.0 | 0.467865 |  0.02038 | 0.447485 |      0.0 | 1.000854 |  0.025063 | -0.000086 | 0.604824 | 0.000197 |  0.359273 | -0.000098 |</span>
+<span class="sd">    | 2000-02-21 00:00:00 |  0.995198 |      0.93999 |      0.060857 |      0.0   0.00099  0.0  0.0  0.0       0.001129 | 0.290083       0.0  0.5  0.002284       0.5              0.0 | 0.290083       0.0       0.5  0.002273  0.497727       0.0 |      0.0 |      0.0 | 0.002283 |      0.0 | 0.531355 | 0.290083 |      0.0 |      0.5 | 0.002273 | 0.497727 |      0.0 | 0.851697 | -0.000108 | -0.000086 | 0.602514 |      0.0 |  0.313364 | -0.000098 |</span>
+<span class="sd">    | 2000-02-22 00:00:00 |  0.995272 |     0.942731 |      0.058104 | 0.001241   0.00099  0.0  0.0  0.0       0.001129 |      0.0       0.0  0.5  0.000001       0.5              0.0 |      0.0       0.0       0.5  0.000001  0.499999       0.0 |      0.0 |      0.0 | 0.000001 |      0.0 | 0.529047 |      0.0 |      0.0 |      0.5 | 0.000001 | 0.499999 |      0.0 | 0.560117 | -0.000108 | -0.000086 |  0.59983 |      0.0 |  0.267655 | -0.000098 |</span>
+<span class="sd">    | 2000-02-23 00:00:00 |  0.995258 |     0.942216 |       0.05862 | 0.001241   0.00099  0.0  0.0  0.0       0.001129 |      0.0       0.0  0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.524496 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 |  0.55983 | -0.000108 | -0.000086 | 0.596777 |      0.0 |  0.222338 | -0.000098 |</span>
+<span class="sd">    | 2000-02-24 00:00:00 |  0.995233 |     0.941298 |      0.059543 | 0.001241   0.00099  0.0  0.0  0.0       0.001129 |      0.0       0.0  0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.519984 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.559507 | -0.000108 | -0.000086 | 0.593362 |      0.0 |  0.177411 | -0.000098 |</span>
+<span class="sd">    | 2000-02-25 00:00:00 |  0.995243 |     0.941656 |      0.059183 | 0.001241   0.00099  0.0  0.0  0.0       0.001129 |      0.0       0.0  0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.515511 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.559147 | -0.000108 | -0.000086 | 0.589592 |      0.0 |  0.132871 | -0.000098 |</span>
+<span class="sd">    | 2000-02-26 00:00:00 |  0.995254 |     0.942049 |      0.058788 | 0.001241   0.00099  0.0  0.0  0.0       0.001129 |      0.0       0.0  0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.511076 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.558753 | -0.000108 | -0.000086 | 0.585473 |      0.0 |  0.088714 | -0.000098 |</span>
+<span class="sd">    | 2000-02-27 00:00:00 |  0.995265 |     0.942477 |      0.058358 | 0.001241   0.00099  0.0  0.0  0.0       0.001129 |      0.0       0.0  0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.506679 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.558324 | -0.000108 | -0.000086 | 0.581011 |      0.0 |  0.044937 | -0.000098 |</span>
+<span class="sd">    | 2000-02-28 00:00:00 |  0.995278 |     0.942939 |      0.057895 | 0.001241   0.00099  0.0  0.0  0.0       0.001129 |      0.0       0.0  0.5       0.0       0.5              0.0 |      0.0       0.0       0.5       0.0       0.5       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.502321 |      0.0 |      0.0 |      0.5 |      0.0 |      0.5 |      0.0 | 0.557861 | -0.000108 | -0.000086 | 0.576212 |      0.0 |  0.001537 | -0.000098 |</span>
+<span class="sd">    | 2000-02-29 00:00:00 |  0.995291 |     0.943433 |      0.057398 | 0.001241   0.00099  0.0  0.0  0.0       0.001129 |      0.0       0.0  0.5       0.0  0.017786              0.0 |      0.0       0.0       0.5       0.0  0.017786       0.0 |      0.0 |      0.0 |      0.0 |      0.0 | 0.017863 |      0.0 |      0.0 |      0.5 |      0.0 | 0.017786 |      0.0 | 0.555296 | -0.000108 | -0.000086 | 0.529778 |      0.0 | -0.000007 | -0.000098 |</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">inflect</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.exe.modelimports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">devicetools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">modeltools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">objecttools</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.core.typingtools</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">manager_model</span>
+
+
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../../manager_lwc.html#hydpy.models.manager_lwc.Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">modeltools</span><span class="o">.</span><span class="n">AdHocModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;|manager_lwc.DOCNAME.complete|.</span>
+
+<span class="sd">    |manager_lwc| relies on a name-based mechanism to build connections to the relevant</span>
+<span class="sd">    nodes of the instructable source elements.  See the integration test setup for a</span>
+<span class="sd">    realistic setting.  Here, we focus on testing and demonstrating the handling of</span>
+<span class="sd">    potentially problematic specifications:</span>
+
+<span class="sd">    .. testsetup::</span>
+
+<span class="sd">        &gt;&gt;&gt; from hydpy import Element, Node</span>
+<span class="sd">        &gt;&gt;&gt; Node.clear_all()</span>
+<span class="sd">        &gt;&gt;&gt; Element.clear_all()</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.models.manager_lwc import *</span>
+<span class="sd">    &gt;&gt;&gt; parameterstep()</span>
+<span class="sd">    &gt;&gt;&gt; sources(&quot;d1&quot;)</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import Element, FusedVariable, Node, Nodes</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.aliases import (</span>
+<span class="sd">    ...     dam_observers_A,</span>
+<span class="sd">    ...     dam_states_WaterVolume,</span>
+<span class="sd">    ...     manager_senders_Request,</span>
+<span class="sd">    ...     manager_receivers_WaterVolume,</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; lwc = Element(&quot;lwc&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `receiver` \</span>
+<span class="sd">sequences of the model handled by element `lwc`, the following error occurred: There \</span>
+<span class="sd">is no source element named `d1` available.</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy.aliases import manager_receivers_WaterVolume</span>
+<span class="sd">    &gt;&gt;&gt; v1 = Node(&quot;v1&quot;, variable=manager_receivers_WaterVolume)</span>
+<span class="sd">    &gt;&gt;&gt; d1 = Element(&quot;d1&quot;, outlets=&quot;q1&quot;, outputs=v1)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `receiver` \</span>
+<span class="sd">sequences of the model handled by element `lwc`, the following error occurred: There \</span>
+<span class="sd">must be exactly one node that informs about the current water volume of the source \</span>
+<span class="sd">element `d1`, but no such nodes are available.</span>
+
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.add_device(v1, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; sources(&quot;d1&quot;, &quot;d2&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; d2 = Element(&quot;d2&quot;, outlets=&quot;q2&quot;, outputs=&quot;v2&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.add_device(&quot;v2&quot;, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `receiver` \</span>
+<span class="sd">sequences of the model handled by element `lwc`, the following error occurred: There \</span>
+<span class="sd">must be exactly one node that informs about the current water volume of the source \</span>
+<span class="sd">element `d2`, but no such nodes are available.</span>
+
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.remove_device(&quot;v2&quot;, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; v2a, v2b = Nodes(&quot;v2a&quot;, &quot;v2b&quot;, defaultvariable=manager_receivers_WaterVolume)</span>
+<span class="sd">    &gt;&gt;&gt; d2.outputs.add_device(v2a, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; d2.outputs.add_device(v2b, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.add_device(v2a, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.add_device(v2b, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `receiver` \</span>
+<span class="sd">sequences of the model handled by element `lwc`, the following error occurred: There \</span>
+<span class="sd">must be exactly one node that informs about the current water volume of the source \</span>
+<span class="sd">element `d2`, but two such nodes are available (`v2a` and `v2b`).</span>
+
+<span class="sd">    &gt;&gt;&gt; sources(&quot;d1&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `receiver` \</span>
+<span class="sd">sequences of the model handled by element `lwc`, the following error occurred: There \</span>
+<span class="sd">must be exactly one node that reports the current discharge at the target location, \</span>
+<span class="sd">but no such nodes are available.</span>
+
+<span class="sd">    &gt;&gt;&gt; t = Node(&quot;t&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.add_device(t, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.add_device(&quot;target&quot;, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `receiver` \</span>
+<span class="sd">sequences of the model handled by element `lwc`, the following error occurred: There \</span>
+<span class="sd">must be exactly one node that reports the current discharge at the target location, \</span>
+<span class="sd">but two such nodes are available (`t` and `target`).</span>
+
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.remove_device(&quot;target&quot;, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.aliases import manager_senders_Request</span>
+<span class="sd">    &gt;&gt;&gt; r1 = Node(&quot;r1&quot;, variable=manager_senders_Request)</span>
+<span class="sd">    &gt;&gt;&gt; d1.observers.add_device(r1, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `sender` sequences \</span>
+<span class="sd">of the model handled by element `lwc`, the following error occurred: There must be \</span>
+<span class="sd">exactly one node that informs the source element `d1` about the request for \</span>
+<span class="sd">additional water release, but no such nodes are available.</span>
+
+<span class="sd">    &gt;&gt;&gt; lwc.senders.add_device(r1, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; sources(&quot;d1&quot;, &quot;d3&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; d3 = Element(&quot;d3&quot;, outlets=&quot;q3&quot;, observers=&quot;r3&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.add_device(&quot;r3&quot;, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `receiver` \</span>
+<span class="sd">sequences of the model handled by element `lwc`, the following error occurred: There \</span>
+<span class="sd">must be exactly one node that informs about the current water volume of the source \</span>
+<span class="sd">element `d3`, but no such nodes are available.</span>
+
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.remove_device(&quot;r3&quot;, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; from hydpy.aliases import manager_senders_Request</span>
+<span class="sd">    &gt;&gt;&gt; r3a, r3b = Nodes(&quot;r3a&quot;, &quot;r3b&quot;, defaultvariable=manager_senders_Request)</span>
+<span class="sd">    &gt;&gt;&gt; d3.outputs.add_device(v2a, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; d3.observers.add_device(r3a, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; d3.observers.add_device(r3b, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.senders.add_device(r3a, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.senders.add_device(r3b, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.model = model</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to build the node connection of the `sender` sequences \</span>
+<span class="sd">of the model handled by element `lwc`, the following error occurred: There must be \</span>
+<span class="sd">exactly one node that informs the source element `d3` about the request for \</span>
+<span class="sd">additional water release, but two such nodes are available (`r3a` and `r3b`).</span>
+
+<span class="sd">    &gt;&gt;&gt; sources(&quot;d1&quot;, &quot;d4&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; v4 = Node(&quot;v4&quot;, variable=manager_receivers_WaterVolume)</span>
+<span class="sd">    &gt;&gt;&gt; r4 = Node(&quot;r4&quot;, variable=manager_senders_Request)</span>
+<span class="sd">    &gt;&gt;&gt; d4 = Element(&quot;d4&quot;, outputs=v4, observers=r4)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.receivers.add_device(v4, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.senders.add_device(r4, force=True)</span>
+<span class="sd">    &gt;&gt;&gt; lwc.model = model</span>
+
+<span class="sd">    &gt;&gt;&gt; fluxes.request = 1.0, 2.0</span>
+<span class="sd">    &gt;&gt;&gt; model.update_senders()</span>
+<span class="sd">    &gt;&gt;&gt; r1.sequences.sim</span>
+<span class="sd">    sim(1.0)</span>
+<span class="sd">    &gt;&gt;&gt; r4.sequences.sim</span>
+<span class="sd">    sim(2.0)</span>
+
+<span class="sd">    &gt;&gt;&gt; t.sequences.sim = 1.0</span>
+<span class="sd">    &gt;&gt;&gt; derived.memorylength(1)</span>
+<span class="sd">    &gt;&gt;&gt; v1.sequences.sim = 2.0</span>
+<span class="sd">    &gt;&gt;&gt; v4.sequences.sim = 3.0</span>
+<span class="sd">    &gt;&gt;&gt; model.update_receivers(0)</span>
+<span class="sd">    &gt;&gt;&gt; logs.loggeddischarge</span>
+<span class="sd">    loggeddischarge(1.0)</span>
+<span class="sd">    &gt;&gt;&gt; logs.loggedwatervolume</span>
+<span class="sd">    loggedwatervolume(d1=2.0, d4=3.0)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">DOCNAME</span> <span class="o">=</span> <span class="n">modeltools</span><span class="o">.</span><span class="n">DocName</span><span class="p">(</span>
+        <span class="n">short</span><span class="o">=</span><span class="s2">&quot;Manager-LWC&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;low water control management model&quot;</span>
+    <span class="p">)</span>
+    <span class="n">__HYDPY_ROOTMODEL__</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">INLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OBSERVER_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">RECEIVER_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">manager_model</span><span class="o">.</span><span class="n">Pick_LoggedDischarge_V1</span><span class="p">,</span>
+        <span class="n">manager_model</span><span class="o">.</span><span class="n">Pick_LoggedWaterVolume_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">RUN_METHODS</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">manager_model</span><span class="o">.</span><span class="n">Calc_FreeDischarge_V1</span><span class="p">,</span>
+        <span class="n">manager_model</span><span class="o">.</span><span class="n">Calc_DemandTarget_V1</span><span class="p">,</span>
+        <span class="n">manager_model</span><span class="o">.</span><span class="n">Calc_Alertness_V1</span><span class="p">,</span>
+        <span class="n">manager_model</span><span class="o">.</span><span class="n">Calc_DemandSources_V1</span><span class="p">,</span>
+        <span class="n">manager_model</span><span class="o">.</span><span class="n">Calc_PossibleRelease_V1</span><span class="p">,</span>
+        <span class="n">manager_model</span><span class="o">.</span><span class="n">Calc_Request_V1</span><span class="p">,</span>
+        <span class="n">manager_model</span><span class="o">.</span><span class="n">Update_LoggedRequest_V1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ADD_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">OUTLET_METHODS</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SENDER_METHODS</span> <span class="o">=</span> <span class="p">(</span><span class="n">manager_model</span><span class="o">.</span><span class="n">Pass_Request_V1</span><span class="p">,)</span>
+    <span class="n">SUBMODELINTERFACES</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">SUBMODELS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_error_message_suffix</span><span class="p">(</span><span class="n">nodes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Node</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">nodes</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot; (</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;`</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">`&#39;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">nodes</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_connect_receivers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report_noconnect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">registry</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">_registry</span>  <span class="c1"># pylint: disable=protected-access</span>
+        <span class="n">name2elements</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">],</span> <span class="n">registry</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">sources</span>
+        <span class="n">volume_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">watervolume</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">receivers</span><span class="o">.</span><span class="n">watervolume</span>
+        <span class="k">for</span> <span class="n">sourcename</span> <span class="ow">in</span> <span class="n">sources</span><span class="o">.</span><span class="n">sourcenames</span><span class="p">:</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="n">name2elements</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sourcename</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;There is no source element named `</span><span class="si">{</span><span class="n">sourcename</span><span class="si">}</span><span class="s2">` available.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">selected</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">n</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">outputs</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">senders</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">((</span><span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">receivers</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">variable</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">watervolume</span><span class="p">)))</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">:=</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">selected_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_error_message_suffix</span><span class="p">(</span><span class="n">selected</span><span class="p">)</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">inflect</span><span class="o">.</span><span class="n">engine</span><span class="p">()</span>
+                <span class="n">number</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">number_to_words</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="s2">&quot;no&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;There must be exactly one node that informs about the &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;current water volume of the source element `</span><span class="si">{</span><span class="n">sourcename</span><span class="si">}</span><span class="s2">`, but &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">number</span><span class="si">}</span><span class="s2"> such nodes are available</span><span class="si">{</span><span class="n">selected_</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">volume_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">selected</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">watervolume</span><span class="o">.</span><span class="n">connect_to_nodes</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;receivers&quot;</span><span class="p">,</span>
+            <span class="n">available_nodes</span><span class="o">=</span><span class="n">volume_nodes</span><span class="p">,</span>
+            <span class="n">applied_nodes</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">report_noconnect</span><span class="o">=</span><span class="n">report_noconnect</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">target_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">receivers</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">variable</span> <span class="o">==</span> <span class="s2">&quot;Q&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">:=</span> <span class="nb">len</span><span class="p">(</span><span class="n">target_nodes</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">selected_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_error_message_suffix</span><span class="p">(</span><span class="n">target_nodes</span><span class="p">)</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">inflect</span><span class="o">.</span><span class="n">engine</span><span class="p">()</span>
+            <span class="n">number</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">number_to_words</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="s2">&quot;no&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;There must be exactly one node that reports the current discharge &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;at the target location, but </span><span class="si">{</span><span class="n">number</span><span class="si">}</span><span class="s2"> such nodes are available&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">selected_</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">receivers</span><span class="o">.</span><span class="n">q</span><span class="o">.</span><span class="n">connect_to_nodes</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;receivers&quot;</span><span class="p">,</span>
+            <span class="n">available_nodes</span><span class="o">=</span><span class="n">target_nodes</span><span class="p">,</span>
+            <span class="n">applied_nodes</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">report_noconnect</span><span class="o">=</span><span class="n">report_noconnect</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_connect_senders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">report_noconnect</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="n">registry</span> <span class="o">=</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">_registry</span>  <span class="c1"># pylint: disable=protected-access</span>
+        <span class="n">name2elements</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span>
+            <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">],</span> <span class="n">registry</span><span class="p">[</span><span class="n">devicetools</span><span class="o">.</span><span class="n">Element</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">sources</span>
+        <span class="n">request_nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">request</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">senders</span><span class="o">.</span><span class="n">request</span>
+        <span class="k">for</span> <span class="n">sourcename</span> <span class="ow">in</span> <span class="n">sources</span><span class="o">.</span><span class="n">sourcenames</span><span class="p">:</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="n">name2elements</span><span class="p">[</span><span class="n">sourcename</span><span class="p">]</span>
+            <span class="n">selected</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">n</span>
+                <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">element</span><span class="o">.</span><span class="n">observers</span>
+                <span class="k">if</span> <span class="p">((</span><span class="n">n</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">senders</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">variable</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">request</span><span class="p">)))</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">n</span> <span class="o">:=</span> <span class="nb">len</span><span class="p">(</span><span class="n">selected</span><span class="p">))</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">selected_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_error_message_suffix</span><span class="p">(</span><span class="n">selected</span><span class="p">)</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">inflect</span><span class="o">.</span><span class="n">engine</span><span class="p">()</span>
+                <span class="n">number</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">number_to_words</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">zero</span><span class="o">=</span><span class="s2">&quot;no&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;There must be exactly one node that informs the source element &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">sourcename</span><span class="si">}</span><span class="s2">` about the request for additional water release, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;but </span><span class="si">{</span><span class="n">number</span><span class="si">}</span><span class="s2"> such nodes are available</span><span class="si">{</span><span class="n">selected_</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+            <span class="n">request_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">selected</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">request</span><span class="o">.</span><span class="n">connect_to_nodes</span><span class="p">(</span>
+            <span class="n">group</span><span class="o">=</span><span class="s2">&quot;senders&quot;</span><span class="p">,</span>
+            <span class="n">available_nodes</span><span class="o">=</span><span class="n">request_nodes</span><span class="p">,</span>
+            <span class="n">applied_nodes</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">report_noconnect</span><span class="o">=</span><span class="n">report_noconnect</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+
+<span class="n">tester</span> <span class="o">=</span> <span class="n">Tester</span><span class="p">()</span>
+<span class="n">cythonizer</span> <span class="o">=</span> <span class="n">Cythonizer</span><span class="p">()</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 6.3dev2 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.models.manager_lwc</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2026, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    </div>
+  </body>
+</html>

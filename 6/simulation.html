@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Simulation &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Developer Guide" href="developer_guide.html" />
+    <link rel="prev" title="Options" href="options.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="developer_guide.html" title="Developer Guide"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="options.html" title="Options"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" accesskey="U">User Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Simulation</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="user_guide.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_read_the_reference_manual.html">How to read the Reference Manual</a></li>
+<li class="toctree-l2"><a class="reference internal" href="definitions.html">Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="project_structure.html">Project structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="options.html">Options</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Simulation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#python">Python</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#xml">XML</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="options.html"
+                          title="previous chapter">Options</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="developer_guide.html"
+                          title="next chapter">Developer Guide</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/simulation.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="simulation">
+<span id="id1"></span><h1>Simulation<a class="headerlink" href="#simulation" title="Link to this heading">¶</a></h1>
+<p>This section explains the basic principles of configuring a simulation run via Python
+scripts or XML files.  The focus lies on the more central methods, especially those
+provided by the class <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a>.</p>
+<section id="python">
+<span id="simulation-python"></span><h2>Python<a class="headerlink" href="#python" title="Link to this heading">¶</a></h2>
+<p>The <a class="reference internal" href="quickstart.html#quickstart"><span class="std std-ref">Quick Start’s</span></a> <a class="reference internal" href="quickstart.html#run-hydpy"><span class="std std-ref">Run HydPy</span></a> section demonstrates the
+straightest way to perform a simulation via the Python shell or a Python script without
+deviating from any default settings.  Here, we split the procedure into smaller steps
+to discuss more details about using a project’s data to set a HydPy instance in a
+simulation-ready state.   Also, we give some first ideas about possible modifications
+and ways to save simulation results.</p>
+<p>Please unzip the <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> example project into your preferred working
+directory and define the <cite>workingdir</cite> variable as exercised in the <a class="reference internal" href="quickstart.html#quickstart"><span class="std std-ref">Quick Start</span></a>
+section:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">workingdir</span> <span class="o">=</span> <span class="s2">&quot;C:/temp&quot;</span>
+</pre></div>
+</div>
+<p>Proceed like in the <a class="reference internal" href="quickstart.html#quickstart"><span class="std std-ref">Quick Start</span></a> section by activating the working directory,
+importing <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> and <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code>, initialising a <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> instance, and defining the period
+to consider:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">workingdir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">HydPy</span><span class="p">,</span> <span class="n">pub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span> <span class="o">=</span> <span class="n">HydPy</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">timegrids</span> <span class="o">=</span> <span class="s2">&quot;1996-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1997-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span>
+</pre></div>
+</div>
+<p>We now define a small helper function that checks if a directory or file we are talking
+about exists:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span><span class="w"> </span><span class="nf">assert_exists</span><span class="p">(</span><span class="o">*</span><span class="n">components</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">components</span> <span class="o">=</span> <span class="p">(</span><span class="n">workingdir</span><span class="p">,)</span> <span class="o">+</span> <span class="n">components</span>
+<span class="gp">... </span>    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">components</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>First, we must prepare the network. All loadable networks are usually within the
+<cite>network</cite> subfolder:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;network&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="filetools.html#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a> instance of the <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> object can give us more information.  For
+example, it can tell us that the <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> project only comprises one
+subfolder and hence only one “network version”:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">networkmanager</span><span class="o">.</span><span class="n">availabledirs</span>
+<span class="go">Folder2Path(default=.../HydPy-H-Lahn/network/default)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;network&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="filetools.html#hydpy.core.filetools.NetworkManager" title="hydpy.core.filetools.NetworkManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">NetworkManager</span></code></a> instance assumes this single directory as the desired working
+directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">networkmanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">==</span> <span class="s2">&quot;default&quot;</span>
+</pre></div>
+</div>
+<p>The default directory consists of three Python files, for example, <cite>headwaters.py</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;network&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;headwaters.py&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If we call method <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.prepare_network" title="hydpy.core.hydpytools.HydPy.prepare_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_network()</span></code></a>, HydPy builds a network that consists of all
+the elements and nodes defined in these three files:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">prepare_network</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">nodes</span>
+<span class="go">Nodes(&quot;dill_assl&quot;, &quot;lahn_kalk&quot;, &quot;lahn_leun&quot;, &quot;lahn_marb&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">elements</span>
+<span class="go">Elements(&quot;land_dill_assl&quot;, &quot;land_lahn_kalk&quot;, &quot;land_lahn_leun&quot;,</span>
+<span class="go">         &quot;land_lahn_marb&quot;, &quot;stream_dill_assl_lahn_leun&quot;,</span>
+<span class="go">         &quot;stream_lahn_leun_lahn_kalk&quot;, &quot;stream_lahn_marb_lahn_leun&quot;)</span>
+</pre></div>
+</div>
+<p>Besides this, the <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a> instance of <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> now contains three user-defined
+<a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selection" title="hydpy.core.selectiontools.Selection"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selection</span></code></a> instances:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span>
+<span class="go">Selections(&quot;headwaters&quot;, &quot;nonheadwaters&quot;, &quot;streams&quot;)</span>
+</pre></div>
+</div>
+<p>Each user-defined selection corresponds to one network file, meaning it has the same
+name and comprises the same nodes and elements:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="o">.</span><span class="n">headwaters</span>
+<span class="go">Selection(&quot;headwaters&quot;,</span>
+<span class="go">          nodes=(&quot;dill_assl&quot;, &quot;lahn_marb&quot;),</span>
+<span class="go">          elements=(&quot;land_dill_assl&quot;, &quot;land_lahn_marb&quot;))</span>
+</pre></div>
+</div>
+<p>A fourth selection, named “complete”, is also accessible.  The property
+<a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections.complete" title="hydpy.core.selectiontools.Selections.complete"><code class="xref py py-const docutils literal notranslate"><span class="pre">complete</span></code></a> creates it automatically upon request by combining the contents
+of the user-defined selections.  Right after calling <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.prepare_network" title="hydpy.core.hydpytools.HydPy.prepare_network"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_network()</span></code></a>, the
+<a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> instance and <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections.complete" title="hydpy.core.selectiontools.Selections.complete"><code class="xref py py-const docutils literal notranslate"><span class="pre">complete</span></code></a> have the same nodes and elements:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">hp</span> <span class="o">==</span> <span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="o">.</span><span class="n">complete</span>
+</pre></div>
+</div>
+<p>Use method <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.update_devices" title="hydpy.core.hydpytools.HydPy.update_devices"><code class="xref py py-func docutils literal notranslate"><span class="pre">update_devices()</span></code></a> to concentrate only on a part of the complete
+network.  Here, we restrict the simulation to the headwater catchments:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">update_devices</span><span class="p">(</span><span class="n">selection</span><span class="o">=</span><span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="o">.</span><span class="n">headwaters</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">hp</span> <span class="o">==</span> <span class="n">pub</span><span class="o">.</span><span class="n">selections</span><span class="o">.</span><span class="n">headwaters</span>
+</pre></div>
+</div>
+<p>So far, we prepared the network and selected the subnetwork we are interested in, but a
+model that could perform any actual simulation is still missing:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">attrready</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">attrready</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">land_dill_assl</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="filetools.html#hydpy.core.filetools.ControlManager" title="hydpy.core.filetools.ControlManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ControlManager</span></code></a> instance of <code class="xref py py-mod docutils literal notranslate"><span class="pre">pub</span></code> informs us about the only available set of model
+types and parameterisations, which is available in a directory named <cite>default</cite>, the now
+relevant working directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">controlmanager</span><span class="o">.</span><span class="n">availabledirs</span>
+<span class="go">Folder2Path(default=.../HydPy-H-Lahn/control/default)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">controlmanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">==</span> <span class="s2">&quot;default&quot;</span>
+</pre></div>
+</div>
+<p>This directory contains one Python file for each element of the current selection, for
+example, <cite>land_dill_assl.py</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;control&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;land_dill_assl.py&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Calling method <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.prepare_models" title="hydpy.core.hydpytools.HydPy.prepare_models"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_models()</span></code></a> lets HydPy execute these files to create the
+required main models and their submodels, which it then connects to the respective
+elements:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">prepare_models</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">land_dill_assl</span><span class="o">.</span><span class="n">model</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span>
+<span class="go">hland_96</span>
+<span class="go">    aetmodel: evap_aet_hbv96</span>
+<span class="go">        petmodel: evap_pet_hbv96</span>
+<span class="go">    rconcmodel: rconc_uh</span>
+</pre></div>
+</div>
+<p>All parameter values are already set:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">icmax</span>
+<span class="go">icmax(field=1.0, forest=1.5)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">aetmodel</span><span class="o">.</span><span class="n">petmodel</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">derived</span><span class="o">.</span><span class="n">altitude</span>
+<span class="go">altitude(420.53445)</span>
+</pre></div>
+</div>
+<p>However, initial condition values are still missing:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">uz</span>
+<span class="go">uz(nan)</span>
+</pre></div>
+</div>
+<p>We can use the <a class="reference internal" href="filetools.html#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a> to discover the available sets of initial conditions.
+There is only one set, and this is suitable for 1 January 1996:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">availabledirs</span>
+<span class="go">Folder2Path(init_1996_01_01_00_00_00=.../HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="filetools.html#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a> is unique as it differentiates between initial and final
+conditions, which correspond to the start and end of the currently selected simulation
+period.  If not overwritten by <a class="reference internal" href="filetools.html#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a> (see below), property
+<a class="reference internal" href="filetools.html#hydpy.core.filetools.ConditionManager.inputpath" title="hydpy.core.filetools.ConditionManager.inputpath"><code class="xref py py-const docutils literal notranslate"><span class="pre">inputpath</span></code></a> creates the expected path to the input conditions based on
+the set <a class="reference internal" href="filetools.html#hydpy.core.filetools.ConditionManager.prefix" title="hydpy.core.filetools.ConditionManager.prefix"><code class="xref py py-const docutils literal notranslate"><span class="pre">prefix</span></code></a> (defaults to <cite>init</cite>) and the current simulation start
+date:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">repr_</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">repr_</span><span class="p">(</span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">inputpath</span><span class="p">)</span>
+<span class="go">&#39;.../HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00&#39;</span>
+</pre></div>
+</div>
+<p>As for control files, there is also one condition file per element, like, for example,
+<cite>land_dill_assl.py</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;conditions&quot;</span><span class="p">,</span> <span class="s2">&quot;init_1996_01_01_00_00_00&quot;</span><span class="p">,</span> <span class="s2">&quot;land_dill_assl.py&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Method <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.prepare_models" title="hydpy.core.hydpytools.HydPy.prepare_models"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_models()</span></code></a> sets all condition sequences’ values by evaluating the
+relevant condition files:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">load_conditions</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">states</span><span class="o">.</span><span class="n">uz</span>
+<span class="go">uz(7.25228)</span>
+</pre></div>
+</div>
+<p>The input time series is the only data still missing to run a simulation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="ow">not</span> <span class="n">attrready</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">t</span><span class="p">,</span> <span class="s2">&quot;series&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="filetools.html#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a> informs us there is only one time series directory, and it is
+named <cite>default</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">availabledirs</span>
+<span class="go">Folder2Path(default=...HydPy-H-Lahn/series/default)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">==</span> <span class="s2">&quot;default&quot;</span>
+</pre></div>
+</div>
+<p>Reading time series data is a two-step procedure.  First, one calls the suitable
+“prepare method”.  When called without arguments, methods like
+<a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.prepare_allseries" title="hydpy.core.hydpytools.HydPy.prepare_allseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_allseries()</span></code></a> (which, as its name suggests, addresses the time series of
+all relevant sequences) allocate the necessary space in RAM for handling the time
+series data:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">prepare_allseries</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The second step is to call the suitable “load methods”.  In this example, method
+<a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.load_inputseries" title="hydpy.core.hydpytools.HydPy.load_inputseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_inputseries()</span></code></a> loads the required (meteorological) input time series:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">load_inputseries</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If not specified otherwise, HydPy reads time series from and writes them to ASCII files.
+For example, the <a class="reference internal" href="hland.html#hydpy.models.hland.hland_inputs.T" title="hydpy.models.hland.hland_inputs.T"><code class="xref py py-class docutils literal notranslate"><span class="pre">T</span></code></a> time series data of the <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a> model instance
+handled by the element <cite>land_dill_assl</cite> stems from the ASCII file
+<cite>land_dill_assl_hland_96_input_t.asc</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;series&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;land_dill_assl_hland_96_input_t.asc&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">series</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span>
+<span class="go">0.0, -0.5, -2.4, -6.8, -7.8</span>
+</pre></div>
+</div>
+<p>Class <a class="reference internal" href="filetools.html#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a> provides more options than just the directory-related ones.
+For example, you can use option <a class="reference internal" href="filetools.html#hydpy.core.filetools.SequenceManager.filetype" title="hydpy.core.filetools.SequenceManager.filetype"><code class="xref py py-const docutils literal notranslate"><span class="pre">filetype</span></code></a> to read discharge
+measurement data from the NetCDF file <cite>obs_q.nc</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">filetype</span><span class="p">(</span><span class="s2">&quot;nc&quot;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">hp</span><span class="o">.</span><span class="n">load_obsseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;series&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;obs_q.nc&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">node</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">dill_assl</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">obs</span><span class="o">.</span><span class="n">series</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span>
+<span class="go">4.84, 5.19, 4.22, 3.65, 3.61</span>
+</pre></div>
+</div>
+<p>Finally, with all required preprocessing done, we can conduct the simulation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>HydPy does not apply multi-threading by default.  You can modify the <a class="reference internal" href="optiontools.html#hydpy.core.optiontools.Options.threads" title="hydpy.core.optiontools.Options.threads"><code class="xref py py-const docutils literal notranslate"><span class="pre">threads</span></code></a>
+option to increase simulation speed by processing model instances in parallel.  If your
+machine has, for example, four CPUs, you may want to set the number of additional
+threads also to four:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">hp</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>By doing so, HydPy actually works with five threads.  The already active main thread
+coordinates four workers, which perform the individual simulation runs of the involved
+models in four temporarily created new threads.</p>
+<p>Preparing for a multi-threaded simulation might take a little time for larger projects.
+Hence, HydPy caches some of the information gathered before the first multi-threaded
+run.  Still, you might gain additional speed-ups when doing repeated calculations for
+the same network (for example, during parameter calibration) by saving the
+<a class="reference internal" href="threadingtools.html#hydpy.core.threadingtools.Parallelisability" title="hydpy.core.threadingtools.Parallelisability"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parallelisability</span></code></a> and <a class="reference internal" href="threadingtools.html#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> objects returned by method
+<a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.prepare_multithreading" title="hydpy.core.hydpytools.HydPy.prepare_multithreading"><code class="xref py py-func docutils literal notranslate"><span class="pre">prepare_multithreading()</span></code></a> and passing them repeatedly to method
+<a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.simulate_multithreaded" title="hydpy.core.hydpytools.HydPy.simulate_multithreaded"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulate_multithreaded()</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parallelisability</span><span class="p">,</span> <span class="n">queue</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">prepare_multithreading</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">threads</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">hp</span><span class="o">.</span><span class="n">simulate_multithreaded</span><span class="p">(</span><span class="n">parallelisability</span><span class="p">,</span> <span class="n">queue</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can modify the returned <a class="reference internal" href="threadingtools.html#hydpy.core.threadingtools.Parallelisability" title="hydpy.core.threadingtools.Parallelisability"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parallelisability</span></code></a> and <a class="reference internal" href="threadingtools.html#hydpy.core.threadingtools.Queue" title="hydpy.core.threadingtools.Queue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Queue</span></code></a> instances to
+adjust them to the specific network at hand, which might increase performance even
+more, but this requires a deep understanding of HydPy.</p>
+<p>Note that HydPy’s multi-threading mode does not result in any speed-ups when working in
+the pure Python mode (Python itself does not fully support multi-threading) and is not
+incompatible with reading time series data from or writing it to NetCDF files
+“just-in-time” during simulation runs (the underlying library is not thread-safe).
+Also, be aware that, even on the same machine and operating system, “normal” and
+multi-threaded simulations might lead to slightly different results due to different
+floating point rounding errors of the involved mathematical operations.  In our
+experience, these differences are negligible.  If you encounter cases where such
+differences are relevant for practical applications, please report them via our <a class="reference external" href="https://github.com/hydpy-dev/hydpy/issues">issue
+tracker</a>.</p>
+<p>The <a class="reference internal" href="quickstart.html#quickstart"><span class="std std-ref">Quick Start</span></a> section already touches on plotting simulated and observed
+discharge:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">plot_allseries</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="_images/Asslar_Qsim_vs_Qobs.png" src="_images/Asslar_Qsim_vs_Qobs.png" />
+<p>We “prepared” not only the meteorological input and discharge observation time series
+but also those of all sequences for which this is possible.  This foresighted action
+allows to gain insights into many internal calculation details.  For example, we can
+plot the time series of the zone-specific state sequence <a class="reference internal" href="hland.html#hydpy.models.hland.hland_states.SM" title="hydpy.models.hland.hland_states.SM"><code class="xref py py-class docutils literal notranslate"><span class="pre">SM</span></code></a> and the
+subbasin-specific state sequences <a class="reference internal" href="hland.html#hydpy.models.hland.hland_states.UZ" title="hydpy.models.hland.hland_states.UZ"><code class="xref py py-class docutils literal notranslate"><span class="pre">UZ</span></code></a> and <a class="reference internal" href="hland.html#hydpy.models.hland.hland_states.LZ" title="hydpy.models.hland.hland_states.LZ"><code class="xref py py-class docutils literal notranslate"><span class="pre">LZ</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">figure</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">land_dill_assl</span><span class="o">.</span><span class="n">plot_stateseries</span><span class="p">(</span><span class="s2">&quot;sm&quot;</span><span class="p">,</span> <span class="s2">&quot;uz&quot;</span><span class="p">,</span> <span class="s2">&quot;lz&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There are numerous ways to modify the figure creation process or to change already
+created figures.  As an example, we add a custom y-label:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">get_axes</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;storage content [mm]&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/Dill_SM_UZ_LZ.png" src="_images/Dill_SM_UZ_LZ.png" />
+<p>Besides plotting time series, one might wish to save them for later evaluation.
+Refraining from writing simulation results into the input data’s directory is
+considered good practice.  Hence, we use the <a class="reference internal" href="filetools.html#hydpy.core.filetools.SequenceManager" title="hydpy.core.filetools.SequenceManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">SequenceManager</span></code></a> to create a new time
+series directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;output&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;series&quot;</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">sequencemanager</span><span class="o">.</span><span class="n">availabledirs</span>
+<span class="go">Folder2Path(default=...HydPy-H-Lahn/series/default,</span>
+<span class="go">            output=...HydPy-H-Lahn/series/output)</span>
+</pre></div>
+</div>
+<p>Analogue to the “load methods”, <a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy" title="hydpy.core.hydpytools.HydPy"><code class="xref py py-class docutils literal notranslate"><span class="pre">HydPy</span></code></a> offers multiple “save methods” for writing
+simulated (and, if necessary, previously read) time series.  Here, we use method
+<a class="reference internal" href="hydpytools.html#hydpy.core.hydpytools.HydPy.save_simseries" title="hydpy.core.hydpytools.HydPy.save_simseries"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_simseries()</span></code></a> to write the simulated discharge series of the two selected
+nodes:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">save_simseries</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;series&quot;</span><span class="p">,</span> <span class="s2">&quot;output&quot;</span><span class="p">,</span> <span class="s2">&quot;dill_assl_sim_q.asc&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Also of frequent interest (for example, in the context of operational forecasting) is
+writing the achieved final conditions, allowing us to continue the simulation later
+seamlessly.</p>
+<p>By default, the <a class="reference internal" href="filetools.html#hydpy.core.filetools.ConditionManager.outputpath" title="hydpy.core.filetools.ConditionManager.outputpath"><code class="xref py py-const docutils literal notranslate"><span class="pre">outputpath</span></code></a> property of class <a class="reference internal" href="filetools.html#hydpy.core.filetools.ConditionManager" title="hydpy.core.filetools.ConditionManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionManager</span></code></a>
+creates the required target directory based on the simulation’s end date and informs
+you about this action:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">pub</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">printprogress</span><span class="p">(</span><span class="kc">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">path</span> <span class="o">=</span> <span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">outputpath</span>
+<span class="go">The condition manager&#39;s current working directory is not defined explicitly.  Hence, the condition manager writes its data to a directory named `init_1997_01_01_00_00_00`.</span>
+<span class="go">Directory ...init_1997_01_01_00_00_00 has been created.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">availabledirs</span>
+<span class="go">Folder2Path(init_1996_01_01_00_00_00=.../HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00,</span>
+<span class="go">            init_1997_01_01_00_00_00=.../HydPy-H-Lahn/conditions/init_1997_01_01_00_00_00)</span>
+</pre></div>
+</div>
+<p>If this happens by accident, you can undo it in two steps.  First, set the current
+working directory to the freshly created output path (note that we here actually pass
+a whole directory path instead of a directory name, which would, for example, allow us
+to write data beyond the usual HydPy project structure):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="n">path</span>
+</pre></div>
+</div>
+<p>Second, apply the <cite>del</cite> statement to remove the unintentionally created directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">currentdir</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">availabledirs</span>
+<span class="go">Folder2Path(init_1996_01_01_00_00_00=.../HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00)</span>
+</pre></div>
+</div>
+<p>Finally, we can create a directory with the desired name and write the conditions into
+it:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="s2">&quot;my_conditions&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">availabledirs</span>
+<span class="go">Folder2Path(init_1996_01_01_00_00_00=.../HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00,</span>
+<span class="go">            my_conditions=.../HydPy-H-Lahn/conditions/my_conditions)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hp</span><span class="o">.</span><span class="n">save_conditions</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;conditions&quot;</span><span class="p">,</span> <span class="s2">&quot;my_conditions&quot;</span><span class="p">,</span> <span class="s2">&quot;land_dill_assl.py&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that <a class="reference internal" href="filetools.html#hydpy.core.filetools.ConditionManager.inputpath" title="hydpy.core.filetools.ConditionManager.inputpath"><code class="xref py py-const docutils literal notranslate"><span class="pre">inputpath</span></code></a> and <a class="reference internal" href="filetools.html#hydpy.core.filetools.ConditionManager.outputpath" title="hydpy.core.filetools.ConditionManager.outputpath"><code class="xref py py-const docutils literal notranslate"><span class="pre">outputpath</span></code></a>  now point to
+the set working directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">inputpath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;my_conditions&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">outputpath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;my_conditions&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Assign <code class="xref py py-const docutils literal notranslate"><span class="pre">None</span></code> to <a class="reference internal" href="filetools.html#hydpy.core.filetools.FileManager.currentdir" title="hydpy.core.filetools.FileManager.currentdir"><code class="xref py py-const docutils literal notranslate"><span class="pre">currentdir</span></code></a> to undo this without removing the directory:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">currentdir</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">inputpath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;init_1996_01_01_00_00_00&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">pub</span><span class="o">.</span><span class="n">conditionmanager</span><span class="o">.</span><span class="n">outputpath</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;init_1997_01_01_00_00_00&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;conditions&quot;</span><span class="p">,</span> <span class="s2">&quot;my_conditions&quot;</span><span class="p">,</span> <span class="s2">&quot;land_dill_assl.py&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="xml">
+<span id="simulation-xml"></span><h2>XML<a class="headerlink" href="#xml" title="Link to this heading">¶</a></h2>
+<p>HydPy’s XML support is a convenient alternative for people not interested in learning
+Python or for standardised tasks like operational forecasting.  It is not as flexible
+as defining workflows in Python scripts, but (except for plotting) supports all
+features described above and many more.</p>
+<p>HydPy offers so-called “script functions” that users can trigger from external
+terminals like the Windows command line.  Regarding the XML support, five of them
+matter: <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.run_simulation" title="hydpy.exe.xmltools.run_simulation"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_simulation()</span></code></a>, <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.xml_validate" title="hydpy.exe.xmltools.xml_validate"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_validate()</span></code></a>, <a class="reference internal" href="replacetools.html#hydpy.exe.replacetools.xml_replace" title="hydpy.exe.replacetools.xml_replace"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_replace()</span></code></a>, <a class="reference internal" href="servertools.html#hydpy.exe.servertools.start_server" title="hydpy.exe.servertools.start_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">start_server()</span></code></a>, and
+<a class="reference internal" href="servertools.html#hydpy.exe.servertools.await_server" title="hydpy.exe.servertools.await_server"><code class="xref py py-func docutils literal notranslate"><span class="pre">await_server()</span></code></a>.  The latter two functions deal with the advanced topic of letting HydPy
+act as a server that can interact with client programs like <a class="reference external" href="http://openda.org/">OpenDA</a>, which is beyond
+the <a class="reference internal" href="user_guide.html#user-guide"><span class="std std-ref">User Guide’s</span></a> scope.  Hence, we will focus on <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.run_simulation" title="hydpy.exe.xmltools.run_simulation"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_simulation()</span></code></a>
+in the following and also give some notes on <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.xml_validate" title="hydpy.exe.xmltools.xml_validate"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_validate()</span></code></a> and <a class="reference internal" href="replacetools.html#hydpy.exe.replacetools.xml_replace" title="hydpy.exe.replacetools.xml_replace"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_replace()</span></code></a>.</p>
+<p>The <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> example project comes with three working XML files, of which
+<cite>single_run.xml</cite> is the only relevant one in the given context (the other two deal with
+HydPy’s server functionalities):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;single_run.xml&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Any XML file compatible with the script function <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.run_simulation" title="hydpy.exe.xmltools.run_simulation"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_simulation()</span></code></a>, like
+<cite>single_run.xml</cite>, must comply with the XML Schema Definition file
+<cite>HydPyConfigSingleRun.xsd</cite>.  If you work with a capable IDE or XML editor, it uses
+these definitions to assist you in writing a new or modifying an existing XML file.  At
+the very least, it should warn you if your XML file violates the schema file.</p>
+<p>Without a capable IDE or XML editor, or if you want to include automatic XML
+validation in your workflow, the script function <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.xml_validate" title="hydpy.exe.xmltools.xml_validate"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_validate()</span></code></a> (which relies on the
+<a class="reference external" href="https://pypi.org/project/xmlschema/">xmlschema</a> library) might be a good option.  We use it as the first example to
+demonstrate HydPy’s command line usage.</p>
+<p>With a standard <a class="reference internal" href="installation.html#installation"><span class="std std-ref">HydPy installation</span></a> on your computer (and, if
+necessary, the right environment activated), you can trigger HydPy with the command
+<cite>hyd.py</cite>.  Open a terminal, change into the already prepared working directory, type
+<cite>hyd.py</cite>, and press enter:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hyd</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>In the following examples, we fake the usage of a terminal with the help of function
+<a class="reference internal" href="commandtools.html#hydpy.exe.commandtools.run_subprocess" title="hydpy.exe.commandtools.run_subprocess"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_subprocess()</span></code></a>, which runs the given commands in a separate subprocess as if typed in
+a terminal:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_subprocess</span>
+</pre></div>
+</div>
+<p>If we only type <cite>hyd.py</cite>, HydPy informs us that we must tell it what to do by naming
+the suitable script function:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py&quot;</span><span class="p">)</span>
+<span class="go">Invoking hyd.py without arguments resulted in the following error:</span>
+<span class="go">The first positional argument defining the function to be called is missing.</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+<p>Use the process’s return code to determine whether it was successful.  In this case, it
+was not, so the return code is unequal zero:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>Specifying the relevant script function is not enough, as <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.xml_validate" title="hydpy.exe.xmltools.xml_validate"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_validate()</span></code></a>
+(understandably) must know which file to check:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py xml_validate&quot;</span><span class="p">)</span>
+<span class="go">Invoking hyd.py with argument `xml_validate` resulted in the following error:</span>
+<span class="go">Function `xml_validate` requires `1` positional arguments (xmlpath), but `0` are given.</span>
+<span class="go">...</span>
+</pre></div>
+</div>
+<p>After adding the relative or absolute path, <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.xml_validate" title="hydpy.exe.xmltools.xml_validate"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_validate()</span></code></a> informs us by a message and
+a zero return code that <cite>single_run.xml</cite> is valid:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py xml_validate HydPy-H-Lahn/single_run.xml&quot;</span><span class="p">)</span>
+<span class="go">HydPy-H-Lahn/single_run.xml successfully validated</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>Note that “valid” here only means the XML file’s compliance with
+<cite>HydPyConfigSingleRun.xsd</cite>.  It is still possible that its configurations do not fit
+the <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> project.  For example, <cite>single_run.xml</cite> could select a
+simulation period not met by the available input time series.</p>
+<p>With a ready XML file, starting a simulation run via method <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.run_simulation" title="hydpy.exe.xmltools.run_simulation"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_simulation()</span></code></a> is easy:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py run_simulation HydPy-H-Lahn single_run.xml&quot;</span><span class="p">)</span>
+<span class="go">Start HydPy project `HydPy-H-Lahn` (...).</span>
+<span class="go">Read configuration file `single_run.xml` (...).</span>
+<span class="go">Interpret the defined options (...).</span>
+<span class="go">Interpret the defined period (...).</span>
+<span class="go">Read all network files (...).</span>
+<span class="go">Create the custom selections (if defined) (...).</span>
+<span class="go">Activate the selected network (...).</span>
+<span class="go">Read the required control files (...).</span>
+<span class="go">Read the required condition files (...).</span>
+<span class="go">Read the required time series files (...).</span>
+<span class="go">Perform the simulation run (...).</span>
+<span class="go">Write the desired condition files (...).</span>
+<span class="go">Write the desired time series files (...).</span>
+</pre></div>
+</div>
+<p>The printed response clarifies that <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.run_simulation" title="hydpy.exe.xmltools.run_simulation"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_simulation()</span></code></a> essentially executes the same
+steps as we did in the <a class="reference internal" href="#simulation-python"><span class="std std-ref">Simulation &gt; Python</span></a> section above.</p>
+<p>One step that goes beyond the Python example is the creation of selections.
+Previously, we only used the already available selection <cite>headwaters</cite> defined by the
+network file <cite>headwaters.py</cite>.  The XML file goes further and creates three new
+selections by specifying individual elements (<cite>from_devices</cite>), keywords
+(<cite>from_keywords</cite>), and other selections (<cite>from_selections</cite>).  All these definitions
+occur within the XML element <cite>add_selections</cite>.  The defined selections help configure
+the reader and writer XML elements not to read and write data needlessly.</p>
+<p>The <a class="reference internal" href="user_guide.html#user-guide"><span class="std std-ref">User Guide’s</span></a> <a class="reference internal" href="options.html#options"><span class="std std-ref">Options</span></a> section provided more introductory
+information on configuring XML files.</p>
+<p>For purposes like operational forecasting, one might wish to reuse a predefined XML
+file with some aspects, such as the simulation period, changed.  For this, HydPy
+offers an XML template mechanism.  With <cite>single_run.xmlt</cite>, the <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a>
+project contains one example of an XML template file:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">assert_exists</span><span class="p">(</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;single_run.xmlt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This template contains three special XML comments in lines
+<cite>&lt;firstdate&gt;&lt;!–|firstdate=1996-01-01T00:00:00|–&gt;&lt;/firstdate&gt;</cite>,
+<cite>&lt;prefix&gt;&lt;!–|prefix=init|–&gt;&lt;/prefix&gt;</cite>, and <cite>&lt;zip&gt;&lt;!–|zip_=false|–&gt;&lt;/zip&gt;</cite>.  The
+parts <cite>&lt;!–</cite> and <cite>–&gt;</cite> define a usual XML comment. As such comments count as nothing,
+<a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.xml_validate" title="hydpy.exe.xmltools.xml_validate"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_validate()</span></code></a> reports the following error when checking <cite>single_run.xmlt</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py xml_validate HydPy-H-Lahn/single_run.xmlt&quot;</span><span class="p">)</span>
+<span class="go">failed decoding &#39;&#39; with XsdAtomicBuiltin(name=&#39;xs:dateTime&#39;):</span>
+
+<span class="go">Reason: Invalid datetime string &#39;&#39; for &lt;class &#39;elementpath.datatypes.datetime.DateTime10&#39;&gt;</span>
+<span class="go">...</span>
+<span class="go">Path: /hpcsr:config/timegrid/firstdate</span>
+</pre></div>
+</div>
+<p>The HydPy-specific parts, <cite>|firstdate=1996-01-01T00:00:00|</cite>, <cite>|prefix=init|</cite>, and
+<cite>|zip_=false|</cite>, indicate that <a class="reference internal" href="replacetools.html#hydpy.exe.replacetools.xml_replace" title="hydpy.exe.replacetools.xml_replace"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_replace()</span></code></a> is supposed to replace the respective whole
+XML comment.  In the following example, we pass only data to the argument <cite>zip_</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py xml_replace HydPy-H-Lahn/single_run zip_=wrong&quot;</span><span class="p">)</span>
+<span class="go">template file: HydPy-H-Lahn/single_run.xmlt</span>
+<span class="go">target file: HydPy-H-Lahn/single_run.xml</span>
+<span class="go">replacements:</span>
+<span class="go">  firstdate --&gt; 1996-01-01T00:00:00 (default argument)</span>
+<span class="go">  prefix --&gt; init (default argument)</span>
+<span class="go">  zip_ --&gt; wrong (given argument)</span>
+</pre></div>
+</div>
+<p>Following the printed summary, <a class="reference internal" href="replacetools.html#hydpy.exe.replacetools.xml_replace" title="hydpy.exe.replacetools.xml_replace"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_replace()</span></code></a> used the given value <cite>wrong</cite> for the
+argument <cite>zip_</cite> and the default values <cite>1996-01-01T00:00:00</cite> and <cite>init</cite> for the
+arguments <cite>firstdate</cite> and <cite>prefix</cite> (one must not define such default values; with a
+line like <cite>&lt;zip&gt;&lt;!–|zip_|–&gt;&lt;/zip&gt;</cite> one would always have to pass data for the
+argument <cite>zip_</cite>).</p>
+<p>Although technically successful, the replacement was flawed because, as <a class="reference internal" href="xmltools.html#hydpy.exe.xmltools.xml_validate" title="hydpy.exe.xmltools.xml_validate"><code class="xref py py-func docutils literal notranslate"><span class="pre">xml_validate()</span></code></a>
+can tell us, <cite>wrong</cite> is not a boolean value, as would be required:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">subprocess</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span><span class="s2">&quot;hyd.py xml_validate HydPy-H-Lahn/single_run.xml&quot;</span><span class="p">)</span>
+<span class="go">failed decoding &#39;wrong&#39; with XsdAtomicBuiltin(name=&#39;xs:boolean&#39;):</span>
+
+<span class="go">Reason: &#39;wrong&#39; is not a boolean value</span>
+<span class="go">...</span>
+<span class="go">Path: /hpcsr:config/conditions_io/zip</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="developer_guide.html" title="Developer Guide"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="options.html" title="Options"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" >User Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Simulation</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

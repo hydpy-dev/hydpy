@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Project structure &#8212; HydPy 6.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css?v=127cebf3" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    
+    <script src="_static/documentation_options.js?v=f13f159b"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Options" href="options.html" />
+    <link rel="prev" title="Model overview" href="model_overview.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="options.html" title="Options"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="model_overview.html" title="Model overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" accesskey="U">User Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Project structure</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_projects.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="user_guide.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="how_to_read_the_reference_manual.html">How to read the Reference Manual</a></li>
+<li class="toctree-l2"><a class="reference internal" href="definitions.html">Definitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_overview.html">Model overview</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Project structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#network-files">Network files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#control-files">Control files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#condition-files">Condition files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#series-files">Series files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="options.html">Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="simulation.html">Simulation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer_guide.html">Developer Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference_manual.html">Reference Manual</a></li>
+<li class="toctree-l1"><a class="reference internal" href="zbibliography.html">Bibliography</a></li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="model_overview.html"
+                          title="previous chapter">Model overview</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="options.html"
+                          title="next chapter">Options</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/project_structure.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="project-structure">
+<span id="id1"></span><h1>Project structure<a class="headerlink" href="#project-structure" title="Link to this heading">¶</a></h1>
+<p>This section describes the typical file structure of HydPy <a class="reference internal" href="definitions.html#project"><span class="std std-ref">projects</span></a>,
+comprising <a class="reference internal" href="#network-files"><span class="std std-ref">network files</span></a>, <a class="reference internal" href="#control-files"><span class="std std-ref">control files</span></a>,
+<a class="reference internal" href="#condition-files"><span class="std std-ref">condition files</span></a>, and <a class="reference internal" href="#series-files"><span class="std std-ref">series files</span></a>.  We
+refer to the <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> example project to illustrate our explanations, which
+has the following file structure:</p><details style="margin-left:1em; color:#20435c; font-family:'Trebuchet MS'">
+  <summary><b>HydPy-H-Lahn</b></summary>
+  <details style="margin-left:1em">
+    <summary><b>conditions</b></summary>
+    <details style="margin-left:1em">
+      <summary><b>init_1996_01_01_00_00_00</b></summary>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/land_dill_assl.py">land_dill_assl.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/land_lahn_kalk.py">land_lahn_kalk.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/land_lahn_leun.py">land_lahn_leun.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/land_lahn_marb.py">land_lahn_marb.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/stream_dill_assl_lahn_leun.py">stream_dill_assl_lahn_leun.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/stream_lahn_leun_lahn_kalk.py">stream_lahn_leun_lahn_kalk.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/conditions/init_1996_01_01_00_00_00/stream_lahn_marb_lahn_leun.py">stream_lahn_marb_lahn_leun.py</a></h><br/>
+    </details>
+  </details>
+  <details style="margin-left:1em">
+    <summary><b>control</b></summary>
+    <details style="margin-left:1em">
+      <summary><b>default</b></summary>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/control/default/land.py">land.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/control/default/land_dill_assl.py">land_dill_assl.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/control/default/land_lahn_kalk.py">land_lahn_kalk.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/control/default/land_lahn_leun.py">land_lahn_leun.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/control/default/land_lahn_marb.py">land_lahn_marb.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/control/default/stream_dill_assl_lahn_leun.py">stream_dill_assl_lahn_leun.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/control/default/stream_lahn_leun_lahn_kalk.py">stream_lahn_leun_lahn_kalk.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/control/default/stream_lahn_marb_lahn_leun.py">stream_lahn_marb_lahn_leun.py</a></h><br/>
+    </details>
+  </details>
+  <details style="margin-left:1em">
+    <summary><b>network</b></summary>
+    <details style="margin-left:1em">
+      <summary><b>default</b></summary>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/network/default/headwaters.py">headwaters.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/network/default/nonheadwaters.py">nonheadwaters.py</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/network/default/streams.py">streams.py</a></h><br/>
+    </details>
+  </details>
+  <details style="margin-left:1em">
+    <summary><b>series</b></summary>
+    <details style="margin-left:1em">
+      <summary><b>default</b></summary>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/dill_assl_obs_q.asc">dill_assl_obs_q.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/evap_pet_hbv96_input_normalairtemperature.nc">evap_pet_hbv96_input_normalairtemperature.nc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/evap_pet_hbv96_input_normalevapotranspiration.nc">evap_pet_hbv96_input_normalevapotranspiration.nc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/hland_96_input_p.nc">hland_96_input_p.nc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/hland_96_input_t.nc">hland_96_input_t.nc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/lahn_kalk_obs_q.asc">lahn_kalk_obs_q.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/lahn_leun_obs_q.asc">lahn_leun_obs_q.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/lahn_marb_obs_q.asc">lahn_marb_obs_q.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_dill_assl_evap_pet_hbv96_input_normalairtemperature.asc">land_dill_assl_evap_pet_hbv96_input_normalairtemperature.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_dill_assl_evap_pet_hbv96_input_normalevapotranspiration.asc">land_dill_assl_evap_pet_hbv96_input_normalevapotranspiration.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_dill_assl_hland_96_input_p.asc">land_dill_assl_hland_96_input_p.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_dill_assl_hland_96_input_t.asc">land_dill_assl_hland_96_input_t.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_kalk_evap_pet_hbv96_input_normalairtemperature.asc">land_lahn_kalk_evap_pet_hbv96_input_normalairtemperature.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_kalk_evap_pet_hbv96_input_normalevapotranspiration.asc">land_lahn_kalk_evap_pet_hbv96_input_normalevapotranspiration.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_kalk_hland_96_input_p.asc">land_lahn_kalk_hland_96_input_p.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_kalk_hland_96_input_t.asc">land_lahn_kalk_hland_96_input_t.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_leun_evap_pet_hbv96_input_normalairtemperature.asc">land_lahn_leun_evap_pet_hbv96_input_normalairtemperature.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_leun_evap_pet_hbv96_input_normalevapotranspiration.asc">land_lahn_leun_evap_pet_hbv96_input_normalevapotranspiration.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_leun_hland_96_input_p.asc">land_lahn_leun_hland_96_input_p.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_leun_hland_96_input_t.asc">land_lahn_leun_hland_96_input_t.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_marb_evap_pet_hbv96_input_normalairtemperature.asc">land_lahn_marb_evap_pet_hbv96_input_normalairtemperature.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_marb_evap_pet_hbv96_input_normalevapotranspiration.asc">land_lahn_marb_evap_pet_hbv96_input_normalevapotranspiration.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_marb_hland_96_input_p.asc">land_lahn_marb_hland_96_input_p.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/land_lahn_marb_hland_96_input_t.asc">land_lahn_marb_hland_96_input_t.asc</a></h><br/>
+      <h style="margin-left:1em"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/series/default/obs_q.nc">obs_q.nc</a></h><br/>
+    </details>
+  </details>
+  <h style="margin-left:1em; color:#20435c; font-family:'Trebuchet MS'"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/multiple_runs.xml">multiple_runs.xml</a></h><br/>
+  <h style="margin-left:1em; color:#20435c; font-family:'Trebuchet MS'"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/multiple_runs_alpha.xml">multiple_runs_alpha.xml</a></h><br/>
+  <h style="margin-left:1em; color:#20435c; font-family:'Trebuchet MS'"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/single_run.xml">single_run.xml</a></h><br/>
+  <h style="margin-left:1em; color:#20435c; font-family:'Trebuchet MS'"><a class="reference external" href="https://github.com/hydpy-dev/hydpy/blob/release/v6/hydpy/data/HydPy-H-Lahn/single_run.xmlt">single_run.xmlt</a></h><br/>
+</details><p>All project files are in the project’s sub-subdirectories.  Except for conditions,
+these sub-subdirectories are usually named <cite>default</cite>.  You can add directories with
+different names to, for example, hold the parameter values of multiple calibrations in
+one project.</p>
+<p>HydPy offers functionalities for reading and writing project files.  Besides time
+series files, all project files are usually Python files (ending with “.py”).  HydPy
+writes them so that they appear like “normal” configuration files.  From the
+programmer’s perspective, this requires some tricks, which we mention in the respective
+subsections.  One main advantage is that you can copy individual configuration
+fragments into a Python console to check precisely how they work.  We frequently use
+this feature throughout the documentation.</p>
+<p>HydPy allows users to deviate from the default file structure and, due to its design as
+a Python library, even to set up projects directly via scripts or define alternative
+file formats, but these are more advanced topics left for the <a class="reference internal" href="reference_manual.html#reference-manual"><span class="std std-ref">reference manual</span></a>.</p>
+<section id="network-files">
+<span id="id2"></span><h2>Network files<a class="headerlink" href="#network-files" title="Link to this heading">¶</a></h2>
+<p><cite>Network files</cite> define a HydPy project’s <a class="reference internal" href="definitions.html#network"><span class="std std-ref">network</span></a> by introducing and coupling
+<a class="reference internal" href="definitions.html#element"><span class="std std-ref">elements</span></a> and <a class="reference internal" href="definitions.html#node"><span class="std std-ref">nodes</span></a>.  Consider the following minimal
+example of a network file’s content:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Element</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="s2">&quot;Q&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;e1&quot;</span><span class="p">,</span> <span class="n">outlets</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;e2&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Node <cite>n</cite> connects element <cite>e1</cite> with element <cite>e2</cite>, so we have a network of three
+<a class="reference internal" href="definitions.html#device"><span class="std std-ref">devices</span></a>.  From the perspective of <cite>e1</cite>, <cite>n</cite> is an outlet node, and from
+the perspective of <cite>e2</cite>, an inlet node:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;e1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">outlets</span><span class="o">.</span><span class="n">n</span> <span class="ow">is</span> <span class="n">Element</span><span class="p">(</span><span class="s2">&quot;e2&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">inlets</span><span class="o">.</span><span class="n">n</span>
+</pre></div>
+</div>
+<p>Given the curt names, we cannot safely guess the purposes of <cite>e1</cite> and <cite>e2</cite> because
+network files are model-agnostic.  The only thing for sure is that the model of <cite>e1</cite>
+must be able to route discharge to a downstream node, and the model of <cite>e2</cite> must be
+able to receive discharge from an upstream node.  Hence, we could use this network file
+for various model-type combinations.</p>
+<p>The names of elements and nodes serve as their identifiers, which means you never
+make two node or two element instances with the same name.  If it looks like you create
+a new instance, you actually just get a reference to an already existing one (possibly
+with already set up node connections):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Element</span><span class="p">(</span><span class="s2">&quot;e1&quot;</span><span class="p">)</span>
+<span class="go">Element(&quot;e1&quot;,</span>
+<span class="go">        outlets=&quot;n&quot;)</span>
+</pre></div>
+</div>
+<p>Each network file corresponds to one <a class="reference internal" href="definitions.html#selection"><span class="std std-ref">selection</span></a>.  The <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> project
+defines three selections: one for all <a class="reference internal" href="model_overview.html#stream-models"><span class="std std-ref">stream models</span></a> and two for
+the <a class="reference internal" href="model_overview.html#land-models"><span class="std std-ref">land models</span></a> in the headwater and non-headwater subbasins.  The
+combination of all individual selections gives a selection named “complete”, which is
+automatically creatable by property <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections.complete" title="hydpy.core.selectiontools.Selections.complete"><code class="xref py py-const docutils literal notranslate"><span class="pre">complete</span></code></a> of class <a class="reference internal" href="selectiontools.html#hydpy.core.selectiontools.Selections" title="hydpy.core.selectiontools.Selections"><code class="xref py py-class docutils literal notranslate"><span class="pre">Selections</span></code></a>.</p>
+<p>The described “name as identifier” mechanism allows us to define the same device in
+multiple network files of the same project.  So, one can create an arbitrary number of
+selections to structure the same network after different criteria.  The only
+(self-evident) requisite is the consistency of all individual definitions.  You cannot,
+for example, add an inlet node to an element if it is already the same element’s outlet
+node:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Element</span><span class="p">(</span><span class="s2">&quot;e1&quot;</span><span class="p">,</span> <span class="n">inlets</span><span class="o">=</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">For element `e1`, the given inlet node `n` is already defined as an outlet node, which is not allowed.</span>
+</pre></div>
+</div>
+<p>Besides these standards, the <a class="reference internal" href="reference_manual.html#reference-manual"><span class="std std-ref">reference manual</span></a> covers many
+features which help to organise HydPy projects (see, for example, the <a class="reference internal" href="definitions.html#keyword"><span class="std std-ref">keyword</span></a>
+features of class <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Device" title="hydpy.core.devicetools.Device"><code class="xref py py-class docutils literal notranslate"><span class="pre">Device</span></code></a> and its collection type <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Devices" title="hydpy.core.devicetools.Devices"><code class="xref py py-class docutils literal notranslate"><span class="pre">Devices</span></code></a>) or to build more complex
+networks, for example, those that pass on different types of data (configurable by the
+<a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node.variable" title="hydpy.core.devicetools.Node.variable"><code class="xref py py-const docutils literal notranslate"><span class="pre">variable</span></code></a> attribute of class <a class="reference internal" href="devicetools.html#hydpy.core.devicetools.Node" title="hydpy.core.devicetools.Node"><code class="xref py py-class docutils literal notranslate"><span class="pre">Node</span></code></a>).</p>
+</section>
+<section id="control-files">
+<span id="id3"></span><h2>Control files<a class="headerlink" href="#control-files" title="Link to this heading">¶</a></h2>
+<p><cite>Control files</cite> select <a class="reference internal" href="definitions.html#model"><span class="std std-ref">model types</span></a>, prepare model <a class="reference internal" href="definitions.html#instance"><span class="std std-ref">instances</span></a>, and set <a class="reference internal" href="definitions.html#parameter"><span class="std std-ref">parameter</span></a> values.  Each <a class="reference internal" href="definitions.html#element"><span class="std std-ref">element</span></a> defined in the
+<a class="reference internal" href="#network-files"><span class="std std-ref">network files</span></a> requires one control file, which sets up its
+<a class="reference internal" href="definitions.html#main-model"><span class="std std-ref">main model</span></a>, including all <a class="reference internal" href="definitions.html#submodel"><span class="std std-ref">submodels</span></a>.</p>
+<p>The <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> project relies on two main model types: the <a class="reference internal" href="model_overview.html#land-models"><span class="std std-ref">land model</span></a> <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a> and the <a class="reference internal" href="model_overview.html#stream-models"><span class="std std-ref">stream model</span></a> <a class="reference internal" href="musk_classic.html#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a>.
+The control file “stream_dill_assl_lahn2.py”, for example, selects the latter for routing
+the outflow of the subbasin Dill to a location in the river Lahn.  The control file is
+short because <a class="reference internal" href="musk_classic.html#module-hydpy.models.musk_classic" title="hydpy.models.musk_classic"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_classic</span></code></a> is relatively simple.  The first (Python-code) line
+selects the model type by a so-called “wildcard import”, making all relevant
+information directly available:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.musk_classic</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>The following line defines a simulation time step size of one hour:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that the <a class="reference internal" href="importtools.html#hydpy.core.importtools.simulationstep" title="hydpy.core.importtools.simulationstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">simulationstep()</span></code></a> line is optional.  It allows for adjusting parameter
+values that depend on the simulation time step size, so one can set up a model for
+testing purposes without embedding it in a complete project.  However, when executing
+the file within the context of a project, the project’s simulation step counts (HydPy
+then ignores the control file’s specification) so that the same control file works for
+different simulation time step sizes.</p>
+<p>The <a class="reference internal" href="importtools.html#hydpy.core.importtools.parameterstep" title="hydpy.core.importtools.parameterstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameterstep()</span></code></a> line is similar but mandatory.  It defines the time unit of the
+subsequently specified values of time-dependent parameters.  The given example
+selects a parameter time step size of one day:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A note for programmers: Function <a class="reference internal" href="importtools.html#hydpy.core.importtools.parameterstep" title="hydpy.core.importtools.parameterstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameterstep()</span></code></a> prepares a suitable model instance
+and makes it and its main components directly available in the local namespace.
+This trick allows for the simple further model preparation steps.</p>
+</div>
+<p>As in nearly all cases, the discussed control file only sets the required values of
+control parameters and does not modify the predefined values of other parameter groups.
+The parameter value specifications are not conducted via “assignment expressions” but
+“bracket expressions”, like when calling a regular function:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsegments</span><span class="p">(</span><span class="n">lag</span><span class="o">=</span><span class="mf">0.417</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">coefficients</span><span class="p">(</span><span class="n">damp</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, the parameter values are not set directly via positional arguments but by
+parameter-specific keyword arguments unique to the classes <a class="reference internal" href="musk.html#hydpy.models.musk.musk_control.NmbSegments" title="hydpy.models.musk.musk_control.NmbSegments"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbSegments</span></code></a>
+and <a class="reference internal" href="musk.html#hydpy.models.musk.musk_control.Coefficients" title="hydpy.models.musk.musk_control.Coefficients"><code class="xref py py-class docutils literal notranslate"><span class="pre">Coefficients</span></code></a>.  Note that the <cite>lag</cite> argument is time-dependent and
+so, according to the specified parameter step size, is given in days, while the “true”
+value of the <a class="reference internal" href="musk.html#hydpy.models.musk.musk_control.NmbSegments" title="hydpy.models.musk.musk_control.NmbSegments"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbSegments</span></code></a> instance refers to the simulation step size of
+one hour:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbsegments</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="nb">round</span><span class="p">(</span><span class="mf">24.0</span> <span class="o">*</span> <span class="mf">0.417</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Due to the higher complexity of <a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a>, the control file “land_dill_assl.py” is much
+longer.  We focus on a few aspects not relevant to <a class="reference internal" href="musk_mct.html#module-hydpy.models.musk_mct" title="hydpy.models.musk_mct"><code class="xref py py-mod docutils literal notranslate"><span class="pre">musk_mct</span></code></a>.  Therefore, we must
+first clear the local namespace (one could also just start a fresh Python process):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">reverse_model_wildcard_import</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reverse_model_wildcard_import</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a> requires submodels and the control file must select them.  It does so by
+importing the main model (<a class="reference internal" href="hland_96.html#module-hydpy.models.hland_96" title="hydpy.models.hland_96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">hland_96</span></code></a>) by a wildcard import but all submodels
+(<a class="reference internal" href="evap_aet_hbv96.html#module-hydpy.models.evap_aet_hbv96" title="hydpy.models.evap_aet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_aet_hbv96</span></code></a>, <a class="reference internal" href="evap_pet_hbv96.html#module-hydpy.models.evap_pet_hbv96" title="hydpy.models.evap_pet_hbv96"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evap_pet_hbv96</span></code></a>, and <a class="reference internal" href="rconc_uh.html#module-hydpy.models.rconc_uh" title="hydpy.models.rconc_uh"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rconc_uh</span></code></a>) by a module import:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.hland_96</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">evap_aet_hbv96</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">evap_pet_hbv96</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">rconc_uh</span>
+</pre></div>
+</div>
+<p>The time step-related lines work as described above:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">simulationstep</span><span class="p">(</span><span class="s2">&quot;1h&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">parameterstep</span><span class="p">(</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The subbasin’s area is set via a positional argument:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">area</span><span class="p">(</span><span class="mf">692.3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The parameter <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.NmbZones" title="hydpy.models.hland.hland_control.NmbZones"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbZones</span></code></a> is notable, as it requires integer values and,
+more importantly, modifies the shape of other parameters.  After setting its value, you
+can prepare parameters with zone-specific values like <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.ZoneArea" title="hydpy.models.hland.hland_control.ZoneArea"><code class="xref py py-class docutils literal notranslate"><span class="pre">ZoneArea</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zonearea</span><span class="o">.</span><span class="n">shape</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">hydpy.core.exceptiontools.AttributeNotReady</span>: <span class="n">Shape information for variable `zonearea` can only be retrieved after it has been defined.</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nmbzones</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">nmbzones</span> <span class="o">==</span> <span class="n">zonearea</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zonearea</span><span class="p">(</span><span class="mf">14.41</span><span class="p">,</span> <span class="mf">7.06</span><span class="p">,</span> <span class="mf">70.83</span><span class="p">,</span> <span class="mf">84.36</span><span class="p">,</span> <span class="mf">70.97</span><span class="p">,</span> <span class="mf">198.0</span><span class="p">,</span> <span class="mf">27.75</span><span class="p">,</span> <span class="mf">130.0</span><span class="p">,</span> <span class="mf">27.28</span><span class="p">,</span>
+<span class="gp">... </span>         <span class="mf">56.94</span><span class="p">,</span> <span class="mf">1.09</span><span class="p">,</span> <span class="mf">3.61</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Strictly speaking, <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.NmbZones" title="hydpy.models.hland.hland_control.NmbZones"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbZones</span></code></a> is specific to the
+HydPy-H model family.  Still, there are many models which rely on
+hydrological response units, stream segments, or different forms of (spatial)
+subdivisions and use the same logic of a control parameter defining the number of
+subdivisions and many parameters or sequences shaped as vectors or matrixes to handle
+different values for individual (spatial) units.</p>
+<p>Another example of a HydPy-H-speciality, which also follows a
+general HydPy design principle, is the definition of “spatial types” (mostly land use
+types) via constants.  HydPy-H provides such constants for
+defining the types of the individual zones:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zonetype</span><span class="p">(</span><span class="n">FIELD</span><span class="p">,</span> <span class="n">FOREST</span><span class="p">,</span> <span class="n">FIELD</span><span class="p">,</span> <span class="n">FOREST</span><span class="p">,</span> <span class="n">FIELD</span><span class="p">,</span> <span class="n">FOREST</span><span class="p">,</span> <span class="n">FIELD</span><span class="p">,</span> <span class="n">FOREST</span><span class="p">,</span> <span class="n">FIELD</span><span class="p">,</span>
+<span class="gp">... </span>         <span class="n">FOREST</span><span class="p">,</span> <span class="n">FIELD</span><span class="p">,</span> <span class="n">FOREST</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>When preparing zone-specific parameters, you can decide between defining individual,
+land type-specific, and subbasin-wide values:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">zonez</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cfmax</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="mf">4.55853</span><span class="p">,</span> <span class="n">forest</span><span class="o">=</span><span class="mf">2.735118</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fc</span><span class="p">(</span><span class="mf">278.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Often, one does not wish to define individual values for each control file but more
+general ones.  HydPy supports this via “auxiliary files”.  In the discussed control
+file, the parameter <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.PCorr" title="hydpy.models.hland.hland_control.PCorr"><code class="xref py py-class docutils literal notranslate"><span class="pre">PCorr</span></code></a> instance takes its value from the auxiliary
+file “land.py” (to get this working in a doctest requires changing the working
+directory):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;control&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pcorr</span><span class="p">(</span><span class="n">auxfile</span><span class="o">=</span><span class="s2">&quot;land&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pcorr</span>
+<span class="go">pcorr(1.0)</span>
+</pre></div>
+</div>
+<p>All submodels are generally added at a control file’s end because they might expect
+some main model parameters to be already prepared.  Each main model provides a suitable
+method for adding specific submodel types.  Such methods should be applied after a
+<cite>with statement</cite>.  Within the subsequent <cite>with block</cite>, one can directly set the
+submodel’s parameters as explained above.  The discussed control file uses the
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_model.Main_RConcModel_V1.add_rconcmodel_v1" title="hydpy.models.hland.hland_model.Main_RConcModel_V1.add_rconcmodel_v1"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_rconcmodel_v1()</span></code></a> method to add a <a class="reference internal" href="rconc_uh.html#module-hydpy.models.rconc_uh" title="hydpy.models.rconc_uh"><code class="xref py py-mod docutils literal notranslate"><span class="pre">rconc_uh</span></code></a>
+instance (and configures its Unit Hydrograph ordinates in a triangle shape):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_rconcmodel_v1</span><span class="p">(</span><span class="n">rconc_uh</span><span class="p">):</span>
+<span class="gp">... </span>   <span class="n">uh</span><span class="p">(</span><span class="s2">&quot;triangle&quot;</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="mf">0.36728</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_vector</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_vector</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">rconcmodel</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">uh</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">0.02574, 0.077221, 0.128701, 0.180182, 0.213581, 0.170644, 0.119163,</span>
+<span class="go">0.067682, 0.017086</span>
+</pre></div>
+</div>
+<p>Adding a sub-submodel to a submodel works via nested <cite>with blocks</cite>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_aetmodel_v1</span><span class="p">(</span><span class="n">evap_aet_hbv96</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">temperaturethresholdice</span><span class="p">(</span><span class="n">nan</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">soilmoisturelimit</span><span class="p">(</span><span class="mf">0.9</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">excessreduction</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">with</span> <span class="n">model</span><span class="o">.</span><span class="n">add_petmodel_v1</span><span class="p">(</span><span class="n">evap_pet_hbv96</span><span class="p">):</span>
+<span class="gp">... </span>        <span class="n">airtemperaturefactor</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">altitudefactor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">precipitationfactor</span><span class="p">(</span><span class="mf">0.02</span><span class="p">)</span>
+<span class="gp">... </span>        <span class="n">evapotranspirationfactor</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The last example covers two new cases.  First, <code class="xref py py-const docutils literal notranslate"><span class="pre">nan</span></code> serves to mark “missing” or
+“not required” values.  Parameter <a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.TemperatureThresholdIce" title="hydpy.models.evap.evap_control.TemperatureThresholdIce"><code class="xref py py-class docutils literal notranslate"><span class="pre">TemperatureThresholdIce</span></code></a> requires no
+values because it only applies to <a class="reference internal" href="hland.html#hydpy.models.hland.hland_constants.ILAKE" title="hydpy.models.hland.hland_constants.ILAKE"><code class="xref py py-const docutils literal notranslate"><span class="pre">ILAKE</span></code></a> zones, while the Dill
+subbasin only consists of <a class="reference internal" href="hland.html#hydpy.models.hland.hland_constants.FIELD" title="hydpy.models.hland.hland_constants.FIELD"><code class="xref py py-const docutils literal notranslate"><span class="pre">FIELD</span></code></a> and <a class="reference internal" href="hland.html#hydpy.models.hland.hland_constants.FOREST" title="hydpy.models.hland.hland_constants.FOREST"><code class="xref py py-const docutils literal notranslate"><span class="pre">FOREST</span></code></a> zones.
+Second, main models often transmit some parameter values to their submodels, which
+helps to avoid duplicate and potentially inconsistent definitions.  In the discussed
+control file, this applies, for example, to the parameter pairs
+<a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.NmbZones" title="hydpy.models.hland.hland_control.NmbZones"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbZones</span></code></a> and <a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.NmbHRU" title="hydpy.models.evap.evap_control.NmbHRU"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbHRU</span></code></a> and <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.FC" title="hydpy.models.hland.hland_control.FC"><code class="xref py py-class docutils literal notranslate"><span class="pre">FC</span></code></a> and
+<a class="reference internal" href="evap.html#hydpy.models.evap.evap_control.MaxSoilWater" title="hydpy.models.evap.evap_control.MaxSoilWater"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaxSoilWater</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">nmbzones</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">aetmodel</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">nmbhru</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">fc</span> <span class="o">==</span> <span class="n">model</span><span class="o">.</span><span class="n">aetmodel</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">maxsoilwater</span>
+</pre></div>
+</div>
+<p>Before writing a control file, one should read the documentation of the relevant
+application models in the <a class="reference internal" href="reference_manual.html#reference-manual"><span class="std std-ref">reference manual</span></a>, which provides
+complete lists of the control parameters that need configuration, detailed application
+examples, and much more.</p>
+</section>
+<section id="condition-files">
+<span id="id4"></span><h2>Condition files<a class="headerlink" href="#condition-files" title="Link to this heading">¶</a></h2>
+<p><cite>Condition files</cite> represent model states and logged data at a particular time point.
+They are usually written at the end of a simulation run and later read before
+simulating another period that starts where the old one has ended.  Instead, their
+names usually include the prefix  <cite>init</cite> (for initial conditions) and a suffix
+indicating the relevant date, using underscores as separators.  Each <a class="reference internal" href="definitions.html#element"><span class="std std-ref">element</span></a>
+defined in the <a class="reference internal" href="#network-files"><span class="std std-ref">network files</span></a> requires one condition file, and so
+each condition file corresponds to one main model and one control file.</p>
+<p>Condition files are similar to control files but almost always shorter and simpler.  We
+take the condition file of the Dill subbasin for 1 January 1996 as an example, which,
+like the discussed control file, starts with a wildcard import that selects the
+relevant main model:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy.models.hland_96</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>Opposed to the control file, importing the relevant submodels is unnecessary, as they
+must already be available before reading the condition file.</p>
+<p>The following call of function <a class="reference internal" href="importtools.html#hydpy.core.importtools.controlcheck" title="hydpy.core.importtools.controlcheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">controlcheck()</span></code></a> is optional when working with a complete
+HydPy project but required when executing a condition file independently for testing
+(for the following doctests to work, we must not only remove the old wildcard import
+artifacts but also fake to be “inside” a condition file by taking its name on):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">reverse_model_wildcard_import</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">temp</span> <span class="o">=</span> <span class="vm">__file__</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="vm">__file__</span> <span class="o">=</span> <span class="s2">&quot;land_dill_assl.py&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">controlcheck</span><span class="p">(</span><span class="n">projectdir</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="n">controldir</span><span class="o">=</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="n">firstdate</span><span class="o">=</span><span class="s2">&quot;1996-01-01&quot;</span><span class="p">,</span> <span class="n">stepsize</span><span class="o">=</span><span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="vm">__file__</span> <span class="o">=</span> <span class="n">temp</span>
+</pre></div>
+</div>
+<p>This step builds a connection to the corresponding control file.  We need this
+connection for interactive testing because, for example, the shape of some condition
+sequences depends on the control parameter <a class="reference internal" href="hland.html#hydpy.models.hland.hland_control.NmbZones" title="hydpy.models.hland.hland_control.NmbZones"><code class="xref py py-class docutils literal notranslate"><span class="pre">NmbZones</span></code></a>:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">nmbzones</span> <span class="o">==</span> <span class="n">ic</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The name <a class="reference internal" href="importtools.html#hydpy.core.importtools.controlcheck" title="hydpy.core.importtools.controlcheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">controlcheck()</span></code></a> reflects that the function enables checking whether a condition
+file is consistent with the corresponding control file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A note for programmers: Behind the scenes, <a class="reference internal" href="importtools.html#hydpy.core.importtools.controlcheck" title="hydpy.core.importtools.controlcheck"><code class="xref py py-func docutils literal notranslate"><span class="pre">controlcheck()</span></code></a> operates like the control
+file function <a class="reference internal" href="importtools.html#hydpy.core.importtools.parameterstep" title="hydpy.core.importtools.parameterstep"><code class="xref py py-func docutils literal notranslate"><span class="pre">parameterstep()</span></code></a> to simplify the appearance of condition files.</p>
+</div>
+<p>Setting their values works like for control parameters with “bracket expressions” but
+without land type-specific options because condition sequences usually contain
+calculated values that tend to be dissimilar for all zones:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sm</span><span class="p">(</span><span class="mf">185.13164</span><span class="p">,</span> <span class="mf">181.18755</span><span class="p">,</span> <span class="mf">199.80432</span><span class="p">,</span> <span class="mf">196.55888</span><span class="p">,</span> <span class="mf">212.04018</span><span class="p">,</span> <span class="mf">209.48859</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="mf">222.12115</span><span class="p">,</span> <span class="mf">220.12671</span><span class="p">,</span> <span class="mf">230.30756</span><span class="p">,</span> <span class="mf">228.70779</span><span class="p">,</span> <span class="mf">236.91943</span><span class="p">,</span> <span class="mf">235.64427</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uz</span><span class="p">(</span><span class="mf">7.25228</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Setting the conditions of submodels requires writing the complete paths to the
+respective sequences (we might add a more convenient syntax based on the <cite>with
+statement</cite> later):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">rconcmodel</span><span class="o">.</span><span class="n">sequences</span><span class="o">.</span><span class="n">logs</span><span class="o">.</span><span class="n">quh</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="series-files">
+<span id="id5"></span><h2>Series files<a class="headerlink" href="#series-files" title="Link to this heading">¶</a></h2>
+<p>HydPy currently supports three different time <cite>series file</cite> formats, of which the ASCII
+and the NetCDF-CF format should be the right choice in most applications.</p>
+<p>HydPy’s ASCII format (file ending “.asc”) is simpler but less efficient.  Each file
+stores the time series of one sequence type for one element or node.  By default, the
+filename follows a strict pattern, defined by the <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence.filename" title="hydpy.core.sequencetools.IOSequence.filename"><code class="xref py py-const docutils literal notranslate"><span class="pre">filename</span></code></a> property of
+class <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.IOSequence" title="hydpy.core.sequencetools.IOSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOSequence</span></code></a>.  <cite>land_dill_assl_hland_96_input_p.asc</cite> is an example filename of a
+time series managed by an element (or, more precisely, an element’s model) and
+<cite>dill_ass_obs_q.asc</cite> is an example filename of a time series managed by a node.  Both
+start with the respective device names (<cite>land_dill_assl</cite> and <cite>dill_assl</cite>), defined by
+the properties <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence.descr_device" title="hydpy.core.sequencetools.ModelSequence.descr_device"><code class="xref py py-const docutils literal notranslate"><span class="pre">descr_device</span></code></a> of class <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelSequence</span></code></a> and
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence.descr_device" title="hydpy.core.sequencetools.NodeSequence.descr_device"><code class="xref py py-const docutils literal notranslate"><span class="pre">descr_device</span></code></a> of class <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence" title="hydpy.core.sequencetools.NodeSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeSequence</span></code></a>.  The rest of the files’ basenames
+are defined by property <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence.descr_sequence" title="hydpy.core.sequencetools.ModelSequence.descr_sequence"><code class="xref py py-const docutils literal notranslate"><span class="pre">descr_sequence</span></code></a> of class <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.ModelSequence" title="hydpy.core.sequencetools.ModelSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelSequence</span></code></a>, which
+combines the model type (<cite>hland_96</cite>), the sequence group (<cite>input</cite>) and the sequence
+type (<cite>p</cite>), and property <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence.descr_sequence" title="hydpy.core.sequencetools.NodeSequence.descr_sequence"><code class="xref py py-const docutils literal notranslate"><span class="pre">descr_sequence</span></code></a> of class <a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.NodeSequence" title="hydpy.core.sequencetools.NodeSequence"><code class="xref py py-class docutils literal notranslate"><span class="pre">NodeSequence</span></code></a>, which
+combines the sequence type (<cite>obs</cite>) and the handled variable (<cite>q</cite>).</p>
+<p>Internally, each ASCII file starts with information about the covered data period and
+the temporal resolution, described via a <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid" title="hydpy.core.timetools.Timegrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrid</span></code></a> instance.  Consider the following
+example:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Timegrid</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">timegrid</span> <span class="o">=</span> <span class="n">Timegrid</span><span class="p">(</span><span class="s2">&quot;1996-01-01&quot;</span><span class="p">,</span> <span class="s2">&quot;1996-01-05&quot;</span><span class="p">,</span> <span class="s2">&quot;1d&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The two dates define the start of the first and the end of the last data interval.
+Hence, the example <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid" title="hydpy.core.timetools.Timegrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrid</span></code></a> instance would be suitable for a time series file
+containing, for example, the precipitation sums of four days:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">timegrid</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span>
+</pre></div>
+</div>
+<p>The data section after the <a class="reference internal" href="timetools.html#hydpy.core.timetools.Timegrid" title="hydpy.core.timetools.Timegrid"><code class="xref py py-class docutils literal notranslate"><span class="pre">Timegrid</span></code></a> header contains no time stamps.  So, temporal
+equidistance is strictly required, with missing values marked as <code class="xref py py-const docutils literal notranslate"><span class="pre">nan</span></code>.  The
+individual time series of non-scalar sequences are placed in tab-separated columns.</p>
+<p>HydPy’s NetCDF-CF file format (file ending “.nc”) is much more compact, usually times
+faster, and supports reading and writing data “just in time” during simulation runs.
+On the downside, it is more opaque and hard to handle because it stores all data in
+binary form.  It follows the <a class="reference external" href="http://cfconventions.org/Data/cf-conventions/cf-conventions-1.8/cf-conventions.html">NetCDF Climate and Forecast (CF) Metadata Conventions</a>
+and is, for example, compatible with <a class="reference external" href="https://oss.deltares.nl/web/delft-fews">Delft-FEWS</a>.</p>
+<p>You can use function <a class="reference internal" href="netcdftools.html#hydpy.core.netcdftools.summarise_ncfile" title="hydpy.core.netcdftools.summarise_ncfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">summarise_ncfile()</span></code></a> to gain insights into HydPy-compatible NetCDF
+files. Here, we let it show the structure of the NetCDF precipitation input file of
+the <a class="reference internal" href="example_projects.html#hydpy-h-lahn"><span class="std std-ref">HydPy-H-Lahn</span></a> example project:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">filepath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">data</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;HydPy-H-Lahn&quot;</span><span class="p">,</span> <span class="s2">&quot;series&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;hland_96_input_p.nc&quot;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">hydpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">repr_</span><span class="p">,</span> <span class="n">summarise_ncfile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">repr_</span><span class="p">(</span><span class="n">summarise_ncfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">)))</span>
+<span class="go">GENERAL</span>
+<span class="go">    file path = .../hydpy/data/HydPy-H-Lahn/series/default/hland_96_input_p.nc</span>
+<span class="go">    file format = NETCDF4</span>
+<span class="go">    disk format = HDF5</span>
+<span class="go">    Attributes</span>
+<span class="go">        hydts_timeRef = begin</span>
+<span class="go">        title = Daily total precipitation sum HydPy-H-HBV96 model river Lahn</span>
+<span class="go">        project = Open Source Project HydPy - A Python framework for the development and application of hydrological models</span>
+<span class="go">        version = v5.0</span>
+<span class="go">        institution = HydPy Developers</span>
+<span class="go">        author = Bastian Klein (klein@bafg.de)</span>
+<span class="go">        contact = Bastian Klein (klein@bafg.de), Dennis Meissner (meissner@bafg.de)</span>
+<span class="go">        source = Deutscher Wetterdienst, gridded_precipitation_dataset_(HYRAS-DE PRE) v5.0 spatially averaged over HydPy-H-HBV96 subbasins</span>
+<span class="go">        conditions_of_use = The use of the data is free of charge. The data is licensed under Attribution-NonCommercial-ShareAlike International 4.0 (CC BY-NC-SA 4.0).</span>
+<span class="go">        citation = Klein, B. &amp; D. Meissner (2024): Daily total precipitation sum HydPy-H-HBV96 model river Lahn. HydPy Developers [Data set]. Database Deutscher Wetterdienst gridded_precipitation_dataset_(HYRAS-DE PRE) v5.0 spatially averaged over HydPy-H-HBV96 subbasins</span>
+<span class="go">        url = https://github.com/hydpy-dev</span>
+<span class="go">        Conventions = CF-1.8</span>
+<span class="go">        timereference = left interval boundary</span>
+<span class="go">        history = 2024-09-12 10:08:29 UTC: created by R-package hydts using ncdf4 package</span>
+<span class="go">        date_created = 2024-09-12 10:08:29 UTC</span>
+<span class="go">        created_by = R version 4.4.0 Patched (2024-05-13 r86547 ucrt), packages hydts (version 1.15.1), ncdf4 (version 1.22)</span>
+<span class="go">DIMENSIONS</span>
+<span class="go">    stations = 4</span>
+<span class="go">    time = 11384</span>
+<span class="go">    str_len = 40</span>
+<span class="go">VARIABLES</span>
+<span class="go">    time</span>
+<span class="go">        dimensions = time</span>
+<span class="go">        shape = 11384</span>
+<span class="go">        data type = float64</span>
+<span class="go">        Attributes</span>
+<span class="go">            units = days since 1900-01-01 00:00:00 +0100</span>
+<span class="go">            long_name = time</span>
+<span class="go">            axis = T</span>
+<span class="go">            calendar = standard</span>
+<span class="go">    hland_96_input_p</span>
+<span class="go">        dimensions = time, stations</span>
+<span class="go">        shape = 11384, 4</span>
+<span class="go">        data type = float64</span>
+<span class="go">        Attributes</span>
+<span class="go">            units = mm</span>
+<span class="go">            _FillValue = -9999.0</span>
+<span class="go">            long_name = Daily Precipitation Sum</span>
+<span class="go">    station_id</span>
+<span class="go">        dimensions = stations, str_len</span>
+<span class="go">        shape = 4, 40</span>
+<span class="go">        data type = |S1</span>
+<span class="go">        Attributes</span>
+<span class="go">            long_name = station or node identification code</span>
+<span class="go">    station_names</span>
+<span class="go">        dimensions = stations, str_len</span>
+<span class="go">        shape = 4, 40</span>
+<span class="go">        data type = |S1</span>
+<span class="go">        Attributes</span>
+<span class="go">            long_name = station or node name</span>
+<span class="go">    river_names</span>
+<span class="go">        dimensions = stations, str_len</span>
+<span class="go">        shape = 4, 40</span>
+<span class="go">        data type = |S1</span>
+<span class="go">        Attributes</span>
+<span class="go">            long_name = river name</span>
+<span class="go">TIME GRID</span>
+<span class="go">    first date = 1989-11-01 00:00:00+01:00</span>
+<span class="go">    last date = 2021-01-01 00:00:00+01:00</span>
+<span class="go">    step size = 1d</span>
+</pre></div>
+</div>
+<p>The time series of all sequences of the same type are stored in one file.  So, by
+default, a NetCDF filename is shorter than an ASCII filename as it does not need a
+device-specific prefix (for example, <cite>hland_96_input_p.nc</cite> instead of
+<cite>land_dill_assl_hland_96_input_p.asc</cite> and <cite>obs_q.asc</cite> instead of
+<cite>dill_assl_obs_q.asc</cite>).  The device names are instead managed by a file-internal NetCDF
+variable named <cite>station_id</cite>, whose shape is determined by the NetCDF dimensions
+<cite>stations</cite> (usually the number of devices, but see below) and <cite>char_leng_name</cite> (usually
+the longest device name, but see below).  The name of the data variable agrees with the
+respective file basename (in the given examples, <cite>hland_96_input_p</cite> and <cite>obs_q</cite>).</p>
+<p>The second NetCDF variable used for describing the data layout is named <cite>time</cite>, whose
+shape is determined by a NetCDF dimension also named <cite>time</cite>.  This variable contains
+floating point numbers representing, for example, the elapsed days between a reference
+date and the actual date (see method <a class="reference internal" href="timetools.html#hydpy.core.timetools.Date.to_cfunits" title="hydpy.core.timetools.Date.to_cfunits"><code class="xref py py-func docutils literal notranslate"><span class="pre">to_cfunits()</span></code></a> of class <a class="reference internal" href="timetools.html#hydpy.core.timetools.Date" title="hydpy.core.timetools.Date"><code class="xref py py-class docutils literal notranslate"><span class="pre">Date</span></code></a> for some
+examples).</p>
+<p>As far as we know, the NetCDF-CF convention does not clarify if these time points
+define the start or the end time points of data measurement intervals (left timestep vs
+right timestamp).  As a surrogate, HydPy inserts an attribute named <cite>timereference</cite>
+when writing a NetCDF file, with the possible values <cite>left interval boundary</cite> and
+<cite>right interval boundary</cite> for “interval data” and <cite>current time</cite> for “time point data”.
+We advise also adding this attribute when using other tools for writing NetCDF files to
+be read by HydPy.</p>
+<p>The time series are aligned in a (2-dimensional) matrix, with the first axis reflecting
+the time and the second axis reflecting the location.  There are additional columns for
+multi-dimensional sequences that address sublocations (for example, hydrological
+response units).  The <cite>station_id</cite> variable distinguishes them by suffixing their
+indexes to the device name.</p>
+<p>HydPy writes all floating-point data with a precision of 64 bits.  It is not strictly
+required but, in some situations, might prove beneficial to design externally prepared
+NetCDF files with the same accuracy.</p>
+<p>See the documentation on module <a class="reference internal" href="netcdftools.html#module-hydpy.core.netcdftools" title="hydpy.core.netcdftools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">netcdftools</span></code></a>, which uses many examples to explain the
+NetCDF-CF format in more detail.</p>
+<p>The third supported time series file format relies on the Numpy format (file ending
+“.npy”).  It resembles the ASCII format but saves data in binary form.  We only
+recommend if if one requires a more efficient alternative to the ASCII format and a
+less complex alternative to the NetCDF format.</p>
+<p>All time series files can specify dates with or without time zone information.  Without
+time zone information, HydPy usually assumes the currently selected
+<a class="reference internal" href="optiontools.html#hydpy.core.optiontools.Options.utcoffset" title="hydpy.core.optiontools.Options.utcoffset"><code class="xref py py-const docutils literal notranslate"><span class="pre">utcoffset</span></code></a>, which defaults to +60 minutes.  The only exception is for NetCDF
+files, where it always assumes UTC+00 in compliance with the NetCDF-CF conventions.</p>
+<p>A new HydPy feature, applicable for all file formats but only realised for the group of
+input sequences so far, is the alternative usage of standard names.  Class
+<a class="reference internal" href="sequencetools.html#hydpy.core.sequencetools.StandardInputNames" title="hydpy.core.sequencetools.StandardInputNames"><code class="xref py py-class docutils literal notranslate"><span class="pre">StandardInputNames</span></code></a> lists these standard names, and the input sequences of all model
+types reference one of them.  When switching the time series naming
+<a class="reference internal" href="filetools.html#hydpy.core.filetools.SequenceManager.convention" title="hydpy.core.filetools.SequenceManager.convention"><code class="xref py py-const docutils literal notranslate"><span class="pre">convention</span></code></a> from <cite>model-specific</cite> to <cite>HydPy</cite>, the filename
+“land_dill_assl_hland_96_input_p.asc” becomes “land_dill_assl_precipitation.asc” and
+“hland_96_input_p.nc” becomes “precipitation.nc”.  Such a standardisation often means a
+relevant simplification when dealing with multiple model types.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="options.html" title="Options"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="model_overview.html" title="Model overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">HydPy 6.2.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="user_guide.html" >User Guide</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Project structure</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2013-2025, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+    </div>
+  </body>
+</html>

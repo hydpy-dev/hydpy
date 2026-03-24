@@ -4,6 +4,7 @@ potential problems in situations where HydPy relies on runtime behaviour that is
 (and possibly cannot be) expressed via static type hints."""
 
 from configparser import ConfigParser
+from itertools import product
 from os.path import join, split
 from pickle import load
 from typing import Callable, cast, Final
@@ -24,6 +25,7 @@ from mypy.typeops import bind_self
 from mypy.types import (
     AnyType,
     CallableType,
+    flatten_nested_unions,
     FunctionLike,
     get_proper_type,
     LiteralType,
@@ -518,6 +520,135 @@ def shape_hook(context: AttributeContext) -> Type:
     return tuple_type
 
 
+def _get_shape(ndarray: Instance) -> list[int | None] | None:
+    if not isinstance(tuple_type := ndarray.args[0], TupleType):
+        return None
+    shape: list[int | None] = []
+    for item in tuple_type.items:
+        if isinstance(item, LiteralType) and isinstance(value := item.value, int):
+            shape.append(value)
+        else:
+            shape.append(None)
+    return shape
+
+def _get_flattened_shape(context: FunctionContext, ndarray: Instance, default: Type) -> Type | None:
+    if (
+        ((shape := _get_shape(ndarray)) is None)
+        or not isinstance(api := context.api, TypeChecker)
+    ):
+        return default
+    length = _flatten_shape(shape)
+    int_ = api.named_type("builtins.int")
+    return TupleType(
+        [int_] if length is None else [LiteralType(length, fallback=int_)],
+        fallback=api.named_type("builtins.tuple"),
+    )
+
+def _flatten_shape(shape: list[int | None]) -> int | None:
+    length = 1
+    for subshape in shape:
+        if subshape is None:
+            return None
+        length *= subshape
+    return length
+
+def _get_ndarray(context: FunctionContext, position: int) -> Instance | None:
+    if (
+        (len(a_types := context.arg_types[position]) == 1)
+        and isinstance(a_inst := get_proper_type(a_types[0]), Instance)
+        and isinstance(a_type := a_inst.type, TypeInfo)
+        and a_type.has_base("numpy.ndarray")
+    ):
+        return a_inst
+    return None
+
+def _get_dtype(context: FunctionContext, position: int, default: Type) -> Type | None:
+    if (
+        isinstance(api := context.api, TypeChecker)
+        and (len(dtype_types := context.arg_types[position]) == 1)
+        and isinstance(dtype_inst := get_proper_type(dtype_types[0]), (Instance, CallableType))
+    ):
+        if isinstance(dtype_inst, CallableType):
+            dtype_inst = dtype_inst.ret_type
+        return api.named_type("numpy.dtype").copy_modified(args=[dtype_inst])
+    return default
+
+def _defines_axis(context: FunctionContext, position: int) -> bool:
+    return (
+        (len(axis_types := context.arg_types[1]) == 1)
+        and isinstance(axis_inst := get_proper_type(axis_types[0]), Instance)
+        and not isinstance(axis_inst, NoneType)
+    )
+
+def _modify_ndarray(ndarray: Instance, shape: Type, dtype: Instance) -> Instance:
+    return ndarray.copy_modified(args=(shape, dtype) + ndarray.args[2:])
+
+
+def handle_arg_type_unions(
+    wrapped: Callable[[FunctionContext], Type]
+) -> Callable[[FunctionContext], Type]:
+
+    def wrapper(context: FunctionContext) -> Type:
+        arg_types = []
+        for arg_type_list in context.arg_types:
+            if (length := len(arg_type_list)) == 0:
+                arg_types.append([None])
+            elif length == 1:
+                if isinstance(arg_type := arg_type_list[0], UnionType):
+                    arg_types.append(arg_type.items)
+                else:
+                    arg_types.append([arg_type])
+            else:
+                return context.default_return_type
+        return_types = []
+        for arg_type_combination in product(*arg_types):
+            subcontext = FunctionContext(
+                arg_types=[[] if at is None else [at]  for at in arg_type_combination],
+                arg_kinds=context.arg_kinds,
+                callee_arg_names=context.callee_arg_names,
+                arg_names=context.arg_names,
+                default_return_type=context.default_return_type,
+                args=context.args,
+                context=context.context,
+                api=context.api,
+            )
+            return_types.append(wrapped(subcontext))
+        return UnionType.make_union(flatten_nested_unions(return_types))
+
+    return wrapper
+
+@handle_arg_type_unions
+def cumsum_hook(context: FunctionContext) -> Type:
+    """
+    cumsum(ndarray[tuple[int, int], dtype[float64]])
+    -->
+    cumsum(ndarray[tuple[int], dtype[float64]])
+
+    ---
+
+    cumsum(ndarray[tuple[int, int], dtype[float64]], )
+    -->
+    cumsum(ndarray[tuple[int], dtype[float64]])
+
+    ---
+
+    cumsum(ndarray[tuple[Literal[2], Literal[3]], dtype[float64]], )
+    -->
+    cumsum(ndarray[tuple[Literal], dtype[float64]])
+    """
+    if (
+        isinstance(api := context.api, TypeChecker)
+        and (ndarray := _get_ndarray(context, position=0))
+    ):
+        if _defines_axis(context, position=1):
+            shape = ndarray.args[0]
+        else:
+            shape = _get_flattened_shape(context, ndarray, default=ndarray.args[0])
+        dtype = _get_dtype(context, position=2, default=ndarray.args[1])
+        return _modify_ndarray(ndarray, shape, dtype)
+    return context.default_return_type
+
+
 class MypyPlugin(Plugin):
     """Mypy plugin for HydPy."""
 
@@ -567,6 +698,8 @@ class MypyPlugin(Plugin):
         """Hooks for refining return types."""
         if fullname == "hydpy.core.importtools.prepare_model":
             return prepare_model_hook
+        if fullname == "numpy._core.fromnumeric.cumsum":
+            return cumsum_hook
         return None
 
     def get_method_signature_hook(

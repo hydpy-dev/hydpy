@@ -76,6 +76,21 @@ the :ref:`model_overview` section, which clarifies this distinction more clearly
    HydPy-Snow
    HydPy-SW1D
    HydPy-Test
+   HydPy-TM
    HydPy-W
    HydPy-WHMod
    HydPy-WQ
+
+
+
+
+
+
+
+
+
+
+
+
+
+

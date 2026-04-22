@@ -16,6 +16,7 @@ Available models:
    evap
    evap_ret_io
    evap_ret_fao56
+   evap_ret_makkink
    evap_ret_tw2002
    evap_pet_m
    evap_pet_mlc

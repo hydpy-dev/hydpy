@@ -1739,7 +1739,7 @@ snowycanopymodel soilwatermodel tempmodel
         petmodel
         main-submodels:
         sub-submodels: evap_pet_ambav1 evap_pet_hbv96 evap_pet_m evap_pet_mlc \
-evap_ret_fao56 evap_ret_io evap_ret_tw2002
+evap_ret_fao56 evap_ret_io evap_ret_makkink evap_ret_tw2002
 
         >>> selected = selected[1][1][0]
         >>> for model, subgraph in selected.items():
@@ -1750,6 +1750,7 @@ evap_ret_fao56 evap_ret_io evap_ret_tw2002
         evap_pet_mlc retmodel
         evap_ret_fao56 radiationmodel tempmodel
         evap_ret_io
+        evap_ret_makkink radiationmodel tempmodel
         evap_ret_tw2002 radiationmodel tempmodel
 
         >>> selected = tuple(selected.values())[2]
@@ -1759,7 +1760,7 @@ evap_ret_fao56 evap_ret_io evap_ret_tw2002
         ...     print("sub-submodels:", *(m.__HYDPY_NAME__ for m in subgraphs))
         retmodel
         main-submodels:
-        sub-submodels: evap_ret_fao56 evap_ret_io evap_ret_tw2002
+        sub-submodels: evap_ret_fao56 evap_ret_io evap_ret_makkink evap_ret_tw2002
 
         Example showing that "side-model" ports are ignored:
 

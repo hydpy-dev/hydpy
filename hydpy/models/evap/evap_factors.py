@@ -99,6 +99,10 @@ class AirDensity(evap_sequences.FactorSequence1D):
     """Air density [kg/m³]."""
 
 
+class HeatOfCondensation(evap_sequences.FactorSequence1D):
+    """Latent condensation heat of water for the current air temperature [WT/kg]."""
+
+
 class PsychrometricConstant(sequencetools.FactorSequence):
     """Psychrometric constant [hPa/K]."""
 

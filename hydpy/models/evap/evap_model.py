@@ -1003,6 +1003,45 @@ class Calc_AirDensity_V1(modeltools.Method):
             )
 
 
+class Calc_HeatOfCondensation_V1(modeltools.Method):
+    r"""Calculate the latent heat of condensation of water in agreement with the
+    Makkink method.
+
+    Basic equation:
+      .. math::
+        H = 1000 \cdot (2501.0 - 2.38 \cdot T) / s
+        \\ \\
+        H = HeatOfCondensation \\
+        T = AirTemperature \\
+        s = Seconds
+
+    Example:
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> derived.seconds(60 * 60 * 24)
+        >>> factors.airtemperature = 15.0, 100.0
+        >>> model.calc_heatofcondensation_v1()
+        >>> factors.heatofcondensation
+        heatofcondensation(28.533565, 26.19213)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    DERIVEDPARAMETERS = (evap_derived.Seconds,)
+    REQUIREDSEQUENCES = (evap_factors.AirTemperature,)
+    RESULTSEQUENCES = (evap_factors.HeatOfCondensation,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        der = model.parameters.derived.fastaccess
+        fac = model.sequences.factors.fastaccess
+
+        for k in range(con.nmbhru):
+            t: float = fac.airtemperature[k]
+            fac.heatofcondensation[k] = 1000.0 * (2501.0 - 2.38 * t) / der.seconds
+
+
 class Process_RadiationModel_V1(modeltools.Method):
     """Let a submodel that complies with the |RadiationModel_V1| interface preprocess
     all eventually required data.
@@ -5070,6 +5109,56 @@ class Calc_ReferenceEvapotranspiration_V5(modeltools.Method):
             )
 
 
+class Calc_ReferenceEvapotranspiration_V6(modeltools.Method):
+    r"""Calculate reference evapotranspiration after Makking.
+
+    Basic equation:
+      .. math::
+        E = 0.65 \cdot S / (S + P) \cdot N / H
+        \\ \\
+        E = ReferenceEvapotranspiration \\
+        S = SaturationVapourPressureSlope \\
+        N = NetShortwaveRadiation \\
+        P = PsychrometricConstant \\
+        H = HeatOfCondensation
+
+    Example:
+
+        >>> from hydpy.models.evap import *
+        >>> parameterstep()
+        >>> nmbhru(2)
+        >>> fluxes.netshortwaveradiation = (1.0 - 0.23) * 200.0, (1.0 - 0.23) * 100.0
+        >>> factors.psychrometricconstant = 0.67
+        >>> factors.heatofcondensation = 28.5, 28.1
+        >>> factors.saturationvapourpressureslope = 1.1, 2.4
+        >>> model.calc_referenceevapotranspiration_v6()
+        >>> fluxes.referenceevapotranspiration
+        referenceevapotranspiration(2.182773, 1.392421)
+    """
+
+    CONTROLPARAMETERS = (evap_control.NmbHRU,)
+    REQUIREDSEQUENCES = (
+        evap_fluxes.NetShortwaveRadiation,
+        evap_factors.SaturationVapourPressureSlope,
+        evap_factors.PsychrometricConstant,
+        evap_factors.HeatOfCondensation,
+    )
+    RESULTSEQUENCES = (evap_fluxes.ReferenceEvapotranspiration,)
+
+    @staticmethod
+    def __call__(model: modeltools.Model, /) -> None:
+        con = model.parameters.control.fastaccess
+        fac = model.sequences.factors.fastaccess
+        flu = model.sequences.fluxes.fastaccess
+
+        p: float = fac.psychrometricconstant
+        for k in range(con.nmbhru):
+            r: float = flu.netshortwaveradiation[k]
+            s: float = fac.saturationvapourpressureslope[k]
+            h: float = fac.heatofcondensation[k]
+            flu.referenceevapotranspiration[k] = 0.65 * s / (s + p) * r / h
+
+
 class Calc_PotentialEvapotranspiration_V1(modeltools.Method):
     r"""Calculate month-specific potential evaporation based on reference
     evapotranspiration.
@@ -7932,6 +8021,7 @@ class Model(modeltools.AdHocModel):
         Calc_DailyActualVapourPressure_V1,
         Calc_DryAirPressure_V1,
         Calc_AirDensity_V1,
+        Calc_HeatOfCondensation_V1,
         Process_RadiationModel_V1,
         Calc_PossibleSunshineDuration_V1,
         Calc_SunshineDuration_V1,
@@ -7976,6 +8066,7 @@ class Model(modeltools.AdHocModel):
         Calc_ReferenceEvapotranspiration_V3,
         Calc_ReferenceEvapotranspiration_V4,
         Calc_ReferenceEvapotranspiration_V5,
+        Calc_ReferenceEvapotranspiration_V6,
         Adjust_ReferenceEvapotranspiration_V1,
         Calc_PotentialEvapotranspiration_V1,
         Calc_PotentialEvapotranspiration_V2,

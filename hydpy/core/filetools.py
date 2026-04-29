@@ -3,6 +3,8 @@ as well as loading data from and storing data to files."""
 
 from __future__ import annotations
 import contextlib
+import functools
+import inspect
 import os
 import runpy
 import shutil
@@ -19,6 +21,7 @@ from hydpy.core import devicetools
 from hydpy.core import netcdftools
 from hydpy.core import objecttools
 from hydpy.core import optiontools
+from hydpy.core import propertytools
 from hydpy.core import selectiontools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
@@ -147,6 +150,408 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
         return "Folder2Path()"
 
 
+class _CurrentDirContext(str):
+
+    _manager: FileManager
+    _property: tuple[_CurrentDirProperty]
+    _old_value: str | None
+    _new_value: str | None
+    _called_but_not_entered: bool = False
+
+    def __new__(cls, manager: FileManager, property_: _CurrentDirProperty, /) -> Self:
+        return super().__new__(cls, property_.manager2value.get(manager))
+
+    def __init__(self, manager: FileManager, property_: _CurrentDirProperty, /) -> None:
+        self._manager = manager
+        self._property = (property_,)
+        if (value := property_.manager2value.get(manager)) is None:
+            self._old_value = manager.DEFAULTDIR
+        else:
+            self._old_value = value
+        self._new_value = None
+        self._is_called = False
+        self._is_entered = False
+        self._called_but_not_entered = False
+
+    def __call__(self, new_value: str | None = None) -> Self:
+        self._is_called = True
+        self._new_value = new_value
+        return self
+
+    def __enter__(self) -> None:
+        self._is_entered = True
+        if (new_value := self._new_value) is not None:
+            self._manager.currentdir = new_value
+
+    def __exit__(
+        self,
+        exception_type: type[BaseException],
+        exception_value: BaseException,
+        traceback_: types.TracebackType,
+    ):
+        self._new_value = None
+        self._property[0].manager2value[self._manager] = self._old_value
+
+
+def _check_unsafe_usage_currentdir(wrapped: Callable[P_, None]) -> Callable[P_, None]:
+
+    @functools.wraps(wrapped)
+    def wrapper(*args: P_.args, **kwargs: P_.kwargs):
+        self = cast(_CurrentDirContext, args[0])
+        get = object.__getattribute__
+        called, entered = get(self, "_is_called"), get(self, "_is_entered")
+        if called and not entered:
+            docname = get(self, "_manager").docname
+            raise RuntimeError(
+                f"The `currentdir` property of the {docname} has been queried by "
+                f'"calling it", which is unsafe.  Use statements similar to '
+                f"`hydpy.pub.filemanager.currentdir` only in combination with the "
+                f"`with` statement."
+            )
+        if entered and not called:
+            docname = get(self, "_manager").docname
+            raise RuntimeError(
+                f"The `currentdir` property of the {docname} has been used as a "
+                f'context manager without "calling it", which is unsafe.  In '
+                f"combination with the `with` statement, use statements similar "
+                f'to `hydpy.pub.filemanager.currentdir("mydir")` only.'
+            )
+        return wrapped(*args, **kwargs)
+
+    wrapper.__doc__ = None  # circumvent a Python 3.11 doctest bug
+
+    return wrapper
+
+
+_ignore = set(["__new__", "__init__", "__class__", "__setattr__", "__enter__"])
+for n in dir(_CurrentDirContext):
+    m = getattr(_CurrentDirContext, n)
+    if n.startswith("__") and n.endswith("__") and (n not in _ignore) and callable(m):
+        setattr(_CurrentDirContext, n, _check_unsafe_usage_currentdir(m))
+del _ignore
+del n  # pylint: disable=undefined-loop-variable
+del m
+
+
+class _CurrentDirProperty(propertytools.BaseDescriptor):
+    """The name of the current working directory containing the relevant files.
+
+    To show most of the functionality of |property| |FileManager.currentdir| (we
+    explain unpacking zipped files on the fly in the documentation on function
+    |FileManager.zip_currentdir|), we first prepare a |FileManager| object with the
+    default |FileManager.basepath| `projectname/basename` and no
+    |FileManager.DEFAULTDIR| defined:
+
+    >>> from hydpy.core.filetools import FileManager
+    >>> filemanager = FileManager()
+    >>> filemanager.BASEDIR = "basename"
+    >>> filemanager.DEFAULTDIR = None
+    >>> filemanager.projectdir = "projectname"
+    >>> import os
+    >>> from hydpy import pub, repr_, TestIO
+    >>> TestIO.clear()
+    >>> with TestIO():
+    ...     os.makedirs("projectname/basename")
+    ...     repr_(filemanager.basepath)  # doctest: +ELLIPSIS
+    '...hydpy/tests/iotesting/projectname/basename'
+
+    At first, the base directory is empty and asking for the current working
+    directory results in the following error:
+
+    >>> with TestIO():
+    ...     filemanager.currentdir  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The current working directory of the file manager has not been \
+defined manually and cannot be determined automatically: `.../projectname/basename` \
+does not contain any available directories.
+
+    If only one directory exists, it is considered the current working directory
+    automatically:
+
+    >>> with TestIO(), pub.options.printprogress(True):
+    ...     os.mkdir("projectname/basename/dir1")
+    ...     assert filemanager.currentdir == "dir1"
+    The name of the file manager's current working directory has not been \
+previously defined and is hence set to `dir1`.
+
+    |property| |FileManager.currentdir| memorises the name of the current working
+    directory, even if another directory is added later to the base path:
+
+    >>> with TestIO():
+    ...     os.mkdir("projectname/basename/dir2")
+    ...     assert filemanager.currentdir == "dir1"
+
+    Set the value of |FileManager.currentdir| to |None| to let it forget the
+    memorised directory.  After that, trying to query the current working directory
+    results in another error, as it is unclear which directory to select:
+
+    >>> with TestIO():
+    ...     filemanager.currentdir = None
+    ...     filemanager.currentdir  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The current working directory of the file manager has not been \
+defined manually and cannot be determined automatically: `.../projectname/basename` \
+does contain multiple available directories (dir1 and dir2).
+
+    Setting |FileManager.currentdir| manually solves the problem:
+
+    >>> with TestIO():
+    ...     filemanager.currentdir = "dir1"
+    ...     assert filemanager.currentdir == "dir1"
+
+    Remove the current working directory `dir1` with the `del` statement:
+
+    >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
+    ...     del filemanager.currentdir
+    ...     assert not os.path.exists("projectname/basename/dir1")
+    Directory ...dir1 has been removed.
+
+    |FileManager| subclasses can define a default directory name.  When many
+    directories exist, and none is selected manually, the default directory is
+    chosen automatically.  The following example shows an error message due to
+    multiple directories without any default name:
+
+    >>> with TestIO():
+    ...     os.mkdir("projectname/basename/dir1")
+    ...     filemanager.DEFAULTDIR = "dir3"
+    ...     del filemanager.currentdir
+    ...     filemanager.currentdir  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The current working directory of the file manager has not been \
+defined manually and cannot be determined automatically: The default directory (dir3) \
+is not among the available directories (dir1 and dir2).
+
+    We can fix this by manually adding the required default directory:
+
+    >>> with TestIO(), pub.options.printprogress(True):
+    ...     os.mkdir("projectname/basename/dir3")
+    ...     assert filemanager.currentdir == "dir3"
+    The name of the file manager's current working directory has not been \
+previously defined and is hence set to `dir3`.
+
+    Setting the |FileManager.currentdir| to `dir4` not only overwrites the default
+    name but also creates the required folder:
+
+    >>> with TestIO(), pub.options.printprogress(True):
+    ...     filemanager.currentdir = "dir4"
+    ...     assert filemanager.currentdir == "dir4"  # doctest: +ELLIPSIS
+    Directory ...dir4 has been created.
+    >>> with TestIO():
+    ...     dirs = os.listdir("projectname/basename")
+    ...     assert sorted(dirs) == ["dir1", "dir2", "dir3", "dir4"]
+
+    Failed attempts to remove directories result in error messages like the
+    following one:
+
+    >>> import shutil
+    >>> from unittest.mock import patch
+    >>> with TestIO(), patch.object(shutil, "rmtree", side_effect=AttributeError):
+    ...     del filemanager.currentdir  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    AttributeError: While trying to delete the current working directory \
+`.../projectname/basename/dir4` of the file manager, the following error occurred: ...
+
+    Then, the current working directory still exists and is remembered by property
+    |FileManager.currentdir|:
+
+    >>> with TestIO():
+    ...     assert filemanager.currentdir == "dir4"
+    >>> with TestIO():
+    ...     dirs =os.listdir("projectname/basename")
+    ...     assert sorted(dirs) == ["dir1", "dir2", "dir3", "dir4"]
+
+    Assign the folder's absolute path if you need to work outside the current
+    project directory (for example, to archive simulated data):
+
+    >>> with TestIO():  # doctest: +ELLIPSIS
+    ...     os.mkdir("differentproject")
+    ...     filemanager.currentdir = os.path.abspath("differentproject/dir1")
+    ...     path = repr_(filemanager.currentpath)
+    ...     assert path.endswith("hydpy/tests/iotesting/differentproject/dir1")
+    ...     assert os.listdir("differentproject") == ["dir1"]
+
+    If a |FileManager| subclass defines its |FileManager.DEFAULTDIR| class
+    attribute, the above behaviour differs in the case of an initially empty base
+    directory.  Then, |FileManager.currentdir| activates and creates an accordingly
+    named directory automatically:
+
+    >>> filemanager.currentdir = None
+    >>> filemanager.DEFAULTDIR = "default"
+    >>> TestIO.clear()
+    >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
+    ...     os.makedirs("projectname/basename")
+    ...     assert filemanager.currentdir == "default"
+    ...     assert os.path.exists("projectname/basename/default")
+    The name of the file manager's current working directory has not been \
+previously defined and is hence set to `default`.
+    Directory ...default has been created.
+
+    Alternatively, you can temporarily change the working directory using the `with`
+    statement (see the documentation on the class |Options| for more details):
+
+    >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
+    ...     with filemanager.currentdir("dir1"):
+    ...         assert filemanager.currentdir == "dir1"
+    ...         assert os.path.exists("projectname/basename/dir1")
+    ...         with filemanager.currentdir("dir2"):
+    ...             assert filemanager.currentdir == "dir2"
+    ...             assert os.path.exists("projectname/basename/dir1")
+    ...             with filemanager.currentdir():
+    ...                 assert filemanager.currentdir == "dir2"
+    ...             with filemanager.currentdir(None):
+    ...                 assert filemanager.currentdir == "dir2"
+    ...         assert filemanager.currentdir == "dir1"
+    ...     assert filemanager.currentdir == "default"
+    Directory ...dir1 has been created.
+    Directory ...dir2 has been created.
+
+    Using the `with` statement without "calling" |Filemanager.currentdir| can result in
+    mistakes easily and is thus prohibited:
+
+    >>> with filemanager.currentdir:
+    ...     pass
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The `currentdir` property of the file manager has been used as a \
+context manager without "calling it", which is unsafe.  In combination with the \
+`with` statement, use statements similar to \
+`hydpy.pub.filemanager.currentdir("mydir")` only.
+
+    "Calling" |Filemanager.currentdir| without the `with` statement involved is
+    disallowed for the same reason:
+
+    >>> filemanager.currentdir()
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The `currentdir` property of the file manager has been queried by \
+"calling it", which is unsafe.  Use statements similar to \
+`hydpy.pub.filemanager.currentdir` only in combination with the `with` statement.
+
+    Unfortunately, the latter protection mechanism works only when using the returned
+    object, not when creating an additional reference to it:
+
+    >>> cd = filemanager.currentdir()
+
+    In such cases, the protection mechanism will still work, but eventually later than
+    expected:
+
+    >>> len(cd)
+    Traceback (most recent call last):
+    ...
+    RuntimeError: The `currentdir` property of the file manager has been queried by \
+"calling it", which is unsafe.  Use statements similar to \
+`hydpy.pub.filemanager.currentdir` only in combination with the `with` statement.
+    """
+
+    manager2value: dict[FileManager, str | None]
+
+    def __init__(self) -> None:
+        self.manager2value = {}
+
+    @overload
+    def __get__(self, manager: None, _: type[FileManager], /) -> Self: ...
+
+    @overload
+    def __get__(
+        self, manager: FileManager, _: type[FileManager], /
+    ) -> _CurrentDirContext: ...
+
+    def __get__(
+        self, manager: FileManager | None, _: type[FileManager], /
+    ) -> _CurrentDirContext | Self:
+
+        if manager is None:
+            return self
+
+        def _print_info(dirname: str, /) -> None:
+            if hydpy.pub.options.printprogress:
+                print(
+                    f"The name of the {manager.docname}'s current working directory "
+                    f"has not been previously defined and is hence set to "
+                    f"`{dirname}`."
+                )
+
+        currentdir = self.manager2value.get(manager)
+        if currentdir is None:
+            dirs = manager.availabledirs.folders
+            if len(dirs) == 1:
+                _print_info(dirs[0])
+                manager.currentdir = dirs[0]
+            elif (default := manager.DEFAULTDIR) and (default in dirs or not dirs):
+                _print_info(default)
+                manager.currentdir = default
+            else:
+                # The following hack distinguishes between cases where one asks the
+                # property for the current working directory (exception) and where one
+                # tries to set the current working directory via a `with` statement (no
+                # exception):
+                assert (code_context := inspect.stack()[1].code_context) is not None
+                code = "".join(code_context).replace(" ", "").replace("\n", "")
+                if code.count(".currentdir") > code.count(".currentdir("):
+                    prefix = (
+                        f"The current working directory of the {manager.docname} has "
+                        f"not been defined manually and cannot be determined "
+                        f"automatically:"
+                    )
+                    if not dirs:
+                        raise RuntimeError(
+                            f"{prefix} `{objecttools.repr_(manager.basepath)}` does "
+                            f"not contain any available directories."
+                        )
+                    if default is None:
+                        raise RuntimeError(
+                            f"{prefix} `{objecttools.repr_(manager.basepath)}` does "
+                            f"contain multiple available directories "
+                            f"({objecttools.enumeration(dirs)})."
+                        )
+                    raise RuntimeError(
+                        f"{prefix} The default directory ({default}) is not among the "
+                        f"available directories ({objecttools.enumeration(dirs)})."
+                    )
+        return _CurrentDirContext(manager, self)
+
+    def __set__(self, manager: FileManager, value: str | None) -> None:
+        if value is None:
+            self.manager2value[manager] = None
+        else:
+            dirpath = os.path.join(manager.basepath, value)
+            zippath = f"{dirpath}.zip"
+            if os.path.exists(zippath):
+                shutil.unpack_archive(
+                    filename=zippath, extract_dir=dirpath, format="zip"
+                )
+                os.remove(zippath)
+                if hydpy.pub.options.printprogress:
+                    print(
+                        f"The zip file {zippath} has been extracted to directory "
+                        f"{dirpath} and removed."
+                    )
+            elif not os.path.exists(dirpath):
+                os.makedirs(dirpath)
+                if hydpy.pub.options.printprogress:
+                    print(f"Directory {dirpath} has been created.")
+            self.manager2value[manager] = value
+
+    def __delete__(self, manager: FileManager, /) -> None:
+        if (value := self.manager2value.get(manager)) is not None:
+            path = os.path.join(manager.basepath, value)
+            if os.path.exists(path):
+                try:
+                    shutil.rmtree(path)
+                    if hydpy.pub.options.printprogress:
+                        print(f"Directory {path} has been removed.")
+                except BaseException:
+                    objecttools.augment_excmessage(
+                        f"While trying to delete the current working directory "
+                        f"`{objecttools.repr_(path)}` of the {manager.docname}"
+                    )
+            self.manager2value[manager] = None
+
+
 class FileManager:
     """Base class for |NetworkManager|, |ControlManager|, |ConditionManager|, and
     |SequenceManager|."""
@@ -155,11 +560,9 @@ class FileManager:
     DEFAULTDIR: str | None
 
     _projectdir: str | None
-    _currentdir: str | None
 
     def __init__(self) -> None:
         self._projectdir = None
-        self._currentdir = None
 
     @property
     def projectdir(self) -> str:
@@ -202,7 +605,7 @@ Attribute projectname of module `pub` is not defined at the moment.
                 return hydpy.pub.projectname
             except BaseException:
                 objecttools.augment_excmessage(
-                    f"While trying to automatically determine the {self._docname}'s "
+                    f"While trying to automatically determine the {self.docname}'s "
                     f"project root directory"
                 )
         return projectdir
@@ -267,242 +670,7 @@ Attribute projectname of module `pub` is not defined at the moment.
                     directories.add(directory[:-4], path)
         return directories
 
-    @property
-    def currentdir(self) -> str:
-        """The name of the current working directory containing the relevant files.
-
-        To show most of the functionality of |property| |FileManager.currentdir| (we
-        explain unpacking zipped files on the fly in the documentation on function
-        |FileManager.zip_currentdir|), we first prepare a |FileManager| object with the
-        default |FileManager.basepath| `projectname/basename` and no
-        |FileManager.DEFAULTDIR| defined:
-
-        >>> from hydpy.core.filetools import FileManager
-        >>> filemanager = FileManager()
-        >>> filemanager.BASEDIR = "basename"
-        >>> filemanager.DEFAULTDIR = None
-        >>> filemanager.projectdir = "projectname"
-        >>> import os
-        >>> from hydpy import pub, repr_, TestIO
-        >>> TestIO.clear()
-        >>> with TestIO():
-        ...     os.makedirs("projectname/basename")
-        ...     repr_(filemanager.basepath)  # doctest: +ELLIPSIS
-        '...hydpy/tests/iotesting/projectname/basename'
-
-        At first, the base directory is empty and asking for the current working
-        directory results in the following error:
-
-        >>> with TestIO():
-        ...     filemanager.currentdir  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        ...
-        RuntimeError: The current working directory of the file manager has not been \
-defined manually and cannot be determined automatically: `.../projectname/basename` \
-does not contain any available directories.
-
-        If only one directory exists, it is considered the current working directory
-        automatically:
-
-        >>> with TestIO(), pub.options.printprogress(True):
-        ...     os.mkdir("projectname/basename/dir1")
-        ...     assert filemanager.currentdir == "dir1"
-        The name of the file manager's current working directory has not been \
-previously defined and is hence set to `dir1`.
-
-        |property| |FileManager.currentdir| memorises the name of the current working
-        directory, even if another directory is added later to the base path:
-
-        >>> with TestIO():
-        ...     os.mkdir("projectname/basename/dir2")
-        ...     assert filemanager.currentdir == "dir1"
-
-        Set the value of |FileManager.currentdir| to |None| to let it forget the
-        memorised directory.  After that, trying to query the current working directory
-        results in another error, as it is unclear which directory to select:
-
-        >>> with TestIO():
-        ...     filemanager.currentdir = None
-        ...     filemanager.currentdir  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        ...
-        RuntimeError: The current working directory of the file manager has not been \
-defined manually and cannot be determined automatically: `.../projectname/basename` \
-does contain multiple available directories (dir1 and dir2).
-
-        Setting |FileManager.currentdir| manually solves the problem:
-
-        >>> with TestIO():
-        ...     filemanager.currentdir = "dir1"
-        ...     assert filemanager.currentdir == "dir1"
-
-        Remove the current working directory `dir1` with the `del` statement:
-
-        >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
-        ...     del filemanager.currentdir
-        ...     assert not os.path.exists("projectname/basename/dir1")
-        Directory ...dir1 has been removed.
-
-        |FileManager| subclasses can define a default directory name.  When many
-        directories exist, and none is selected manually, the default directory is
-        chosen automatically.  The following example shows an error message due to
-        multiple directories without any default name:
-
-        >>> with TestIO():
-        ...     os.mkdir("projectname/basename/dir1")
-        ...     filemanager.DEFAULTDIR = "dir3"
-        ...     del filemanager.currentdir
-        ...     filemanager.currentdir  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        ...
-        RuntimeError: The current working directory of the file manager has not been \
-defined manually and cannot be determined automatically: The default directory (dir3) \
-is not among the available directories (dir1 and dir2).
-
-        We can fix this by manually adding the required default directory:
-
-        >>> with TestIO(), pub.options.printprogress(True):
-        ...     os.mkdir("projectname/basename/dir3")
-        ...     assert filemanager.currentdir == "dir3"
-        The name of the file manager's current working directory has not been \
-previously defined and is hence set to `dir3`.
-
-        Setting the |FileManager.currentdir| to `dir4` not only overwrites the default
-        name but also creates the required folder:
-
-        >>> with TestIO(), pub.options.printprogress(True):
-        ...     filemanager.currentdir = "dir4"
-        ...     assert filemanager.currentdir == "dir4"  # doctest: +ELLIPSIS
-        Directory ...dir4 has been created.
-        >>> with TestIO():
-        ...     dirs = os.listdir("projectname/basename")
-        ...     assert sorted(dirs) == ["dir1", "dir2", "dir3", "dir4"]
-
-        Failed attempts to remove directories result in error messages like the
-        following one:
-
-        >>> import shutil
-        >>> from unittest.mock import patch
-        >>> with TestIO(), patch.object(shutil, "rmtree", side_effect=AttributeError):
-        ...     del filemanager.currentdir  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-        ...
-        AttributeError: While trying to delete the current working directory \
-`.../projectname/basename/dir4` of the file manager, the following error occurred: ...
-
-        Then, the current working directory still exists and is remembered by property
-        |FileManager.currentdir|:
-
-        >>> with TestIO():
-        ...     assert filemanager.currentdir == "dir4"
-        >>> with TestIO():
-        ...     dirs =os.listdir("projectname/basename")
-        ...     assert sorted(dirs) == ["dir1", "dir2", "dir3", "dir4"]
-
-        Assign the folder's absolute path if you need to work outside the current
-        project directory (for example, to archive simulated data):
-
-        >>> with TestIO():  # doctest: +ELLIPSIS
-        ...     os.mkdir("differentproject")
-        ...     filemanager.currentdir = os.path.abspath("differentproject/dir1")
-        ...     path = repr_(filemanager.currentpath)
-        ...     assert path.endswith("hydpy/tests/iotesting/differentproject/dir1")
-        ...     assert os.listdir("differentproject") == ["dir1"]
-
-        If a |FileManager| subclass defines its |FileManager.DEFAULTDIR| class
-        attribute, the above behaviour differs in the case of an initially empty base
-        directory.  Then, |FileManager.currentdir| activates and creates an accordingly
-        named directory automatically:
-
-        >>> filemanager.currentdir = None
-        >>> filemanager.DEFAULTDIR = "default"
-        >>> TestIO.clear()
-        >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
-        ...     os.makedirs("projectname/basename")
-        ...     assert filemanager.currentdir == "default"
-        ...     assert os.path.exists("projectname/basename/default")
-        The name of the file manager's current working directory has not been \
-previously defined and is hence set to `default`.
-        Directory ...default has been created.
-        """
-
-        def _print_info(dirname: str, /) -> None:
-            if hydpy.pub.options.printprogress:
-                print(
-                    f"The name of the {self._docname}'s current working directory "
-                    f"has not been previously defined and is hence set to "
-                    f"`{dirname}`."
-                )
-
-        currentdir = self._currentdir
-        if currentdir is None:
-            dirs = self.availabledirs.folders
-            if len(dirs) == 1:
-                _print_info(dirs[0])
-                currentdir = dirs[0]
-            elif (default := self.DEFAULTDIR) and (default in dirs or not dirs):
-                _print_info(default)
-                currentdir = default
-            else:
-                prefix = (
-                    f"The current working directory of the {self._docname} has not "
-                    f"been defined manually and cannot be determined automatically:"
-                )
-                if not dirs:
-                    raise RuntimeError(
-                        f"{prefix} `{objecttools.repr_(self.basepath)}` does not "
-                        f"contain any available directories."
-                    )
-                if default is None:
-                    raise RuntimeError(
-                        f"{prefix} `{objecttools.repr_(self.basepath)}` does contain "
-                        f"multiple available directories "
-                        f"({objecttools.enumeration(dirs)})."
-                    )
-                raise RuntimeError(
-                    f"{prefix} The default directory ({default}) is not among the "
-                    f"available directories ({objecttools.enumeration(dirs)})."
-                )
-            self.currentdir = currentdir
-        return currentdir
-
-    @currentdir.setter
-    def currentdir(self, directory: str | None) -> None:
-        if directory is None:
-            self._currentdir = None
-        else:
-            dirpath = os.path.join(self.basepath, directory)
-            zippath = f"{dirpath}.zip"
-            if os.path.exists(zippath):
-                shutil.unpack_archive(
-                    filename=zippath, extract_dir=dirpath, format="zip"
-                )
-                os.remove(zippath)
-                if hydpy.pub.options.printprogress:
-                    print(
-                        f"The zip file {zippath} has been extracted to directory "
-                        f"{dirpath} and removed."
-                    )
-            elif not os.path.exists(dirpath):
-                os.makedirs(dirpath)
-                if hydpy.pub.options.printprogress:
-                    print(f"Directory {dirpath} has been created.")
-            self._currentdir = str(directory)
-
-    @currentdir.deleter
-    def currentdir(self) -> None:
-        path = os.path.join(self.basepath, self.currentdir)
-        if os.path.exists(path):
-            try:
-                shutil.rmtree(path)
-                if hydpy.pub.options.printprogress:
-                    print(f"Directory {path} has been removed.")
-            except BaseException:
-                objecttools.augment_excmessage(
-                    f"While trying to delete the current working directory "
-                    f"`{objecttools.repr_(path)}` of the {self._docname}"
-                )
-        self._currentdir = None
+    currentdir = _CurrentDirProperty()
 
     @property
     def currentpath(self) -> str:
@@ -636,7 +804,8 @@ removed.
         del self.currentdir
 
     @property
-    def _docname(self) -> str:
+    def docname(self) -> str:
+        """File manager name for documentation and error messages."""
         return f"{type(self).__name__[:-7].lower()} manager"
 
 
@@ -1220,8 +1389,8 @@ Hence, the condition manager writes its data to a directory named \
         if hydpy.pub.options.printprogress:
             already_reported = self._already_reported
             message = (
-                f"The {self._docname}'s current working directory is not defined "
-                f"explicitly.  Hence, the {self._docname} {task} a directory named "
+                f"The {self.docname}'s current working directory is not defined "
+                f"explicitly.  Hence, the {self.docname} {task} a directory named "
                 f"`{dirname}`."
             )
             if (already_reported is None) or (message not in already_reported):
@@ -1236,9 +1405,9 @@ Hence, the condition manager writes its data to a directory named \
         See the main documentation on class |ConditionManager| and its option
         |ConditionManager.prefix| for further information.
         """
-        currentdir = self._currentdir
+        currentdir = type(self).currentdir.manager2value.get(self)
         try:
-            if not currentdir:
+            if currentdir is None:
                 to_string = hydpy.pub.timegrids.sim.firstdate.to_string
                 autodir = f"{self.prefix}_{to_string('os')}"
                 self._print_info(dirname=autodir, task="reads its data from")
@@ -1250,7 +1419,7 @@ Hence, the condition manager writes its data to a directory named \
                 "loading conditions file"
             )
         finally:
-            self._currentdir = currentdir
+            type(self).currentdir.manager2value[self] = currentdir
 
     @property
     def outputpath(self) -> str:
@@ -1259,9 +1428,9 @@ Hence, the condition manager writes its data to a directory named \
         See the main documentation on class |ConditionManager| and its option
         |ConditionManager.prefix| for further information.
         """
-        currentdir = self._currentdir
+        currentdir = type(self).currentdir.manager2value.get(self)
         try:
-            if not currentdir:
+            if currentdir is None:
                 to_string = hydpy.pub.timegrids.sim.lastdate.to_string
                 autodir = f"{self.prefix}_{to_string('os')}"
                 self._print_info(dirname=autodir, task="writes its data to")
@@ -1273,7 +1442,7 @@ Hence, the condition manager writes its data to a directory named \
                 "saving conditions file"
             )
         finally:
-            self._currentdir = currentdir
+            type(self).currentdir.manager2value[self] = currentdir
 
 
 class SequenceManager(FileManager):

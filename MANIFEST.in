@@ -1,15 +1,10 @@
 global-exclude *.*
-include .gitignore
 include LICENSE
 include pylintrc
-include appveyor.yml
-include .travis.yml
 include licenses_hydpy_installer.txt
-include requirements.txt
 include pyproject.toml
 include README.rst
 include logo.ico
-include make_hydpy_installer.cfgt
 include *.py
 include hydpy/*.py
 include hydpy/py.typed
@@ -29,7 +24,6 @@ include hydpy/docs/bib/*.bib
 include hydpy/docs/figs/*.png
 include hydpy/docs/rst/*.rst
 include hydpy/docs/sphinx/_themes/basic_hydpy/*.html
-include hydpy/docs/sphinx/_themes/basic_hydpy/*.html
 include hydpy/docs/sphinx/_themes/basic_hydpy/*.xml
 include hydpy/docs/sphinx/_themes/basic_hydpy/*.conf
 include hydpy/docs/sphinx/_themes/basic_hydpy/static/*
@@ -38,8 +32,6 @@ include hydpy/docs/sphinx/_themes/classic_hydpy/*.html
 include hydpy/docs/sphinx/_themes/classic_hydpy/*.conf
 include hydpy/docs/sphinx/_themes/classic_hydpy/static/*
 include hydpy/tests/hydpydoctestcustomize.pth
-include hydpy/tests/test_case_mypy_plugin.pyt
-include hydpy/tests/expected_results_mypy_plugin.txt
 include hydpy/tests/.coveragerc
 graft hydpy/data*
 global-exclude *.pyc

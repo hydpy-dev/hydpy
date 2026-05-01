@@ -1,19 +1,18 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class LogIn(sequencetools.LogSequence):
     """The recent and the past inflow portions for the application of the
     different MA processes [m³/s]."""
 
-    NDIM, NUMERIC, SPAN = 2, False, (None, None)
+    NDIM: Final[Literal[2]] = 2
 
 
 class LogOut(sequencetools.LogSequence):
     """The past outflow portions for the application of the
     different AR processes [m³/s]."""
 
-    NDIM, NUMERIC, SPAN = 2, False, (None, None)
+    NDIM: Final[Literal[2]] = 2

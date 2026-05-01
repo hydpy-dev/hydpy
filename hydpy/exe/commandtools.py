@@ -1,8 +1,6 @@
 """This module implements some main features for using *HydPy* from your command line
 tools via script |hyd|."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import contextlib
 import datetime
@@ -14,7 +12,6 @@ import sys
 import time
 import traceback
 
-# ...from hydpy
 import hydpy
 import hydpy.tests.run_doctests
 from hydpy import config

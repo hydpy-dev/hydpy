@@ -1669,11 +1669,9 @@ acre (snow surface temperature)
 >>> round_(model.check_waterbalance(conditions_acker_winter_ktschnee))
 0.0
 """
-# import...
-# ...from site-packages
+
 import numpy
 
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
@@ -1681,8 +1679,6 @@ from hydpy.core.typingtools import *
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import radiationinterfaces
 from hydpy.interfaces import soilinterfaces
-
-# ...from lland
 from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_masks
 from hydpy.models.lland.lland_constants import *
@@ -1842,9 +1838,9 @@ class Model(
     )
 
     idx_hru = modeltools.Idx_HRU()
-    radiationmodel = modeltools.SubmodelProperty(
-        radiationinterfaces.RadiationModel_V1, radiationinterfaces.RadiationModel_V4
-    )
+    radiationmodel = modeltools.SubmodelProperty[
+        radiationinterfaces.RadiationModel_V1 | radiationinterfaces.RadiationModel_V4
+    ](radiationinterfaces.RadiationModel_V1, radiationinterfaces.RadiationModel_V4)
     aetmodel = modeltools.SubmodelProperty(aetinterfaces.AETModel_V1)
     soilmodel = modeltools.SubmodelProperty(soilinterfaces.SoilModel_V1, optional=True)
 

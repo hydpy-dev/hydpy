@@ -1,19 +1,16 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class AbsErrorMax(parametertools.SolverParameter):
     """Absolute numerical error tolerance [mm/T]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, None)
     INIT = 0.01
 
@@ -21,9 +18,8 @@ class AbsErrorMax(parametertools.SolverParameter):
 class RelErrorMax(parametertools.SolverParameter):
     """Relative numerical error tolerance [1/T]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, None)
     INIT = numpy.nan
 
@@ -31,9 +27,8 @@ class RelErrorMax(parametertools.SolverParameter):
 class RelDTMin(parametertools.SolverParameter):
     """Smallest relative integration time step size allowed [-]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, 1.0)
     INIT = 0.001
 
@@ -41,8 +36,7 @@ class RelDTMin(parametertools.SolverParameter):
 class RelDTMax(parametertools.SolverParameter):
     """Largest relative integration time step size allowed [-]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, 1.0)
     INIT = 1.0

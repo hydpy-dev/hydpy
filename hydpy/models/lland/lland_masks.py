@@ -1,14 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from standard library
 from __future__ import annotations
 
-# ...from HydPy
 from hydpy.core import masktools
+from hydpy.core import parametertools
 from hydpy.core import variabletools
-
-# ...from lland
 from hydpy.models.lland import lland_control
 from hydpy.models.lland import lland_constants
 from hydpy.models.lland.lland_constants import (
@@ -33,7 +29,7 @@ from hydpy.models.lland.lland_constants import (
 )
 
 
-def _exclude(*args):
+def _exclude(*args: parametertools.IntConstant) -> tuple[int, ...]:
     return tuple(
         value for (key, value) in lland_constants.CONSTANTS.items() if value not in args
     )

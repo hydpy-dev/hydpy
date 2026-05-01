@@ -1,24 +1,23 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import parametertools
-
-# ...from evap
+from hydpy.core.typingtools import *
 from hydpy.models.rconc import rconc_control
 
 
 class KSC(parametertools.Parameter):
     """Coefficient of the individual storages of the linear storage cascade [1/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (rconc_control.RetentionTime, rconc_control.NmbStorages)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KSC| based on
         :math:`KSC = \\frac{2 \\cdot NmbStorages}{RetentionTime}`.
 
@@ -47,11 +46,13 @@ class KSC(parametertools.Parameter):
 class DT(parametertools.Parameter):
     """Relative length of each simulation step [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (rconc_control.NmbSteps,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |DT| based on :math:`DT = \\frac{1}{NmbSteps}`.
 
         >>> from hydpy.models.rconc import *

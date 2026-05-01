@@ -7,15 +7,10 @@ basins but to calculate details of the water balance, like groundwater recharge,
 specific locations.
 """
 
-# import..
-# ...from HydPy
 from hydpy.exe.modelimports import *
-
-# ...from hland
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod.whmod_model import Model
 from hydpy.models.whmod.whmod_masks import Masks
-
 
 tester = Tester()
 cythonizer = Cythonizer()

@@ -1,10 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
-
-# ...from snow
+from hydpy.core.typingtools import *
 from hydpy.models.snow import snow_sequences
 
 
@@ -35,4 +32,4 @@ class PNetLayer(snow_sequences.Flux1DNLayers):
 class PNet(sequencetools.FluxSequence):
     """Net precipitation of the complete catchment [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0

@@ -310,10 +310,10 @@ class Queue(queue.LifoQueue[devicetools.NodeOrElement]):
 
     if sys.version_info < (3, 13):
 
-        def shutdown(self) -> None:
-            """For compatibility with Python 3.12 and earlier."""
-            for _ in range(hydpy.pub.options.threads):
-                self.put(None)  # type: ignore[arg-type]
+        def shutdown(self) -> None:  # pragma: no cover
+            """For compatibility with Python 3.12 and earlier."""  # pragma: no cover
+            for _ in range(hydpy.pub.options.threads):  # pragma: no cover
+                self.put(None)  # type: ignore[arg-type]  # pragma: no cover
 
     def join(self) -> None:
         """Block the queue until all nodes and elements have been processed.

@@ -1,39 +1,38 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class PotentialExchange(sequencetools.FluxSequence):
     """The potential bidirectional water exchange [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class ActualExchange(sequencetools.FluxSequence):
     """The actual bidirectional water exchange [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class OriginalInput(sequencetools.FluxSequence):
     """Unadjusted total input [e.g. m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class AdjustedInput(sequencetools.FluxSequence):
     """Adjusted total input [e.g. m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class Outputs(sequencetools.FluxSequence):
     """Branched outputs [e.g. m³/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
     def __repr__(self) -> str:
         names = self.subseqs.seqs.model.nodenames

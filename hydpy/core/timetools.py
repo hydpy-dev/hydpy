@@ -4,8 +4,6 @@
 cf-conventions-1.7/cf-conventions.html#time-coordinate
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import calendar
 import collections
@@ -14,10 +12,8 @@ import copy
 import datetime as datetime_
 import time
 
-# ...from third party packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import objecttools
@@ -441,7 +437,7 @@ base 10: '0X'
 
         >>> from hydpy import Date
         >>> import numpy
-        >>> array1d = numpy.array([1992, 10, 8, 15, 15, 42, 999])
+        >>> array1d = numpy.asarray([1992, 10, 8, 15, 15, 42, 999])
         >>> Date.from_array(array1d)
         Date("1992-10-08 15:15:42")
 
@@ -474,7 +470,7 @@ base 10: '0X'
            zone information and corresponds to |Options.utcoffset|, which defaults to
            UTC+01:00.
         """
-        return numpy.array(
+        return numpy.asarray(
             [self.year, self.month, self.day, self.hour, self.minute, self.second],
             dtype=config.NP_FLOAT,
         )
@@ -2334,7 +2330,7 @@ timegrid and the given array must be equal, but the length of the timegrid objec
 `4` and the length of the array object is `2`.
         """
         try:
-            array = numpy.array(array, dtype=config.NP_FLOAT)
+            array = numpy.asarray(array, dtype=config.NP_FLOAT)
         except BaseException:
             objecttools.augment_excmessage(
                 "While trying to prefix timegrid information to the given array"

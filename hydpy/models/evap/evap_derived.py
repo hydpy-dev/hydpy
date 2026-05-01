@@ -1,16 +1,12 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
-
-# ...from evap
+from hydpy.core.typingtools import *
 from hydpy.models.evap import evap_parameters
 from hydpy.models.evap import evap_control
 from hydpy.models.evap import evap_fixed
@@ -24,7 +20,9 @@ class MOY(parametertools.MOYParameter):
 class HRUAreaFraction(parametertools.Parameter):
     """The area fraction of each hydrological response unit [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (evap_control.HRUArea,)
 
@@ -47,7 +45,8 @@ class HRUAreaFraction(parametertools.Parameter):
 class Altitude(parametertools.Parameter):
     """Average (reference) subbasin altitude [100m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
 
     CONTROLPARAMETERS = (evap_control.HRUArea, evap_control.HRUAltitude)
 
@@ -84,9 +83,11 @@ class Days(parametertools.DaysParameter):
 class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for a memory duration of 24 hours [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, None)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the number of entries and adjust the shape of all relevant log
         sequences.
 
@@ -152,9 +153,11 @@ determined for a the current simulation step size.  The fraction of the memory p
         self(nmb)
         pars = self.subpars.pars
         for seq in pars.model.sequences.logs:
+            new_shape: int | tuple[int, ...]
+            old_shape: int | tuple[int, ...]
             if isinstance(seq, evap_logs.LoggedPotentialEvapotranspiration):
                 new_shape = self.value
-                old_shape = exceptiontools.getattr_(seq, "shape", (None, None))[1]
+                old_shape = exceptiontools.getattr_(seq, "shape", (-1, -1))[1]
             else:
                 if seq.NDIM == 1:
                     new_shape = (self.value,)
@@ -162,7 +165,7 @@ determined for a the current simulation step size.  The fraction of the memory p
                     new_shape = self.value, pars.control.nmbhru.value
                 else:
                     assert False
-                old_shape = exceptiontools.getattr_(seq, "shape", (None,))
+                old_shape = exceptiontools.getattr_(seq, "shape", (-1,))
             if new_shape != old_shape:
                 seq.shape = new_shape
 
@@ -172,11 +175,11 @@ class RoughnessLength(
 ):  # ToDo: not directy required, remove?
     """Roughness length [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (evap_control.CropHeight,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the roughness length based on
         :math:`max(0.13 \cdot CropHeight, \ 0.00013)`.
 
@@ -203,13 +206,13 @@ class RoughnessLength(
 class AerodynamicResistanceFactor(evap_parameters.LandMonthParameter):
     """Factor for calculating aerodynamic resistance [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (evap_control.CropHeight,)
     DERIVEDPARAMETERS = (RoughnessLength,)
     FIXEDPARAMETERS = (evap_fixed.AerodynamicResistanceFactorMinimum,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the factor for calculating aerodynamic resistance based on the
         :math:`max \big( ln(2 / z_0) \cdot ln(10 / z_0) / 0.41^2, \ \tau \big)` with
         :math:`z_0` being the |RoughnessLength| :cite:p:`ref-Löpmeier2014` and

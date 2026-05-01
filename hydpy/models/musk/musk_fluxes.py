@@ -1,15 +1,14 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 from hydpy.models.musk import musk_sequences
 
 
 class Inflow(sequencetools.FluxSequence):
     """Inflow [m³/s]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0
 
 
 class ReferenceDischarge(musk_sequences.FluxSequence1D):
@@ -21,4 +20,4 @@ class ReferenceDischarge(musk_sequences.FluxSequence1D):
 class Outflow(sequencetools.FluxSequence):
     """Outflow [m³/s]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0

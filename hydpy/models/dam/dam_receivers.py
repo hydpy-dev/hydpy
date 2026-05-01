@@ -1,41 +1,40 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class Q(sequencetools.ReceiverSequence):
     """Remote discharge [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class D(sequencetools.ReceiverSequence):
     """Water demand [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class S(sequencetools.ReceiverSequence):
     """Required water supply [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class R(sequencetools.ReceiverSequence):
     """Allowed water relief [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class OWL(sequencetools.ReceiverSequence):
     """The water level directly below the dam [m]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class RWL(sequencetools.ReceiverSequence):
     """The water level at a remote location [m]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0

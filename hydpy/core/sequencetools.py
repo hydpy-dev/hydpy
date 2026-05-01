@@ -1,22 +1,19 @@
 """This module implements tools for defining and handling different kinds of
 hydrological model sequences (time series)."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import copy
 import dataclasses
 import enum
+import math
 import os
 import sys
 import types
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import devicetools
@@ -25,7 +22,6 @@ from hydpy.core import objecttools
 from hydpy.core import propertytools
 from hydpy.core import variabletools
 from hydpy.core.typingtools import *
-
 
 if TYPE_CHECKING:
     from hydpy.core import modeltools
@@ -38,11 +34,13 @@ else:
     from hydpy.cythons.autogen import sequenceutils
 
 
-TypeSequences = TypeVar("TypeSequences", "Sequences", "devicetools.Node")
+TypeSequences = TypeVar(
+    "TypeSequences", "Sequences[modeltools.Model]", "devicetools.Node"
+)
 
 TypeModelSequences = TypeVar(
     "TypeModelSequences",
-    bound="ModelSequences[ModelSequence, variabletools.FastAccess]",
+    bound="ModelSequences[modeltools.Model, ModelSequence, variabletools.FastAccess]",
 )
 
 TypeSequence_co = TypeVar("TypeSequence_co", bound="Sequence_", covariant=True)
@@ -65,35 +63,35 @@ TypeFastAccessIOSequence_co = TypeVar(
 )
 
 ModelSequencesSubypes: TypeAlias = Union[
-    "InputSequences",
-    "FactorSequences",
-    "FluxSequences",
-    "StateSequences",
-    "LogSequences",
-    "AideSequences",
-    "InletSequences",
-    "OutletSequences",
-    "ReceiverSequences",
-    "ObserverSequences",
-    "SenderSequences",
+    "InputSequences[modeltools.Model]",
+    "FactorSequences[modeltools.Model]",
+    "FluxSequences[modeltools.Model]",
+    "StateSequences[modeltools.Model]",
+    "LogSequences[modeltools.Model]",
+    "AideSequences[modeltools.Model]",
+    "InletSequences[modeltools.Model]",
+    "OutletSequences[modeltools.Model]",
+    "ReceiverSequences[modeltools.Model]",
+    "ObserverSequences[modeltools.Model]",
+    "SenderSequences[modeltools.Model]",
 ]
 ModelIOSequencesSubtypes: TypeAlias = Union[
-    "InputSequences",
-    "FactorSequences",
-    "FluxSequences",
-    "StateSequences",
-    "InletSequences",
-    "OutletSequences",
-    "ReceiverSequences",
-    "SenderSequences",
-    "ObserverSequences",
+    "InputSequences[modeltools.Model]",
+    "FactorSequences[modeltools.Model]",
+    "FluxSequences[modeltools.Model]",
+    "StateSequences[modeltools.Model]",
+    "InletSequences[modeltools.Model]",
+    "OutletSequences[modeltools.Model]",
+    "ReceiverSequences[modeltools.Model]",
+    "SenderSequences[modeltools.Model]",
+    "ObserverSequences[modeltools.Model]",
 ]
 LinkSequencesSubtypes: TypeAlias = Union[
-    "InletSequences",
-    "OutletSequences",
-    "ReceiverSequences",
-    "ObserverSequences",
-    "SenderSequences",
+    "InletSequences[modeltools.Model]",
+    "OutletSequences[modeltools.Model]",
+    "ReceiverSequences[modeltools.Model]",
+    "ObserverSequences[modeltools.Model]",
+    "SenderSequences[modeltools.Model]",
 ]
 
 InOutSequence: TypeAlias = Union[
@@ -355,7 +353,7 @@ class FastAccessNodeSequence(FastAccessIOSequence):
         |numpy.nan|."""
         # pylint: disable=unused-argument
         # required for consistincy with the other reset methods.
-        if numpy.isnan(self.obs[0]):
+        if math.isnan(self.obs[0]):
             self._reset_obsdata = True
             self.obs[0] = self.sim[0]
 
@@ -393,7 +391,7 @@ class InfoArray(NDArrayFloat):
         obj.aggregation = aggregation
         return obj
 
-    def __array_finalize__(self, obj: NDArray | None) -> None:
+    def __array_finalize__(self, obj: NDArrayFloat | None) -> None:
         if isinstance(obj, InfoArray):
             self.aggregation = obj.aggregation
         else:
@@ -459,7 +457,7 @@ class StandardInputNames(enum.StrEnum):
     """Wind speed [m/s]."""
 
 
-class Sequences:
+class Sequences(Generic[TM_co]):
     """Base class for handling all sequences of a specific model.
 
     |Sequences| objects handle nine sequence subgroups as attributes such as the
@@ -602,34 +600,34 @@ class Sequences:
         >>> pub.sequencemanager.overwrite = False
     """
 
-    model: modeltools.Model
-    inlets: InletSequences
-    observers: ObserverSequences
-    receivers: ReceiverSequences
-    inputs: InputSequences
-    factors: FactorSequences
-    fluxes: FluxSequences
-    states: StateSequences
-    logs: LogSequences
-    aides: AideSequences
-    outlets: OutletSequences
-    senders: SenderSequences
+    model: TM_co
+    inlets: InletSequences[TM_co]
+    observers: ObserverSequences[TM_co]
+    receivers: ReceiverSequences[TM_co]
+    inputs: InputSequences[TM_co]
+    factors: FactorSequences[TM_co]
+    fluxes: FluxSequences[TM_co]
+    states: StateSequences[TM_co]
+    logs: LogSequences[TM_co]
+    aides: AideSequences[TM_co]
+    outlets: OutletSequences[TM_co]
+    senders: SenderSequences[TM_co]
 
     def __init__(
         self,
-        model: modeltools.Model,
+        model: TM_co,
         *,
-        cls_inlets: type[InletSequences] | None = None,
-        cls_observers: type[ObserverSequences] | None = None,
-        cls_receivers: type[ReceiverSequences] | None = None,
-        cls_inputs: type[InputSequences] | None = None,
-        cls_factors: type[FactorSequences] | None = None,
-        cls_fluxes: type[FluxSequences] | None = None,
-        cls_states: type[StateSequences] | None = None,
-        cls_logs: type[LogSequences] | None = None,
-        cls_aides: type[AideSequences] | None = None,
-        cls_outlets: type[OutletSequences] | None = None,
-        cls_senders: type[SenderSequences] | None = None,
+        cls_inlets: type[InletSequences[TM_co]] | None = None,
+        cls_observers: type[ObserverSequences[TM_co]] | None = None,
+        cls_receivers: type[ReceiverSequences[TM_co]] | None = None,
+        cls_inputs: type[InputSequences[TM_co]] | None = None,
+        cls_factors: type[FactorSequences[TM_co]] | None = None,
+        cls_fluxes: type[FluxSequences[TM_co]] | None = None,
+        cls_states: type[StateSequences[TM_co]] | None = None,
+        cls_logs: type[LogSequences[TM_co]] | None = None,
+        cls_aides: type[AideSequences[TM_co]] | None = None,
+        cls_outlets: type[OutletSequences[TM_co]] | None = None,
+        cls_senders: type[SenderSequences[TM_co]] | None = None,
         cymodel: CyModelProtocol | None = None,
         cythonmodule: types.ModuleType | None = None,
     ) -> None:
@@ -672,8 +670,8 @@ class Sequences:
         self,
         default: type[TypeModelSequences],
         class_: type[TypeModelSequences] | None,
-        cymodel,
-        cythonmodule,
+        cymodel: CyModelProtocol | None,
+        cythonmodule: types.ModuleType | None,
     ) -> TypeModelSequences:
         name = default.__name__
         if class_ is None:
@@ -752,13 +750,13 @@ class Sequences:
         self.fluxes.prepare_series(allocate_ram=allocate_ram, write_jit=jit)
         self.states.prepare_series(allocate_ram=allocate_ram, write_jit=jit)
 
-    def load_series(self):
+    def load_series(self) -> None:
         """Call method |IOSequences.load_series| of all handled |IOSequences|
         objects."""
         for subseqs in self.iosubsequences:
             subseqs.load_series()
 
-    def save_series(self):
+    def save_series(self) -> None:
         """Call method |IOSequence.save_series| of all handled |IOSequences|
         objects."""
         for subseqs in self.iosubsequences:
@@ -854,7 +852,7 @@ class Sequences:
 
     def __getitem__(
         self, item: str
-    ) -> SubSequences[TypeSequences, Sequence_, variabletools.FastAccess]:
+    ) -> SubSequences[TM_co, TypeSequences, Sequence_, variabletools.FastAccess]:
         try:
             subseqs = getattr(self, item)
         except AttributeError:
@@ -899,7 +897,7 @@ class Sequences:
 
 class SubSequences(
     variabletools.SubVariables[
-        TypeSequences, TypeSequence_co, variabletools.TypeFastAccess_co
+        TOM_co, TypeSequences, TypeSequence_co, variabletools.TypeFastAccess_co
     ]
 ):
     """Base class for handling subgroups of sequences.
@@ -960,16 +958,21 @@ class SubSequences(
 
 
 class ModelSequences(
-    SubSequences[Sequences, TypeModelSequence_co, variabletools.TypeFastAccess_co]
+    SubSequences[
+        TM_co,
+        Sequences["modeltools.Model"],
+        TypeModelSequence_co,
+        variabletools.TypeFastAccess_co,
+    ]
 ):
     """Base class for handling model-related subgroups of sequences."""
 
-    seqs: Sequences
+    seqs: Sequences[TM_co]
     _cymodel: CyModelProtocol | None
 
     def __init__(
         self,
-        master: Sequences,
+        master: Sequences[TM_co],
         cls_fastaccess: type[variabletools.TypeFastAccess_co] | None = None,
         cymodel: CyModelProtocol | None = None,
     ) -> None:
@@ -996,11 +999,11 @@ class SeriesMode:
 
 
 class IOSequences(
-    SubSequences[TypeSequences, TypeIOSequence_co, TypeFastAccessIOSequence_co]
+    SubSequences[TOM_co, TypeSequences, TypeIOSequence_co, TypeFastAccessIOSequence_co]
 ):
     """Subclass of |SubSequences|, specialised for handling |IOSequence| objects."""
 
-    seqs: Sequences
+    seqs: Sequences[modeltools.Model]
 
     def prepare_series(
         self, allocate_ram: bool = True, read_jit: bool = False, write_jit: bool = False
@@ -1028,8 +1031,13 @@ class IOSequences(
 
 
 class ModelIOSequences(
-    IOSequences[Sequences, TypeModelIOSequence_co, TypeFastAccessIOSequence_co],
-    ModelSequences[TypeModelIOSequence_co, TypeFastAccessIOSequence_co],
+    IOSequences[
+        TM_co,
+        Sequences["modeltools.Model"],
+        TypeModelIOSequence_co,
+        TypeFastAccessIOSequence_co,
+    ],
+    ModelSequences[TM_co, TypeModelIOSequence_co, TypeFastAccessIOSequence_co],
 ):
     """Base class for handling model-related subgroups of |IOSequence| objects."""
 
@@ -1044,14 +1052,14 @@ class ModelIOSequences(
         self.fastaccess.save_data(idx)
 
 
-class InputSequences(ModelIOSequences["InputSequence", FastAccessInputSequence]):
+class InputSequences(ModelIOSequences[TM_co, "InputSequence", FastAccessInputSequence]):
     """Base class for handling |InputSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = FastAccessInputSequence
 
 
 class OutputSequences(
-    ModelIOSequences[TypeOutputSequence_co, FastAccessOutputSequence]
+    ModelIOSequences[TM_co, TypeOutputSequence_co, FastAccessOutputSequence]
 ):
     """Base class for handling |OutputSequence| objects."""
 
@@ -1088,11 +1096,11 @@ class OutputSequences(
                 yield flux
 
 
-class FactorSequences(OutputSequences["FactorSequence"]):
+class FactorSequences(OutputSequences[TM_co, "FactorSequence"]):
     """Base class for handling |FactorSequence| objects."""
 
 
-class FluxSequences(OutputSequences["FluxSequence"]):
+class FluxSequences(OutputSequences[TM_co, "FluxSequence"]):
     """Base class for handling |FluxSequence| objects."""
 
     @property
@@ -1101,7 +1109,7 @@ class FluxSequences(OutputSequences["FluxSequence"]):
         return "fluxes"
 
 
-class StateSequences(OutputSequences["StateSequence"]):
+class StateSequences(OutputSequences[TM_co, "StateSequence"]):
     """Base class for handling |StateSequence| objects."""
 
     fastaccess_new: FastAccessOutputSequence
@@ -1130,7 +1138,7 @@ class StateSequences(OutputSequences["StateSequence"]):
             seq.reset()
 
 
-class LogSequences(ModelSequences["LogSequence", variabletools.FastAccess]):
+class LogSequences(ModelSequences[TM_co, "LogSequence", variabletools.FastAccess]):
     """Base class for handling |LogSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
@@ -1142,35 +1150,37 @@ class LogSequences(ModelSequences["LogSequence", variabletools.FastAccess]):
             seq.reset()
 
 
-class AideSequences(ModelSequences["AideSequence", variabletools.FastAccess]):
+class AideSequences(ModelSequences[TM_co, "AideSequence", variabletools.FastAccess]):
     """Base class for handling |AideSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
 
 
-class LinkSequences(ModelIOSequences[TypeLinkSequence_co, FastAccessLinkSequence]):
+class LinkSequences(
+    ModelIOSequences[TM_co, TypeLinkSequence_co, FastAccessLinkSequence]
+):
     """Base class for handling |LinkSequence| objects."""
 
     _CLS_FASTACCESS_PYTHON = FastAccessLinkSequence
 
 
-class InletSequences(LinkSequences["InletSequence"]):
+class InletSequences(LinkSequences[TM_co, "InletSequence"]):
     """Base class for handling "inlet" |LinkSequence| objects."""
 
 
-class OutletSequences(LinkSequences["OutletSequence"]):
+class OutletSequences(LinkSequences[TM_co, "OutletSequence"]):
     """Base class for handling "outlet" |LinkSequence| objects."""
 
 
-class ObserverSequences(LinkSequences["ObserverSequence"]):
+class ObserverSequences(LinkSequences[TM_co, "ObserverSequence"]):
     """Base class for handling "observer" |LinkSequence| objects."""
 
 
-class ReceiverSequences(LinkSequences["ReceiverSequence"]):
+class ReceiverSequences(LinkSequences[TM_co, "ReceiverSequence"]):
     """Base class for handling "receiver" |LinkSequence| objects."""
 
 
-class SenderSequences(LinkSequences["SenderSequence"]):
+class SenderSequences(LinkSequences[TM_co, "SenderSequence"]):
     """Base class for handling "sender" |LinkSequence| objects."""
 
 
@@ -1222,18 +1232,28 @@ class Sequence_(variabletools.Variable):
     3
     """
 
-    TYPE: type[float] = float
-    INIT: float = 0.0
-    NUMERIC: bool
+    TYPE: Final = float
+    INIT: TypeINIT = 0.0
+    NUMERIC: TypeNUMERIC = False
 
     subvars: (
-        SubSequences[Sequences, Sequence_, variabletools.FastAccess]
-        | SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess]
+        SubSequences[
+            modeltools.Model,
+            Sequences[modeltools.Model],
+            Sequence_,
+            variabletools.FastAccess,
+        ]
+        | SubSequences[None, devicetools.Node, Sequence_, variabletools.FastAccess]
     )
     """The subgroup to which the sequence belongs."""
     subseqs: (
-        SubSequences[Sequences, Sequence_, variabletools.FastAccess]
-        | SubSequences[devicetools.Node, Sequence_, variabletools.FastAccess]
+        SubSequences[
+            modeltools.Model,
+            Sequences[modeltools.Model],
+            Sequence_,
+            variabletools.FastAccess,
+        ]
+        | SubSequences[None, devicetools.Node, Sequence_, variabletools.FastAccess]
     )
     """Alias for |Sequence_.subvars|."""
     strict_valuehandling: bool = False
@@ -1582,13 +1602,23 @@ during a simulation run is not supported but tried for sequence `t` of element \
     """
 
     subvars: (
-        IOSequences[Sequences, IOSequence, FastAccessIOSequence]
-        | IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence]
+        IOSequences[
+            modeltools.Model,
+            Sequences[modeltools.Model],
+            IOSequence,
+            FastAccessIOSequence,
+        ]
+        | IOSequences[None, devicetools.Node, IOSequence, FastAccessIOSequence]
     )
     """The subgroup to which the IO sequence belongs."""
     subseqs: (
-        IOSequences[Sequences, IOSequence, FastAccessIOSequence]
-        | IOSequences[devicetools.Node, IOSequence, FastAccessIOSequence]
+        IOSequences[
+            modeltools.Model,
+            Sequences[modeltools.Model],
+            IOSequence,
+            FastAccessIOSequence,
+        ]
+        | IOSequences[None, devicetools.Node, IOSequence, FastAccessIOSequence]
     )
     """Alias for |IOSequence.subvars|."""
     fastaccess: FastAccessIOSequence
@@ -1612,7 +1642,10 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> pub.sequencemanager = SequenceManager()
 
         >>> from hydpy.core.sequencetools import InputSequence
-        >>> inputsequence = InputSequence(None)
+        >>> class I(InputSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> inputsequence = I(None)
         >>> inputsequence.filetype
         'asc'
 
@@ -1639,9 +1672,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> inputsequence.filetype
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Sequence `inputsequence` does \
-not know its file type.  Either set it manually or prepare `pub.sequencemanager` \
-correctly.
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `i` does not know its \
+file type.  Either set it manually or prepare `pub.sequencemanager` correctly.
         """
         try:
             return cast(SeriesFileType, hydpy.pub.sequencemanager.filetype)
@@ -1664,7 +1696,10 @@ correctly.
         >>> pub.sequencemanager = SequenceManager()
 
         >>> from hydpy.core.sequencetools import FluxSequence
-        >>> fluxsequence = FluxSequence(None)
+        >>> class F(FluxSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> fluxsequence = F(None)
         >>> fluxsequence.aggregation
         'none'
 
@@ -1688,9 +1723,8 @@ correctly.
         >>> fluxsequence.aggregation
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Sequence `fluxsequence` does not \
-know its aggregation mode.  Either set it manually or prepare `pub.sequencemanager` \
-correctly.
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `f` does not know its \
+aggregation mode.  Either set it manually or prepare `pub.sequencemanager` correctly.
         """
         try:
             return cast(SeriesAggregationType, hydpy.pub.sequencemanager.aggregation)
@@ -1714,7 +1748,10 @@ correctly.
         >>> pub.sequencemanager = SequenceManager()
 
         >>> from hydpy.core.sequencetools import FluxSequence
-        >>> fluxsequence = FluxSequence(None)
+        >>> class F(FluxSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> fluxsequence = F(None)
         >>> fluxsequence.overwrite
         0
 
@@ -1738,9 +1775,8 @@ correctly.
         >>> fluxsequence.overwrite
         Traceback (most recent call last):
         ...
-        hydpy.core.exceptiontools.AttributeNotReady: Sequence `fluxsequence` does not \
-know its overwrite flag.  Either set it manually or prepare `pub.sequencemanager` \
-correctly.
+        hydpy.core.exceptiontools.AttributeNotReady: Sequence `f` does not know its \
+overwrite flag.  Either set it manually or prepare `pub.sequencemanager` correctly.
         """
         try:
             return bool(hydpy.pub.sequencemanager.overwrite)
@@ -1761,6 +1797,8 @@ correctly.
 
         >>> from hydpy.core.sequencetools import StateSequence
         >>> class S(StateSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
         ...     descr_device = "device"
         ...     descr_sequence = "group_sequence"
         ...     filetype = "npy"
@@ -1807,7 +1845,10 @@ correctly.
         ...     currentpath = "temp"
         >>> pub.sequencemanager = SM()
         >>> from hydpy.core.sequencetools import StateSequence
-        >>> repr_(StateSequence(None).dirpath)
+        >>> class S(StateSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> repr_(S(None).dirpath)
         'temp'
         """
         return hydpy.pub.sequencemanager.currentpath
@@ -1820,7 +1861,10 @@ correctly.
         |IOSequence.filename|:
 
         >>> from hydpy.core.sequencetools import StateSequence
-        >>> seq = StateSequence(None)
+        >>> class S(StateSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> seq = S(None)
         >>> seq.dirpath = "path"
         >>> seq.filename = "file.npy"
         >>> from hydpy import repr_
@@ -1983,6 +2027,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> for reading in (False, True):
         ...     for writing in (False, True):
         ...         class S(StateSequence):
+        ...             NDIM = 1
+        ...             TYPE = float
         ...             diskflag_reading = reading
         ...             diskflag_writing = writing
         ...         print(reading, writing, S(None).diskflag)
@@ -2002,6 +2048,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
         >>> for ram in (False, True):
         ...     for disk in (False, True):
         ...         class S(StateSequence):
+        ...             NDIM = 1
+        ...             TYPE = float
         ...             ramflag = ram
         ...             diskflag = disk
         ...         print(ram, disk, S(None).memoryflag)
@@ -2055,10 +2103,11 @@ during a simulation run is not supported but tried for sequence `t` of element \
         )
 
     def __set_array(self, values):
-        values = numpy.array(values, dtype=config.NP_FLOAT)
+        values = numpy.asarray(values, dtype=config.NP_FLOAT)
         self.__hydpy__set_fastaccessattribute__("array", values)
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         When setting a new |IOSequence.shape| of an |IOSequence| object, one
@@ -2067,16 +2116,16 @@ during a simulation run is not supported but tried for sequence `t` of element \
 
         See the main documentation on class |IOSequence| for further information.
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape: int | tuple[int, ...]):
-        super()._set_shape(shape)
+    @shape.setter
+    def shape(self, shape: ShapeHookSet) -> None:
+        proxy = super(__class__, type(self))  # type: ignore[name-defined]
+        proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
         if self.ramflag:
             values = numpy.full(self.seriesshape, numpy.nan, dtype=config.NP_FLOAT)
             self.__set_array(values)
         self.update_fastaccess()
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     @property
     def seriesshape(self) -> tuple[int, ...]:
@@ -2085,7 +2134,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
         seriesshape.extend(self.shape)
         return tuple(seriesshape)
 
-    def _get_series(self) -> InfoArray:
+    @property
+    def series(self) -> Any:
         """The complete time series data of the current |IOSequence| object within an
         |InfoArray| covering the whole initialisation period (defined by the
         |Timegrids.init| |Timegrid| of the global |Timegrids| object available in
@@ -2098,7 +2148,8 @@ during a simulation run is not supported but tried for sequence `t` of element \
             f"time series data available."
         )
 
-    def _set_series(self, values) -> None:
+    @series.setter
+    def series(self, values: Any) -> None:
         if self.ramflag:
             self.__set_array(
                 numpy.full(self.seriesshape, values, dtype=config.NP_FLOAT)
@@ -2110,14 +2161,14 @@ during a simulation run is not supported but tried for sequence `t` of element \
                 f"any time series data available."
             )
 
-    def _del_series(self) -> None:
+    @series.deleter
+    def series(self) -> None:
         if self.ramflag:
             self.__hydpy__set_fastaccessattribute__("array", None)
             self.__hydpy__set_fastaccessattribute__("ramflag", False)
 
-    series = property(_get_series, _set_series, _del_series)
-
-    def _get_simseries(self) -> InfoArray:
+    @property
+    def simseries(self) -> Any:
         """Read and write access to the subset of the data of property
         |IOSequence.series| covering the actual simulation period (defined by the
         |Timegrids.sim| |Timegrid| of the global |Timegrids| object available in module
@@ -2145,13 +2196,13 @@ during a simulation run is not supported but tried for sequence `t` of element \
         idx0, idx1 = hydpy.pub.timegrids.simindices
         return self.series[idx0:idx1]
 
-    def _set_simseries(self, values) -> None:
+    @simseries.setter
+    def simseries(self, values: Any) -> None:
         idx0, idx1 = hydpy.pub.timegrids.simindices
         self.series[idx0:idx1] = values
 
-    simseries = property(_get_simseries, _set_simseries)
-
-    def _get_evalseries(self) -> InfoArray:
+    @property
+    def evalseries(self) -> Any:
         """Read and write access to the subset of the data of property |
         IOSequence.series| covering the actual evaluation period (defined by the
         |Timegrids.eval_| |Timegrid| of the global |Timegrids| object available in
@@ -2179,11 +2230,10 @@ during a simulation run is not supported but tried for sequence `t` of element \
         idx0, idx1 = hydpy.pub.timegrids.evalindices
         return self.series[idx0:idx1]
 
-    def _set_evalseries(self, values) -> None:
+    @evalseries.setter
+    def evalseries(self, values: Any) -> None:
         idx0, idx1 = hydpy.pub.timegrids.evalindices
         self.series[idx0:idx1] = values
-
-    evalseries = property(_get_evalseries, _set_evalseries)
 
     def load_series(self) -> None:
         """Read time series data from a file.
@@ -2200,12 +2250,15 @@ during a simulation run is not supported but tried for sequence `t` of element \
             >>> del pub.sequencemanager
 
         >>> from hydpy.core.sequencetools import StateSequence
-        >>> StateSequence(None).load_series()
+        >>> class S(StateSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> S(None).load_series()
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to load the time \
-series data of `statesequence`, the following error occurred: Attribute \
-sequencemanager of module `pub` is not defined at the moment.
+series data of `s`, the following error occurred: Attribute sequencemanager of module \
+`pub` is not defined at the moment.
         """
         try:
             sequencemanager = hydpy.pub.sequencemanager
@@ -2487,7 +2540,6 @@ step is `1d`.
         >>> from hydpy.core.sequencetools import StateSequence, StateSequences
         >>> class Seq(StateSequence):
         ...     NDIM = 0
-        ...     NUMERIC = False
         >>> class StateSequences(StateSequences):
         ...     CLASSES = (Seq,)
         >>> seq = Seq(StateSequences(None))
@@ -2535,12 +2587,15 @@ step is `1d`.
             >>> del pub.sequencemanager
 
         >>> from hydpy.core.sequencetools import StateSequence
-        >>> StateSequence(None).save_series()
+        >>> class S(StateSequence):
+        ...     NDIM = 1
+        ...     TYPE = float
+        >>> S(None).save_series()
         Traceback (most recent call last):
         ...
         hydpy.core.exceptiontools.AttributeNotReady: While trying to save the time \
-series data of `statesequence`, the following error occurred: Attribute \
-sequencemanager of module `pub` is not defined at the moment.
+series data of `s`, the following error occurred: Attribute sequencemanager of module \
+`pub` is not defined at the moment.
         """
         try:
             sequencemanager = hydpy.pub.sequencemanager
@@ -2619,14 +2674,13 @@ its series to a 2-dimensional matrix.
         >>> from hydpy.core.sequencetools import StateSequence, StateSequences
         >>> class SoilMoisture(StateSequence):
         ...     NDIM = 0
-        ...     NUMERIC = False
         >>> class StateSequences(StateSequences):
         ...     CLASSES = (SoilMoisture,)
         >>> sm = SoilMoisture(StateSequences(None))
         >>> sm.__hydpy__connect_variable2subgroup__()
         >>> sm.prepare_series()
         >>> import numpy
-        >>> sm.series = numpy.array([190.0, 200.0, 210.0])
+        >>> sm.series = numpy.asarray([190.0, 200.0, 210.0])
         >>> sm.average_series()
         InfoArray([190., 200., 210.])
 
@@ -2642,8 +2696,9 @@ its series to a 2-dimensional matrix.
         >>> from hydpy.core.parametertools import Parameter
         >>> class Area(Parameter):
         ...     NDIM = 1
+        ...     TYPE = float
         ...     shape = (3,)
-        ...     value = numpy.array([1.0, 1.0, 2.0])
+        ...     value = numpy.asarray([1.0, 1.0, 2.0])
         >>> area = Area(None)
         >>> SoilMoisture.refweights = property(lambda self: area)
         >>> sm.average_series()
@@ -2771,13 +2826,16 @@ element `element3`.
 class ModelSequence(Sequence_):
     """Base class for sequences to be handled by |Model| objects."""
 
-    subvars: ModelSequences[ModelSequence, variabletools.FastAccess]
+    subvars: ModelSequences[modeltools.Model, ModelSequence, variabletools.FastAccess]
     """The subgroup to which the model sequence belongs."""
-    subseqs: ModelSequences[ModelSequence, variabletools.FastAccess]
+    subseqs: ModelSequences[modeltools.Model, ModelSequence, variabletools.FastAccess]
     """Alias for |ModelSequence.subvars|."""
 
     def __init__(
-        self, subvars: ModelSequences[ModelSequence, variabletools.FastAccess]
+        self,
+        subvars: ModelSequences[
+            modeltools.Model, ModelSequence, variabletools.FastAccess
+        ],
     ) -> None:
         super().__init__(subvars)
         self.subseqs = subvars
@@ -2913,16 +2971,16 @@ class ModelIOSequence(ModelSequence, IOSequence):
     """Base class for sequences with time series functionalities to be handled by
     |Model| objects."""
 
-    subvars: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
+    subvars: ModelIOSequences[modeltools.Model, ModelIOSequence, FastAccessIOSequence]
     """The subgroup to which the model IO sequence belongs."""
-    subseqs: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
+    subseqs: ModelIOSequences[modeltools.Model, ModelIOSequence, FastAccessIOSequence]
     """Alias for |ModelIOSequence.subvars|."""
     node2idx: dict[devicetools.Node, int | None]
     """The connected |Node| instances and, for 1-dimensional link sequences, the 
     corresponding column's indices."""
 
     def __init__(
-        self, subvars: ModelIOSequences[ModelIOSequence, FastAccessIOSequence]
+        self, subvars: ModelIOSequences[TM_co, ModelIOSequence, FastAccessIOSequence]
     ) -> None:
         super().__init__(subvars)
         self.node2idx = {}
@@ -3069,9 +3127,9 @@ class InputSequence(BaseLinkInputSequence):
         >>> FusedVariable.clear_registry()
     """
 
-    subvars: InputSequences
+    subvars: InputSequences[modeltools.Model]
     """The subgroup to which the input sequence belongs."""
-    subseqs: InputSequences
+    subseqs: InputSequences[modeltools.Model]
     """Alias for |InputSequence.subvars|."""
     fastaccess: FastAccessInputSequence
     """Object for accessing the input sequence's data with little overhead."""
@@ -3247,9 +3305,9 @@ class OutputSequence(ModelIOSequence):
         >>> Node.clear_all()
     """
 
-    subvars: OutputSequences[OutputSequence]
+    subvars: OutputSequences[modeltools.Model, OutputSequence]
     """The subgroup to which the output sequence belongs."""
-    subseqs: OutputSequences[OutputSequence]
+    subseqs: OutputSequences[modeltools.Model, OutputSequence]
     """Alias for |OutputSequence.subvars|."""
     fastaccess: FastAccessOutputSequence
     """Object for accessing the output sequence's data with little overhead."""
@@ -3296,7 +3354,8 @@ class DependentSequence(OutputSequence):
             value = None if self.NDIM else 0.0
             self.__hydpy__set_fastaccessattribute__("sum", value)
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         |FactorSequence| and |FluxSequence| objects come with some additional
@@ -3326,10 +3385,12 @@ class DependentSequence(OutputSequence):
         >>> ei.fastaccess._ei_results.shape
         (11, 2)
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
-        super()._set_shape(shape)
+    @shape.setter
+    def shape(self, shape: ShapeHookSet) -> None:
+        proxy = super(__class__, type(self))  # type: ignore[name-defined]
+        proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
         if self.NDIM and self.NUMERIC:
             self.__hydpy__set_fastaccessattribute__(
                 "points", numpy.zeros(self.numericshape)
@@ -3342,27 +3403,26 @@ class DependentSequence(OutputSequence):
             )
             self.__hydpy__set_fastaccessattribute__("sum", numpy.zeros(self.shape))
 
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
-
 
 class FactorSequence(DependentSequence):
     """Base class for factor sequences of |Model| objects."""
 
-    subvars: FactorSequences
+    subvars: FactorSequences[modeltools.Model]
     """The subgroup to which the factor sequence belongs."""
-    subseqs: FactorSequences
+    subseqs: FactorSequences[modeltools.Model]
     """Alias for |FactorSequence.subvars|."""
 
-    NUMERIC = False  # Changing this requires implementing the related functionalites
-    # in modules `modeltools` and `modeltutils`.
+    NUMERIC: TypeNUMERIC = False  # Changing this requires implementing the related
+    #                               functionalites in modules `modeltools` and
+    #                               `modeltutils`.
 
 
 class FluxSequence(DependentSequence):
     """Base class for flux sequences of |Model| objects."""
 
-    subvars: FluxSequences
+    subvars: FluxSequences[modeltools.Model]
     """The subgroup to which the flux sequence belongs."""
-    subseqs: FluxSequences
+    subseqs: FluxSequences[modeltools.Model]
     """Alias for |FluxSequence.subvars|."""
 
 
@@ -3382,11 +3442,11 @@ class ConditionSequence(ModelSequence):
         self.trim()
         self._oldargs = copy.deepcopy(args)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Apply |trim| of module |variabletools|."""
         return variabletools.trim(self, lower, upper)
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset the value of the actual |StateSequence| or |LogSequence| object to the
         last value defined by "calling" the object.
 
@@ -3536,9 +3596,9 @@ not broadcast input array from shape (3,) into shape (2,)
     2.0, 3.0
     """
 
-    subvars: StateSequences
+    subvars: StateSequences[modeltools.Model]
     """The subgroup to which the state sequence belongs."""
-    subseqs: StateSequences
+    subseqs: StateSequences[modeltools.Model]
     """Alias for |StateSequence.subvars|."""
     fastaccess_new: FastAccessOutputSequence
     fastaccess_old: variabletools.FastAccess
@@ -3564,7 +3624,8 @@ not broadcast input array from shape (3,) into shape (2,)
         else:
             setattr(self.fastaccess_old, self.name, 0.0)
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         |StateSequence| objects come with some additional `fastaccess` attributes,
@@ -3593,12 +3654,14 @@ not broadcast input array from shape (3,) into shape (2,)
         >>> ic.fastaccess._ic_results.shape
         (11, 2)
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape: int | tuple[int, ...]):
+    @shape.setter
+    def shape(self, shape: ShapeHookSet) -> None:
         from hydpy.core import modeltools  # pylint: disable=import-outside-toplevel
 
-        super()._set_shape(shape)
+        proxy = super(__class__, type(self))  # type: ignore[name-defined]
+        proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
         if self.NDIM:
             setattr(self.fastaccess_old, self.name, self.new.copy())
             if self.NUMERIC and isinstance(
@@ -3610,8 +3673,6 @@ not broadcast input array from shape (3,) into shape (2,)
                 self.__hydpy__set_fastaccessattribute__(
                     "results", numpy.zeros(self.numericshape)
                 )
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
     @property
     def new(self):
@@ -3687,9 +3748,9 @@ class LogSequence(ConditionSequence):
     and read from condition files.
     """
 
-    subvars: LogSequences
+    subvars: LogSequences[modeltools.Model]
     """The subgroup to which the log sequence belongs."""
-    subseqs: LogSequences
+    subseqs: LogSequences[modeltools.Model]
     """Alias for |LogSequence.subvars|."""
 
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
@@ -3698,13 +3759,14 @@ class LogSequence(ConditionSequence):
 class LogSequenceFixed(LogSequence):
     """Base class for log sequences with a fixed shape."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     SHAPE: int
 
-    def _finalise_connections(self):
+    def _finalise_connections(self) -> None:
         self.shape = (self.SHAPE,)
 
-    def _get_shape(self):
+    @property
+    def shape(self) -> ShapeHookGet:
         """Sequences derived from |LogSequenceFixed| initialise themselves with a
         predefined shape.
 
@@ -3728,17 +3790,17 @@ changed, but this was attempted for element `?`.
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape):
+    @shape.setter
+    def shape(self, shape: ShapeHookSet) -> None:
         if exceptiontools.attrready(self, "shape"):
             raise AttributeError(
                 f"The shape of sequence `{self.name}` cannot be changed, but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
-        super()._set_shape(shape)
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
+        prop = super(__class__, type(self)).shape  # type: ignore[name-defined]
+        prop.fset(self, shape)  # type: ignore[attr-defined]
 
 
 class AideSequence(ModelSequence):
@@ -3749,9 +3811,9 @@ class AideSequence(ModelSequence):
     object.
     """
 
-    subvars: AideSequences
+    subvars: AideSequences[modeltools.Model]
     """The subgroup to which the aide sequence belongs."""
-    subseqs: AideSequences
+    subseqs: AideSequences[modeltools.Model]
     """Alias for |AideSequence.subvars|."""
 
     _CLS_FASTACCESS_PYTHON = variabletools.FastAccess
@@ -3760,7 +3822,7 @@ class AideSequence(ModelSequence):
 class LinkSequence(BaseLinkInputSequence):
     """Base class for link sequences of |Model| objects.
 
-    |LinkSequence| objects do not only handle values themselves but also point to the
+    |LinkSequence| objects not only handle values themselves but also point to the
     values handled by |NodeSequence| objects, using the functionalities provided by the
     Cython module |pointerutils|.  Multiple |LinkSequence| objects of different
     application models can query and modify the same |NodeSequence| values, allowing
@@ -3839,9 +3901,9 @@ class LinkSequence(BaseLinkInputSequence):
         >>> Element.clear_all()
     """
 
-    subvars: LinkSequences[LinkSequence]
+    subvars: LinkSequences[modeltools.Model, LinkSequence]
     """The subgroup to which the link sequence belongs."""
-    subseqs: LinkSequences[LinkSequence]
+    subseqs: LinkSequences[modeltools.Model, LinkSequence]
     """Alias for |LinkSequence.subvars|."""
     fastaccess: FastAccessLinkSequence
     """Object for accessing the link sequence's data with little overhead."""
@@ -3874,7 +3936,8 @@ class LinkSequence(BaseLinkInputSequence):
         except AttributeError:
             pass
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         Property |LinkSequence.shape| of class |LinkSequence| works similarly to the
@@ -3944,12 +4007,14 @@ requested, but not prepared yet via `set_pointer`.
             >>> Node.clear_all()
             >>> Element.clear_all()
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape: int | tuple[int, ...]):
+    @shape.setter
+    def shape(self, shape: ShapeHookSet) -> None:
         try:
             old_shape = exceptiontools.getattr_(self, "shape", None)
-            super()._set_shape(shape)
+            proxy = super(__class__, type(self))  # type: ignore[name-defined]
+            proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
             if (shape != old_shape) and (self.NDIM == 1):
                 self.fastaccess.dealloc_pointer(self.name)
                 self.fastaccess.alloc_pointer(self.name, shape)
@@ -3960,57 +4025,70 @@ requested, but not prepared yet via `set_pointer`.
                 f"{objecttools.elementphrase(self)}"
             )
 
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
-
     @property
     def pointervalue(self) -> float | NDArrayFloat:
         """The actual value(s) referenced by the pointer(s) of the |LinkSequence|
         object."""
         return self.fastaccess.get_pointervalue(self.name)
 
+    def prepare_series(
+        self,
+        allocate_ram: bool | None = True,
+        read_jit: bool | None = False,
+        write_jit: bool | None = False,
+    ) -> None:
+        """Apply the general behaviour implemented by class |IOSequence|, but stay
+        silent if the shape is not ready (which is normal in case of unused optional
+        connections).
+        """
+        if (self.NDIM == 0) or self._shapeready:
+            super().prepare_series(
+                allocate_ram=allocate_ram, read_jit=read_jit, write_jit=write_jit
+            )
+
 
 class InletSequence(LinkSequence):
     """Base class for inlet link sequences of |Model| objects."""
 
-    subvars: InletSequences
+    subvars: InletSequences[modeltools.Model]
     """The subgroup to which the inlet sequence belongs."""
-    subseqs: InletSequences
+    subseqs: InletSequences[modeltools.Model]
     """Alias for |InletSequence.subvars|."""
 
 
 class OutletSequence(LinkSequence):
     """Base class for outlet link sequences of |Model| objects."""
 
-    subvars: OutletSequences
+    subvars: OutletSequences[modeltools.Model]
     """The subgroup to which the outlet sequence belongs."""
-    subseqs: OutletSequences
+    subseqs: OutletSequences[modeltools.Model]
     """Alias for |OutletSequence.subvars|."""
 
 
 class ObserverSequence(LinkSequence):
     """Base class for observer link sequences of |Model| objects."""
 
-    subvars: ObserverSequences
+    subvars: ObserverSequences[modeltools.Model]
     """The subgroup to which the observer sequence belongs."""
-    subseqs: ObserverSequences
+    subseqs: ObserverSequences[modeltools.Model]
     """Alias for |ObserverSequence.subvars|."""
 
 
 class ReceiverSequence(LinkSequence):
     """Base class for receiver link sequences of |Model| objects."""
 
-    subvars: ReceiverSequences
+    subvars: ReceiverSequences[modeltools.Model]
     """The subgroup to which the receiver sequence belongs."""
-    subseqs: ReceiverSequences
+    subseqs: ReceiverSequences[modeltools.Model]
     """Alias for |ReceiverSequence.subvars|."""
 
 
 class SenderSequence(LinkSequence):
     """Base class for sender link sequences of |Model| objects."""
 
-    subvars: SenderSequences
+    subvars: SenderSequences[modeltools.Model]
     """The subgroup to which the sender sequence belongs."""
-    subseqs: SenderSequences
+    subseqs: SenderSequences[modeltools.Model]
     """Alias for |SenderSequence.subvars|."""
 
 
@@ -4080,7 +4158,8 @@ class NodeSequence(IOSequence):
         setattr(self.fastaccess, self.name, pointerutils.Double(0.0))
         setattr(self.fastaccess, "_reset_obsdata", False)
 
-    def _get_value(self):
+    @property
+    def value(self) -> Any:
         """The actual sequence value.
 
         For framework users, the property |NodeSequence.value| of class |NodeSequence|
@@ -4139,7 +4218,8 @@ the following error occurred: ...attribute name must be string...
                 f"{objecttools.nodephrase(self)}"
             )
 
-    def _set_value(self, value):
+    @value.setter
+    def value(self, value: Any) -> None:
         try:
             getattr(self.fastaccess, self.name)[0] = float(value)
         except BaseException:
@@ -4147,8 +4227,6 @@ the following error occurred: ...attribute name must be string...
                 f"While trying to assign the value `{value}` to sequence "
                 f"{objecttools.nodephrase(self)}"
             )
-
-    value = property(fget=_get_value, fset=_set_value)
 
     @property
     def seriescomplete(self) -> bool:
@@ -4435,7 +4513,7 @@ to be set to `False` due to the following problem: No data for (sub)device \
 
 
 class NodeSequences(
-    IOSequences["devicetools.Node", NodeSequence, FastAccessNodeSequence]
+    IOSequences[None, "devicetools.Node", NodeSequence, FastAccessNodeSequence]
 ):
     """Base class for handling |Sim| and |Obs| sequence objects.
 

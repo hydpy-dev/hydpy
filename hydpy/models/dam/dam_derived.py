@@ -1,12 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
-import numpy
+import math
 
-# ...from HydPy
 from hydpy.core import parametertools
 from hydpy.auxs import smoothtools
+from hydpy.core.typingtools import *
 from hydpy.models.dam import dam_control
 
 
@@ -22,12 +20,14 @@ class Seconds(parametertools.SecondsParameter):
 class InputFactor(parametertools.Parameter):
     """Factor for converting meteorological input from mm/T to million m³/s."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.SurfaceArea,)
     DERIVEDPARAMETERS = (Seconds,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |InputFactor| based on the control parameter |dam_control.SurfaceArea|
         and the derived parameter |Seconds|:
 
@@ -45,11 +45,13 @@ class InputFactor(parametertools.Parameter):
 class RemoteDischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |RemoteDischargeSafety| [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.RemoteDischargeSafety,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter values.
 
         The documentation on module |smoothtools| explains the following example in
@@ -78,11 +80,13 @@ class NearDischargeMinimumSmoothPar1(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold| for
     smoothing kernel |smooth_logistic1| [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.NearDischargeMinimumTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter values.
 
         The documentation on module |smoothtools| explains the following example in
@@ -111,11 +115,13 @@ class NearDischargeMinimumSmoothPar2(parametertools.Parameter):
     """Smoothing parameter to be derived from |NearDischargeMinimumThreshold| for
     smoothing kernel |smooth_logistic2| [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.NearDischargeMinimumTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter values.
 
         The documentation on module |smoothtools| explains the following example in
@@ -144,11 +150,13 @@ class WaterLevelMinimumSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMinimumTolerance| for
     smoothing kernel |smooth_logistic1| [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMinimumTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -175,11 +183,13 @@ class WaterLevelMaximumSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMaximumTolerance| for
     smoothing kernel |smooth_logistic1| [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMaximumTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -206,11 +216,13 @@ class RemoteWaterLevelMaximumSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |RemoteWaterLevelMaximumTolerance| for
     smoothing kernel |smooth_logistic1| [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.RemoteWaterLevelMaximumTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -237,11 +249,13 @@ class SmoothParEvaporation(parametertools.Parameter):
     """Smoothing parameter to be derived from |ToleranceEvaporation| for smoothing
     kernel |smooth_logistic1| [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.ToleranceEvaporation,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -267,11 +281,13 @@ class SmoothParEvaporation(parametertools.Parameter):
 class WaterLevelMinimumRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelMinimumRemoteTolerance| [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.WaterLevelMinimumRemoteTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -299,11 +315,13 @@ class WaterLevelReliefSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelReliefTolerance| for smoothing
     kernel |smooth_logistic1| [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.WaterLevelReliefTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter values.
 
         The documentation on module |smoothtools| explains the following example in
@@ -332,11 +350,13 @@ class WaterLevelSupplySmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |WaterLevelSupplyTolerance| for smoothing
     kernel |smooth_logistic1| [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.WaterLevelSupplyTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter values.
 
         The documentation on module |smoothtools| explains the following example in
@@ -365,11 +385,13 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |HighestRemoteTolerance| for smoothing
     kernel |smooth_min1| [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.HighestRemoteTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -418,7 +440,7 @@ class HighestRemoteSmoothPar(parametertools.Parameter):
         1.0
         """
         control = self.subpars.pars.control
-        if numpy.isinf(control.highestremotedischarge.value):
+        if math.isinf(control.highestremotedischarge.value):
             self(0.0)
         else:
             smoothed = smoothtools.calc_smoothpar_min1(
@@ -431,11 +453,13 @@ class VolumeSmoothParLog1(parametertools.Parameter):
     """Smoothing parameter to be derived from |VolumeTolerance| for smoothing kernel
     |smooth_logistic1| [million m³]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.VolumeTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -462,11 +486,13 @@ class VolumeSmoothParLog2(parametertools.Parameter):
     """Smoothing parameter to be derived from |VolumeTolerance| for smoothing kernel
     |smooth_logistic2| [million m³]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.VolumeTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -493,11 +519,13 @@ class DischargeSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |DischargeTolerance| for smoothing
     kernels |smooth_logistic2|, |smooth_min1|, and |smooth_max1| [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.DischargeTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in
@@ -528,11 +556,13 @@ class CrestLevelSmoothPar(parametertools.Parameter):
     """Smoothing parameter to be derived from |CrestLevelTolerance| for smoothing
     kernel |smooth_max1| [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (dam_control.CrestLevelTolerance,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following example in

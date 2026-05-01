@@ -1129,8 +1129,7 @@ There is no violation of the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 """
-# import...
-# ...from HydPy
+
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
@@ -1138,8 +1137,6 @@ from hydpy.core.typingtools import *
 from hydpy.interfaces import dischargeinterfaces
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import stateinterfaces
-
-# ...from wland
 from hydpy.models.wland import wland_masks
 from hydpy.models.wland import wland_model
 from hydpy.models.wland import wland_solver
@@ -1236,9 +1233,9 @@ class Model(
     )
     SUBMODELS = ()
 
-    petmodel = modeltools.SubmodelProperty(
-        petinterfaces.PETModel_V1, petinterfaces.PETModel_V2
-    )
+    petmodel = modeltools.SubmodelProperty[
+        petinterfaces.PETModel_V1 | petinterfaces.PETModel_V2
+    ](petinterfaces.PETModel_V1, petinterfaces.PETModel_V2)
     dischargemodel = modeltools.SubmodelProperty(dischargeinterfaces.DischargeModel_V2)
     waterlevelmodel = modeltools.SubmodelProperty(stateinterfaces.WaterLevelModel_V1)
 

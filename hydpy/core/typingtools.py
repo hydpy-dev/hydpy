@@ -1,8 +1,6 @@
 """This module implements some "types" to be used for static (and eventually dynamical)
 typing."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 from collections.abc import (
     Callable,
@@ -40,42 +38,38 @@ from typing import (
 )
 from typing_extensions import assert_never, Never, ParamSpec, Self, Unpack
 
-# ...from site-packages
 import numpy
 from numpy.typing import NDArray
 
-# ...from hydpy
 if TYPE_CHECKING:
-    from hydpy.core import devicetools
-    from hydpy.core import hydpytools
+    from hydpy.core import modeltools
     from hydpy.core import parametertools
-    from hydpy.cythons import pointerutils
 
-T = TypeVar("T")
+T_inv = TypeVar("T_inv")
 T_co = TypeVar("T_co", covariant=True)
 T_contra = TypeVar("T_contra", contravariant=True)
 T1 = TypeVar("T1")
 T2 = TypeVar("T2")
 T3 = TypeVar("T3")
 
-P = ParamSpec("P")
+P_ = ParamSpec("P_")
 
 Name = NewType("Name", str)
 Name.__doc__ = """Type for strings that represent names."""
 
 
-Mayberable1: TypeAlias = Union[T, Iterable[T]]
+Mayberable1: TypeAlias = Union[T_inv, Iterable[T_inv]]
 Mayberable2: TypeAlias = Union[T1, T2, Iterable[T1 | T2]]
 Mayberable3: TypeAlias = Union[T1, T2, T3, Iterable[T1 | T2 | T3]]
-MayNonerable1: TypeAlias = Optional[Union[T, Iterable[T]]]
+MayNonerable1: TypeAlias = Optional[Union[T_inv, Iterable[T_inv]]]
 MayNonerable2: TypeAlias = Optional[Union[T1, T2, Iterable[T1 | T2]]]
 MayNonerable3: TypeAlias = Optional[Union[T1, T2, T3, Iterable[T1 | T2 | T3]]]
 
-Collection1: TypeAlias = Union[T, Collection[T]]
+Collection1: TypeAlias = Union[T_inv, Collection[T_inv]]
 Collection2: TypeAlias = Union[T1, T2, Collection[T1 | T2]]
 Collection3: TypeAlias = Union[T1, T2, T3, Collection[T1 | T2 | T3]]
 
-Sequence1: TypeAlias = Union[T, Sequence[T]]
+Sequence1: TypeAlias = Union[T_inv, Sequence[T_inv]]
 Sequence2: TypeAlias = Union[T1, T2, Sequence[T1 | T2]]
 Sequence3: TypeAlias = Union[T1, T2, T3, Sequence[T1 | T2 | T3]]
 
@@ -83,56 +77,106 @@ Float_co = TypeVar("Float_co", covariant=True)
 Float1 = TypeVar("Float1", bound=float)
 Float2 = TypeVar("Float2", bound=float)
 
+Scalar = TypeVar(
+    "Scalar",
+    numpy.dtype[numpy.float64],
+    numpy.dtype[numpy.int64],
+    numpy.dtype[numpy.bool_],
+    numpy.dtype[numpy.generic],
+    numpy.dtype[numpy.bytes_],
+)
+
+NDVector: TypeAlias = numpy.ndarray[tuple[int], Scalar]
+NDMatrix: TypeAlias = numpy.ndarray[tuple[int, int], Scalar]
+NDTensor: TypeAlias = numpy.ndarray[tuple[int, int, int], Scalar]
+
 NDArrayObject: TypeAlias = NDArray[numpy.generic]
 NDArrayFloat: TypeAlias = NDArray[numpy.float64]
 NDArrayInt: TypeAlias = NDArray[numpy.int64]
 NDArrayBool: TypeAlias = NDArray[numpy.bool_]
 
-Vector: TypeAlias = NDArray[T]
-VectorObject: TypeAlias = NDArray[numpy.generic]
-VectorFloat: TypeAlias = NDArray[numpy.float64]
-VectorInt: TypeAlias = NDArray[numpy.int64]
-VectorBool: TypeAlias = NDArray[numpy.bool_]
-VectorInput: TypeAlias = Union[Sequence[T], Vector[T]]
+Vector: TypeAlias = NDVector[T_inv]
+VectorObject: TypeAlias = NDVector[numpy.dtype[numpy.generic]]
+VectorFloat: TypeAlias = NDVector[numpy.dtype[numpy.float64]]
+VectorInt: TypeAlias = NDVector[numpy.dtype[numpy.int64]]
+VectorBool: TypeAlias = NDVector[numpy.dtype[numpy.bool_]]
+VectorInput: TypeAlias = Union[Sequence[T_inv], Vector[T_inv]]
 VectorInputObject: TypeAlias = Union[Sequence[object], VectorObject]
 VectorInputFloat: TypeAlias = Union[Sequence[float], VectorFloat]
 VectorInputInt: TypeAlias = Union[Sequence[int], VectorInt]
 VectorInputBool: TypeAlias = Union[Sequence[bool], VectorBool]
+VectorInputCompleteObject: TypeAlias = Union[object, VectorInputObject]
+VectorInputCompleteFloat: TypeAlias = Union[float, VectorInputFloat]
+VectorInputCompleteInt: TypeAlias = Union[int, VectorInputInt]
+VectorInputCompleteBool: TypeAlias = Union[bool, VectorInputBool]
 
-Matrix: TypeAlias = NDArray[T]
-MatrixObject: TypeAlias = NDArray[numpy.generic]
-MatrixFloat: TypeAlias = NDArray[numpy.float64]
-MatrixInt: TypeAlias = NDArray[numpy.int64]
-MatrixBool: TypeAlias = NDArray[numpy.bool_]
-MatrixBytes: TypeAlias = NDArray[numpy.bytes_]
-MatrixInput: TypeAlias = Union[Sequence[Sequence[T]], Matrix[T]]
+Matrix: TypeAlias = NDMatrix[T_inv]
+MatrixObject: TypeAlias = NDMatrix[numpy.dtype[numpy.generic]]
+MatrixFloat: TypeAlias = NDMatrix[numpy.dtype[numpy.float64]]
+MatrixInt: TypeAlias = NDMatrix[numpy.dtype[numpy.int64]]
+MatrixBool: TypeAlias = NDMatrix[numpy.dtype[numpy.bool_]]
+MatrixBytes: TypeAlias = NDMatrix[numpy.dtype[numpy.bytes_]]
+MatrixInput: TypeAlias = Union[Sequence[Sequence[T_inv]], Matrix[T_inv]]
 MatrixInputObject: TypeAlias = Union[Sequence[VectorInputObject], MatrixObject]
 MatrixInputFloat: TypeAlias = Union[Sequence[VectorInputFloat], MatrixFloat]
 MatrixInputInt: TypeAlias = Union[Sequence[VectorInputInt], MatrixInt]
 MatrixInputBool: TypeAlias = Union[Sequence[VectorBool], MatrixBool]
+MatrixInputCompleteObject: TypeAlias = Union[object, MatrixInputObject]
+MatrixInputCompleteFloat: TypeAlias = Union[float, MatrixInputFloat]
+MatrixInputCompleteInt: TypeAlias = Union[int, MatrixInputInt]
+MatrixInputCompleteBool: TypeAlias = Union[bool, MatrixInputBool]
 
-Tensor: TypeAlias = NDArray[T]
-TensorObject: TypeAlias = NDArray[numpy.generic]
-TensorFloat: TypeAlias = NDArray[numpy.float64]
-TensorInt: TypeAlias = NDArray[numpy.int64]
-TensorBool: TypeAlias = NDArray[numpy.bool_]
-TensorInput: TypeAlias = Union[Sequence[Sequence[Sequence[T]]], Tensor[T]]
+Tensor: TypeAlias = NDTensor[T_inv]
+TensorObject: TypeAlias = NDTensor[numpy.dtype[numpy.generic]]
+TensorFloat: TypeAlias = NDTensor[numpy.dtype[numpy.float64]]
+TensorInt: TypeAlias = NDTensor[numpy.dtype[numpy.int64]]
+TensorBool: TypeAlias = NDTensor[numpy.dtype[numpy.bool_]]
+TensorInput: TypeAlias = Union[Sequence[Sequence[Sequence[T_inv]]], Tensor[T_inv]]
 TensorInputObject: TypeAlias = Union[Sequence[MatrixInputObject], TensorObject]
 TensorInputFloat: TypeAlias = Union[Sequence[MatrixInputFloat], TensorFloat]
 TensorInputInt: TypeAlias = Union[Sequence[MatrixInputInt], TensorInt]
 TensorInputBool: TypeAlias = Union[Sequence[MatrixInputBool], TensorBool]
+TensorInputCompleteObject: TypeAlias = Union[object, TensorInputObject]
+TensorInputCompleteFloat: TypeAlias = Union[float, TensorInputFloat]
+TensorInputCompleteInt: TypeAlias = Union[int, TensorInputInt]
+TensorInputCompleteBool: TypeAlias = Union[bool, TensorInputBool]
 
 NestedFloat: TypeAlias = Union[
     float, NDArrayFloat, Mapping[str, "NestedFloat"], Sequence["NestedFloat"]
 ]
 
-ArrayFloat = TypeVar(
-    "ArrayFloat", float, VectorFloat, MatrixFloat, Union[float, VectorFloat]
+ArrayFloat = TypeVar("ArrayFloat", float, VectorFloat, MatrixFloat, TensorFloat)
+ArrayFloatFlex = TypeVar(
+    "ArrayFloatFlex",
+    float,
+    VectorFloat,
+    MatrixFloat,
+    TensorFloat,
+    Union[float, VectorFloat],
+    Union[float, MatrixFloat],
+    Union[float, TensorFloat],
 )
+VectorFloatFlex = TypeVar("VectorFloatFlex", float, VectorFloat)
 
 ConditionsSubmodel: TypeAlias = dict[str, dict[str, float | NDArrayFloat]]
 ConditionsModel: TypeAlias = dict[str, ConditionsSubmodel]
 Conditions: TypeAlias = dict[str, ConditionsModel]
+
+TM_co = TypeVar("TM_co", bound="modeltools.Model", covariant=True)
+TOM_co = TypeVar("TOM_co", bound="modeltools.Model | None", covariant=True)
+
+TypeNDIM: TypeAlias = int
+TypeTYPE: TypeAlias = type[float | int | bool]  # ToDo: is still `str` in some cases
+TypeSPAN: TypeAlias = tuple[int | float | bool | None, int | float | bool | None]
+TypeINIT: TypeAlias = int | float | bool | None
+TypeTIME: TypeAlias = bool | None
+TypeNUMERIC: TypeAlias = bool
+
+ShapeHookGet: TypeAlias = tuple[int, ...]
+ShapeHookSet: TypeAlias = int | tuple[int, ...]
+TrimHook: TypeAlias = Union[
+    float, VectorInputFloat, MatrixInputFloat, TensorInputFloat, None
+]
 
 
 class SharableConfiguration(TypedDict):
@@ -218,6 +262,7 @@ l1: Literal[1] = 1
 MethodGroup = Literal[
     "RECEIVER_METHODS",
     "INLET_METHODS",
+    "OBSERVER_METHODS",
     "RUN_METHODS",
     "PART_ODE_METHODS",
     "FULL_ODE_METHODS",
@@ -239,6 +284,7 @@ __all__ = [
     "AbstractContextManager",
     "Any",
     "ArrayFloat",
+    "ArrayFloatFlex",
     "assert_never",
     "Callable",
     "cast",
@@ -297,9 +343,11 @@ __all__ = [
     "NoReturn",
     "Optional",
     "overload",
-    "P",
+    "P_",
     "ParamSpec",
     "Protocol",
+    "ShapeHookGet",
+    "ShapeHookSet",
     "Self",
     "SeriesAggregationType",
     "SeriesConventionType",
@@ -311,7 +359,7 @@ __all__ = [
     "SharableConfiguration",
     "Sized",
     "StepSize",
-    "T",
+    "T_inv",
     "T_co",
     "T_contra",
     "T1",
@@ -327,7 +375,16 @@ __all__ = [
     "TensorInputObject",
     "TensorInt",
     "TextIO",
+    "TM_co",
+    "TOM_co",
+    "TrimHook",
     "TypeAlias",
+    "TypeINIT",
+    "TypeNDIM",
+    "TypeNUMERIC",
+    "TypeSPAN",
+    "TypeTIME",
+    "TypeTYPE",
     "TypeVar",
     "TypedDict",
     "TYPE_CHECKING",
@@ -336,6 +393,7 @@ __all__ = [
     "Vector",
     "VectorBool",
     "VectorFloat",
+    "VectorFloatFlex",
     "VectorInput",
     "VectorInputBool",
     "VectorInputFloat",

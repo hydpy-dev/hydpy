@@ -1,13 +1,16 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
+from __future__ import annotations
+
 from hydpy.core import objecttools
 from hydpy.core import parametertools
-
-# ...from lland
+from hydpy.core.typingtools import *
 from hydpy.models.lland.lland_constants import CONSTANTS
+from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_masks
+
+if TYPE_CHECKING:
+    from hydpy.models.lland import lland_derived
 
 
 class ParameterComplete(parametertools.ZipParameter):
@@ -42,10 +45,11 @@ class ParameterComplete(parametertools.ZipParameter):
     mask = lland_masks.Complete()
 
     @property
-    def refweights(self):
+    def refweights(self) -> lland_derived.AbsFHRU:
         """Alias for the associated instance of |FHRU| for calculating areal mean
         values."""
-        return self.subpars.pars.derived.absfhru
+        model = cast(lland_model.Model, self.subpars.pars.model)
+        return model.parameters.derived.absfhru
 
 
 class ParameterLand(ParameterComplete):

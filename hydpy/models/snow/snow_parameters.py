@@ -1,8 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class Parameter1DLayers(parametertools.Parameter):
@@ -21,7 +20,8 @@ class Parameter1DLayers(parametertools.Parameter):
     2.5
     """
 
-    NDIM, TYPE = 1, float
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         self.__hydpy__change_shape_if_necessary__((p.value,))
@@ -35,6 +35,8 @@ class Parameter1DLayers(parametertools.Parameter):
 
 class Parameter1D366(parametertools.Parameter):
     """Base class for parameters with 366 values (days of the year)."""
+
+    NDIM: Final[Literal[1]] = 1
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         self.__hydpy__change_shape_if_necessary__((366,))

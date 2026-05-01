@@ -1,8 +1,6 @@
 """This module defines submodel interfaces for calculating runoff concentration
 processes."""
 
-# import...
-# ...from hydpy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 

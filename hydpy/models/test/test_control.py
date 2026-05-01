@@ -1,8 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class K(parametertools.Parameter):
@@ -13,13 +12,17 @@ class K(parametertools.Parameter):
     the actual parameter time step.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class N(parametertools.Parameter):
     """Number of storages [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)

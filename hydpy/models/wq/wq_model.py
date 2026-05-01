@@ -1,10 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# imports...
-# ...from site-packages
+from __future__ import annotations
+
+from matplotlib import figure
 from matplotlib import pyplot
 
-# ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
@@ -12,8 +12,6 @@ from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.cythons import smoothutils
 from hydpy.interfaces import dischargeinterfaces
-
-# ...from wq
 from hydpy.models.wq import wq_control
 from hydpy.models.wq import wq_derived
 from hydpy.models.wq import wq_factors
@@ -92,7 +90,7 @@ class Calculate_Discharge_V1(modeltools.Method):
     DERIVEDPARAMETERS = (wq_derived.CrestHeightRegularisation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, waterdepth: float) -> float:
+    def __call__(model: modeltools.Model, waterdepth: float, /) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
 
@@ -132,7 +130,7 @@ class Calc_WaterDepth_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WaterDepth,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -265,7 +263,7 @@ class Calc_WaterDepth_V2(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WaterDepth,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -319,7 +317,7 @@ class Calc_WaterDepth_V3(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WaterDepth,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -350,7 +348,7 @@ class Calc_WaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -381,7 +379,7 @@ class Calc_WaterLevel_V2(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -438,7 +436,7 @@ class Calc_Index_Excess_Weight_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_aides.Index, wq_aides.Weight, wq_aides.Excess)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -579,7 +577,7 @@ class Calc_WettedAreas_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WettedAreas,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -651,7 +649,7 @@ class Calc_FlowAreas_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.FlowAreas,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -715,7 +713,7 @@ class Calc_TotalAreas_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.TotalAreas,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -750,7 +748,7 @@ class Calc_WettedArea_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WettedArea,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -781,7 +779,7 @@ class Calc_FlowArea_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.FlowArea,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -812,7 +810,7 @@ class Calc_TotalArea_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.TotalArea,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -935,7 +933,7 @@ class Calc_WettedPerimeters_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WettedPerimeters,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1010,7 +1008,7 @@ class Calc_FlowPerimeters_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.FlowPerimeters,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1052,7 +1050,7 @@ class Calc_WettedPerimeter_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WettedPerimeter,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -1177,7 +1175,7 @@ class Calc_WettedPerimeterDerivatives_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WettedPerimeterDerivatives,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1240,7 +1238,7 @@ class Calc_FlowPerimeterDerivatives_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.FlowPerimeterDerivatives,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1370,7 +1368,7 @@ class Calc_SurfaceWidths_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.SurfaceWidths,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1407,7 +1405,7 @@ class Calc_SurfaceWidth_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.SurfaceWidth,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -1467,7 +1465,7 @@ class Calc_FlowWidths_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.FlowWidths,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1534,7 +1532,7 @@ class Calc_TotalWidths_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.TotalWidths,)
 
     @staticmethod
-    def __call__(model: modeltools.SegmentModel) -> None:
+    def __call__(model: modeltools.SegmentModel, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1573,7 +1571,7 @@ class Calc_TotalWidth_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.TotalWidth,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -1631,7 +1629,7 @@ class Calc_Discharges_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_fluxes.Discharges,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1692,7 +1690,7 @@ class Calc_Discharges_V2(modeltools.Method):
     RESULTSEQUENCES = (wq_fluxes.Discharges,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1732,7 +1730,7 @@ class Calc_Discharge_V2(modeltools.Method):
     RESULTSEQUENCES = (wq_fluxes.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
@@ -1763,7 +1761,7 @@ class Calc_Discharge_V3(modeltools.Method):
     RESULTSEQUENCES = (wq_fluxes.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
 
@@ -1859,7 +1857,7 @@ class Calc_DischargeDerivatives_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.DischargeDerivatives,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fac = model.sequences.factors.fastaccess
@@ -1955,7 +1953,7 @@ class Calc_DischargeDerivatives_V2(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.DischargeDerivatives,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -2001,7 +1999,7 @@ class Calc_DischargeDerivative_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.DischargeDerivative,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -2033,7 +2031,7 @@ class Calc_DischargeDerivative_V2(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.DischargeDerivative,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
 
@@ -2068,7 +2066,7 @@ class Calc_Celerity_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.Celerity,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
 
         if fac.surfacewidth > 0.0:
@@ -2103,7 +2101,7 @@ class Calc_Celerity_V2(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.Celerity,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         fac = model.sequences.factors.fastaccess
 
         if fac.totalwidth > 0.0:
@@ -2127,7 +2125,7 @@ class Set_WaterDepth_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WaterDepth,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, waterdepth: float) -> None:
+    def __call__(model: modeltools.Model, waterdepth: float, /) -> None:
         fac = model.sequences.factors.fastaccess
 
         fac.waterdepth = waterdepth
@@ -2148,7 +2146,7 @@ class Set_WaterLevel_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, waterlevel: float) -> None:
+    def __call__(model: modeltools.Model, waterlevel: float, /) -> None:
         fac = model.sequences.factors.fastaccess
 
         fac.waterlevel = waterlevel
@@ -2169,7 +2167,7 @@ class Set_WettedArea_V1(modeltools.Method):
     RESULTSEQUENCES = (wq_factors.WettedArea,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, wettedarea: float) -> None:
+    def __call__(model: modeltools.Model, wettedarea: float, /) -> None:
         fac = model.sequences.factors.fastaccess
 
         fac.wettedarea = wettedarea
@@ -2703,7 +2701,7 @@ class Get_WaterDepth_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wq_factors.WaterDepth,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.waterdepth
@@ -2724,7 +2722,7 @@ class Get_WaterLevel_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wq_factors.WaterLevel,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.waterlevel
@@ -2745,7 +2743,7 @@ class Get_WettedArea_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wq_factors.WettedArea,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.wettedarea
@@ -2766,7 +2764,7 @@ class Get_WettedArea_V2(modeltools.Method):
     REQUIREDSEQUENCES = (wq_factors.TotalArea,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.totalarea
@@ -2787,7 +2785,7 @@ class Get_WettedPerimeter_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wq_factors.WettedPerimeter,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.wettedperimeter
@@ -2808,7 +2806,7 @@ class Get_SurfaceWidth_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wq_factors.SurfaceWidth,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.surfacewidth
@@ -2829,7 +2827,7 @@ class Get_SurfaceWidth_V2(modeltools.Method):
     REQUIREDSEQUENCES = (wq_factors.TotalWidth,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.totalwidth
@@ -2850,7 +2848,7 @@ class Get_Discharge_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wq_fluxes.Discharge,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.discharge
@@ -2871,7 +2869,7 @@ class Get_Celerity_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wq_factors.Celerity,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         fac = model.sequences.factors.fastaccess
 
         return fac.celerity
@@ -2957,8 +2955,8 @@ class TrapezeModel(modeltools.AdHocModel):
         *,
         ymax: float | None = None,
         color: str | None = None,
-        label: bool | str = False
-    ) -> pyplot.Figure:
+        label: bool | str = False,
+    ) -> figure.Figure:
         """Plot the channel profile.
 
         See the main documentation of the application model |wq_trapeze| for more
@@ -3038,8 +3036,8 @@ class WidthsModel(modeltools.AdHocModel):
         *,
         ymax: float | None = None,
         color: str | None = None,
-        label: bool | str = False
-    ) -> pyplot.Figure:
+        label: bool | str = False,
+    ) -> figure.Figure:
         """Plot the channel profile.
 
         The following tests closely resemble those of |wq_trapeze| for comparison and

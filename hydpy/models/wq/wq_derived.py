@@ -1,19 +1,14 @@
 # pylint: disable=missing-module-docstring
-# import...
-# ...from standard library
+
 import itertools
 
-# ...from standard library
 import math
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.auxs import smoothtools
-
-# ...from wq
 from hydpy.models.wq import wq_control
 from hydpy.models.wq import wq_variables
 
@@ -21,7 +16,9 @@ from hydpy.models.wq import wq_variables
 class BottomDepths(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The cumulated depth of a trapeze and its lower neighbours [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomLevels,)
 
@@ -47,7 +44,9 @@ class TrapezeHeights(wq_variables.MixinTrapezes, parametertools.Parameter):
     The highest trapeze has no upper neighbour and is thus infinitely high.
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomLevels,)
 
@@ -74,7 +73,9 @@ class SlopeWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
     potentially infinitely wide.
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.SideSlopes,)
     DERIVEDPARAMETERS = (TrapezeHeights,)
@@ -104,7 +105,9 @@ class TrapezeAreas(wq_variables.MixinTrapezes, parametertools.Parameter):
     The highest trapeze has no upper neighbour and is thus infinitely large.
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.BottomWidths,)
     DERIVEDPARAMETERS = (TrapezeHeights, SlopeWidths)
@@ -138,7 +141,9 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
     within the trapeze's range [-].
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.SideSlopes,)
 
@@ -159,7 +164,8 @@ class PerimeterDerivatives(wq_variables.MixinTrapezes, parametertools.Parameter)
 
 
 class _SectorWidths(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     def _update(self, widths: wq_control.FlowWidths | wq_control.TotalWidths) -> None:
         control = self.subpars.pars.control
@@ -204,7 +210,6 @@ class SectorFlowWidths(_SectorWidths):
                           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])
         """
         flowwidths = self.subpars.pars.control.flowwidths
-        assert isinstance(flowwidths, wq_control.FlowWidths)
         self._update(flowwidths)
 
 
@@ -237,12 +242,12 @@ class SectorTotalWidths(_SectorWidths):
                            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6.0, 10.0, 12.0]])
         """
         totalwidths = self.subpars.pars.control.totalwidths
-        assert isinstance(totalwidths, wq_control.TotalWidths)
         self._update(totalwidths)
 
 
 class _SectorAreas(wq_variables.MixinSectorsAndWidths, parametertools.Parameter):
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     def _update(self, widths: SectorFlowWidths | SectorTotalWidths) -> None:
         h = self.subpars.pars.control.heights.values
@@ -280,7 +285,6 @@ class SectorFlowAreas(_SectorAreas):
                          [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
         """
         sectorflowwidths = self.subpars.sectorflowwidths
-        assert isinstance(sectorflowwidths, SectorFlowWidths)
         self._update(sectorflowwidths)
 
 
@@ -310,7 +314,6 @@ class SectorTotalAreas(_SectorAreas):
                           [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 3.0, 11.0, 22.0]])
         """
         sectortotalwidths = self.subpars.sectortotalwidths
-        assert isinstance(sectortotalwidths, SectorTotalWidths)
         self._update(sectortotalwidths)
 
 
@@ -320,7 +323,8 @@ class SectorFlowPerimeters(
     """The sector-specific wetted perimeters of those subareas of the cross section
     involved in water routing [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.Heights,)
     DERIVEDPARAMETERS = (SectorFlowWidths,)
@@ -353,7 +357,9 @@ class SectorFlowPerimeters(
         dw = numpy.diff(w)
         p = numpy.sqrt(numpy.square(2.0 * dh) + numpy.square(dw))
         self.values = 0.0
-        for i, t in enumerate(itertools.chain([0], control.transitions.values)):
+        for i, t in enumerate(
+            itertools.chain([numpy.int64(0)], control.transitions.values)
+        ):
             self.values[i, t:] = w[i, t]
             self.values[i, t + 1 :] += numpy.cumsum(p[i, t:])
 
@@ -365,7 +371,8 @@ class SectorFlowPerimeterDerivatives(
     cross section involved in water routing with respect to water level increases
     [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.Heights,)
     DERIVEDPARAMETERS = (SectorFlowWidths,)
@@ -400,7 +407,9 @@ class SectorFlowPerimeterDerivatives(
         self.values = numpy.nan
         v = self.values
         v[:, -1] = 2.0
-        for i, t in enumerate(itertools.chain([0], control.transitions.values)):
+        for i, t in enumerate(
+            itertools.chain([numpy.int64(0)], control.transitions.values)
+        ):
             d = 2.0
             for j in range(n - 2, t - 1, -1):
                 if dh[j] > 0.0:
@@ -412,7 +421,9 @@ class CrestHeightRegularisation(parametertools.Parameter):
     """Regularisation parameter related to the difference between the water depth and
     the crest height [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wq_control.CrestHeightTolerance,)
 

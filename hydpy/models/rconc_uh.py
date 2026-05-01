@@ -7,8 +7,6 @@ information. Also, see the integration tests of application model |hland_96|, wh
 use |rconc_uh| as a submodel.
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import rconcinterfaces

@@ -3,8 +3,6 @@
 .. _`NLopt`: https://nlopt.readthedocs.io/en/latest/
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import collections
@@ -14,11 +12,9 @@ import time
 import types
 import warnings
 
-# ...from site-packages
 import black
 import numpy
 
-# ...from hydpy
 import hydpy
 from hydpy import config
 from hydpy.core import devicetools
@@ -2885,9 +2881,9 @@ parameterstep="1d"
         ]
         if self.keyword is not None:
             arguments.append(f'keyword="{self.keyword}"')
-        if not numpy.isinf(self.lower):
+        if not math.isinf(self.lower):
             arguments.append(f"lower={objecttools.repr_(self.lower)}")
-        if not numpy.isinf(self.upper):
+        if not math.isinf(self.upper):
             arguments.append(f"upper={objecttools.repr_(self.upper)}")
         if self.parameterstep is not None:
             arguments.append(f'parameterstep="{self.parameterstep}"')
@@ -3435,7 +3431,7 @@ via argument `selections`.
             uppers = calibspecs.uppers
         if parametersteps is None:
             parametersteps = calibspecs.parametersteps
-    parameters_ = tuple(
+    parameters_: tuple[parametertools.Parameter | str, ...] = tuple(
         objecttools.extract(values=parameters, types_=(parametertools.Parameter, str))
     )
     if isinstance(parametersteps, str) or not isinstance(parametersteps, Sequence):

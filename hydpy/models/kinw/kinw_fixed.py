@@ -1,8 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class WBMin(parametertools.FixedParameter):
@@ -15,9 +14,8 @@ class WBMin(parametertools.FixedParameter):
     river section is dry.
     """
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, None)
     INIT = 1e-9
 
@@ -26,8 +24,7 @@ class WBReg(parametertools.FixedParameter):
     """Auf |WBMin| bezogener effektiver Glättungsparameter (effectiv smoothing
     parameter related to |WBMin|) [m]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, None)
     INIT = 1e-5

@@ -398,17 +398,12 @@ similar to the one of |RequiredRemoteSupply| discussed in the
     | 20.01. |   0.318768 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |             1.879417 |                1.06395 |          0.0 |     -1.928211 |                   0.0 |                 5.0 |             0.000018 |             0.0 |             0.0 |           0.0 |                  0.0 |       0.818829 | 0.818829 |    1.275071 |           0.0 |           0.0 |            5.0 |    0.0 |    0.0 |     1.0 | 0.818829 | 1.879417 |        0.000018 |
 """
 
-# import...
-
-# ...from HydPy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.core import modeltools
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.exe.modelimports import *
-
-# ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 

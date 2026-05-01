@@ -283,8 +283,7 @@ surface does not suppress evaporation:
     | 01/01 |           19.2 |              2.0 | 99.622389 |       0.0 |                              0.0 |                             0.0 |                  3.576338 |         3.576338 |                     0.0 |                    0.0 |
     | 02/01 |            0.0 |              2.0 | 99.622389 |       1.0 |                              0.0 |                             0.0 |                  0.449853 |              0.0 |                     0.0 |                    0.0 |
 """
-# import...
-# ...from HydPy
+
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import aetinterfaces
@@ -358,12 +357,12 @@ class Model(
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()
 
-    tempmodel = modeltools.SubmodelProperty(
-        tempinterfaces.TempModel_V1, tempinterfaces.TempModel_V2
-    )
-    petmodel = modeltools.SubmodelProperty(
-        petinterfaces.PETModel_V1, petinterfaces.PETModel_V2
-    )
+    tempmodel = modeltools.SubmodelProperty[
+        tempinterfaces.TempModel_V1 | tempinterfaces.TempModel_V2
+    ](tempinterfaces.TempModel_V1, tempinterfaces.TempModel_V2)
+    petmodel = modeltools.SubmodelProperty[
+        petinterfaces.PETModel_V1 | petinterfaces.PETModel_V2
+    ](petinterfaces.PETModel_V1, petinterfaces.PETModel_V2)
     intercmodel = modeltools.SubmodelProperty(stateinterfaces.IntercModel_V1)
     soilwatermodel = modeltools.SubmodelProperty(stateinterfaces.SoilWaterModel_V1)
     snowcovermodel = modeltools.SubmodelProperty(stateinterfaces.SnowCoverModel_V1)

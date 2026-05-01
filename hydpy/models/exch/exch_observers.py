@@ -1,10 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import inflect
 
-# ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
@@ -14,7 +11,7 @@ from hydpy.core.typingtools import *
 class X(sequencetools.ObserverSequence):
     """Arbitrary kind of input data [?]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
     _observernodes: tuple[str, ...] | None = None
 

@@ -1,20 +1,18 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
+
 from hydpy.models.dam import dam_control
 
 
 class AbsErrorMax(parametertools.SolverParameter):
     """Absolute numerical error tolerance [m³/s]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, None)
     INIT = 0.0001
 
@@ -48,9 +46,8 @@ class AbsErrorMax(parametertools.SolverParameter):
 class RelErrorMax(parametertools.SolverParameter):
     """Relative numerical error tolerance [1/T]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, None)
     INIT = numpy.nan
 
@@ -58,9 +55,8 @@ class RelErrorMax(parametertools.SolverParameter):
 class RelDTMin(parametertools.SolverParameter):
     """Smallest relative integration time step size allowed [-]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, 1.0)
     INIT = 0.001
 
@@ -68,9 +64,8 @@ class RelDTMin(parametertools.SolverParameter):
 class RelDTMax(parametertools.SolverParameter):
     """Largest relative integration time step size allowed [-]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, 1.0)
     INIT = 1.0
 
@@ -79,9 +74,8 @@ class MaxEval(parametertools.SolverParameter):
     """Maximum number of function evaluations before stopping the Explicit Labatto
     Sequence [-]."""
 
-    NDIM = 0
-    TYPE = int
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
     SPAN = (0, None)
     INIT = 1000000
 
@@ -90,8 +84,7 @@ class MaxCFL(parametertools.SolverParameter):
     """Maximum Caurant-Friedrichs-Lewy number for using the Explicit Labatto Sequence
     [-]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, numpy.inf)
     INIT = numpy.inf

@@ -6,8 +6,6 @@ order to assure that no old documentation files find their way into the html
 documentation.
 """
 
-# import...
-# ...from standard library
 import datetime
 import importlib
 import inspect
@@ -21,7 +19,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
 # pylint: disable=wrong-import-position
 # (changing the path is necessary when calling `prepare.py` from the command line)
-# ...from HydPy
+
 import hydpy
 from hydpy import auxs
 from hydpy import core

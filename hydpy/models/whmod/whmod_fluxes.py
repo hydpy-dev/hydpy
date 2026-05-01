@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring
 
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 from hydpy.models.whmod import whmod_sequences
 
@@ -56,25 +57,25 @@ class RequiredIrrigation(whmod_sequences.Flux1DSoilSequence):
 class CisternInflow(sequencetools.FluxSequence):
     """Inflow into the cistern [m³/T]."""
 
-    NDIM, TYPE, NUMERIC = 0, float, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class CisternOverflow(sequencetools.FluxSequence):
     """Overflow of the cistern due to limited storage capacity [m³/T]."""
 
-    NDIM, TYPE, NUMERIC = 0, float, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class CisternDemand(sequencetools.FluxSequence):
     """Irrigation water damanded from the cistern [m³/T]."""
 
-    NDIM, TYPE, NUMERIC = 0, float, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class CisternExtraction(sequencetools.FluxSequence):
     """Actual irrigation extraction from the cistern [m³/T]."""
 
-    NDIM, TYPE, NUMERIC = 0, float, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class InternalIrrigation(whmod_sequences.Flux1DSoilSequence):
@@ -96,10 +97,10 @@ class Baseflow(whmod_sequences.Flux1DGroundwaterSequence):
 class ActualRecharge(sequencetools.FluxSequence):
     """Actual recharge [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class DelayedRecharge(sequencetools.FluxSequence):
     """Delayed recharge [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0

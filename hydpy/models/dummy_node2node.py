@@ -51,12 +51,8 @@ Integration test
     | 2000-01-03 00:00:00 | -2.0 |    2.0 |   -4.0 |   -2.0 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
-
-# ...from dummy
 from hydpy.models.dummy import dummy_model
 
 

@@ -1,10 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
-
-# ...from hland
+from hydpy.core.typingtools import *
 from hydpy.models.hland import hland_masks
 from hydpy.models.hland import hland_sequences
 
@@ -111,13 +108,13 @@ class CF(hland_sequences.Flux1DSequence):
 class InUZ(sequencetools.FluxSequence):
     """Inflow to the upper zone layer [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class Perc(sequencetools.FluxSequence):
     """Percolation from the upper to the lower zone layer [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class DP(hland_sequences.Flux1DSequence):
@@ -134,7 +131,7 @@ class DP(hland_sequences.Flux1DSequence):
 class Q0(sequencetools.FluxSequence):
     """Outflow from the upper zone layer [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class QVs1(hland_sequences.Flux1DSequence):
@@ -182,7 +179,7 @@ class EL(hland_sequences.Flux1DSequence):
 class Q1(sequencetools.FluxSequence):
     """Outflow from the lower zone layer [mm/T]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0
 
 
 class RS(hland_sequences.Flux1DSequence):
@@ -212,68 +209,58 @@ class RG1(hland_sequences.Flux1DSequence):
 class GR2(sequencetools.FluxSequence):
     """Recharge into the first-order slow response groundwater reservoir [mm/T]."""
 
-    NDIM = 0
-    NUMERIC = False
+    NDIM: Final[Literal[0]] = 0
 
 
 class RG2(sequencetools.FluxSequence):
     """Discharge from the first-order slow response groundwater reservoir [mm/T]."""
 
-    NDIM = 0
-    NUMERIC = False
+    NDIM: Final[Literal[0]] = 0
 
 
 class GR3(sequencetools.FluxSequence):
     """Recharge into the second-order slow response groundwater reservoir [mm/T]."""
 
-    NDIM = 0
-    NUMERIC = False
+    NDIM: Final[Literal[0]] = 0
 
 
 class RG3(sequencetools.FluxSequence):
     """Discharge from the second-order slow response groundwater reservoir [mm/T]."""
 
-    NDIM = 0
-    NUMERIC = False
+    NDIM: Final[Literal[0]] = 0
 
 
 class InRC(sequencetools.FluxSequence):
     """Input of the runoff concentration submodel [mm/T]."""
 
-    NDIM = 0
-    NUMERIC = False
+    NDIM: Final[Literal[0]] = 0
 
 
 class OutRC(sequencetools.FluxSequence):
     """Output of the runoff concentration submodel [mm/T]."""
 
-    NDIM = 0
-    NUMERIC = False
+    NDIM: Final[Literal[0]] = 0
 
 
 class RO(sequencetools.FluxSequence):
     """Sum of all flow components [mm/T]."""
 
-    NDIM = 0
-    NUMERIC = False
+    NDIM: Final[Literal[0]] = 0
 
 
 class RA(sequencetools.FluxSequence):
     """Actual abstraction from runoff [mm/T]."""
 
-    NDIM = 0
-    NUMERIC = False
+    NDIM: Final[Literal[0]] = 0
 
 
 class RT(sequencetools.FluxSequence):
     """Total model outflow [mm/T]."""
 
-    NDIM = 0
-    NUMERIC = False
+    NDIM: Final[Literal[0]] = 0
 
 
 class QT(sequencetools.FluxSequence):
     """Total model outflow [m³/s]."""
 
-    NDIM = 0
-    NUMERIC = False
+    NDIM: Final[Literal[0]] = 0

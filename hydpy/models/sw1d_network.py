@@ -634,11 +634,9 @@ There is no indication of an error in the water balance:
 >>> round_(test.hydpy.collectives[0].model.check_waterbalance(conditions))
 0.0
 """
-# import...
-# ...from standard library
+
 from __future__ import annotations
 
-# ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import importtools
 from hydpy.core import modeltools
@@ -646,8 +644,6 @@ from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import routinginterfaces
-
-# ...from sw1d
 from hydpy.models.sw1d import sw1d_model
 from hydpy.models.sw1d import sw1d_derived
 from hydpy.models import sw1d_channel

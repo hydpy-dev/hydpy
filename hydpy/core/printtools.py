@@ -1,8 +1,6 @@
 """This module implements features for printing additional information and for
 modifying how information is printed."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import os
 import sys
@@ -10,12 +8,10 @@ import tempfile
 import time
 import types
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
-
 
 _printprogress_indentation = -4
 
@@ -119,7 +115,7 @@ def print_progress(
         _printprogress_indentation -= 4
 
 
-def progressbar(iterable: Iterable[T], length: int = 23) -> Iterator[T]:
+def progressbar(iterable: Iterable[T_inv], length: int = 23) -> Iterator[T_inv]:
     """Print a simple progress bar while processing the given iterable.
 
     Function |progressbar| does print the progress bar when option `printprogress` is

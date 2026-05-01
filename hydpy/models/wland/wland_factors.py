@@ -1,11 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class DHS(sequencetools.FactorSequence):
     """External change of the surface water depth [mm/T]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0

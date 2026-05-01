@@ -1,66 +1,72 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import inflect
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.auxs import interptools
-
-# ...from exch
-from hydpy.models.exch import exch_observers
 
 
 class CrestHeight(parametertools.Parameter):
     """Crest height [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class CrestWidth(parametertools.Parameter):
     """Crest width [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class FlowCoefficient(parametertools.Parameter):
     """Flow coefficient [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 0.62
 
 
 class FlowExponent(parametertools.Parameter):
     """Flow exponent [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 1.5
 
 
 class AllowedExchange(parametertools.Parameter):
     """The highest water exchange allowed [m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 1.5
 
 
 class Delta(parametertools.MonthParameter):
     """Monthly varying difference for increasing or decreasing the input [e.g. m³/s]."""
 
-    TYPE, TIME, SPAN = float, None, (None, None)
+    TYPE: Final = float
     INIT = 0.0
 
 
 class Minimum(parametertools.Parameter):
     """The allowed minimum value of the adjusted input [e.g. m³/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     INIT = 0.0
 
 
@@ -90,11 +96,12 @@ strictly monotonously, which is not the case for the given values `1.0, 2.0, 2.0
 3.0`.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
 
     def __call__(self, *args, **kwargs) -> None:
-        self._set_shape(len(args))
-        if (shape := self._get_shape()[0]) < 2:
+        self.shape = len(args)
+        if (shape := self.shape[0]) < 2:
             raise ValueError(
                 f"Branching via linear interpolation requires at least two supporting "
                 f"points, but parameter {objecttools.elementphrase(self)} received "
@@ -195,7 +202,8 @@ during runtime.  If you really need to do this, first initialise a new "branched
 sequence and connect it to the respective outlet nodes properly.
     """
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM: Final[Literal[2]] = 2
+    TYPE: Final = float
 
     def __call__(self, *args, **kwargs) -> None:
         try:
@@ -299,7 +307,9 @@ relevant observation nodes, but the first given value is of type `int`.
     2
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
 
     def __call__(self, *observernodes: str) -> None:
         for i, node in enumerate(observernodes):
@@ -313,14 +323,12 @@ relevant observation nodes, but the first given value is of type `int`.
                 )
         self.value = len(observernodes)
         x = self.subpars.pars.model.sequences.observers.x
-        assert isinstance(x, exch_observers.X)
         x.shape = self.value
         x.observernodes = observernodes
 
     def __repr__(self) -> str:
         if self._valueready:
             x = self.subpars.pars.model.sequences.observers.x
-            assert isinstance(x, exch_observers.X)
             names = tuple(f'"{name}"' for name in x.observernodes)
             return objecttools.assignrepr_tuple(names, self.name, 84)
         return super().__repr__()

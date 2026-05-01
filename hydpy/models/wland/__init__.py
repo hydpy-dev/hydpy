@@ -6,11 +6,7 @@ models :cite:p:`ref-Brauer2014`, focussing on the interaction between surface wa
 and near-surface groundwater.
 """
 
-# import...
-# ...from HydPy
 from hydpy.exe.modelimports import *
-
-# ...from wland
 from hydpy.models.wland.wland_constants import (
     SAND,
     LOAMY_SAND,

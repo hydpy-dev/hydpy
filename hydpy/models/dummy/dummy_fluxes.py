@@ -1,11 +1,11 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class Q(sequencetools.FluxSequence):
     """Abfluss [m³/s]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    SPAN = (0.0, None)

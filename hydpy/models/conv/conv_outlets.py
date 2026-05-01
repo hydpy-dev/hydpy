@@ -1,11 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class Outputs(sequencetools.OutletSequence):
     """Outputs [?]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1

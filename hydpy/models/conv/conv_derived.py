@@ -1,13 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.models.conv import conv_control
 from hydpy.models.conv import conv_fluxes
 
@@ -15,7 +12,9 @@ from hydpy.models.conv import conv_fluxes
 class NmbInputs(parametertools.Parameter):
     """The number of inlet nodes [-]"""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, None)
 
     CONTROLPARAMETERS = (conv_control.InputCoordinates,)
 
@@ -61,7 +60,9 @@ class NmbInputs(parametertools.Parameter):
 class NmbOutputs(parametertools.Parameter):
     """The number of outlet nodes [-]"""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, None)
 
     CONTROLPARAMETERS = (conv_control.OutputCoordinates,)
 
@@ -107,7 +108,8 @@ class NmbOutputs(parametertools.Parameter):
 class Distances(parametertools.Parameter):
     """Distances of the inlet nodes to each outlet node [?]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM: Final[Literal[2]] = 2
+    TYPE: Final = float
 
     CONTROLPARAMETERS = (conv_control.InputCoordinates, conv_control.OutputCoordinates)
 
@@ -140,7 +142,7 @@ class Distances(parametertools.Parameter):
             distances[idx, :] = numpy.sqrt(
                 numpy.sum((outcoord - incoords) ** 2, axis=1)
             )
-        self._set_shape(distances.shape)
+        self.shape = distances.shape
         self.value = distances
 
 
@@ -148,7 +150,8 @@ class ProximityOrder(parametertools.Parameter):
     """Indices of the inlet nodes in the order of their proximity to each
     outlet node [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, int, None, (None, None)
+    NDIM: Final[Literal[2]] = 2
+    TYPE: Final = int
 
     CONTROLPARAMETERS = (
         conv_control.MaxNmbInputs,
@@ -196,7 +199,7 @@ class ProximityOrder(parametertools.Parameter):
         idxs = numpy.empty((len(distances), nmbinputs), dtype=config.NP_INT)
         for idx, distances_ in enumerate(distances):
             idxs[idx, :] = numpy.argsort(distances_)[:nmbinputs]
-        self._set_shape(idxs.shape)
+        self.shape = idxs.shape
         self.value = idxs
 
 
@@ -204,7 +207,8 @@ class Weights(parametertools.Parameter):
     """Weighting coefficients of the inlet nodes corresponding to their
     proximity to each outlet node and parameter |Power| [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM: Final[Literal[2]] = 2
+    TYPE: Final = float
 
     CONTROLPARAMETERS = (
         conv_control.MaxNmbInputs,
@@ -267,5 +271,5 @@ class Weights(parametertools.Parameter):
             jdxs = sorteddistances > 0.0
             weights[idx, jdxs] = 1.0 / sorteddistances[jdxs] ** power
             weights[idx, ~jdxs] = numpy.inf
-        self._set_shape(weights.shape)
+        self.shape = weights.shape
         self.value = weights

@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# imports...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.models.test import test_control
 from hydpy.models.test import test_solver
@@ -33,7 +31,7 @@ class Calc_Q_V1(modeltools.Method):
     RESULTSEQUENCES = (test_fluxes.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -73,7 +71,7 @@ class Calc_Q_V2(modeltools.Method):
     RESULTSEQUENCES = (test_fluxes.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -108,7 +106,7 @@ class Calc_QV_V1(modeltools.Method):
     RESULTSEQUENCES = (test_fluxes.QV,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -137,7 +135,7 @@ class Calc_S_V1(modeltools.Method):
     UPDATEDSEQUENCES = (test_states.S,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
@@ -169,7 +167,7 @@ class Calc_SV_V1(modeltools.Method):
     UPDATEDSEQUENCES = (test_states.SV,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old

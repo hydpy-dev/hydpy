@@ -222,8 +222,6 @@ atomic submethods of class |HydPyServer| also allow coupling *HydPy*  with other
 software products. See the documentation on class |HydPyServer| for further information.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import collections
 import mimetypes
@@ -237,10 +235,8 @@ import urllib.parse
 import urllib.request
 import types
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import conf
 from hydpy import config
@@ -251,7 +247,6 @@ from hydpy.core import timetools
 from hydpy.exe import commandtools
 from hydpy.exe import xmltools
 from hydpy.core.typingtools import *
-
 
 # pylint: disable=wrong-import-position, wrong-import-order
 # see the documentation on method `start_server` for explanations
@@ -1868,7 +1863,7 @@ method `evaluate` if you have started the `HydPy Server` in debugging mode.
         self._outputs["lastdate_init"] = tg.lastdate.to_string("iso1", utc)
         self._outputs["stepsize"] = tg.stepsize
 
-    def _get_registered_content(self, dict_: dict[ID, T]) -> T:
+    def _get_registered_content(self, dict_: dict[ID, T_inv]) -> T_inv:
         try:
             return dict_[self._id]
         except KeyError:

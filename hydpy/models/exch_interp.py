@@ -82,8 +82,6 @@ no surprises:
 4.0
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.models.exch import exch_model

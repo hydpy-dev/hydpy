@@ -12,10 +12,10 @@ options.
 """
 
 import contextlib
+import itertools
 import os
 import shutil
-from typing import Iterator, Literal
-from typing_extensions import assert_never
+from typing import Iterator
 
 import nox
 
@@ -59,8 +59,7 @@ def _clean_environment(session: nox.Session) -> Iterator[dict[str, str]]:
 
 
 @nox.session
-@nox.parametrize("numpy", ["1", "2"])
-def doctest(session: nox.Session, numpy: Literal["1", "2"]) -> None:
+def doctest(session: nox.Session) -> None:
     """Execute script `run_doctests.py` and measure code coverage.
 
     You can define arguments specific to the doctest session.  The `doctest` session
@@ -77,11 +76,6 @@ def doctest(session: nox.Session, numpy: Literal["1", "2"]) -> None:
     The "doctest" session only measures code coverage when no session-specific
     arguments are given.  Otherwise, the mentioned restrictions would inevitably result
     in incomplete code coverage measurements.
-
-    By default, the `doctest` session runs subsequentially with the NumPy versions 1.x
-    and 2.x.  Use the following command to select only one version:
-
-    nox -s "doctest(numpy='2')"
     """
 
     multithreading = ("-t" in session.posargs) or ("--threads" in session.posargs)
@@ -97,12 +91,6 @@ def doctest(session: nox.Session, numpy: Literal["1", "2"]) -> None:
         shutil.copy(
             "hydpy/tests/hydpydoctestcustomize.pth", "hydpydoctestcustomize.pth"
         )
-    if numpy == "1":
-        session.run("pip", "install", "numpy<2")
-    elif numpy == "2":
-        session.run("pip", "install", "numpy>1,<3")
-    else:
-        assert_never(numpy)
     with _clean_environment(session):
         session.run("python", "hydpy/tests/run_doctests.py", *session.posargs)
     if analyse_coverage:
@@ -141,10 +129,7 @@ def mypy(session: nox.Session) -> None:
     """Use "mypy" to check the correctness of all type hints and the source code's type
     safety.
 
-    We currently generally apply Mypy in the non-strict mode and handle the `models`
-    subpackage even less strictly.  However, our long term-goal is to meet the
-    requirements of the strict mode, which requires much additional effort regarding
-    the typing of numpy arrays, model parameters and so on.
+    Our long-term goal is to meet the requirements of Mypy's strict mode.
     """
     _install_hydpy(session)
     session.run("pip", "install", "numpy!=2.2.0,!=2.2.1")

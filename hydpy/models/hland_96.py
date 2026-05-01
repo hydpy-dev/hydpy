@@ -1641,16 +1641,13 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 """
-# import...
-# ...from HydPy
+
 from hydpy.exe.modelimports import *
 from hydpy.core import masktools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.interfaces import aetinterfaces
 from hydpy.interfaces import rconcinterfaces
-
-# ...from hland
 from hydpy.models.hland import hland_model
 from hydpy.models.hland import hland_masks
 from hydpy.models.hland.hland_constants import *

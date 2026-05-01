@@ -2,15 +2,12 @@
 .. _`LARSIM`: http://www.larsim.de/en/the-model/
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
+import math
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
@@ -19,11 +16,8 @@ from hydpy.core import parametertools
 from hydpy.core import sequencetools
 from hydpy.core import timetools
 from hydpy.core.typingtools import *
-
-# ...from lland
 from hydpy.models.lland.lland_constants import CONSTANTS as CONSTANTS_
 from hydpy.models.lland import lland_parameters
-
 
 # spatial information
 
@@ -31,7 +25,9 @@ from hydpy.models.lland import lland_parameters
 class FT(parametertools.Parameter):
     """Teileinzugsgebietsfläche (subbasin area) [km²]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (1e-10, None)
 
 
 class NHRU(parametertools.Parameter):
@@ -58,7 +54,9 @@ class NHRU(parametertools.Parameter):
         (12,)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
@@ -107,7 +105,7 @@ class Lnk(parametertools.NameParameter):
 class GH(lland_parameters.ParameterComplete):
     """Gebietshöhe (elevation) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE: Final = float
 
     def update(self) -> None:
         """Always fall back to the default value if the user provides none
@@ -137,7 +135,8 @@ consider updating your model setup.
 class FHRU(lland_parameters.ParameterComplete):
     """Flächenanteile der Hydrotope (area percentages of the respective HRUs) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
 
 # input correction
@@ -147,7 +146,8 @@ class KG(lland_parameters.ParameterComplete):
     """Niederschlagskorrekturfaktor (adjustment factor for precipitation)
     [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 1.0
 
 
@@ -155,7 +155,8 @@ class ATG(parametertools.Parameter):
     """Atmosphärischer Temperaturgradient (atmospheric temperature gradient)
     [°C/100m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     INIT = -0.65
 
     def update(self) -> None:
@@ -186,7 +187,7 @@ class KT(lland_parameters.ParameterComplete):
     """Temperaturkorrektursummand (adjustment summand for air temperature)
     [°C]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE: Final = float
     INIT = 0.0
 
 
@@ -197,7 +198,9 @@ class P1Strahl(parametertools.Parameter):
     """Konstante der Globalstrahlungsreduktion für Wald (constant for
     reducing the global radiation in forests) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 0.5
 
 
@@ -205,14 +208,18 @@ class P2Strahl(parametertools.Parameter):
     """Faktor der Globalstrahlungsreduktion für Wald (factor for
     reducing the global radiation in forests) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 1.0 / 35.0
 
 
 class Albedo0Snow(parametertools.Parameter):
     """Albedo von Neuschnee (albedo of fresh snow) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 0.8
 
 
@@ -220,7 +227,9 @@ class SnowAgingFactor(parametertools.Parameter):
     """Wichtungsfaktor für die Sensitivität der Albedo für die Alterung des
     Schnees (weighting factor of albedo sensitivity for snow aging) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 0.35
 
 
@@ -232,7 +241,9 @@ class Turb0(parametertools.Parameter):
     Parameter |Turb0| corresponds to the LARSIM parameter `A0`.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 2.0
 
 
@@ -244,7 +255,9 @@ class Turb1(parametertools.Parameter):
     Parameter |Turb0| corresponds to the LARSIM parameter `A1`.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 2.0
 
 
@@ -254,7 +267,9 @@ class Turb1(parametertools.Parameter):
 class MeasuringHeightWindSpeed(parametertools.Parameter):
     """The height above ground of the wind speed measurements [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0, None)
     INIT = 10.0
 
 
@@ -262,7 +277,9 @@ class P1Wind(parametertools.Parameter):
     """Konstante der Windgeschwindigkeitsreduktion für Wald (constant for
     reducing the wind speed in forests) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 0.6
 
 
@@ -270,7 +287,9 @@ class P2Wind(parametertools.Parameter):
     """Faktor der Windgeschwindigkeitsreduktion für Wald (factor for
     reducing the wind speed in forests) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 1.0 / 70.0
 
 
@@ -280,7 +299,8 @@ class P2Wind(parametertools.Parameter):
 class LAI(lland_parameters.LanduseMonthParameter):
     """Blattflächenindex (leaf area index) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 5.0
 
 
@@ -288,7 +308,9 @@ class HInz(parametertools.Parameter):
     """Interzeptionskapazität bezogen auf die Blattoberfläche (interception
     capacity normalized to the leaf surface area) [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 0.2
 
 
@@ -300,7 +322,9 @@ class P1SIMax(parametertools.Parameter):
     auf dem Blattflächenindex (constant for calculating the maximum snow interception
     capacity based on the leaf area index) [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 8.0
 
 
@@ -309,7 +333,9 @@ class P2SIMax(parametertools.Parameter):
     auf dem Blattflächenindex (factor for calculating the maximum snow interception
     capacity based on the leaf area index) [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 1.5
 
 
@@ -319,7 +345,9 @@ class P1SIRate(parametertools.Parameter):
     calculating the ratio of the snow interception rate and the precipitation
     intensity based on the leaf area index) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 0.2
 
 
@@ -329,7 +357,9 @@ class P2SIRate(parametertools.Parameter):
     calculating the ratio of the snow interception rate and precipitation intensity
     based on the leaf area index) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 0.02
 
 
@@ -339,7 +369,9 @@ class P3SIRate(parametertools.Parameter):
     (factor for calculating the ratio of the snow interception rate and precipitation
     intensity based on the amount of already intercepted snow) [1/mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 0.05)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 0.05)
     INIT = 0.003
 
 
@@ -350,7 +382,7 @@ class TRefT(lland_parameters.ParameterLand):
     """Lufttemperaturgrenzwert des Grad-Tag-Verfahrens (air temperature
     threshold of the degree-day method) [°C]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE: Final = float
     INIT = 0.0
 
 
@@ -359,7 +391,7 @@ class TRefN(lland_parameters.ParameterLand):
     durch Regen (precipitation temperature threshold to calculate heat flux
     caused by liquid precipitation on snow) [°C]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE: Final = float
     INIT = 0.0
 
 
@@ -367,7 +399,7 @@ class TGr(lland_parameters.ParameterLand):
     """Temperaturgrenzwert flüssiger/fester Niederschlag (threshold
     temperature liquid/frozen precipitation) [°C]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE: Final = float
     INIT = 0.0
 
 
@@ -375,14 +407,17 @@ class TSp(lland_parameters.ParameterLand):
     """Temperaturspanne flüssiger/fester Niederschlag (temperature range
     with mixed precipitation) [°C]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 0.0
 
 
 class GTF(lland_parameters.ParameterLand):
     """Grad-Tag-Faktor (factor of the degree-day method) [mm/°C/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, None)
     INIT = 3.0
 
 
@@ -390,7 +425,9 @@ class GSF(parametertools.Parameter):
     """Gletscherschmelze-Faktor (factor for adjusting the snow-related degree-day
     factor |GTF| to the melting of glacier ice) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 1.5
 
     def update(self) -> None:
@@ -421,7 +458,8 @@ class AGGH(parametertools.Parameter):
     """Alpine Gebietshöhe, ab der eine Erhöhung des Grad-Tag-Faktors erfolgen kann
     (alpine elevation above which the degree-day factor can be increased) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     INIT = numpy.inf
 
     def update(self) -> None:
@@ -452,7 +490,8 @@ class AGSH(parametertools.Parameter):
     """Alpine Schneehöhe, ab der eine Erhöhung des Grad-Tag-Faktors erfolgen kann
     (alpine snow height above which the degree-day factor can be increased) [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     INIT = numpy.inf
 
     def update(self) -> None:
@@ -483,7 +522,9 @@ class FEis(lland_parameters.ParameterGlacier):
     """Umwandlungsfaktor Schnee Gletschereis (conversion factor for transforming snow
     into glacier ice) [1/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, 1.0)
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, 1.0)
     INIT = 0.001
 
     def update(self) -> None:
@@ -575,7 +616,8 @@ keywords, or by calculating a value based on the keyword arguments \
 a positional nor a keyword argument is given.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (1.0, None)
+    TYPE: Final = float
+    SPAN = (1.0, None)
     INIT = 1.4278333871488538
 
     def __call__(self, *args, **kwargs) -> None:
@@ -584,7 +626,7 @@ a positional nor a keyword argument is given.
         """
         rhot0 = float(kwargs.pop("rhot0", numpy.nan))
         rhodkrit = float(kwargs.pop("rhodkrit", numpy.nan))
-        missing = int(numpy.isnan(rhot0)) + int(numpy.isnan(rhodkrit))
+        missing = int(math.isnan(rhot0)) + int(math.isnan(rhodkrit))
         try:
             super().__call__(*args, **kwargs)
             return
@@ -613,7 +655,9 @@ class RefreezeFlag(parametertools.Parameter):
     """Flag um wiedergefrieren zu aktivieren (flag to activate refreezing)
     [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (False, True)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (False, True)
     INIT = 0
 
 
@@ -629,7 +673,9 @@ class KTSchnee(parametertools.Parameter):
     identical with the the snow bulk temperature, which decreases computation times.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, numpy.inf)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, numpy.inf)
     INIT = 5.0
 
 
@@ -637,7 +683,7 @@ class WG2Z(parametertools.MonthParameter):
     """Bodenwärmestrom in der Tiefe 2z (soil heat flux at depth 2z)
     [W/m²]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE: Final = float
     INIT = 0.0
 
 
@@ -647,13 +693,14 @@ class WG2Z(parametertools.MonthParameter):
 class WMax(lland_parameters.ParameterSoil):
     """Maximaler Bodenwasserspeicher  (maximum soil water storage) [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 100.0
 
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[FK]]]
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -687,13 +734,14 @@ class FK(lland_parameters.ParameterSoilThreshold):
     on class |ParameterSoilThreshold|.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 0.0
 
     # defined at the bottom of the file:
     CONTROLPARAMETERS: ClassVar[tuple[type[PWP], type[WMax]]]
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -723,12 +771,13 @@ class PWP(lland_parameters.ParameterSoilThreshold):
     on class |ParameterSoilThreshold|.
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 0.0
 
     CONTROLPARAMETERS = (WMax, FK)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim values in accordance with :math:`PWP \\leq FK \\leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -759,7 +808,8 @@ class BSf0(lland_parameters.ParameterSoil):
     """Mindestbodenfeuchte der Sättigungsflächenbildung (relative soil moisture at
     which the development of saturated areas starts) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 0.0
 
     def update(self) -> None:
@@ -791,7 +841,8 @@ class BSf(lland_parameters.ParameterSoil):
     relation between the avarage soil moisture and the relative saturated
     area of a subbasin) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 0.4
 
 
@@ -800,7 +851,9 @@ class FVF(parametertools.Parameter):
     (frost sealing factor for determination of the degree of frost sealing
     FVG) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 0.5
 
 
@@ -808,7 +861,9 @@ class BSFF(parametertools.Parameter):
     """Exponent zur Ermittelung des Frostversieglungsgrades (frost sealing
     exponent for determination of degree of frost sealing FVG) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 2.0
 
 
@@ -852,7 +907,9 @@ Keyword `rdmin` is not among the available model constants.
         >>> del pub.timegrids
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, None)
     INIT = 0.0
 
     def __call__(self, *args, **kwargs) -> None:
@@ -864,12 +921,12 @@ Keyword `rdmin` is not among the available model constants.
         except TypeError:
             if (r := kwargs.get("r_dmin")) is not None:
                 hours = hydpy.pub.timegrids.init.stepsize.hours
-                self.value = 0.001008 * hours * numpy.array(r)
+                self.value = 0.001008 * hours * numpy.asarray(r)
                 self.trim()
             else:
                 objecttools.augment_excmessage()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`DMin \\leq DMax`.
 
         >>> from hydpy.models.lland import *
@@ -927,7 +984,8 @@ Keyword `rdmax` is not among the available model constants.
         >>> del pub.timegrids
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (None, None)
+    TYPE: Final = float
+    TIME = True
     INIT = 1.0
 
     def __call__(self, *args, **kwargs) -> None:
@@ -941,13 +999,13 @@ Keyword `rdmax` is not among the available model constants.
                 self.value = (
                     0.1008
                     * hydpy.pub.timegrids.init.stepsize.hours
-                    * numpy.array(r, config.NP_FLOAT)
+                    * numpy.asarray(r, config.NP_FLOAT)
                 )
                 self.trim()
             else:
                 objecttools.augment_excmessage()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`DMax \\geq DMin`.
 
         >>> from hydpy.models.lland import *
@@ -969,7 +1027,9 @@ class Beta(lland_parameters.ParameterSoil):
     """Drainageindex des tiefen Bodenspeichers (storage coefficient for
     releasing base flow from the lower soil compartment) [1/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, None)
     INIT = 0.01
 
 
@@ -977,14 +1037,17 @@ class FBeta(lland_parameters.ParameterSoil):
     """Faktor zur Erhöhung der Perkolation im Grobporenbereich (factor for
     increasing percolation under wet conditions) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (1.0, None)
+    TYPE: Final = float
+    SPAN = (1.0, None)
     INIT = 1.0
 
 
 class KapMax(lland_parameters.ParameterSoil):
     """Maximale kapillare Aufstiegsrate (maximum capillary rise) [mm/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, None)
     INIT = 0.0
 
 
@@ -1144,7 +1207,8 @@ could not be set based on the given keyword arguments.
     """
 
     CONTROLPARAMETERS = (WMax, FK)
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM: Final[Literal[2]] = 2
+    TYPE: Final = float
     INIT = 0.0
     KEYWORDS = {"option": parametertools.Keyword(name="option")}
 
@@ -1197,7 +1261,9 @@ class RBeta(parametertools.Parameter):
     Feldkapazität auf Null reduziert wird (flag to indicate if seepage is
     reduced to zero below field capacity) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, bool, None, (False, True)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = bool
+    SPAN = (False, True)
     INIT = False
 
 
@@ -1205,14 +1271,18 @@ class VolBMax(parametertools.Parameter):
     """Maximaler Inhalt des Gebietsspeichers für Basisabfluss (highest possible base
     flow storage) [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = numpy.inf
 
 
 class GSBMax(parametertools.Parameter):
     """Faktor zur Anpassung von |VolBMax| (factor for adjusting |VolBMax|) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 1.0
 
 
@@ -1221,10 +1291,12 @@ class GSBGrad1(parametertools.Parameter):
     des Zuflusses (highest possible baseflow storage increase without inflow
     reductions) [mm/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = True
     INIT = numpy.inf
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim upper values in accordance with :math:`GSBGrad1 \leq GSBGrad2`.
 
         >>> from hydpy.models.lland import *
@@ -1250,10 +1322,12 @@ class GSBGrad2(parametertools.Parameter):
     """Volumenzunahme des Gebietsspeichers für Basisabfluss, oberhalb der jeglicher
     Zufluss ausgeschlossen ist (highest possible baseflow storage increase) [mm/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = True
     INIT = numpy.inf
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim upper values in accordance with :math:`GSBGrad1 \leq GSBGrad2`.
 
         >>> from hydpy.models.lland import *
@@ -1284,7 +1358,10 @@ class A1(parametertools.Parameter):
     of direct runoff in a slow and a fast component) [mm/T]
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, None)
     INIT = numpy.inf
 
 
@@ -1294,7 +1371,10 @@ class A2(parametertools.Parameter):
     of direct runoff in a slow and a fast component) [mm/T]
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, None)
     INIT = 0.0
 
 
@@ -1373,7 +1453,10 @@ must be given.
 
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = False
+    SPAN = (0.0, None)
     INIT = 1.0
 
     def __call__(self, *args, **kwargs) -> None:
@@ -1416,7 +1499,9 @@ class EQB(parametertools.Parameter):
     """Kalibrierfaktor für die Basisabflusskonzentration (factor for adjusting
     the concentration time of baseflow). [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 5000.0
 
 
@@ -1425,10 +1510,12 @@ class EQI1(parametertools.Parameter):
     (factor for adjusting the concentration time of the first interflow
     component) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 2000.0
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
@@ -1454,10 +1541,12 @@ class EQI2(parametertools.Parameter):
     (factor for adjusting the concentration time of the second interflow
     component) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 1000.0
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`EQI2 \\leq EQI1`.
 
         >>> from hydpy.models.lland import *
@@ -1483,10 +1572,12 @@ class EQD1(parametertools.Parameter):
     for adjusting the concentration time of the slower component of direct
     runoff). [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 100.0
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *
@@ -1512,10 +1603,12 @@ class EQD2(parametertools.Parameter):
     for adjusting the concentration time of the faster component of direct
     runoff). [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 50.0
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim upper values in accordance with :math:`EQD2 \\leq EQD1`.
 
         >>> from hydpy.models.lland import *
@@ -1540,7 +1633,9 @@ class NegQ(parametertools.Parameter):
     """Option: sind negative Abflüsse erlaubt (flag that indicated whether
     negative discharge values are allowed or not) [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, bool, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = bool
+    SPAN = (0.0, None)
     INIT = False
 
 

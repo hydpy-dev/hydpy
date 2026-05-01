@@ -6,17 +6,13 @@ function or if you want to implement an additional iuh, see the examples or the 
 code of class |TranslationDiffusionEquation|.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import itertools
 import math
 
-# ...from site-packages
 import numpy
 
-# ...from Hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
@@ -160,13 +156,13 @@ class IUH(metaclass=MetaIUH):
     _SECONDARY_PARAMETERS: dict[str, SecondaryParameterIUH] = {}
 
     def __init__(self, **kwargs: float) -> None:
-        self.ma = armatools.MA(self)
+        self.ma = armatools.MA(iuh=self)
         self.arma = armatools.ARMA(ma_model=self.ma)
         if kwargs:
             self.set_primary_parameters(**kwargs)
 
     @abc.abstractmethod
-    def __call__(self, t: float) -> float:
+    def __call__(self, t: VectorFloatFlex) -> VectorFloatFlex:
         """Must be implemented by the concrete |IUH| subclass."""
 
     def set_primary_parameters(self, **kwargs: float) -> None:
@@ -228,9 +224,9 @@ class IUH(metaclass=MetaIUH):
             sum_responses += self.dt_response * response
             if (sum_responses > 0.9) and (response < self.smallest_response):
                 break
-        return numpy.array(delays), numpy.array(responses)
+        return numpy.asarray(delays), numpy.asarray(responses)
 
-    def plot(self, threshold: float | None = None, **kwargs) -> None:
+    def plot(self, threshold: float | None = None, **kwargs: Any) -> None:
         """Plot the instanteneous unit hydrograph.
 
         The optional argument allows for defining a threshold of the cumulative sum of
@@ -427,22 +423,17 @@ keywords were given: d and u.
         self.a = self.x / (2.0 * self.d**0.5)
         self.b = self.u / (2.0 * self.d**0.5)
 
-    @overload
-    def __call__(self, t: float) -> float: ...
-
-    @overload
-    def __call__(self, t: VectorFloat) -> VectorFloat: ...
-
-    def __call__(self, t: float | VectorFloat) -> float | VectorFloat:
+    def __call__(self, t: VectorFloatFlex) -> VectorFloatFlex:
         if isinstance(t, float):
             if t < 1e-10:  # pylint: disable=consider-using-max-builtin
                 t = 1e-10
         else:
             t = numpy.clip(t, 1e-10, numpy.inf)
-        return (
+        return cast(
+            VectorFloatFlex,
             self._a
             / (t * numpy.sqrt(numpy.pi * t))
-            * numpy.exp(-t * numpy.square(self._a / t - self._b))
+            * numpy.exp(-t * numpy.square(self._a / t - self._b)),
         )
 
     @property
@@ -507,20 +498,14 @@ class LinearStorageCascade(IUH):
         """Determine the values of the secondary parameters |LinearStorageCascade.c|,
         |LinearStorageCascade.log_c|, and |LinearStorageCascade.log_k|."""
         self.c = 1.0 / (self.k * special.gamma(self.n))
-        self.log_c = -numpy.log(self.k) - special.gammaln(self.n)
-        self.log_k = numpy.log(self.k)
+        self.log_c = -math.log(self.k) - special.gammaln(self.n)
+        self.log_k = math.log(self.k)
 
-    @overload
-    def __call__(self, t: float) -> float: ...
-
-    @overload
-    def __call__(self, t: VectorFloat) -> VectorFloat: ...
-
-    def __call__(self, t: float | VectorFloat) -> float | VectorFloat:
+    def __call__(self, t: VectorFloatFlex) -> VectorFloatFlex:
         if isinstance(t, float):
             if t == 0.0:
                 return 0.0
-            return numpy.e ** (
+            return math.exp(
                 self._log_c
                 + (self._n - 1.0) * (math.log(t) - self._log_k)
                 - t / self._k

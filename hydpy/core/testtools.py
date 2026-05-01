@@ -1,7 +1,5 @@
 """This module implements tools for testing *HydPy* and its models."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import builtins
@@ -19,10 +17,8 @@ import sys
 import types
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 
 # from hydpy import aliases  actual import below
@@ -52,6 +48,7 @@ from hydpy.tests import iotesting
 
 if TYPE_CHECKING:
     import matplotlib
+    from matplotlib import figure
     from matplotlib import pyplot
     import pandas
     import plotly
@@ -358,7 +355,7 @@ class Array:
     """Assures that attributes are |numpy.ndarray| objects."""
 
     def __setattr__(self, name: str, value: NDArrayFloat) -> None:
-        object.__setattr__(self, name, numpy.array(value))
+        object.__setattr__(self, name, numpy.asarray(value))
 
 
 class ArrayDescriptor:
@@ -371,7 +368,7 @@ class ArrayDescriptor:
         self,
         obj: Test,
         sequence2value: (
-            Sequence[tuple[sequencetools.ConditionSequence, ArrayFloat]]
+            Sequence[tuple[sequencetools.ConditionSequence, ArrayFloatFlex]]
         ) | None,
     ) -> None:
         self.__delete__(obj)
@@ -860,6 +857,8 @@ standard library for for further information.
         act_names2: list[str] = []
         for sequence in sel_sequences:
             name = type(sequence).__name__
+            if isinstance(sequence, sequencetools.NodeSequence):
+                name = f"{name} {sequence.subseqs.node.name}"
             if sequence.NDIM == 0:
                 sel_names.append(name)
                 sel_units.append(sequence.unit)
@@ -1052,14 +1051,14 @@ class UnitTest(Test):
             for example in range(self.first_example_plot, self.last_example_plot + 1)
         ]
 
-    def memorise_inits(self):
+    def memorise_inits(self) -> None:
         """Memorise all initial conditions."""
         for parseq in self.parseqs:
             value = exceptiontools.getattr_(parseq, "value", None)
             if value is not None:
                 setattr(self.inits, parseq.name, value)
 
-    def prepare_output_arrays(self):
+    def prepare_output_arrays(self) -> None:
         """Prepare arrays for storing the calculated results for the
         respective parameters and/or sequences."""
         for parseq in self.parseqs:
@@ -1069,21 +1068,21 @@ class UnitTest(Test):
             array = numpy.full(shape, init, type_)
             setattr(self.results, parseq.name, array)
 
-    def reset_inits(self):
+    def reset_inits(self) -> None:
         """Set all initial conditions."""
         for parseq in self.parseqs:
             inits = getattr(self.inits, parseq.name, None)
             if inits is not None:
                 parseq(inits)
 
-    def _update_inputs(self, idx):
+    def _update_inputs(self, idx) -> None:
         """Update the actual values with the |UnitTest.nexts| data of
         the given index."""
         for parseq in self.parseqs:
             if hasattr(self.nexts, parseq.name):
                 parseq(getattr(self.nexts, parseq.name)[idx])
 
-    def _update_outputs(self, idx):
+    def _update_outputs(self, idx) -> None:
         """Update the |UnitTest.results| data with the actual values of
         the given index."""
         for parseq in self.parseqs:
@@ -1098,7 +1097,9 @@ class _Open:
         "for further information."
     )
 
-    def __init__(self, path, mode, *args, **kwargs):
+    texts: list[str]
+
+    def __init__(self, path, mode, *args, **kwargs) -> None:
         # pylint: disable=unused-argument
         # all further positional and keyword arguments are ignored.
         self.path = path.replace(os.sep, "/")
@@ -1113,27 +1114,27 @@ class _Open:
     def __exit__(self, exception, message, traceback_):
         self.close()
 
-    def read(self):
+    def read(self) -> NoReturn:
         """Raise a |NotImplementedError| in any case."""
         raise NotImplementedError(self.__readingerror)
 
-    def readline(self):
+    def readline(self) -> NoReturn:
         """Raise a |NotImplementedError| in any case."""
         raise NotImplementedError(self.__readingerror)
 
-    def readlines(self):
+    def readlines(self) -> NoReturn:
         """Raise a |NotImplementedError| in any case."""
         raise NotImplementedError(self.__readingerror)
 
-    def write(self, text):
+    def write(self, text) -> None:
         """Replace the `write` method of file objects."""
         self.texts.append(text)
 
-    def writelines(self, lines):
+    def writelines(self, lines) -> None:
         """Replace the `writelines` method of file objects."""
         self.texts.extend(lines)
 
-    def close(self):
+    def close(self) -> None:
         """Replace the `close` method of file objects."""
         text = "".join(self.texts)
         maxchars = len(self.path)
@@ -1209,14 +1210,14 @@ Please see the documentation on class `Open` of module `testtools` \
 for further information.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.open = builtins.open
 
     def __enter__(self):
-        builtins.open = _Open
+        builtins.open = _Open  # type: ignore[assignment]
         return self
 
-    def __exit__(self, exception, message, traceback_):
+    def __exit__(self, exception, message, traceback_) -> None:
         builtins.open = self.open
 
 
@@ -1347,7 +1348,7 @@ class TestIO:
             pass
 
 
-def make_abc_testable(abstract: type[T]) -> type[T]:
+def make_abc_testable(abstract: type[T_inv]) -> type[T_inv]:
     """Return a concrete version of the given abstract base class for testing purposes.
 
     Abstract base classes cannot be (and, at least in production code, should not be)
@@ -1379,7 +1380,7 @@ def make_abc_testable(abstract: type[T]) -> type[T]:
 
 
 @contextlib.contextmanager
-def mock_datetime_now(testdatetime):
+def mock_datetime_now(testdatetime: datetime.datetime) -> Iterator[None]:
     """Let class method |datetime.datetime.now| of class |datetime.datetime|
     of module |datetime| return the given date for testing purposes within
     a "with-block".
@@ -1423,14 +1424,25 @@ but for the given `datetime` object it is `999` instead.
 
     class _DateTime(datetime.datetime):
         @classmethod
-        def now(cls, tz=None):  # pylint: disable=unused-argument
-            return testdatetime
+        def now(
+            cls, tz: datetime.tzinfo | None = None
+        ) -> Self:  # pylint: disable=unused-argument
+            return cls(
+                year=testdatetime.year,
+                month=testdatetime.month,
+                day=testdatetime.day,
+                hour=testdatetime.hour,
+                minute=testdatetime.minute,
+                second=testdatetime.second,
+                microsecond=testdatetime.microsecond,
+                tzinfo=tz,
+            )
 
     try:
-        datetime.datetime = _DateTime
+        datetime.datetime = _DateTime  # type: ignore[misc]
         yield
     finally:
-        datetime.datetime = _datetime
+        datetime.datetime = _datetime  # type: ignore[misc]
 
 
 class NumericalDifferentiator:
@@ -1465,14 +1477,14 @@ class NumericalDifferentiator:
 
     __NMBNODES = 3
     __XSHIFTS = {
-        "forward": numpy.array([0.0, 1.0, 2.0]),
-        "backward": numpy.array([-2.0, -1.0, 0.0]),
-        "central": numpy.array([-1.0, 0.0, 1.0]),
+        "forward": numpy.asarray([0.0, 1.0, 2.0]),
+        "backward": numpy.asarray([-2.0, -1.0, 0.0]),
+        "central": numpy.asarray([-1.0, 0.0, 1.0]),
     }
     __YCOEFFS = {
-        "forward": numpy.array([-3.0, 4.0, -1.0]) / 2.0,
-        "backward": numpy.array([1.0, -4.0, 3]) / 2.0,
-        "central": numpy.array([-1.0, 0.0, 1]) / 2.0,
+        "forward": numpy.asarray([-3.0, 4.0, -1.0]) / 2.0,
+        "backward": numpy.asarray([1.0, -4.0, 3]) / 2.0,
+        "central": numpy.asarray([-1.0, 0.0, 1]) / 2.0,
     }
 
     def __init__(
@@ -2099,7 +2111,7 @@ result sequences of any of its predecessors: NKor
     return "\n".join(results)
 
 
-def save_autofig(filename: str, figure: pyplot.Figure | None = None) -> None:
+def save_autofig(filename: str, figure: figure.Figure | None = None) -> None:
     """Save a figure automatically generated during testing in the special `autofig`
     sub-package so that Sphinx can include it into the documentation later.
 
@@ -2306,8 +2318,9 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     >>> bowa3.series[1, 2] = -999.0
     >>> assert not numpy.all(bowa3.series == bowa3.testarray)
     """
-    from hydpy.models import hland  # pylint: disable=import-outside-toplevel
-    from hydpy.models import lland  # pylint: disable=import-outside-toplevel
+    # pylint: disable=import-outside-toplevel
+    from hydpy.models.lland import lland_constants
+    from hydpy.models.hland import hland_constants
 
     TestIO.clear()
     devicetools.Node.clear_all()
@@ -2327,35 +2340,39 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     element2 = devicetools.Element("element2", outlets=node1)
     element3 = devicetools.Element("element3", outlets=node1)
     element4 = devicetools.Element("element4", outlets=node1)
-    elements_lland = devicetools.Elements(element1, element2, element3)
-    elements = elements_lland + element4
+    elements = devicetools.Elements(element1, element2, element3, element4)
 
-    element1.model = importtools.prepare_model("lland_dd")
-    element2.model = importtools.prepare_model("lland_dd")
-    element3.model = importtools.prepare_model("lland_knauf")
-    element4.model = importtools.prepare_model("hland_96")
+    model1 = importtools.prepare_model("lland_dd")
+    element1.model = model1
+    model2 = importtools.prepare_model("lland_dd")
+    element2.model = model2
+    model3 = importtools.prepare_model("lland_knauf")
+    element3.model = model3
+    model4 = importtools.prepare_model("hland_96")
+    element4.model = model4
+    models_lland = (model1, model2, model3)
 
-    control3 = element3.model.parameters.control
+    control3 = model3.parameters.control
     control3.nhru(1)
     control3.ft(1.0)
     control3.fhru(1.0)
     control3.gh(100.0)
-    control3.lnk(lland.ACKER)
+    control3.lnk(lland_constants.ACKER)
     control3.measuringheightwindspeed(10.0)
     control3.lai(3.0)
     control3.wmax(300.0)
-    with element3.model.add_aetmodel_v1("evap_aet_morsim"):
+    with model3.add_aetmodel_v1("evap_aet_morsim"):
         pass
 
-    for idx, element in enumerate(elements_lland):
-        parameters = element.model.parameters
+    for idx, model in enumerate(models_lland):
+        parameters = model.parameters
         parameters.control.nhru(idx + 1)
-        parameters.control.lnk(lland.ACKER)
+        parameters.control.lnk(lland_constants.ACKER)
         parameters.derived.absfhru(10.0)
     control4 = element4.model.parameters.control
     control4.nmbzones(3)
     control4.sclass(2)
-    control4.zonetype(hland.FIELD)
+    control4.zonetype(hland_constants.FIELD)
     control4.zonearea.values = 10.0
 
     with hydpy.pub.options.printprogress(False):
@@ -2370,7 +2387,8 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
         elements.prepare_stateseries(allocate_ram=False)
         elements.prepare_stateseries(allocate_ram=True)
 
-    def init_values(seq: TestIOSequence, value1_: float) -> float:
+    def init_values(seq: sequencetools.IOSequence, value1_: float) -> float:
+        seq = cast("TestIOSequence", seq)  # pylint: disable=used-before-assignment
         value2_ = value1_ + len(seq.series.flatten())
         values_ = numpy.arange(value1_, value2_, dtype=config.NP_FLOAT)
         seq.testarray = values_.reshape(seq.seriesshape)
@@ -2381,16 +2399,15 @@ def prepare_io_example_1() -> tuple[devicetools.Nodes, devicetools.Elements]:
     for subname, seqname in zip(
         ["inputs", "fluxes", "states"], ["nied", "nkor", "bowa"]
     ):
-        for element in elements_lland:
-            subseqs = getattr(element.model.sequences, subname)
+        for model in models_lland:
+            subseqs = getattr(model.sequences, subname)
             value1 = init_values(getattr(subseqs, seqname), value1)
     for node in nodes:
-        value1 = init_values(node.sequences.sim, value1)  # type: ignore[arg-type]
-    init_values(element4.model.sequences.states.sp, value1)  # type: ignore[arg-type]
-    init_values(
-        element3.model.sequences.inputs.windspeed, value1  # type: ignore[arg-type]
-    )
-    init_values(element3.model.aetmodel.sequences.inputs.windspeed, value1)
+        value1 = init_values(node.sequences.sim, value1)
+    init_values(model4.sequences.states.sp, value1)
+    init_values(model3.sequences.inputs.windspeed, value1)
+    assert (aetmodel := model3.aetmodel) is not None
+    init_values(aetmodel.sequences.inputs.windspeed, value1)
 
     return nodes, elements
 
@@ -2582,25 +2599,25 @@ def prepare_interpolation_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     e_dummy = devicetools.Element("dummy", inlets=(n_q1, n_q2), outlets=n_q12)
 
     convmodel = importtools.prepare_model("conv_nn")
-    control = convmodel.parameters.control
-    control.inputcoordinates(in1=(1.0, 3.0), in2=(5.0, 7.0))
-    control.outputcoordinates(out1=(2.0, 2.0), out2=(6.0, 6.0))
-    control.maxnmbinputs(1)
+    control_nn = convmodel.parameters.control
+    control_nn.inputcoordinates(in1=(1.0, 3.0), in2=(5.0, 7.0))
+    control_nn.outputcoordinates(out1=(2.0, 2.0), out2=(6.0, 6.0))
+    control_nn.maxnmbinputs(1)
 
     gr4models = []
     for _ in range(2):
         gr4model = importtools.prepare_model("gland_gr4")
-        control = gr4model.parameters.control
+        control_gr4 = gr4model.parameters.control
         with hydpy.pub.options.parameterstep("1d"):
-            control.area(1.0)
-            control.imax(0.0)
-            control.x1(100.0)
-            control.x2(1.0)
-            control.x3(100.0)
-        states = gr4model.sequences.states
-        states.i(control.imax)
-        states.s(control.x1)
-        states.r(control.x3)
+            control_gr4.area(1.0)
+            control_gr4.imax(0.0)
+            control_gr4.x1(100.0)
+            control_gr4.x2(1.0)
+            control_gr4.x3(100.0)
+        states_gr4 = gr4model.sequences.states
+        states_gr4.i(control_gr4.imax)
+        states_gr4.s(control_gr4.x1)
+        states_gr4.r(control_gr4.x3)
         with gr4model.add_petmodel_v1("evap_ret_io") as evapmodel:
             evapmodel.parameters.control.evapotranspirationfactor(1.0)
         gr4models.append(gr4model)
@@ -2623,8 +2640,10 @@ def prepare_interpolation_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     n_in1.sequences.obs.series = 10.0, 20.0, 30.0
     n_in2.deploymode = "oldsim"
     n_in2.sequences.sim.series = 40.0, 50.0, 60.0
-    e_gr4_1.model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
-    e_gr4_2.model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
+    assert (petmodel_1 := e_gr4_1.model.petmodel) is not None
+    petmodel_1.sequences.inputs.referenceevapotranspiration.series = 0.0
+    assert (petmodel_2 := e_gr4_2.model.petmodel) is not None
+    petmodel_2.sequences.inputs.referenceevapotranspiration.series = 0.0
 
     return hp, hydpy.pub
 
@@ -2722,48 +2741,48 @@ def prepare_receiver_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     lmodels = []
     for _ in range(3):
         lmodel = importtools.prepare_model("gland_gr4")
-        control = lmodel.parameters.control
+        control_gr4 = lmodel.parameters.control
         with hydpy.pub.options.parameterstep("1d"):
-            control.area(100.0)
-            control.imax(0.0)
-            control.x1(100.0)
-            control.x2(1.0)
-            control.x3(100.0)
-        states = lmodel.sequences.states
-        states.i(control.imax)
-        states.s(0.6 * control.x1)
-        states.r(0.6 * control.x3)
+            control_gr4.area(100.0)
+            control_gr4.imax(0.0)
+            control_gr4.x1(100.0)
+            control_gr4.x2(1.0)
+            control_gr4.x3(100.0)
+        states_gr4 = lmodel.sequences.states
+        states_gr4.i(control_gr4.imax)
+        states_gr4.s(0.6 * control_gr4.x1)
+        states_gr4.r(0.6 * control_gr4.x3)
         with lmodel.add_petmodel_v1("evap_ret_io") as evapmodel:
             evapmodel.parameters.control.evapotranspirationfactor(1.0)
         lmodels.append(lmodel)
 
     dmodel = importtools.prepare_model("dam_v001")
     with hydpy.pub.options.parameterstep("1d"):
-        control = dmodel.parameters.control
+        control_dam = dmodel.parameters.control
         from_data = ppolytools.PPoly.from_data
-        control.watervolume2waterlevel(from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
-        control.waterlevel2flooddischarge(from_data(xs=[0.0], ys=[0.0]))
-        control.catchmentarea(100.0)
-        control.surfacearea(1.0)
-        control.correctionprecipitation(1.0)
-        control.correctionevaporation(1.0)
-        control.weightevaporation(1.0)
-        control.thresholdevaporation(0.0)
-        control.toleranceevaporation(0.001)
-        control.nmblogentries(1)
-        control.remotedischargeminimum(2.0)
-        control.remotedischargesafety(0.0)
-        control.neardischargeminimumthreshold(0.0)
-        control.neardischargeminimumtolerance(0.0)
-        control.waterlevelminimumthreshold(0.0)
-        control.waterlevelminimumtolerance(0.0)
-        control.restricttargetedrelease(True)
-        states = dmodel.sequences.states
-        states.watervolume(1.0)
-        logs = dmodel.sequences.logs
-        logs.loggedadjustedevaporation(0.0)
-        logs.loggedtotalremotedischarge(2.0)
-        logs.loggedoutflow(0.0)
+        control_dam.watervolume2waterlevel(from_data(xs=[0.0, 1.0], ys=[0.0, 0.25]))
+        control_dam.waterlevel2flooddischarge(from_data(xs=[0.0], ys=[0.0]))
+        control_dam.catchmentarea(100.0)
+        control_dam.surfacearea(1.0)
+        control_dam.correctionprecipitation(1.0)
+        control_dam.correctionevaporation(1.0)
+        control_dam.weightevaporation(1.0)
+        control_dam.thresholdevaporation(0.0)
+        control_dam.toleranceevaporation(0.001)
+        control_dam.nmblogentries(1)
+        control_dam.remotedischargeminimum(2.0)
+        control_dam.remotedischargesafety(0.0)
+        control_dam.neardischargeminimumthreshold(0.0)
+        control_dam.neardischargeminimumtolerance(0.0)
+        control_dam.waterlevelminimumthreshold(0.0)
+        control_dam.waterlevelminimumtolerance(0.0)
+        control_dam.restricttargetedrelease(True)
+        states_dam = dmodel.sequences.states
+        states_dam.watervolume(1.0)
+        logs_dam = dmodel.sequences.logs
+        logs_dam.loggedadjustedevaporation(0.0)
+        logs_dam.loggedtotalremotedischarge(2.0)
+        logs_dam.loggedoutflow(0.0)
 
     l1_.model = lmodels[0]
     l2.model = lmodels[1]
@@ -2781,7 +2800,8 @@ def prepare_receiver_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     hp.prepare_allseries()
     for lmodel in lmodels:
         lmodel.sequences.inputs.p.series = 0.0
-        lmodel.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
+        assert (petmodel := lmodel.petmodel) is not None
+        petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
 
     return hp, hydpy.pub
 
@@ -2918,7 +2938,7 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     1.5, 1.7, 1.9, 2.1, 2.3, 2.5
     """
 
-    # pylint: disable=too-many-statements
+    # pylint: disable=too-many-statements, too-many-locals
 
     from hydpy import aliases  # pylint: disable=import-outside-toplevel
 
@@ -2990,17 +3010,17 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     gr_models = []
     for _ in range(5):
         gr_model = importtools.prepare_model("gland_gr4")
-        control = gr_model.parameters.control
+        control_gr4 = gr_model.parameters.control
         with hydpy.pub.options.parameterstep("1d"):
-            control.area(10.0)
-            control.imax(0.0)
-            control.x1(100.0)
-            control.x2(1.0)
-            control.x3(100.0)
-        states = gr_model.sequences.states
-        states.i(control.imax)
-        states.s(0.6 * control.x1)
-        states.r(0.6 * control.x3)
+            control_gr4.area(10.0)
+            control_gr4.imax(0.0)
+            control_gr4.x1(100.0)
+            control_gr4.x2(1.0)
+            control_gr4.x3(100.0)
+        states_gr4 = gr_model.sequences.states
+        states_gr4.i(control_gr4.imax)
+        states_gr4.s(0.6 * control_gr4.x1)
+        states_gr4.r(0.6 * control_gr4.x3)
         with gr_model.add_petmodel_v1("evap_ret_io") as evap_model:
             evap_model.parameters.control.evapotranspirationfactor(1.0)
         gr_models.append(gr_model)
@@ -3008,31 +3028,31 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     sluice_models = []
     for _ in range(3):
         sluice_model = importtools.prepare_model("dam_sluice")
-        control = sluice_model.parameters.control
+        control_sluice = sluice_model.parameters.control
         with hydpy.pub.options.parameterstep("1d"):
-            control.surfacearea(1.44)
-            control.catchmentarea(86.4)
-            control.watervolume2waterlevel(
+            control_sluice.surfacearea(1.44)
+            control_sluice.catchmentarea(86.4)
+            control_sluice.watervolume2waterlevel(
                 ppolytools.PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 1.0])
             )
-            control.remotewaterlevelmaximumthreshold(2.0)
-            control.remotewaterlevelmaximumtolerance(0.0)
-            control.correctionprecipitation(1.0)
-            control.correctionevaporation(1.0)
-            control.weightevaporation(0.8)
-            control.thresholdevaporation(0.0)
-            control.toleranceevaporation(0.001)
-            control.crestlevel(1.0)
-            control.waterleveldifference2maxfreedischarge(
+            control_sluice.remotewaterlevelmaximumthreshold(2.0)
+            control_sluice.remotewaterlevelmaximumtolerance(0.0)
+            control_sluice.correctionprecipitation(1.0)
+            control_sluice.correctionevaporation(1.0)
+            control_sluice.weightevaporation(0.8)
+            control_sluice.thresholdevaporation(0.0)
+            control_sluice.toleranceevaporation(0.001)
+            control_sluice.crestlevel(1.0)
+            control_sluice.waterleveldifference2maxfreedischarge(
                 ppolytools.PPoly.from_data(xs=[0.0, 1.0], ys=[0.0, 0.1])
             )
-            control.crestleveltolerance(0.1)
-            control.dischargetolerance(0.0)
+            control_sluice.crestleveltolerance(0.1)
+            control_sluice.dischargetolerance(0.0)
         sluice_model.sequences.states.watervolume(3.0)
-        logs = sluice_model.sequences.logs
-        logs.loggedadjustedevaporation(0.0)
-        logs.loggedouterwaterlevel(0.0)
-        logs.loggedremotewaterlevel(0.0)
+        logs_sluice = sluice_model.sequences.logs
+        logs_sluice.loggedadjustedevaporation(0.0)
+        logs_sluice.loggedouterwaterlevel(0.0)
+        logs_sluice.loggedremotewaterlevel(0.0)
         sluice_models.append(sluice_model)
 
     channel_models = []
@@ -3048,40 +3068,40 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     for i in range(2):
         channel_model = channel_models[i]
         with channel_model.add_routingmodel_v1("sw1d_q_in", position=0) as q_model:
-            control = q_model.parameters.control
-            control.lengthdownstream(10.0)
-            control.timestepfactor(0.7)
+            control_q = q_model.parameters.control
+            control_q.lengthdownstream(10.0)
+            control_q.timestepfactor(0.7)
         with channel_model.add_routingmodel_v2("sw1d_lias", position=1) as lias_model:
-            control = lias_model.parameters.control
-            control.lengthupstream(10.0)
-            control.lengthdownstream(10.0)
-            control.stricklercoefficient(1.0 / 0.03)
-            control.timestepfactor(0.7)
-            control.diffusionfactor(0.2)
+            control_lias = lias_model.parameters.control
+            control_lias.lengthupstream(10.0)
+            control_lias.lengthdownstream(10.0)
+            control_lias.stricklercoefficient(1.0 / 0.03)
+            control_lias.timestepfactor(0.7)
+            control_lias.diffusionfactor(0.2)
             lias_model.sequences.states.discharge(0.0)
     channel_model = channel_models[2]
     with channel_model.add_routingmodel_v3("sw1d_gate_out", position=1) as gate_model:
-        control = gate_model.parameters.control
-        control.lengthupstream(10.0)
-        control.bottomlevel(0.0)
-        control.gateheight(0.1)
-        control.gatewidth(2.0)
-        control.flowcoefficient(0.6)
-        control.timestepfactor(0.7)
-        control.dampingradius(0.0)
+        control_gate = gate_model.parameters.control
+        control_gate.lengthupstream(10.0)
+        control_gate.bottomlevel(0.0)
+        control_gate.gateheight(0.1)
+        control_gate.gatewidth(2.0)
+        control_gate.flowcoefficient(0.6)
+        control_gate.timestepfactor(0.7)
+        control_gate.dampingradius(0.0)
     for channel_model in channel_models:
         for submodel in (
             channel_model.storagemodels[0],
             channel_model.routingmodels[0],
             channel_model.routingmodels[1],
         ):
-            if hasattr(submodel, "add_crosssection_v2"):
+            if (submodel is not None) and hasattr(submodel, "add_crosssection_v2"):
                 with submodel.add_crosssection_v2("wq_trapeze") as trapeze_model:
-                    control = trapeze_model.parameters.control
-                    control.nmbtrapezes(1)
-                    control.bottomlevels(0.0)
-                    control.bottomwidths(10.0)
-                    control.sideslopes(0.0)
+                    control_trapeze = trapeze_model.parameters.control
+                    control_trapeze.nmbtrapezes(1)
+                    control_trapeze.bottomlevels(0.0)
+                    control_trapeze.bottomwidths(10.0)
+                    control_trapeze.sideslopes(0.0)
 
     # pylint: disable=unbalanced-tuple-unpacking
     g11.model, g12.model, g21.model, g22.model, g31.model = gr_models
@@ -3102,7 +3122,8 @@ def prepare_collective_example() -> tuple[hydpytools.HydPy, pubtools.Pub]:
     hp.prepare_allseries()
     for gr_model in gr_models:
         gr_model.sequences.inputs.p.series = 0.0
-        gr_model.petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
+        assert (petmodel := gr_model.petmodel) is not None
+        petmodel.sequences.inputs.referenceevapotranspiration.series = 0.0
     out_c3_s1.deploymode = "oldsim"
     out_c3_s1.sequences.sim.series = numpy.linspace(1.5, 2.5, 6)
 

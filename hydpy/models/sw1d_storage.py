@@ -9,13 +9,10 @@ detail.
 """
 
 # pylint: disable=unused-wildcard-import
-# import...
-# ...from HydPy
+
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import routinginterfaces
-
-# ...from musk
 from hydpy.models.sw1d import sw1d_model
 
 

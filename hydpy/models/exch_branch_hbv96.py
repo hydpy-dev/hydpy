@@ -79,14 +79,11 @@ output values:
     | 09:00 |           8.0 |           7.0 |  3.5   0.0      8.0 |    4.0 |    4.0 |     3.5 |     0.0 |     8.0 |
     | 10:00 |           9.0 |           8.0 |  4.0   0.0     10.0 |    4.5 |    4.5 |     4.0 |     0.0 |    10.0 |
 """
-# import...
-# ...from HydPy
+
 from hydpy.core import exceptiontools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.exe.modelimports import *
-
-# ...from exch
 from hydpy.models.exch import exch_model
 
 

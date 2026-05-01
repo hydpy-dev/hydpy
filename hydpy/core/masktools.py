@@ -1,15 +1,11 @@
 """This module implements masking features to define which entries of |Parameter| or
 |Sequence_| arrays are relevant and which are not."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import inspect
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 
@@ -122,6 +118,8 @@ class DefaultMask(BaseMask):
     >>> from hydpy.core.parametertools import Parameter
     >>> from hydpy.core.masktools import DefaultMask
     >>> class Par1(Parameter):
+    ...     NDIM = 2
+    ...     TYPE = float
     ...     shape = (2, 3)
     ...     defaultmask = DefaultMask()
     >>> Par1(None).defaultmask
@@ -131,6 +129,8 @@ class DefaultMask(BaseMask):
     Alternatively, you can directly connect a |DefaultMask| with a |Variable| object:
 
     >>> class Par2(Parameter):
+    ...     NDIM = 2
+    ...     TYPE = float
     ...     shape = (2,)
     >>> mask = DefaultMask(Par2(None))
     >>> mask
@@ -258,6 +258,8 @@ as long as parameter `zonetype` is not prepared properly.
         >>> from hydpy.core.parametertools import Parameter
         >>> from hydpy.core.masktools import IndexMask
         >>> class Par(Parameter):
+        ...     NDIM = 2
+        ...     TYPE = float
         ...     mask = IndexMask()
         >>> Par(None).mask
         Traceback (most recent call last):

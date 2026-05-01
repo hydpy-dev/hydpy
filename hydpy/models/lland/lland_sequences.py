@@ -1,10 +1,8 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
-
-# ...from lland
+from hydpy.core.typingtools import *
+from hydpy.models.lland import lland_model
 from hydpy.models.lland import lland_derived
 
 
@@ -27,13 +25,15 @@ class Flux1DSequence(sequencetools.FluxSequence):
     2.5
     """
 
+    NDIM: Final[Literal[1]] = 1
     DERIVEDPARAMETERS = (lland_derived.AbsFHRU,)
 
     @property
-    def refweights(self):
+    def refweights(self) -> lland_derived.AbsFHRU:
         """Alias for the associated instance of |AbsFHRU| for calculating
         areal values."""
-        return self.subseqs.seqs.model.parameters.derived.absfhru
+        model = cast(lland_model.Model, self.subseqs.seqs.model)
+        return model.parameters.derived.absfhru
 
 
 class State1DSequence(sequencetools.StateSequence):
@@ -58,10 +58,12 @@ class State1DSequence(sequencetools.StateSequence):
     30.0
     """
 
+    NDIM: Final[Literal[1]] = 1
     DERIVEDPARAMETERS = (lland_derived.AbsFHRU,)
 
     @property
-    def refweights(self):
+    def refweights(self) -> lland_derived.AbsFHRU:
         """Alias for the associated instance of |AbsFHRU| for calculating
         areal values."""
-        return self.subseqs.seqs.model.parameters.derived.absfhru
+        model = cast(lland_model.Model, self.subseqs.seqs.model)
+        return model.parameters.derived.absfhru

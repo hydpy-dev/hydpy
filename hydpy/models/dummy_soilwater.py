@@ -37,8 +37,7 @@ configuring and testing it does not require additional explanations:
 >>> round_(model.get_soilwater_v1(1))
 4.0
 """
-# import...
-# ...from HydPy
+
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *

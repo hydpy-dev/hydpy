@@ -1,65 +1,64 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
-from hydpy.core import propertytools
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class LoggedAirTemperature(sequencetools.LogSequence):
     """Logged air temperature [°C]."""
 
-    NDIM, NUMERIC = 2, False
+    NDIM: Final[Literal[2]] = 2
 
 
 class LoggedPrecipitation(sequencetools.LogSequence):
     """Logged precipitation [mm/T]."""
 
-    NDIM, NUMERIC = 2, False
+    NDIM: Final[Literal[2]] = 2
 
 
 class LoggedWindSpeed2m(sequencetools.LogSequence):
     """Logged wind speed at 2 m above grass-like vegetation [m/s]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class LoggedRelativeHumidity(sequencetools.LogSequence):
     """Logged relative humidity [%]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class LoggedSunshineDuration(sequencetools.LogSequence):
     """Logged sunshine duration [h]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class LoggedPossibleSunshineDuration(sequencetools.LogSequence):
     """Logged astronomically possible sunshine duration [h]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class LoggedGlobalRadiation(sequencetools.LogSequence):
     """Logged global radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class LoggedClearSkySolarRadiation(sequencetools.LogSequence):
     """Logged clear sky radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class LoggedPotentialEvapotranspiration(sequencetools.LogSequence):
     """Logged (damped) potential evapotranspiration [mm/T]."""
 
-    NDIM, NUMERIC = 2, False
+    NDIM: Final[Literal[2]] = 2
 
-    def _get_shape(self):
+    @property
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the lengths of all dimensions.
 
         |LoggedPotentialEvapotranspiration| is generally initialised with a length of
@@ -71,21 +70,21 @@ class LoggedPotentialEvapotranspiration(sequencetools.LogSequence):
         >>> logs.loggedpotentialevapotranspiration.shape
         (1, 3)
         """
-        return super()._get_shape()
+        return super().shape
 
-    def _set_shape(self, shape):
-        super()._set_shape((1, shape))
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
+    @shape.setter
+    def shape(self, shape: ShapeHookSet) -> None:
+        prop = super(__class__, type(self)).shape  # type: ignore[name-defined]
+        prop.fset(self, (1, shape))  # type: ignore[attr-defined]
 
 
 class LoggedWaterEvaporation(sequencetools.LogSequence):
     """Logged evaporation from water areas [mm/T]."""
 
-    NDIM, NUMERIC = 2, False
+    NDIM: Final[Literal[2]] = 2
 
 
 class LoggedPotentialSoilEvapotranspiration(sequencetools.LogSequence):
     """Logged potential soil evapotranspiration [mm/T]."""
 
-    NDIM, NUMERIC = 2, False
+    NDIM: Final[Literal[2]] = 2

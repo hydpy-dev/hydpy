@@ -2,11 +2,8 @@
 .. _`Pegasus method`: https://link.springer.com/article/10.1007/BF01932959
 """
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import importtools
 from hydpy.core import exceptiontools
@@ -22,8 +19,6 @@ from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
 from hydpy.interfaces import stateinterfaces
 from hydpy.interfaces import tempinterfaces
-
-# ...from wland
 from hydpy.models.wland import wland_control
 from hydpy.models.wland import wland_derived
 from hydpy.models.wland import wland_fixed
@@ -80,7 +75,7 @@ class Pick_HS_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_factors.DHS,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         fac = model.sequences.factors.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -136,7 +131,7 @@ class Calc_FXS_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.FXS,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
@@ -186,7 +181,7 @@ class Calc_FXG_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.FXG,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -222,7 +217,7 @@ class Calc_PC_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.PC,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -266,7 +261,9 @@ class Calc_PE_PET_PETModel_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.PE, wland_fluxes.PET)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: petinterfaces.PETModel_V1, /
+    ) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialevapotranspiration()
@@ -357,7 +354,9 @@ class Calc_PE_PET_PETModel_V2(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.PE, wland_fluxes.PET)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V2) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: petinterfaces.PETModel_V2, /
+    ) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialinterceptionevaporation()
@@ -381,7 +380,7 @@ class Calc_PE_PET_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.PE, wland_fluxes.PET)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.petmodel_typeid == 1:
             model.calc_pe_pet_petmodel_v1(
                 cast(petinterfaces.PETModel_V1, model.petmodel)
@@ -469,7 +468,7 @@ class Calc_TF_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.TF,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -551,7 +550,7 @@ class Calc_EI_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.EI,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -602,7 +601,7 @@ class Calc_FR_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_aides.FR,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -638,7 +637,7 @@ class Calc_RF_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.RF,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -671,7 +670,7 @@ class Calc_SF_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.SF,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -749,7 +748,7 @@ class Calc_PM_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.PM,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         inp = model.sequences.inputs.fastaccess
@@ -829,7 +828,7 @@ class Calc_AM_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.AM,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -858,7 +857,7 @@ class Calc_PS_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.PS,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.ps = flu.pc
 
@@ -921,7 +920,7 @@ class Calc_WE_W_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_aides.WE, wland_aides.W)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         fix = model.parameters.fixed.fastaccess
@@ -997,7 +996,7 @@ class Calc_PVE_PV_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.PVE, wland_fluxes.PV)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1054,7 +1053,7 @@ class Calc_PQ_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.PQ,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1128,7 +1127,7 @@ class Calc_BetaE_Beta_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_aides.BetaE, wland_aides.Beta)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1215,7 +1214,7 @@ class Calc_ETVE_ETV_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.ETVE, wland_fluxes.ETV)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1297,7 +1296,7 @@ class Calc_ES_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.ES,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1348,7 +1347,7 @@ class Calc_ET_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.ET,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -1405,7 +1404,7 @@ class Calc_DVEq_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_aides.DVEq,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1484,7 +1483,7 @@ class Return_DVH_V1(modeltools.Method):
     DERIVEDPARAMETERS = (wland_derived.RH1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, h: float) -> float:
+    def __call__(model: modeltools.Model, h: float, /) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         h = smoothutils.smooth_max1(h, con.psiae, der.rh1)
@@ -1574,7 +1573,7 @@ class Calc_DVEq_V2(modeltools.Method):
     SUBMETHODS = (Return_DVH_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1654,7 +1653,7 @@ class Calc_DVEq_V3(modeltools.Method):
     RESULTSEQUENCES = (wland_aides.DVEq,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1738,7 +1737,7 @@ class Return_DVH_V2(modeltools.Method):
     DERIVEDPARAMETERS = (wland_derived.RH1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, h: float) -> float:
+    def __call__(model: modeltools.Model, h: float, /) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         h = smoothutils.smooth_max1(h, con.psiae, der.rh1)
@@ -1826,7 +1825,7 @@ class Calc_DVEq_V4(modeltools.Method):
     SUBMETHODS = (Return_DVH_V2,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1902,7 +1901,7 @@ class Return_ErrorDV_V1(modeltools.Method):
     SUBMETHODS = (Calc_DVEq_V3,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, dg: float) -> float:
+    def __call__(model: modeltools.Model, dg: float, /) -> float:
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
         dveq_old: float = aid.dveq
@@ -1972,7 +1971,7 @@ class Calc_DGEq_V1(modeltools.Method):
     SUBMETHODS = (Return_ErrorDV_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.psiae.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -2109,7 +2108,7 @@ class Calc_GF_V1(modeltools.Method):
     SUBMETHODS = (Return_DVH_V2,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -2179,7 +2178,7 @@ class Calc_GR_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.GR,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2297,7 +2296,7 @@ class Calc_CDG_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.CDG,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2399,7 +2398,7 @@ class Calc_CDG_V2(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.CDG,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2465,7 +2464,7 @@ class Calc_FGSE_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.FGSE,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2634,7 +2633,7 @@ class Calc_FGS_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.FGS,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2687,7 +2686,7 @@ class Calc_FQS_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.FQS,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2753,7 +2752,7 @@ class Calc_RH_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.RH,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2795,7 +2794,7 @@ class Update_IC_V1(modeltools.Method):
     UPDATEDSEQUENCES = (wland_states.IC,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -2830,7 +2829,7 @@ class Update_SP_V1(modeltools.Method):
     UPDATEDSEQUENCES = (wland_states.SP,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -2870,7 +2869,7 @@ class Update_DVE_V1(modeltools.Method):
     UPDATEDSEQUENCES = (wland_states.DVE,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -2922,7 +2921,7 @@ class Update_DV_V1(modeltools.Method):
     UPDATEDSEQUENCES = (wland_states.DV,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -2966,7 +2965,7 @@ class Update_HGE_V1(modeltools.Method):
     UPDATEDSEQUENCES = (wland_states.HGE,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -3006,7 +3005,7 @@ class Update_DG_V1(modeltools.Method):
     UPDATEDSEQUENCES = (wland_states.DG,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -3039,7 +3038,7 @@ class Update_HQ_V1(modeltools.Method):
     UPDATEDSEQUENCES = (wland_states.HQ,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
         new = model.sequences.states.fastaccess_new
@@ -3084,7 +3083,7 @@ class Update_HS_V1(modeltools.Method):
     UPDATEDSEQUENCES = (wland_states.HS,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         old = model.sequences.states.fastaccess_old
@@ -3118,7 +3117,7 @@ class Calc_R_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_fluxes.R,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.r = der.qf * flu.rh
@@ -3144,7 +3143,7 @@ class Pass_R_V1(modeltools.Method):
     RESULTSEQUENCES = (wland_outlets.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.q = flu.r
@@ -3168,7 +3167,7 @@ class Get_Temperature_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wland_inputs.T,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.t
@@ -3190,7 +3189,7 @@ class Get_MeanTemperature_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wland_inputs.T,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         inp = model.sequences.inputs.fastaccess
 
         return inp.t
@@ -3215,7 +3214,7 @@ class Get_Precipitation_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wland_fluxes.PC,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.pc
@@ -3241,7 +3240,7 @@ class Get_SnowCover_V1(modeltools.Method):
     REQUIREDSEQUENCES = (wland_states.SP,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, k: int) -> float:
+    def __call__(model: modeltools.Model, k: int, /) -> float:
         sta = model.sequences.states.fastaccess
 
         if sta.sp[k] > 0.0:
@@ -3348,9 +3347,9 @@ class Model(modeltools.ELSModel):
     )
     SUBMODELS = (PegasusDGEq, QuadDVEq_V1, QuadDVEq_V2)
 
-    petmodel = modeltools.SubmodelProperty(
-        petinterfaces.PETModel_V1, petinterfaces.PETModel_V2
-    )
+    petmodel = modeltools.SubmodelProperty[
+        petinterfaces.PETModel_V1 | petinterfaces.PETModel_V2
+    ](petinterfaces.PETModel_V1, petinterfaces.PETModel_V2)
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     petmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
@@ -3438,7 +3437,9 @@ class Main_PETModel_V1(modeltools.ELSModel):
     """Base class for |wland.DOCNAME.long| models that use submodels that comply with
     the |PETModel_V1| interface."""
 
-    petmodel: modeltools.SubmodelProperty
+    petmodel: modeltools.SubmodelProperty[
+        petinterfaces.PETModel_V1 | petinterfaces.PETModel_V2
+    ]
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     petmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
@@ -3499,7 +3500,9 @@ class Main_PETModel_V2(modeltools.ELSModel):
     """Base class for |wland.DOCNAME.long| models that use submodels that comply with
     the |PETModel_V2| interface."""
 
-    petmodel: modeltools.SubmodelProperty
+    petmodel: modeltools.SubmodelProperty[
+        petinterfaces.PETModel_V1 | petinterfaces.PETModel_V2
+    ]
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     petmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
@@ -3639,7 +3642,7 @@ class Main_DischargeModel_V2(modeltools.ELSModel):
     """Base class for |wland.DOCNAME.long| models that use submodels that comply with
     the |DischargeModel_V2| interface."""
 
-    dischargemodel: modeltools.SubmodelProperty
+    dischargemodel: modeltools.SubmodelProperty[dischargeinterfaces.DischargeModel_V2]
     dischargemodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     dischargemodel_typeid = modeltools.SubmodelTypeIDProperty()
 
@@ -3725,7 +3728,7 @@ class Main_WaterLevelModel_V1(modeltools.ELSModel):
     """Base class for |wland.DOCNAME.long| models that use submodels that comply with
     the |WaterLevelModel_V1| interface."""
 
-    waterlevelmodel: modeltools.SubmodelProperty
+    waterlevelmodel: modeltools.SubmodelProperty[stateinterfaces.WaterLevelModel_V1]
     waterlevelmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     waterlevelmodel_typeid = modeltools.SubmodelTypeIDProperty()
 

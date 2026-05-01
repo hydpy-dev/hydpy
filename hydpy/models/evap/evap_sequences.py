@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import masktools
 from hydpy.core import sequencetools
 from hydpy.core.typingtools import *
@@ -13,20 +11,19 @@ if TYPE_CHECKING:
 class FactorSequence1D(sequencetools.FactorSequence):
     """Base class for 1-dimensional factor sequences."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     mask = masktools.SubmodelIndexMask()
 
 
 class FluxSequence1D(sequencetools.FluxSequence):
     """Base class for 1-dimensional flux sequences."""
 
-    NDIM = 1
+    NDIM: Final[Literal[1]] = 1
     mask = masktools.SubmodelIndexMask()
 
 
 class StateSequence1D(sequencetools.StateSequence):
     """Base class for 1-dimensional state sequences."""
 
-    NDIM = 1
-    NUMERIC = False
+    NDIM: Final[Literal[1]] = 1
     mask = masktools.SubmodelIndexMask()

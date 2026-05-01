@@ -1,15 +1,16 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class NmbZones(parametertools.Parameter):
     """The number of separately modelled zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
         nmbhru_old = exceptiontools.getattr_(self, "value", None)

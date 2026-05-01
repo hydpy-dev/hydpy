@@ -1,8 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class MoistureChange(sequencetools.LogSequence):
@@ -14,4 +13,4 @@ class MoistureChange(sequencetools.LogSequence):
     ToDo: Would constants like "INACTIVE" or "REDISTRIBUTION" simplify the methods?
     """
 
-    NDIM, NUMERIC = 2, False
+    NDIM: Final[Literal[2]] = 2

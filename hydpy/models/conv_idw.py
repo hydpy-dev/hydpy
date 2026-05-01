@@ -91,8 +91,7 @@ values:
 | 2000-01-02 | nan  2.0     nan | nan       2.0       nan      2.0 | nan | 2.0 | nan |  nan |      2.0 |      nan |  2.0 |
 | 2000-01-03 | nan  nan     nan | nan       nan       nan      nan | nan | nan | nan |  nan |      nan |      nan |  nan |
 """
-# import...
-# ...from HydPy
+
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.models.conv import conv_model

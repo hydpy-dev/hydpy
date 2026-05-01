@@ -1,15 +1,19 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
+from __future__ import annotations
+
 from hydpy.core import objecttools
+from hydpy.core import modeltools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_constants
+
+# from hydpy.models.wland import wland_model  # actual import below
 from hydpy.models.wland import wland_masks
 
 if TYPE_CHECKING:
     from hydpy.core import variabletools
+    from hydpy.models.wland import wland_control
 
 
 class SoilParameter(parametertools.Parameter):
@@ -77,7 +81,7 @@ not be set based on the given keyword arguments.
     _SOIL2VALUE: dict[int, float]
     _soil: int | None
 
-    def __init__(self, subvars: parametertools.SubParameters):
+    def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]) -> None:
         super().__init__(subvars)
         self._soil = None
 
@@ -117,7 +121,7 @@ not be set based on the given keyword arguments.
                 )
 
     @classmethod
-    def print_defaults(cls):
+    def print_defaults(cls) -> None:
         """Print the soil-related default values of the parameter.
 
         See the documentation on class |B| for an example.
@@ -184,10 +188,14 @@ class LanduseParameterLand(parametertools.ZipParameter):
     mask = wland_masks.Land()
 
     @property
-    def refweights(self):
+    def refweights(self) -> wland_control.AUR:
         """Alias for the associated instance of |AUR| for calculating areal mean
         values."""
-        return self.subpars.aur
+        # pylint: disable=import-outside-toplevel
+        from hydpy.models.wland import wland_model
+
+        model = cast(wland_model.Model, self.subpars.pars.model)
+        return model.parameters.control.aur
 
 
 class LanduseMonthParameter(parametertools.KeywordParameter2D):

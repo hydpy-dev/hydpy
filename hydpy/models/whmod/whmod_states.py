@@ -1,6 +1,7 @@
 # pylint: disable=missing-module-docstring
 
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 from hydpy.models.whmod import whmod_sequences
 from hydpy.models.whmod import whmod_derived
@@ -24,7 +25,7 @@ class SoilMoisture(whmod_sequences.State1DSoilSequence):
     SPAN = (0.0, None)
     DERIVEDPARAMETERS = (whmod_derived.MaxSoilWater,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |SoilMoisture| following :math:`0 \leq SoilMoisture \leq MaxSoilWater`.
 
         >>> from hydpy.models.whmod import *
@@ -36,16 +37,17 @@ class SoilMoisture(whmod_sequences.State1DSoilSequence):
         soilmoisture(0.0, 0.0, 100.0, 200.0, 200.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.derived.maxsoilwater
+            upper = self.subseqs.seqs.model.parameters.derived.maxsoilwater.values
         return super().trim(lower, upper)
 
 
 class CisternWater(sequencetools.StateSequence):
     """Amount of water that is collected in the cistern [m³]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    SPAN = (0.0, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |CisternWater| following
         :math:`0 \leq CisternWater \leq CisternCapacity`.
 
@@ -70,4 +72,4 @@ class CisternWater(sequencetools.StateSequence):
 class DeepWater(sequencetools.StateSequence):
     """Amount of water that is (still) percolating through the vadose zone [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0

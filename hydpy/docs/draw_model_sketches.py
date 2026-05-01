@@ -22,7 +22,6 @@ import numpy
 
 from hydpy import config
 
-
 TOL: Final = 0.2  # total outlet length
 HOW: Final = 0.05  # half outlet width
 GOL: Final = 0.618  # golden ratio
@@ -141,8 +140,8 @@ class Vectors:
         x1m = cellextent.x1 - margins.right * cellextent.dx
         y0m = cellextent.y0 + margins.bottom * cellextent.dy
         y1m = cellextent.y1 - margins.top * cellextent.dy
-        xs = numpy.array(self.xs, dtype=config.NP_FLOAT)
-        ys = numpy.array(self.ys, dtype=config.NP_FLOAT)
+        xs = numpy.asarray(self.xs, dtype=config.NP_FLOAT)
+        ys = numpy.asarray(self.ys, dtype=config.NP_FLOAT)
         xs = xs * (x1m - x0m) + x0m
         ys = ys * (y1m - y0m) + y0m
         return type(self)(xs=tuple(xs), ys=tuple(ys))

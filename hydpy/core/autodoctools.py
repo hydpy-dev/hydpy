@@ -1,8 +1,6 @@
 """This module implements tools for increasing the level of automation and
 standardisation of the online documentation generated with Sphinx."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import builtins
@@ -29,14 +27,13 @@ import typing
 import unittest
 import warnings
 
-# ...from site-packages
 # import matplotlib    actual import below
 import numpy
 import typing_extensions
 
 # import pandas    actual import below
 # import scipy    actual import below
-# ...from HydPy
+
 import hydpy
 from hydpy import auxs
 from hydpy import core
@@ -49,7 +46,6 @@ from hydpy.core import objecttools
 from hydpy.core import sequencetools
 from hydpy.core import typingtools
 from hydpy.core.typingtools import *
-
 
 if TYPE_CHECKING:
     from hydpy.cythons import annutils
@@ -137,6 +133,7 @@ excluded_members = {
     "ADD_METHODS",
     "INLET_METHODS",
     "OUTLET_METHODS",
+    "OBSERVER_METHODS",
     "RECEIVER_METHODS",
     "SENDER_METHODS",
     "PART_ODE_METHODS",
@@ -1280,6 +1277,32 @@ def autodoc_tuple2doc(module: types.ModuleType) -> None:
                     member.__doc__ = doc + "\n".join(l for l in lst)
 
 
+def autodoc_complete() -> None:
+    """Add substituters to all relevant modules."""
+    with warnings.catch_warnings():
+        warnings.filterwarnings(action="ignore", category=FutureWarning)
+
+        hydpy.substituter = prepare_mainsubstituter()
+        for subpackage in (auxs, core, cythons, interfaces, exe):
+            subpackagepath = subpackage.__path__[0]
+            for filename in sorted(os.listdir(subpackagepath)):
+                if filename.endswith(".py") and not filename.startswith("_"):
+                    module = importlib.import_module(
+                        f"{subpackage.__name__}.{filename[:-3]}"
+                    )
+                    autodoc_module(module)
+        modelpath: str = models.__path__[0]
+        for filename in sorted(os.listdir(modelpath)):
+            path = os.path.join(modelpath, filename)
+            if os.path.isdir(path) and not filename.startswith("_"):
+                module = importlib.import_module(f"{models.__name__}.{filename}")
+                autodoc_basemodel(module)
+        for filename in sorted(os.listdir(modelpath)):
+            if filename.endswith(".py") and not filename.startswith("_"):
+                module = importlib.import_module(f"{models.__name__}.{filename[:-3]}")
+                autodoc_applicationmodel(module)
+
+
 def _make_cssstyle(
     *,
     marginleft: str | None = None,
@@ -1523,7 +1546,10 @@ title="hydpy.interfaces.aetinterfaces.AETModel_V1">\
     )
 
 
-Port: TypeAlias = modeltools.SubmodelProperty | modeltools.SubmodelsProperty
+Port: TypeAlias = (
+    modeltools.SubmodelProperty[modeltools.SubmodelInterface]
+    | modeltools.SubmodelsProperty[modeltools.SubmodelInterface]
+)
 
 Subgraphs: TypeAlias = dict[
     type[modeltools.Model], dict[Port, list[type[modeltools.Model]]]

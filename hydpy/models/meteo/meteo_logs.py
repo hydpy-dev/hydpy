@@ -1,30 +1,28 @@
 # pylint: disable=missing-module-docstring
 
-
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class LoggedSunshineDuration(sequencetools.LogSequence):
     """Logged sunshine duration [h]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class LoggedGlobalRadiation(sequencetools.LogSequence):
     """Logged global radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class LoggedUnadjustedSunshineDuration(sequencetools.LogSequence):
     """Logged unadjusted sunshine duration [h]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class LoggedUnadjustedGlobalRadiation(sequencetools.LogSequence):
     """Logged unadjusted global radiation [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1

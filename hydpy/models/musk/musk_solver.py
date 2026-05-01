@@ -1,12 +1,9 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.models.musk import musk_control
 
 
@@ -18,17 +15,15 @@ class NmbRuns(parametertools.SolverParameter):
     suitable `INIT` value.
     """
 
-    NDIM = 0
-    TYPE = int
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
 
 
 class ToleranceWaterDepth(parametertools.SolverParameter):
     """Acceptable water depth error for determining the reference water depth [m]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, None)
     INIT = 0.0
 
@@ -36,9 +31,8 @@ class ToleranceWaterDepth(parametertools.SolverParameter):
 class ToleranceDischarge(parametertools.SolverParameter):
     """Acceptable discharge error for determining the reference water depth [m³/s]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, None)
     INIT = 0.000001
 
@@ -75,8 +69,7 @@ class ToleranceDischarge(parametertools.SolverParameter):
 class ToleranceNegativeInflow(parametertools.SolverParameter):
     """Threshold for setting negative inflow values to zero or |numpy.nan| [m³/s]."""
 
-    NDIM = 0
-    TYPE = float
-    TIME = None
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
     SPAN = (0.0, -numpy.inf)
     INIT = -numpy.inf

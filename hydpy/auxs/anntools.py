@@ -5,15 +5,11 @@ The relevant models apply some of the neural network features during simulation 
 which is why we implement these features in the Cython extension module |annutils|.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import weakref
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import propertytools
@@ -1287,8 +1283,8 @@ of element `?` is not properly defined.
 
     def __eq__(self, other: object) -> bool:
         def _equal_array(
-            x: VectorFloat | MatrixInt | MatrixFloat,
-            y: VectorFloat | MatrixInt | MatrixFloat,
+            x: VectorFloat | MatrixInt | MatrixFloat | TensorFloat,
+            y: VectorFloat | MatrixInt | MatrixFloat | TensorFloat,
         ) -> bool:
             idxs = ~(numpy.isnan(x) * numpy.isnan(y))
             return bool(numpy.all(x[idxs] == y[idxs]))

@@ -1,12 +1,9 @@
 # pylint: disable=missing-module-docstring
 
-# import...
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import sequencetools
@@ -43,7 +40,8 @@ shape (4...) into shape (3...)
     quh(3.0, 3.0, 0.0)
     """
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    SPAN = (0.0, None)
 
     def __call__(self, *args) -> None:
         try:

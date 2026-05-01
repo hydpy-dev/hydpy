@@ -1,16 +1,17 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class NmbSoils(parametertools.Parameter):
     """The number of separately modelled soil compartments in the subbasin [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
         nmbsoils_old = exceptiontools.getattr_(self, "value", None)
@@ -45,7 +46,9 @@ class NmbBins(parametertools.Parameter):
     and depth.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (2, None)
 
     def __call__(self, *args, **kwargs) -> None:
         nmbbins_old = exceptiontools.getattr_(self, "value", None)
@@ -63,9 +66,11 @@ class NmbBins(parametertools.Parameter):
 class DT(parametertools.Parameter):
     """The length of the numerical substeps [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = False
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Adjust |DT| when necessary, so the simulation period is an integer multiple.
 
         Assume we want to perform a simulation over intervals of 30 minutes but define
@@ -119,27 +124,35 @@ class DT(parametertools.Parameter):
 class Sealed(parametertools.Parameter):
     """Flag indicating if a (soil) compartment is sealed for infiltration [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, bool, None, (False, True)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = bool
+    SPAN = (False, True)
 
 
 class SoilArea(parametertools.Parameter):
     """The area of each soil compartment [km²]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class SoilDepth(parametertools.Parameter):
     """Depth of the considered soil domains [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class ResidualMoisture(parametertools.Parameter):
     """Relative residual water content [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |ResidualMoisture| following
         :math:`0 \leq ResidualMoisture \leq SaturationMoisture \leq 1`.
 
@@ -165,9 +178,11 @@ class ResidualMoisture(parametertools.Parameter):
 class SaturationMoisture(parametertools.Parameter):
     """Relative saturation water content [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |SaturationMoisture| following
         :math:`0 \leq ResidualMoisture \leq SaturationMoisture \leq 1`.
 
@@ -193,16 +208,23 @@ class SaturationMoisture(parametertools.Parameter):
 class SaturatedConductivity(parametertools.Parameter):
     """Saturated hydraulic conductivity [mm/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, True, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, None)
 
 
 class PoreSizeDistribution(parametertools.Parameter):
     """Pore-size distribution parameter [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class AirEntryPotential(parametertools.Parameter):
     """Air entry potential [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)

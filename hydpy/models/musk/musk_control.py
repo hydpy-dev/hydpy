@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -12,7 +10,9 @@ from hydpy.core.typingtools import *
 class CatchmentArea(parametertools.Parameter):
     """Size of the catchment draining into the channel [km²]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class NmbSegments(parametertools.Parameter):
@@ -79,7 +79,9 @@ class NmbSegments(parametertools.Parameter):
     discharge(1.0, 2.0, 3.0)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
     KEYWORDS = {"lag": parametertools.Keyword(name="lag", time=False)}
 
     def __call__(self, *args, **kwargs) -> None:
@@ -97,7 +99,7 @@ class NmbSegments(parametertools.Parameter):
         model = self.subpars.pars.model
         model.nmb_segments = shape
         pars, seqs = model.parameters, model.sequences
-        all_subvars: tuple[variabletools.SubVariables, ...] = (
+        all_subvars = (
             pars.control,
             pars.derived,
             seqs.factors,
@@ -269,7 +271,7 @@ with value `1.0` needed to be trimmed to `0.0`.
     0.5, 0.5, 0.0
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE: Final = float
     SHAPE = (3,)
     KEYWORDS = {
         "damp": parametertools.Keyword(name="damp"),
@@ -316,7 +318,9 @@ with value `1.0` needed to be trimmed to `0.0`.
 class Length(parametertools.Parameter):
     """The total length of channel [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class BottomSlope(parametertools.Parameter):
@@ -325,4 +329,6 @@ class BottomSlope(parametertools.Parameter):
     :math:`BottomSlope = \frac{elevation_{start} - elevation_{end}}{Length}`
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)

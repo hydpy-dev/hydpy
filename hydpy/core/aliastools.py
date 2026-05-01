@@ -1,18 +1,14 @@
 """This module provides tools for the efficient handling of input and output
 sequence aliases."""
 
-# import...
-# ...from standard library
 import importlib
 import inspect
 import os
 import pkgutil
 import types
 
-# ...from site-packages
 import black
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy import models
@@ -54,7 +50,7 @@ class LazyInOutSequenceImport:
     >>> hland_inputs_T.__name__
     'T'
     >>> type(hland_inputs_T)
-    <class 'type'>
+    <class 'abc.ABCMeta'>
 
     Due to Python's `special method lookup`_, we must explicitly define the relevant
     ones.  The following examples list all considered methods:
@@ -151,6 +147,7 @@ def write_sequencealiases() -> None:
         ("inputs", sequencetools.InputSequence, (0,)),
         ("inlets", sequencetools.InletSequence, (0, 1)),
         ("receivers", sequencetools.ReceiverSequence, (0, 1)),
+        ("observers", sequencetools.ObserverSequence, (0, 1)),
         ("factors", sequencetools.FactorSequence, (0,)),
         ("fluxes", sequencetools.FluxSequence, (0,)),
         ("states", sequencetools.StateSequence, (0,)),
@@ -184,10 +181,8 @@ def write_sequencealiases() -> None:
         "",
         "This file was automatically created by function |write_sequencealiases|.",
         '"""',
-        "# import...",
-        "# ...from standard library",
         "from typing import TYPE_CHECKING",
-        "# ...from HydPy",
+        "",
         "from hydpy.core.aliastools import LazyInOutSequenceImport",
     ]
     lines.append("if TYPE_CHECKING:")

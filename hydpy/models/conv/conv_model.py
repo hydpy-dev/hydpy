@@ -1,8 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# imports...
-# ...from site-packages
-# ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import modeltools
 from hydpy.core import objecttools
@@ -35,7 +32,7 @@ class Pick_Inputs_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.Inputs,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         inl = model.sequences.inlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -87,7 +84,7 @@ class Calc_Outputs_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.Outputs,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -231,7 +228,7 @@ class Calc_ActualConstant_ActualFactor_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.ActualConstant, conv_fluxes.ActualFactor)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -291,7 +288,7 @@ class Calc_InputPredictions_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.InputPredictions,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -327,7 +324,7 @@ class Calc_OutputPredictions_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.OutputPredictions,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -361,7 +358,7 @@ class Calc_InputResiduals_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.InputResiduals,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmbinputs):
@@ -384,7 +381,9 @@ class Interpolate_InverseDistance_V1(modeltools.Method):
     RESULTSEQUENCES = ()
 
     @staticmethod
-    def __call__(model: modeltools.Model, inputs: Vector, outputs: Vector) -> None:
+    def __call__(
+        model: modeltools.Model, inputs: VectorFloat, outputs: VectorFloat, /
+    ) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         for idx_out in range(der.nmboutputs):
@@ -476,7 +475,7 @@ class Calc_Outputs_V2(modeltools.Method):
     SUBMETHODS = (Interpolate_InverseDistance_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         model.interpolate_inversedistance_v1(flu.inputs, flu.outputs)
 
@@ -522,7 +521,7 @@ class Calc_OutputResiduals_V1(modeltools.Method):
     SUBMETHODS = (Interpolate_InverseDistance_V1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         model.interpolate_inversedistance_v1(flu.inputresiduals, flu.outputresiduals)
 
@@ -552,7 +551,7 @@ class Calc_Outputs_V3(modeltools.Method):
     RESULTSEQUENCES = (conv_fluxes.Outputs,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         for idx in range(der.nmboutputs):
@@ -579,7 +578,7 @@ class Pass_Outputs_V1(modeltools.Method):
     RESULTSEQUENCES = (conv_outlets.Outputs,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         out = model.sequences.outlets.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -616,7 +615,7 @@ class Model(modeltools.AdHocModel):
 class BaseModel(modeltools.AdHocModel):
     """Base class for all |conv.DOCNAME.complete| application models."""
 
-    def connect(self):
+    def connect(self) -> None:
         """Connect the |InletSequence| and |OutletSequence| objects of the actual model
         to the |NodeSequence| objects handled by an arbitrary number of inlet and
         outlet nodes.
@@ -678,26 +677,28 @@ following error occurred: The node handled by control parameter outputcoordinate
 (out1 and out2) are not the same as the outlet nodes handled by element conv (out1, \
 out2, and out3).
         """
+        model = cast(Model, self)
         try:
             for coordinates, sequence, nodes in (
                 (
-                    self.parameters.control.inputcoordinates,
-                    self.sequences.inlets.inputs,
-                    self.element.inlets,
+                    model.parameters.control.inputcoordinates,
+                    model.sequences.inlets.inputs,
+                    model.element.inlets,
                 ),
                 (
-                    self.parameters.control.outputcoordinates,
-                    self.sequences.outlets.outputs,
-                    self.element.outlets,
+                    model.parameters.control.outputcoordinates,
+                    model.sequences.outlets.outputs,
+                    model.element.outlets,
                 ),
             ):
                 if nodes == devicetools.Nodes(coordinates.nodes):
                     sequence.node2idx = {}
                     sequence.shape = len(coordinates)
                     for idx, node in enumerate(coordinates.nodes):
-                        sequence.set_pointer(
-                            node.get_double(sequence.subseqs.name), idx
+                        double = node.get_double(
+                            sequence.subseqs.name  # type: ignore[arg-type]
                         )
+                        sequence.set_pointer(double, idx)
                         sequence.node2idx[node] = idx
                 else:
                     parameternodes = objecttools.enumeration(coordinates.nodes)
@@ -706,9 +707,9 @@ out2, and out3).
                         f"The node handled by control parameter {coordinates.name} "
                         f"({parameternodes}) are not the same as the "
                         f"{sequence.subseqs.name[:-1]} nodes handled by element "
-                        f"{self.element.name} ({elementnodes})."
+                        f"{model.element.name} ({elementnodes})."
                     )
         except BaseException:
             objecttools.augment_excmessage(
-                f"While trying to connect model " f"{objecttools.elementphrase(self)}"
+                f"While trying to connect model " f"{objecttools.elementphrase(model)}"
             )

@@ -10,19 +10,17 @@ The relevant models perform the interpolation during simulation runs, so we impl
 the related methods in the Cython extension module |interputils|.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import itertools
+import math
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import propertytools
@@ -32,6 +30,7 @@ from hydpy.core.typingtools import *
 from hydpy.cythons import interputils
 
 if TYPE_CHECKING:
+    from matplotlib import figure
     from matplotlib import pyplot
 else:
     pyplot = exceptiontools.OptionalImport("pyplot", ["matplotlib.pyplot"], locals())
@@ -81,7 +80,7 @@ class InterpAlgorithm(_Labeled):
         """Return a string representation of the actual |InterpAlgorithm| object
         prefixed with the given string."""
 
-    def print_table(self, xs: VectorFloat | MatrixFloat) -> None:
+    def print_table(self, xs: VectorInputFloat | MatrixInputFloat) -> None:
         """Process the given input data and print the interpolated output values as
         well as all partial first-order derivatives.
 
@@ -159,8 +158,7 @@ dy1/dx3   dy2/dx3
         table[0, ni:nt] = yns
         table[0, nt:] = [f"d{yn}/d{xn}" for xn, yn in itertools.product(xns, yns)]
 
-        # Mypy problem? See issue https://github.com/python/mypy/issues/8586:
-        xs_: float | Iterable[float]
+        xs_: float | VectorInputFloat
         for ri, xs_ in enumerate(xs):
             ri += 1
             if isinstance(xs_, float):
@@ -191,7 +189,7 @@ dy1/dx3   dy2/dx3
         idx_output: int = 0,
         points: int = 100,
         **kwargs: Any,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the relationship between particular input (`idx_input`) and output
         (`idx_output`) values defined by the actual |InterpAlgorithm| object.
 
@@ -217,15 +215,15 @@ dy1/dx3   dy2/dx3
 class BaseInterpolator(_Labeled):
     """Base class for |SimpleInterpolator| and |SeasonalInterpolator|."""
 
-    NDIM = 0
+    NDIM: Final[Literal[0]] = 0
     TIME = None
     SPAN = (None, None)
 
     name: str
     """Class name in lowercase letters."""
-    subvars: parametertools.SubParameters
+    subvars: parametertools.SubParameters[Any]
     """The |SubParameters| object containing the current |BaseInterpolator| object."""
-    subpars: parametertools.SubParameters
+    subpars: parametertools.SubParameters[Any]
     """The |SubParameters| object containing the current |BaseInterpolator| object."""
     fastaccess: parametertools.FastAccessParameter
     """The `fastaccess` object providing access to the interpolator functionalities
@@ -309,13 +307,13 @@ class SimpleInterpolator(BaseInterpolator):
     >>> mock.assert_called_with(**kwargs)
     """
 
-    TYPE = "interputils.SimpleInterpolator"
+    TYPE: Final = "interputils.SimpleInterpolator"
 
     _algorithm: InterpAlgorithm | None
 
     __simpleinterpolator: interputils.SimpleInterpolator | None
 
-    def __init__(self, subvars: parametertools.SubParameters) -> None:
+    def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]) -> None:
         self.subvars = subvars
         self.subpars = subvars
         self.fastaccess = parametertools.FastAccessParameter()
@@ -333,6 +331,16 @@ class SimpleInterpolator(BaseInterpolator):
         self._algorithm = algorithm
         self.__simpleinterpolator = interputils.SimpleInterpolator(algorithm)
         setattr(self.fastaccess, self.name, self.__simpleinterpolator)
+
+    @property
+    def shape(self) -> ShapeHookGet:
+        """This property exists for type consistency; we might remove it later.
+
+        >>> from hydpy.auxs.interptools import SimpleInterpolator
+        >>> SimpleInterpolator(None).shape
+        ()
+        """
+        return ()
 
     @property
     def algorithm(self) -> InterpAlgorithm:
@@ -411,7 +419,7 @@ interpolator has been defined so far.
         idx_output: int = 0,
         points: int = 100,
         **kwargs: float | str | None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the relationship between particular input (`idx_input`) and output
         (`idx_output`) values defined by the actual |InterpAlgorithm| object."""
         figure = self.algorithm.plot(
@@ -694,7 +702,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
     AttributeError: 'SeasonalInterpolator' object has no attribute 'temp'
     """
 
-    TYPE = "interputils.SeasonalInterpolator"
+    TYPE: Final = "interputils.SeasonalInterpolator"
 
     nmb_algorithms: int
 
@@ -702,7 +710,7 @@ error occurred: Value `1` of type `int` has been given, but an object of type \
     _do_refresh: bool
     __seasonalinterpolator: interputils.SeasonalInterpolator | None
 
-    def __init__(self, subvars: parametertools.SubParameters) -> None:
+    def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]) -> None:
         self.subvars = subvars
         self.subpars = subvars
         self.fastaccess = parametertools.FastAccessParameter()
@@ -915,7 +923,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
                 ratios[tdx, idx_0] = 1.0 - ratios[tdx, idx_1]
 
     @property
-    def shape(self) -> tuple[int, int]:
+    def shape(self) -> ShapeHookGet:
         """The shape of array |SeasonalInterpolator.ratios|."""
         shape = self.ratios.shape
         return int(shape[0]), int(shape[1])
@@ -923,7 +931,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
     def _prepare_shape(self) -> None:
         """Private on purpose."""
         nmb_weights = timetools.Period("366d") / hydpy.pub.options.simulationstep
-        nmb_weights = int(numpy.ceil(round(nmb_weights, 10)))
+        nmb_weights = int(math.ceil(round(nmb_weights, 10)))
         shape = (nmb_weights, self._seasonalinterpolator.nmb_algorithms)
         getattr(self.fastaccess, self.name).ratios = numpy.zeros(
             shape, dtype=config.NP_FLOAT
@@ -989,7 +997,7 @@ interpolation algorithm object, but for parameter `seasonalinterpolator` of elem
         points: int = 100,
         legend: bool = True,
         **kwargs: float | str | None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Call method |InterpAlgorithm.plot| of all currently handled
         |InterpAlgorithm| objects."""
         for toy, seasonalinterpolator in self:

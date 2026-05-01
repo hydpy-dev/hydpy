@@ -1,8 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.models.musk import musk_control
 
 
@@ -13,10 +12,12 @@ class Seconds(parametertools.SecondsParameter):
 class SegmentLength(parametertools.Parameter):
     """The length of each channel segments [km]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     CONTROLPARAMETERS = (musk_control.Length,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update the segment length based on
         :math:`SegmentLength = Length / NmbSegments`.
 

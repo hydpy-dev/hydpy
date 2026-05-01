@@ -5,14 +5,10 @@ The relevant models perform the interpolation during simulation runs, which is w
 implement the related methods in the Cython extension module |ppolyutils|.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
@@ -248,8 +244,8 @@ polynomial function by passing at leas one `Poly` object.
                 "polynomial function by passing at leas one `Poly` object."
             )
         nmb_ps = len(polynomials)
-        nmb_cs = numpy.array([len(p.cs) for p in polynomials], dtype=config.NP_INT)
-        x0s = numpy.array([p.x0 for p in polynomials], dtype=config.NP_FLOAT)
+        nmb_cs = numpy.asarray([len(p.cs) for p in polynomials], dtype=config.NP_INT)
+        x0s = numpy.asarray([p.x0 for p in polynomials], dtype=config.NP_FLOAT)
         cs = numpy.zeros((nmb_ps, max(nmb_cs)))
         for idx, (nmb, polynomial) in enumerate(zip(nmb_cs, polynomials)):
             cs[idx, :nmb] = polynomial.cs
@@ -415,16 +411,16 @@ vectors `x` (2) and `y` (3) must be identical.
             if (len(xs) == 2) or (method == "linear"):
                 nmb_ps = len(xs) - 1
                 nmb_cs = numpy.full((nmb_ps,), 2, dtype=config.NP_INT)
-                x0s = numpy.array(xs, dtype=config.NP_FLOAT)[:-1]
+                x0s = numpy.asarray(xs, dtype=config.NP_FLOAT)[:-1]
                 cs = numpy.zeros((nmb_ps, numpy.max(nmb_cs)), dtype=config.NP_FLOAT)
-                cs[:, 0] = numpy.array(ys, dtype=config.NP_FLOAT)[:-1]
+                cs[:, 0] = numpy.asarray(ys, dtype=config.NP_FLOAT)[:-1]
                 cs[:, 1] = numpy.diff(ys) / numpy.diff(xs)
             else:
                 interpolator = method(x=xs, y=ys)
-                x0s = numpy.array(xs, dtype=config.NP_FLOAT)[:-1]
+                x0s = numpy.asarray(xs, dtype=config.NP_FLOAT)[:-1]
                 cs = interpolator.c[::-1].T
                 nmb_ps = len(x0s)
-                nmb_cs = numpy.array(
+                nmb_cs = numpy.asarray(
                     [numpy.max(numpy.nonzero(cs_), initial=0) + 1 for cs_ in cs],
                     dtype=config.NP_INT,
                 )

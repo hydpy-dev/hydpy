@@ -1,20 +1,29 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
-from hydpy.core import masktools
+from __future__ import annotations
 
-# ...from hland
+from hydpy.core import masktools
+from hydpy.core import variabletools
+from hydpy.core.typingtools import *
+
+# from hydpy.models.hland import hland_model  # actual import below
 from hydpy.models.hland.hland_constants import FIELD, FOREST, ILAKE, GLACIER, SEALED
+
+if TYPE_CHECKING:
+    from hydpy.models.hland import hland_control
 
 
 class HLandBaseMask(masktools.IndexMask):
     """To be overridden."""
 
     @staticmethod
-    def get_refindices(variable):
+    def get_refindices(variable: variabletools.Variable) -> hland_control.ZoneType:
         """Reference to the associated instance of |ZoneType|."""
-        return variable.subvars.vars.model.parameters.control.zonetype
+        # pylint: disable=import-outside-toplevel
+        from hydpy.models.hland import hland_model
+
+        model = cast(hland_model.Model, variable.subvars.vars.model)
+        return model.parameters.control.zonetype
 
 
 class Complete(HLandBaseMask):

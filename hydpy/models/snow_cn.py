@@ -273,12 +273,8 @@ The hysterisis effect increases snow melt, resulting in a peak net precipitation
     | 15.01. |  0.0 |  5.0 |  5.97867   5.51414   5.0   4.38213   3.47111 |      0.0       0.0  0.0  0.0                         0.0 |      0.0       0.0       0.0        0.0        0.0 |      0.0       0.0       0.0        0.0         0.0 |      0.0       0.0  0.0  0.0         0.0 |  2.243919   2.423074   1.71566   2.16451  5.166082 | 0.360887  0.401469  0.290373  0.389776  1.327313 | 0.360887  0.401469  0.290373  0.389776   1.327313 | 0.553964 |  1.883031   2.021606   1.425286   1.774734   3.838769 |       0.0        0.0        0.0        0.0        0.0 | 0.056718  0.060892  0.063921  0.072951  0.129566 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
-
-# ...from  snow
 from hydpy.models.snow import snow_model
 
 

@@ -4,9 +4,6 @@ Module |quadtools| provides Python interfaces only.  See the Cython extension mo
 `quadutils` for the actual implementations of the mathematical algorithms.
 """
 
-# import...
-
-# ...from HydPy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 

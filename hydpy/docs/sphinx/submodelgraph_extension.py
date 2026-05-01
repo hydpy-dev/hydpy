@@ -1,13 +1,10 @@
 """Sphinx extension introducing `.. submodel_graph:: (e.g.) hland_96` directives."""
 
-# import...
-# ...from site-packages
 from docutils import nodes
 from sphinx.application import Sphinx
 from sphinx.directives.code import CodeBlock
 from sphinx.writers.html5 import HTML5Translator
 
-# ...from HydPy
 from hydpy.core import autodoctools
 from hydpy.core.typingtools import *
 

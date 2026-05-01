@@ -4,6 +4,7 @@ import numpy
 
 import hydpy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 from hydpy.models.whmod.whmod_constants import *
 from hydpy.models.whmod import whmod_parameters
@@ -17,11 +18,12 @@ class MOY(parametertools.MOYParameter):
 class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
     """Relative zone area [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (whmod_control.Area, whmod_control.ZoneArea)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the relative zone areas based on
         :math:`ZoneRation = ZoneArea / Area`.
 
@@ -42,11 +44,11 @@ class ZoneRatio(whmod_parameters.LandTypeCompleteParameter):
 class SoilDepth(whmod_parameters.SoilTypeParameter):
     """Effective soil depth [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (whmod_control.RootingDepth, whmod_control.GroundwaterDepth)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the effective soil depth
 
         >>> from hydpy.models.whmod import *
@@ -69,7 +71,7 @@ class SoilDepth(whmod_parameters.SoilTypeParameter):
 class MaxSoilWater(whmod_parameters.SoilTypeParameter):
     """Maximum water content of the considered soil column [mm]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (
         whmod_control.AvailableFieldCapacity,
@@ -77,7 +79,7 @@ class MaxSoilWater(whmod_parameters.SoilTypeParameter):
     )
     DERIVEDPARAMETERS = (SoilDepth,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the maximum soil water content based on
         :math:`AvailableFieldCapacity \cdot max(SoilDepth, \, 0.3)`
 
@@ -97,18 +99,18 @@ class MaxSoilWater(whmod_parameters.SoilTypeParameter):
         """
         availablefieldcapacity = self.subpars.pars.control.availablefieldcapacity
         soildepth = self.subpars.soildepth
-        self(availablefieldcapacity * numpy.maximum(soildepth, 0.3))
+        self(availablefieldcapacity * numpy.maximum(soildepth.value, 0.3))
 
 
 class Beta(whmod_parameters.SoilTypeParameter):
     """Nonlinearity parameter for calculating percolation [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (whmod_control.SoilType,)
     DERIVEDPARAMETERS = (MaxSoilWater,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate |Beta| based on
         :math:`1 + \frac{6}{1 + (MaxSoilWater / 118.25)^{-6.5}}`
         :cite:p:`ref-Armbruster2002`.
@@ -148,7 +150,8 @@ class Beta(whmod_parameters.SoilTypeParameter):
 class PotentialCapillaryRise(whmod_parameters.SoilTypeParameter):
     """Potential capillary rise [mm/T]."""
 
-    TYPE, TIME, SPAN = float, True, (0.0, None)
+    TIME = True
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (
         whmod_control.SoilType,
@@ -159,7 +162,7 @@ class PotentialCapillaryRise(whmod_parameters.SoilTypeParameter):
     )
     DERIVEDPARAMETERS = (SoilDepth,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Calculate the potential capillary rise based on
         :math:`5 \cdot Days \cdot
         \frac{(GroundwaterDepth - SoilDepth) - CapillaryThreshold}

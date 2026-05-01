@@ -1,8 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 from hydpy.models.ga import ga_control
 
 
@@ -16,11 +15,12 @@ class Moisture(sequencetools.StateSequence):
     ToDo: What is the reason behind this behaviour? Can we change it?
     """
 
-    NDIM, NUMERIC, SPAN = 2, False, (0.0, 1.0)
+    NDIM: Final[Literal[2]] = 2
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (ga_control.ResidualMoisture, ga_control.SaturationMoisture)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim the relative moisture following
         :math:`ResidualMoisture \leq Moisture \leq SaturationMoisture`.
 
@@ -44,9 +44,9 @@ class Moisture(sequencetools.StateSequence):
         """
         control = self.subseqs.seqs.model.parameters.control
         if lower is None:
-            lower = control.residualmoisture
+            lower = control.residualmoisture.values
         if upper is None:
-            upper = control.saturationmoisture
+            upper = control.saturationmoisture.values
         return super().trim(lower, upper)
 
 
@@ -57,11 +57,12 @@ class FrontDepth(sequencetools.StateSequence):
     does not necessarily mean a bin is inactive.
     """
 
-    NDIM, NUMERIC, SPAN = 2, False, (0.0, None)
+    NDIM: Final[Literal[2]] = 2
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (ga_control.SoilDepth,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim the wetting front depth following
         :math:`0 \leq FrontDepth \leq SoilDepth`.
 
@@ -83,5 +84,5 @@ class FrontDepth(sequencetools.StateSequence):
                     [100.0, 500.0]])
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.control.soildepth
+            upper = self.subseqs.seqs.model.parameters.control.soildepth.values
         return super().trim(lower, upper)

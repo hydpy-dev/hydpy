@@ -1,16 +1,12 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
-
-# ...from lland
+from hydpy.core.typingtools import *
 from hydpy.models.lland import lland_control
 from hydpy.models.lland import lland_fixed
 from hydpy.models.lland import lland_parameters
@@ -36,9 +32,11 @@ class Days(parametertools.DaysParameter):
 class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for a memory duration of 24 hours [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, None)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the number of entries and adjust the shape of all relevant log
         sequences.
 
@@ -109,11 +107,12 @@ determined for a the current simulation step size.  The fraction of the memory p
 class AbsFHRU(lland_parameters.ParameterComplete):
     """Flächen der Hydrotope (areas of the respective HRUs) [km²]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.FT, lland_control.FHRU)
 
-    def update(self):
+    def update(self) -> None:
         """Update |AbsFHRU| based on |FT| and |FHRU|.
 
         >>> from hydpy.models.lland import *
@@ -130,14 +129,16 @@ class AbsFHRU(lland_parameters.ParameterComplete):
         self.value = control.ft * control.fhru
 
 
-class MGH(lland_parameters.ParameterComplete):
+class MGH(parametertools.Parameter):
     """Mittlere Gebietshöhe (average elevation) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.GH, lland_control.FHRU)
 
-    def update(self):
+    def update(self) -> None:
         """Update |MGH| based on |GH| and |FHRU|.
 
         >>> from hydpy.models.lland import *
@@ -158,11 +159,12 @@ class KInz(lland_parameters.LanduseMonthParameter):
     """Interzeptionskapazität bezogen auf die Bodenoberfläche (interception
     capacity normalized to the soil surface area) [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.HInz, lland_control.LAI)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KInz| based on |HInz| and |LAI| according to :cite:t:`ref-LARSIM`
         (based on :cite:t:`ref-Dickinson1984`).
 
@@ -186,11 +188,13 @@ class KInz(lland_parameters.LanduseMonthParameter):
 class HeatOfFusion(lland_parameters.ParameterLand):
     """Heat which is necessary to melt the frozen soil water content [WT]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, False, (0.0, None)
+    TYPE: Final = float
+    TIME = False
+    SPAN = (0.0, None)
 
     FIXEDPARAMETERS = (lland_fixed.BoWa2Z, lland_fixed.RSchmelz)
 
-    def update(self):
+    def update(self) -> None:
         """Update |HeatOfFusion| based on |RSchmelz| and |BoWa2Z|.
 
         Basic equation:
@@ -219,7 +223,8 @@ class Fr(lland_parameters.LanduseMonthParameter):
     long wave radiation) :cite:t:`ref-LARSIM` (based on :cite:t:`ref-LUBWLUWG2015`)
     [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (
         lland_control.LAI,
@@ -227,7 +232,7 @@ class Fr(lland_parameters.LanduseMonthParameter):
         lland_control.P2Strahl,
     )
 
-    def update(self):
+    def update(self) -> None:
         """Update |Fr| based on |LAI|, |P1Strahl| and |P2Strahl|.
 
         Basic equation for forests:
@@ -269,11 +274,14 @@ class KB(parametertools.Parameter):
     """Konzentrationszeit des Basisabflusses (concentration time of the baseflow
     storage) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.EQB, lland_control.TInd)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KB| based on |EQB| and |TInd|.
 
         >>> from hydpy.models.lland import *
@@ -293,11 +301,14 @@ class KI1(parametertools.Parameter):
     """Konzentrationszeit des "unteren" Zwischenabflusses (concentration time of the
     first interflow storage) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.EQI1, lland_control.TInd)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KI1| based on |EQI1| and |TInd|.
 
         >>> from hydpy.models.lland import *
@@ -317,11 +328,14 @@ class KI2(parametertools.Parameter):
     """Konzentrationszeit des "oberen" Zwischenabflusses" (concentration time of the
     second interflow storage) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.EQI2, lland_control.TInd)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KI2| based on |EQI2| and |TInd|.
 
         >>> from hydpy.models.lland import *
@@ -341,11 +355,14 @@ class KD1(parametertools.Parameter):
     """Konzentrationszeit des "langsamen" Direktabflusses (concentration time of the
     slow direct runoff storage) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.EQD1, lland_control.TInd)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KD1| based on |EQD1| and |TInd|.
 
         >>> from hydpy.models.lland import *
@@ -365,11 +382,14 @@ class KD2(parametertools.Parameter):
     """Konzentrationszeit des "schnellen" Direktabflusses (concentration time of the
     fast direct runoff storage) [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = False
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.EQD2, lland_control.TInd)
 
-    def update(self):
+    def update(self) -> None:
         """Update |KD2| based on |EQD2| and |TInd|.
 
         >>> from hydpy.models.lland import *
@@ -388,11 +408,13 @@ class KD2(parametertools.Parameter):
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/T to m³/s."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (lland_control.FT,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |QFactor| based on |FT| and the current simulation step size.
 
         >>> from hydpy.models.lland import *

@@ -1,15 +1,11 @@
 """Sphinx extension introducing `.. integration-test::` directives."""
 
-# import...
-# from standard library
 from typing import Any
 
-# ...from site-packages
 from docutils import nodes
 from sphinx.application import Sphinx
 from sphinx.directives.code import CodeBlock
 from sphinx.writers.html5 import HTML5Translator
-
 
 counter = 0
 

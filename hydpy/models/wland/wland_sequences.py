@@ -1,10 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
-
-# ...from lland
+from hydpy.core.typingtools import *
 from hydpy.models.wland import wland_control
 from hydpy.models.wland import wland_masks
 
@@ -13,12 +10,13 @@ class BaseFluxSequence1D(sequencetools.FluxSequence):
     """Base class for |FluxSequence1DComplete| and |FluxSequence1DLand| that supports
     aggregation with respect to |AUR|."""
 
+    NDIM: Final[Literal[1]] = 1
     CONTROLPARAMETERS = (wland_control.AUR,)
 
     @property
-    def refweights(self):
+    def refweights(self) -> wland_control.AUR:
         """Alias for the associated instance of |AUR| for calculating areal values."""
-        return self.subseqs.seqs.model.parameters.control.aur
+        return cast(wland_control.AUR, self.subseqs.seqs.model.parameters.control.aur)
 
 
 class FluxSequence1DComplete(BaseFluxSequence1D):
@@ -103,6 +101,6 @@ class StateSequence1DLand(sequencetools.StateSequence):
     mask = wland_masks.Land()
 
     @property
-    def refweights(self):
+    def refweights(self) -> wland_control.AUR:
         """Alias for the associated instance of |AUR| for calculating areal values."""
-        return self.subseqs.seqs.model.parameters.control.aur
+        return cast(wland_control.AUR, self.subseqs.seqs.model.parameters.control.aur)

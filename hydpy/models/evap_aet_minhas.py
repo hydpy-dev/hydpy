@@ -255,8 +255,7 @@ For water areas, |evap_aet_minhas| takes the potential water evaporation calcula
     | 02/01 |              1.0 |     100.0 |                              0.0 |                             0.0 |                  3.142563 |         3.142563 |                     0.0 |                    0.0 |
     | 03/01 |              2.0 |     100.0 |                              0.0 |                             0.0 |                  3.142563 |         3.142563 |                     0.0 |                    0.0 |
 """
-# import...
-# ...from HydPy
+
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import aetinterfaces
@@ -321,9 +320,9 @@ class Model(
     SUBMODELINTERFACES = (petinterfaces.PETModel_V1,)
     SUBMODELS = ()
 
-    petmodel = modeltools.SubmodelProperty(
-        petinterfaces.PETModel_V1, petinterfaces.PETModel_V2
-    )
+    petmodel = modeltools.SubmodelProperty[
+        petinterfaces.PETModel_V1 | petinterfaces.PETModel_V2
+    ](petinterfaces.PETModel_V1, petinterfaces.PETModel_V2)
     intercmodel = modeltools.SubmodelProperty(stateinterfaces.IntercModel_V1)
     soilwatermodel = modeltools.SubmodelProperty(stateinterfaces.SoilWaterModel_V1)
 

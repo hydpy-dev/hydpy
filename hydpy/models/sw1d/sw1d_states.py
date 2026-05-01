@@ -1,8 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class WaterVolume(sequencetools.StateSequence):
@@ -14,10 +13,10 @@ class WaterVolume(sequencetools.StateSequence):
     :ref:`sw1d_channel_excessive_water_withdrawal`).
     """
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0
 
 
 class Discharge(sequencetools.StateSequence):
     """Discharge [m³/s]."""
 
-    NDIM, NUMERIC = 0, False
+    NDIM: Final[Literal[0]] = 0

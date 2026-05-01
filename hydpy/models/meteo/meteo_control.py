@@ -1,12 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.models.meteo import meteo_parameters
 
 
@@ -41,7 +39,9 @@ class NmbHRU(parametertools.Parameter):
     precipitationfactor(2.0)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
         old_shape = exceptiontools.getattr_(self, "value", None)
@@ -61,28 +61,35 @@ class NmbHRU(parametertools.Parameter):
 class HRUArea(parametertools.Parameter):
     """The area of each hydrological response unit [km²]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class Latitude(parametertools.Parameter):
     """The latitude [decimal degrees]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-90.0, 90.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (-90.0, 90.0)
 
 
 class Longitude(parametertools.Parameter):
     """The longitude [decimal degrees]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-180.0, 180.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (-180.0, 180.0)
 
 
 class AngstromConstant(parametertools.MonthParameter):
     """The Ångström "a" coefficient for calculating global radiation [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 0.25
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values following :math:`AngstromConstant \leq  1 - AngstromFactor` or
         at least following :math:`AngstromConstant \leq  1`.
 
@@ -107,10 +114,11 @@ class AngstromConstant(parametertools.MonthParameter):
 class AngstromFactor(parametertools.MonthParameter):
     """The Ångström "b" coefficient for calculating global radiation [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 0.5
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values in accordance with :math:`AngstromFactor \leq  1 -
         AngstromConstant` or at least in accordance with :math:`AngstromFactor \leq 1`.
 
@@ -136,19 +144,21 @@ class AngstromAlternative(parametertools.MonthParameter):
     """An alternative Ångström coefficient for replacing coefficient "c"
     (|AngstromConstant|) on days without any direct sunshine [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, 1.0)
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     INIT = 0.15
 
 
 class TemperatureAddend(meteo_parameters.ZipParameter1D):
     """Temperature shift constant [°C]."""
 
-    TYPE, TIME, SPAN = float, None, (None, None)
+    TYPE: Final = float
     INIT = 0.0
 
 
 class PrecipitationFactor(meteo_parameters.ZipParameter1D):
     """Precipitation adjustment factor [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 1.0

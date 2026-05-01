@@ -1,8 +1,6 @@
 """This module defines interfaces for calculating discharge based on flow formulas or
 rating curves."""
 
-# import...
-# ...from hydpy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 

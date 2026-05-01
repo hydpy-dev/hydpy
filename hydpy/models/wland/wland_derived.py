@@ -1,16 +1,11 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.auxs import smoothtools
-
-# ...from lland
 from hydpy.models.wland import wland_control
 from hydpy.models.wland.wland_constants import SEALED, WATER
 
@@ -22,11 +17,13 @@ class MOY(parametertools.MOYParameter):
 class NUL(parametertools.Parameter):
     r"""Number of land-related hydrological response units [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (wland_control.NU,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |NUL| based on :math:`NUL = NU - 1`.
 
         >>> from hydpy.models.wland import *
@@ -43,11 +40,13 @@ class NUGE(parametertools.Parameter):
     r"""Number of groundwater-affected hydrological response units in the elevated
     region [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (wland_control.LT,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |NUG| based on
         :math:`NUGE = \sum (ER \ \land \ LT \neq WATER \ \land \ LT \neq SEALED)`.
 
@@ -72,11 +71,13 @@ class NUG(parametertools.Parameter):
     r"""Number of groundwater-affected hydrological response units in the lowland
     region [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (wland_control.LT, wland_control.ER)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |NUG| based on :math:`NUG = \sum (\overline{ER} \ \land \
         LT \neq WATER \ \land \ LT \neq SEALED)`.
 
@@ -100,11 +101,13 @@ class NUG(parametertools.Parameter):
 class ALR(parametertools.Parameter):
     r"""Relative land area [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |ALR| based on :math:`ALR = \sum_{i = 1}^{NUL} AUR_i`.
 
         >>> from hydpy.models.wland import *
@@ -122,11 +125,13 @@ class ALR(parametertools.Parameter):
 class ASR(parametertools.Parameter):
     r"""Relative surface water area fraction [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |ASR| based on :math:`ASR = AUR_{NU}`.
 
         >>> from hydpy.models.wland import *
@@ -144,11 +149,13 @@ class ASR(parametertools.Parameter):
 class AGRE(parametertools.Parameter):
     r"""Relative groundwater area in the elevated region [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT, wland_control.ER)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |AGR| based on :math:`AGRE = \sum_{i=1}^{NU} AUR_i \cdot
         (ER_i \ \land \ LT_i \neq WATER \ \land \ LT_i \neq SEALED)`.
 
@@ -170,11 +177,13 @@ class AGRE(parametertools.Parameter):
 class AGR(parametertools.Parameter):
     r"""Relative groundwater area in the lowland region [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AUR, wland_control.LT, wland_control.ER)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |AGR| based on :math:`AGR = \sum_{i=1}^{NU} AUR_i \cdot
         (\overline{ER_i} \ \land \ LT_i \neq WATER \ \land \ LT_i \neq SEALED)`.
 
@@ -196,11 +205,13 @@ class AGR(parametertools.Parameter):
 class QF(parametertools.Parameter):
     r"""Factor for converting mm/T to m³/s [T m³ / mm s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.AT,)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |QF| based on |AT| and the current simulation step size.
 
         >>> from hydpy.models.wland import *
@@ -218,11 +229,13 @@ class QF(parametertools.Parameter):
 class CD(parametertools.Parameter):
     """Channel depth [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.GL, wland_control.BL)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |CD| based on :math:`CD = GL - BL`.
 
         >>> from hydpy.models.wland import *
@@ -241,11 +254,13 @@ class RH1(parametertools.Parameter):
     """Regularisation parameter related to the height of water columns used when
     applying regularisation function |smooth_logistic1| [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.SH,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following
@@ -272,11 +287,13 @@ class RH2(parametertools.Parameter):
     """Regularisation parameter related to the height of water columns used when
     applying regularisation function |smooth_logistic2| [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.SH,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following
@@ -303,11 +320,13 @@ class RT2(parametertools.Parameter):
     """Regularisation parameter related to temperature for applying regularisation
     function |smooth_logistic2|) [°C]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (wland_control.ST,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following

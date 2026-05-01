@@ -1,12 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import devicetools
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -73,12 +71,13 @@ variable `inputcoordinates` can only be retrieved after it has been defined.
 Node("in3", variable="Q"))
     """
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (None, None)
+    NDIM: Final[Literal[2]] = 2
+    TYPE: Final = float
 
     nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
 
-    def __init__(self, subvars: parametertools.SubParameters):
+    def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]):
         super().__init__(subvars)
         self.nodes = ()
 
@@ -89,7 +88,7 @@ Node("in3", variable="Q"))
             nodes.append(devicetools.Node(name))
             coordinates[idx, :] = values
         self.nodes = tuple(nodes)
-        self._set_shape((len(nodes), 2))
+        self.shape = (len(nodes), 2)
         self.value = coordinates
 
     def __repr__(self) -> str:
@@ -177,12 +176,13 @@ variable `inputheights` can only be retrieved after it has been defined.
 Node("in3", variable="Q"))
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
 
     nodes: tuple[devicetools.Node, ...]
     """The relevant input or output nodes."""
 
-    def __init__(self, subvars: parametertools.SubParameters):
+    def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]):
         super().__init__(subvars)
         self.nodes = ()
 
@@ -193,7 +193,7 @@ Node("in3", variable="Q"))
             nodes.append(devicetools.Node(name))
             heights[idx] = value
         self.nodes = tuple(nodes)
-        self._set_shape(len(nodes))
+        self.shape = len(nodes)
         self.value = heights
 
     def __repr__(self) -> str:
@@ -246,7 +246,9 @@ class MaxNmbInputs(parametertools.Parameter):
     maxnmbinputs(2)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, None)
 
     def __call__(self, *args, **kwargs) -> None:
         if not args and not kwargs:
@@ -254,7 +256,7 @@ class MaxNmbInputs(parametertools.Parameter):
         else:
             super().__call__(*args, **kwargs)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Assure that the value of |MaxNmbInputs| does not exceed the
         number of available input locations.
 
@@ -282,22 +284,29 @@ element `?` is not valid.
 class MinNmbInputs(parametertools.Parameter):
     """The minimum number of inputs for performing a statistical analysis [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (2, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (2, None)
 
 
 class DefaultConstant(parametertools.Parameter):
     """Default or fallback value for the constant of the linear regression model [?]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
 
 
 class DefaultFactor(parametertools.Parameter):
     """Default or fallback value for the factor of the linear regression model [?]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-1.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (-1.0, 1.0)
 
 
 class Power(parametertools.Parameter):
     """Power parameter for calculating inverse distance weights [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0, None)

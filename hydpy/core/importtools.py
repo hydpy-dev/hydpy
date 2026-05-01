@@ -4,8 +4,6 @@ The implemented tools are primarily designed for hiding model initialisation rou
 from model users and for allowing writing readable doctests.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 
 import collections
@@ -17,7 +15,6 @@ import sys
 import types
 import warnings
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import filetools
@@ -146,19 +143,35 @@ def _add_locals_to_namespace(
     namespace.update(new_locals)
 
 
-def prepare_parameters(dict_: dict[str, Any]) -> parametertools.Parameters:
+def prepare_parameters(
+    dict_: dict[str, Any],
+) -> parametertools.Parameters[modeltools.Model]:
     """Prepare a |Parameters| object based on the given dictionary
     information and return it."""
-    cls_parameters = dict_.get("Parameters", parametertools.Parameters)
-    return cls_parameters(dict_)
+    cls_parameters: type[parametertools.Parameters[modeltools.Model]] = dict_.get(
+        "Parameters", parametertools.Parameters
+    )
+    return cls_parameters(
+        model=dict_["model"],
+        cls_control=dict_.get("ControlParameters"),
+        cls_derived=dict_.get("DerivedParameters"),
+        cls_fixed=dict_.get("FixedParameters"),
+        cls_solver=dict_.get("SolverParameters"),
+        cymodel=dict_.get("cymodel"),
+        cythonmodule=dict_.get("cythonmodule"),
+    )
 
 
-def prepare_sequences(dict_: dict[str, Any]) -> sequencetools.Sequences:
+def prepare_sequences(
+    dict_: dict[str, Any],
+) -> sequencetools.Sequences[modeltools.Model]:
     """Prepare a |Sequences| object based on the given dictionary
     information and return it."""
-    cls_sequences = dict_.get("Sequences", sequencetools.Sequences)
+    cls_sequences: type[sequencetools.Sequences[modeltools.Model]] = dict_.get(
+        "Sequences", sequencetools.Sequences
+    )
     return cls_sequences(
-        model=dict_.get("model"),
+        model=dict_["model"],
         cls_inlets=dict_.get("InletSequences"),
         cls_observers=dict_.get("ObserverSequences"),
         cls_receivers=dict_.get("ReceiverSequences"),
@@ -611,7 +624,8 @@ following error occurred: The given `lland_knauf` instance is not considered sha
     """Reference to a weighting parameter."""
 
     __hydpy_maintype2subname2adders__: collections.defaultdict[
-        type[modeltools.Model], collections.defaultdict[str, list[SubmodelAdder]]
+        type[modeltools.Model],
+        collections.defaultdict[str, list[SubmodelAdder[Any, Any, Any]]],
     ] = collections.defaultdict(lambda: collections.defaultdict(list))
 
     _methodnames: frozenset[str]
@@ -962,21 +976,21 @@ following error occurred: The given `lland_knauf` instance is not considered sha
 def define_targetparameter(
     parameter: type[parametertools.Parameter],
 ) -> Callable[
-    [Callable[Concatenate[TM_contra, P], None]], TargetParameterUpdater[TM_contra, P]
+    [Callable[Concatenate[TM_contra, P_], None]], TargetParameterUpdater[TM_contra, P_]
 ]:
     """Wrap a submodel-specific method that allows the main model to set the value
     of a single control parameter of the submodel into a |TargetParameterUpdater|
     instance."""
 
     def _select_parameter(
-        wrapped: Callable[Concatenate[TM_contra, P], None],
-    ) -> TargetParameterUpdater[TM_contra, P]:
-        return TargetParameterUpdater[TM_contra, P](wrapped, parameter)
+        wrapped: Callable[Concatenate[TM_contra, P_], None],
+    ) -> TargetParameterUpdater[TM_contra, P_]:
+        return TargetParameterUpdater[TM_contra, P_](wrapped, parameter)
 
     return _select_parameter
 
 
-class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
+class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P_]):
     """Wrapper that extends the functionality of a submodel-specific method that allows
     the main model to set the value of a single control parameter of the submodel.
 
@@ -1045,14 +1059,14 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
     and the already available values of the target parameters of the respective model 
     instances."""
 
-    _wrapped: Callable[Concatenate[TM_contra, P], None]
+    _wrapped: Callable[Concatenate[TM_contra, P_], None]
     """The wrapped, submodel-specific method for setting the value of a single control 
     parameter."""
     _model: TM_contra | None
 
     def __init__(
         self,
-        wrapped: Callable[Concatenate[TM_contra, P], None],
+        wrapped: Callable[Concatenate[TM_contra, P_], None],
         targetparameter: type[parametertools.Parameter],
     ) -> None:
         self._wrapped = wrapped
@@ -1063,12 +1077,12 @@ class TargetParameterUpdater(_DoctestAdder, Generic[TM_contra, P]):
 
     def __get__(
         self, obj: TM_contra | None, type_: type[modeltools.Model]
-    ) -> TargetParameterUpdater[TM_contra, P]:
+    ) -> TargetParameterUpdater[TM_contra, P_]:
         if obj is not None:
             self._model = obj
         return self
 
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> None:
+    def __call__(self, *args: P_.args, **kwargs: P_.kwargs) -> None:
         assert (model := self._model) is not None
         args = copy.deepcopy(args)
         kwargs = copy.deepcopy(kwargs)

@@ -25,16 +25,13 @@ them computationally efficient by using Cython (see the extension module
 |smoothutils|.
 """
 
-# import...
-# ...from standard-library
+import math
 import os
 
-# ...from site-packages
 # from scipy but not optional due to using interp1d during module initialisation:
 from scipy import interpolate
 import numpy
 
-# ...from HydPy
 from hydpy import conf
 from hydpy.core import exceptiontools
 from hydpy.core.typingtools import *
@@ -47,7 +44,7 @@ else:
     from hydpy.cythons.autogen import smoothutils
 
 
-def calc_smoothpar_logistic1(metapar):
+def calc_smoothpar_logistic1(metapar: ArrayFloat) -> ArrayFloat:
     """Return the smoothing parameter corresponding to the given meta
     parameter when using |smooth_logistic1|.
 
@@ -77,18 +74,30 @@ def calc_smoothpar_logistic1(metapar):
     >>> round_(calc_smoothpar_logistic1(-1.0))
     0.0
     """
-    return numpy.clip(metapar / numpy.log(99.0), 0.0, numpy.inf)
+    return cast(ArrayFloat, numpy.clip(metapar / math.log(99.0), 0.0, numpy.inf))
 
 
-def _error_smoothpar_logistic2(par, metapar):
+def _error_smoothpar_logistic2(par: float, metapar: float) -> float:
     return smoothutils.smooth_logistic2(-metapar, par) - 0.01
 
 
-def _smooth_logistic2_derivative1(par, metapar):
+def _smooth_logistic2_derivative1(par: float, metapar: float) -> float:
     return smoothutils.smooth_logistic2_derivative1(metapar, par)
 
 
-def calc_smoothpar_logistic2(metapar, iterate: bool = False):
+@overload
+def calc_smoothpar_logistic2(
+    metapar: ArrayFloat, iterate: Literal[False] = ...
+) -> ArrayFloat: ...
+
+
+@overload
+def calc_smoothpar_logistic2(metapar: float, iterate: Literal[True]) -> float: ...
+
+
+def calc_smoothpar_logistic2(
+    metapar: float | ArrayFloat, iterate: bool = False
+) -> float | ArrayFloat:
     """Return the smoothing parameter corresponding to the given meta
     parameter when using |smooth_logistic2|.
 
@@ -162,18 +171,21 @@ def calc_smoothpar_logistic2(metapar, iterate: bool = False):
     if iterate:
         if metapar <= 0.0:
             return 0.0
-        return optimize.newton(
-            _error_smoothpar_logistic2,
-            0.3 * metapar**0.84,
-            _smooth_logistic2_derivative1,
-            args=(metapar,),
+        return float(
+            optimize.newton(
+                _error_smoothpar_logistic2,
+                0.3 * metapar**0.84,
+                _smooth_logistic2_derivative1,
+                args=(metapar,),
+            )
         )
-    return numpy.clip(
-        _cubic_interpolator_for_smoothpar_logistic2(metapar), 0.0, numpy.inf
+    return cast(
+        ArrayFloat,
+        numpy.clip(_interpolator_for_smoothpar_logistic2(metapar), 0.0, numpy.inf),
     )
 
 
-def calc_smoothpar_logistic3(metapar):
+def calc_smoothpar_logistic3(metapar: float) -> float:
     """Return the smoothing parameter corresponding to the given meta
     parameter when using |smooth_logistic3|.
 
@@ -207,7 +219,7 @@ def calc_smoothpar_logistic3(metapar):
     return calc_smoothpar_logistic2(metapar)
 
 
-def calc_smoothpar_max1(metapar):
+def calc_smoothpar_max1(metapar: float) -> float:
     """Return the smoothing parameter corresponding to the given meta
     parameter when using |smooth_max1|.
 
@@ -231,7 +243,7 @@ def calc_smoothpar_max1(metapar):
     return calc_smoothpar_logistic2(metapar)
 
 
-def calc_smoothpar_min1(metapar):
+def calc_smoothpar_min1(metapar: float) -> float:
     """Return the smoothing parameter corresponding to the given meta
     parameter when using |smooth_min1|.
 
@@ -267,7 +279,7 @@ def calc_smoothpar_min1(metapar):
 # Load the supporting points required for method `calc_smoothpar_logistic2`:
 confpath = conf.__path__[0]
 xys = numpy.load(os.path.join(confpath, "support_points_for_smoothpar_logistic2.npy"))
-_cubic_interpolator_for_smoothpar_logistic2 = interpolate.interp1d(
-    xys[0], xys[1], kind="cubic", fill_value="extrapolate"
+_interpolator_for_smoothpar_logistic2: Callable[[ArrayFloatFlex], ArrayFloatFlex] = (
+    interpolate.interp1d(xys[0], xys[1], kind="cubic", fill_value="extrapolate")
 )
 del xys

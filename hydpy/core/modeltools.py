@@ -1,7 +1,5 @@
 """This module provides features for applying and implementing hydrological models."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import collections
@@ -15,10 +13,8 @@ import os
 import runpy
 import types
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import conf
 from hydpy.core import auxfiletools
@@ -48,10 +44,10 @@ TypeSubmodelInterface = TypeVar("TypeSubmodelInterface", bound="SubmodelInterfac
 
 
 class _ModelModule(types.ModuleType):
-    ControlParameters: type[parametertools.SubParameters]
-    DerivedParameters: type[parametertools.SubParameters]
-    FixedParameters: type[parametertools.SubParameters]
-    SolverParameters: type[parametertools.SubParameters]
+    ControlParameters: type[parametertools.SubParameters[Any]]
+    DerivedParameters: type[parametertools.SubParameters[Any]]
+    FixedParameters: type[parametertools.SubParameters[Any]]
+    SolverParameters: type[parametertools.SubParameters[Any]]
 
 
 class Method:
@@ -69,7 +65,7 @@ class Method:
     UPDATEDSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
     RESULTSEQUENCES: tuple[type[sequencetools.Sequence_], ...] = ()
 
-    __call__: Callable
+    __call__: Callable[..., Any]
     __name__: str
 
     def __init_subclass__(cls) -> None:
@@ -82,7 +78,7 @@ class AutoMethod(Method):
     order without passing any arguments or other customisations."""
 
     @classmethod
-    def __call__(cls, model: Model) -> None:
+    def __call__(cls, model: Model, /) -> None:
         for method in cls.SUBMETHODS:
             method.__call__(model)
 
@@ -124,19 +120,19 @@ class ReusableMethod(Method):
         cls.REUSEMARKER = f"__hydpy_reuse_{cls.__name__.lower()}__"
 
     @classmethod
-    def call_reusablemethod(cls, model: Model, *args, **kwargs) -> None:
+    def call_reusablemethod(cls, model: Model, *args) -> None:
         """Execute the "normal" model-specific `__call__` method only when indicated by
         the |ReusableMethod.REUSEMARKER| attribute and update this attribute when
         necessary."""
         if not getattr(model, cls.REUSEMARKER):
-            cls.__call__(model, *args, **kwargs)
+            cls.__call__(model, *args)
             setattr(model, cls.REUSEMARKER, True)
 
 
 abstractmodelmethods: set[Callable[..., Any]] = set()
 
 
-def abstractmodelmethod(method: Callable[P, T]) -> Callable[P, T]:
+def abstractmodelmethod(method: Callable[P_, T_inv]) -> Callable[P_, T_inv]:
     """Alternative for Python's |abc.abstractmethod|.
 
     We currently use it to mark abstract methods in submodel interfaces that are not
@@ -935,7 +931,7 @@ class SubmodelTypeIDProperty:
             setattr(cymodel, self._name, value)
 
 
-class SharedProperty(Generic[T]):
+class SharedProperty(Generic[T_inv]):
     """Base class for descriptors that handle model properties which need
     synchronisation between the Python and the Cython world."""
 
@@ -945,19 +941,19 @@ class SharedProperty(Generic[T]):
         self.name = name.lower()
 
     @overload
-    def __get__(self, obj: Model, objtype: type[Model]) -> T: ...
+    def __get__(self, obj: Model, objtype: type[Model]) -> T_inv: ...
 
     @overload
     def __get__(self, obj: None, objtype: type[Model]) -> Self: ...
 
-    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | T:
+    def __get__(self, obj: Model | None, objtype: type[Model]) -> Self | T_inv:
         if obj is None:
             return self
         if obj.cymodel:
             return getattr(obj.cymodel, self.name)
         return vars(obj).get(self.name, 0)
 
-    def __set__(self, obj: Model, value: T) -> None:
+    def __set__(self, obj: Model, value: T_inv) -> None:
         if obj.cymodel:
             setattr(obj.cymodel, self.name, value)
         else:
@@ -1102,8 +1098,8 @@ class Model:
     """
 
     cymodel: CyModelProtocol | None
-    parameters: parametertools.Parameters
-    sequences: sequencetools.Sequences
+    parameters: parametertools.Parameters[Model]
+    sequences: sequencetools.Sequences[Model]
     masks: masktools.Masks
     idx_sim = Idx_Sim()
     threading = Threading()
@@ -1116,7 +1112,7 @@ class Model:
     OBSERVER_METHODS: ClassVar[tuple[type[Method], ...]]
     RECEIVER_METHODS: ClassVar[tuple[type[Method], ...]]
     SENDER_METHODS: ClassVar[tuple[type[Method], ...]]
-    ADD_METHODS: ClassVar[tuple[Callable, ...]]
+    ADD_METHODS: ClassVar[tuple[type[Method], ...]]
     METHOD_GROUPS: ClassVar[tuple[str, ...]]
     SUBMODELINTERFACES: ClassVar[tuple[type[SubmodelInterface], ...]]
     SUBMODELS: ClassVar[tuple[type[Submodel], ...]]
@@ -2017,7 +2013,7 @@ submodel_meteo_glob_fao56:
             model: Model, sublevel: int, preparemethods: set[str]
         ) -> None:
             def _find_adder_and_position() -> (
-                tuple[importtools.SubmodelAdder, str | None]
+                tuple[importtools.SubmodelAdder[Any, Any, Any], str | None]
             ):
                 mt2sn2as = importtools.SubmodelAdder.__hydpy_maintype2subname2adders__
                 subname, position = name.rpartition(".")[2], None
@@ -2509,7 +2505,6 @@ the available directories (calib_1 and calib_2).
         """
         for i in range(i0, i1):
             self.simulate(i)
-            self.update_senders(i)
             self.update_receivers(i)
             self.save_data(i)
 
@@ -2554,9 +2549,9 @@ the available directories (calib_1 and calib_2).
     def _update_pointers_in(
         self,
         subseqs: (
-            sequencetools.InletSequences
-            | sequencetools.ObserverSequences
-            | sequencetools.ReceiverSequences
+            sequencetools.InletSequences[Model]
+            | sequencetools.ObserverSequences[Model]
+            | sequencetools.ReceiverSequences[Model]
         ),
     ) -> None:
         if not self.threading:
@@ -2571,7 +2566,10 @@ the available directories (calib_1 and calib_2).
                             values[i] = pointer[i]
 
     def _update_pointers_out(
-        self, subseqs: sequencetools.OutletSequences | sequencetools.SenderSequences
+        self,
+        subseqs: (
+            sequencetools.OutletSequences[Model] | sequencetools.SenderSequences[Model]
+        ),
     ) -> None:
         if not self.threading:
             for seq in subseqs:
@@ -2637,16 +2635,15 @@ the available directories (calib_1 and calib_2).
         for method in self.RECEIVER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
-    def update_senders(self, idx: int) -> None:
+    def update_senders(self) -> None:
         """Call all methods defined as "SENDER_METHODS" in the defined order and then
         update all sender nodes.
 
         When working in Cython mode, the standard model import overrides this generic
         Python version with a model-specific Cython version.
         """
-        self.idx_sim = idx
         for submodel in self.find_submodels(include_subsubmodels=False).values():
-            submodel.update_senders(idx)
+            submodel.update_senders()
         for method in self.SENDER_METHODS:
             method.__call__(self)  # pylint: disable=unnecessary-dunder-call
         self._update_pointers_out(self.sequences.senders)
@@ -3184,22 +3181,17 @@ the available directories (calib_1 and calib_2).
             model.sequences.conditions = conditions[name]
 
     @property
-    def couple_models(self) -> ModelCoupler | None:
+    def couple_models(self) -> ModelCoupler[Any, Any] | None:
         """If available, return a function object for coupling models to a composite
         model suitable at least for the actual model subclass (see method
         |Elements.unite_collectives|)."""
         return None
 
-    # ToDo: Replace this hack with a Mypy plugin?
-    def __getattr__(self, item: str) -> Any:
-        assert False
+    if TYPE_CHECKING:
 
-    del __getattr__
+        def __getattr__(self, item: str) -> Any: ...
 
-    def __setattr__(self, key: str, value: Any) -> None:
-        assert False
-
-    del __setattr__
+        def __setattr__(self, key: str, value: Any) -> None: ...
 
     def __str__(self) -> str:
         return self.name
@@ -3267,7 +3259,7 @@ the available directories (calib_1 and calib_2).
         if controlparameters and not hasattr(module, "ControlParameters"):
             module.ControlParameters = type(
                 "ControlParameters",
-                (parametertools.SubParameters,),
+                (parametertools.ControlParameters,),
                 {
                     "CLASSES": variabletools.sort_variables(controlparameters),
                     "__doc__": f"Control parameters of model {modelname}.",
@@ -3277,7 +3269,7 @@ the available directories (calib_1 and calib_2).
         if derivedparameters and not hasattr(module, "DerivedParameters"):
             module.DerivedParameters = type(
                 "DerivedParameters",
-                (parametertools.SubParameters,),
+                (parametertools.DerivedParameters,),
                 {
                     "CLASSES": variabletools.sort_variables(derivedparameters),
                     "__doc__": f"Derived parameters of model {modelname}.",
@@ -3287,7 +3279,7 @@ the available directories (calib_1 and calib_2).
         if fixedparameters and not hasattr(module, "FixedParameters"):
             module.FixedParameters = type(
                 "FixedParameters",
-                (parametertools.SubParameters,),
+                (parametertools.FixedParameters,),
                 {
                     "CLASSES": variabletools.sort_variables(fixedparameters),
                     "__doc__": f"Fixed parameters of model {modelname}.",
@@ -3297,7 +3289,7 @@ the available directories (calib_1 and calib_2).
         if cls.SOLVERPARAMETERS and not hasattr(module, "SolverParameters"):
             module.SolverParameters = type(
                 "SolverParameters",
-                (parametertools.SubParameters,),
+                (parametertools.SolverParameters,),
                 {
                     "CLASSES": variabletools.sort_variables(cls.SOLVERPARAMETERS),
                     "__doc__": f"Solver parameters of model {modelname}.",
@@ -3323,7 +3315,7 @@ class RunModel(Model):
     |RunModel.RUN_METHODS| tuple."""
 
     RUN_METHODS: ClassVar[tuple[type[Method], ...]]
-    METHOD_GROUPS = (
+    METHOD_GROUPS: ClassVar[tuple[str, ...]] = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
         "OBSERVER_METHODS",
@@ -3346,8 +3338,8 @@ class RunModel(Model):
         You can integrate method |Model.simulate| into your workflows for tailor-made
         simulation runs.  Method |Model.simulate| is complete enough to allow for
         consecutive calls.  However, note that it does neither call |Model.save_data|,
-        |Model.update_receivers|, nor |Model.update_senders|.  Also, as done in the
-        following example, one would have to reset the related node sequences:
+        nor |Model.update_receivers|.  Also, as done in the following example, one
+        would have to reset the related node sequences:
 
         >>> from hydpy.core.testtools import prepare_full_example_2
         >>> hp, pub, TestIO = prepare_full_example_2()
@@ -3391,6 +3383,7 @@ class RunModel(Model):
         self.run()
         self.new2old()
         self.update_outlets()
+        self.update_senders()
         self.update_outputs()
 
 
@@ -3460,7 +3453,7 @@ class SegmentModel(RunModel):
                 for method in self.RUN_METHODS:
                     method.__call__(self)  # pylint: disable=unnecessary-dunder-call
 
-    def run_segments(self, method: Method) -> None:
+    def run_segments(self, method: Callable[[], None]) -> None:
         """Run the given methods for all segments.
 
         Method |SegmentModel.run_segments| is mainly thought for testing purposes.
@@ -3576,7 +3569,7 @@ class NumConstsELS:
     dt_decrease: float
     a_coeffs: numpy.ndarray
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.nmb_methods = 10
         self.nmb_stages = 11
         self.dt_increase = 2.0
@@ -3612,7 +3605,7 @@ class NumVarsELS:
     extrapolated_relerror: float
     f0_ready: bool
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.use_relerror = False
         self.nmb_calls = 0
         self.t0 = 0.0
@@ -3655,9 +3648,10 @@ class ELSModel(SolverModel):
     SOLVERSEQUENCES: ClassVar[tuple[type[sequencetools.DependentSequence], ...]]
     PART_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
     FULL_ODE_METHODS: ClassVar[tuple[type[Method], ...]]
-    METHOD_GROUPS = (
+    METHOD_GROUPS: ClassVar[tuple[str, ...]] = (
         "RECEIVER_METHODS",
         "INLET_METHODS",
+        "OBSERVER_METHODS",
         "PART_ODE_METHODS",
         "FULL_ODE_METHODS",
         "ADD_METHODS",
@@ -3685,6 +3679,7 @@ class ELSModel(SolverModel):
         self.update_observers()
         self.solve()
         self.update_outlets()
+        self.update_senders()
         self.update_outputs()
 
     def solve(self) -> bool:
@@ -4715,6 +4710,7 @@ class ELSIEModel(ELSModel):
             self.apply_implicit_euler_fallback()
             self.new2old()
         self.update_outlets()
+        self.update_senders()
         self.update_outputs()
 
     def apply_implicit_euler_fallback(self) -> None:
@@ -4804,7 +4800,7 @@ class SubmodelInterface(Model, abc.ABC):
     """Base class for defining interfaces for submodels."""
 
     INTERFACE_METHODS: ClassVar[tuple[type[Method], ...]]
-    _submodeladder: importtools.SubmodelAdder | None
+    _submodeladder: importtools.SubmodelAdder[Any, Any, Any] | None
     preparemethod2arguments: dict[str, tuple[tuple[Any, ...], dict[str, Any]]]
 
     typeid: ClassVar[int]
@@ -4981,7 +4977,7 @@ sw1d_channel.
 
     _inputtypes: tuple[type[TypeModel_contra], ...]
     _outputtype: type[TypeModel_co]
-    _wrapped: CoupleModels
+    _wrapped: CoupleModels[TypeModel_co]
 
     def __init__(
         self,

@@ -1,11 +1,9 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 from hydpy.models.hland import hland_control
 from hydpy.models.hland import hland_masks
 from hydpy.models.hland import hland_sequences
@@ -22,12 +20,11 @@ class Ic(hland_sequences.State1DSequence):
 class SP(hland_sequences.State2DSequence):
     """Frozen water stored in the snow layer [mm]."""
 
-    SPAN = (None, None)
     mask = hland_masks.Snow()
 
     CONTROLPARAMETERS = (hland_control.WHC,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |SP| following :math:`WC \leq WHC \cdot SP`.
 
         >>> from hydpy.models.hland import *
@@ -74,7 +71,7 @@ class WC(hland_sequences.State2DSequence):
 
     CONTROLPARAMETERS = (hland_control.WHC,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim |WC| following :math:`WC \\leq WHC \\cdot SP`.
 
         >>> from hydpy.models.hland import *
@@ -109,7 +106,7 @@ class SM(hland_sequences.State1DSequence):
 
     CONTROLPARAMETERS = (hland_control.FC,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |SM| following :math:`0 \leq SM \leq FC`.
 
         >>> from hydpy.models.hland import *
@@ -121,14 +118,15 @@ class SM(hland_sequences.State1DSequence):
         sm(0.0, 0.0, 100.0, 200.0, 200.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.control.fc
+            upper = self.subseqs.seqs.model.parameters.control.fc.values
         return super().trim(lower, upper)
 
 
 class UZ(sequencetools.StateSequence):
     """Storage in the upper zone layer [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    SPAN = (0.0, None)
 
 
 class SUZ(hland_sequences.State1DSequence):
@@ -164,11 +162,11 @@ class LZ(sequencetools.StateSequence):
     `LZ`.
     """
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim negative values if the actual subbasin does not contain an internal
         lake.
 
@@ -202,7 +200,7 @@ class SG1(hland_sequences.State1DSequence):
     CONTROLPARAMETERS = (hland_control.SG1Max,)
     mask = hland_masks.UpperZone()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim |SG1| following :math:`0  \leq SG1 \leq SG1Max`.
 
         >>> from hydpy.models.hland import *
@@ -214,23 +212,24 @@ class SG1(hland_sequences.State1DSequence):
         sg1(0.0, 0.0, 50.0, 100.0, 100.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.control.sg1max
+            upper = self.subseqs.seqs.model.parameters.control.sg1max.values
         return super().trim(lower, upper)
 
 
 class SG2(sequencetools.StateSequence):
     """First-order slow response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0
 
 
 class SG3(sequencetools.StateSequence):
     """Second-order slow response groundwater reservoir [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0
 
 
 class SC(sequencetools.StateSequence):
     """Storage cascade for runoff concentration [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    SPAN = (0.0, None)

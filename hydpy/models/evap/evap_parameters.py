@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import masktools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -31,6 +29,8 @@ class LandMonthParameter(parametertools.KeywordParameter2D):
                     water=[nan, nan, nan, nan, nan, nan, nan, nan, nan, nan,
                            nan, nan])
     """
+
+    TYPE: Final = float
 
     columnnames = (
         "jan",

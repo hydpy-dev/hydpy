@@ -1,10 +1,7 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import parametertools
-
-# ...from snow
+from hydpy.core.typingtools import *
 from hydpy.models.snow import snow_parameters
 from hydpy.models.snow import snow_control
 
@@ -16,7 +13,7 @@ class DOY(parametertools.DOYParameter):
 class GThresh(snow_parameters.Parameter1DLayers):
     """Accumulation threshold [mm]."""
 
-    TIME, SPAN = None, (0.0, None)
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (
         snow_control.NLayers,
@@ -24,7 +21,7 @@ class GThresh(snow_parameters.Parameter1DLayers):
         snow_control.CN4,
     )
 
-    def update(self):
+    def update(self) -> None:
         """Update |GThresh| based on :math:`GThresh = MeanAnSolidPrecip / CN4` [-].
 
         >>> from hydpy.models.snow import *
@@ -43,11 +40,12 @@ class GThresh(snow_parameters.Parameter1DLayers):
 class ZMean(parametertools.Parameter):
     """Mean elevation of all layer [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
 
     CONTROLPARAMETERS = (snow_control.ZLayers,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |ZMean| by averaging |ZLayers| (weighted with |LayerArea|).
 
         >>> from hydpy.models.snow import *

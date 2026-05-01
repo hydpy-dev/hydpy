@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from snow
 from hydpy.models.snow import snow_sequences
 
 

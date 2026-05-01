@@ -318,16 +318,12 @@ The recalculation results confirm the equality of both models for high-flow cond
     | 20.01. |   0.318768 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.0 |             0.0 |             0.0 |           0.0 |       0.818829 | 0.818829 |    1.275071 |    0.0 |    0.0 | 0.818829 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
-
-# ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 

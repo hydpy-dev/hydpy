@@ -1,13 +1,9 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import sequencetools
-
-# ...from lland
+from hydpy.core.typingtools import *
 from hydpy.models.lland import lland_masks
 from hydpy.models.lland import lland_sequences
 
@@ -24,7 +20,7 @@ class Inzp(lland_sequences.State1DSequence):
     simulation step of the new month.
     """
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = lland_masks.Land()
 
 
@@ -32,10 +28,10 @@ class STInz(lland_sequences.State1DSequence):
     """Wasseräquivalent Trockenschnee im Interzeptionsspeicher (total water equivalent
     of the intercepted snow) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = lland_masks.Forest()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values in accordance with :math:`SInz / PWMax \leq STInz \leq SInz`, or
         at least in accordance with if :math:`STInz \geq 0`.
 
@@ -52,7 +48,7 @@ class STInz(lland_sequences.State1DSequence):
         >>> states.stinz
         stinz(0.0, 0.0, 0.5, 5.0, 5.0, 10.0, 3.0)
         """
-        pwmax = self.subseqs.seqs.model.parameters.control.pwmax
+        pwmax = self.subseqs.seqs.model.parameters.control.pwmax.values
         sinz = numpy.clip(self.subseqs.sinz.values, 0.0, numpy.inf)
         if lower is None:
             lower = sinz / pwmax
@@ -66,10 +62,10 @@ class SInz(lland_sequences.State1DSequence):
     """Wasseräquivalent Gesamtschnee im Interzeptionsspeicher (frozen water equivalent
     of the intercepted snow) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = lland_masks.Forest()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values in accordance with :math:`SInz / PWMax \leq STInz \leq SInz`, or
         at least in accordance with if :math:`SInz \geq 0`.
 
@@ -99,7 +95,6 @@ class SInz(lland_sequences.State1DSequence):
 class ESnowInz(lland_sequences.State1DSequence):
     """Kälteinhalt der Schneedecke des Interzeptionsspeichers [WT/m²]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (None, None)
     mask = lland_masks.Forest()
 
 
@@ -110,7 +105,7 @@ class ASInz(lland_sequences.State1DSequence):
     If there is no intercepted snow, the value of |ASInz| is |numpy.nan|.
     """
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = lland_masks.Forest()
 
 
@@ -118,10 +113,10 @@ class WATS(lland_sequences.State1DSequence):
     """Wasseräquivalent Trockenschnee auf der Bodenoberfläche (frozen water equivalent
     of the snow cover) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = lland_masks.Land()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values in accordance with :math:`WAeS / PWMax \leq WATS \leq WAeS`, or
         at least in accordance with if :math:`WATS \geq 0`.
 
@@ -138,7 +133,7 @@ class WATS(lland_sequences.State1DSequence):
         >>> states.wats
         wats(0.0, 0.0, 0.5, 5.0, 5.0, 10.0, 3.0)
         """
-        pwmax = self.subseqs.seqs.model.parameters.control.pwmax
+        pwmax = self.subseqs.seqs.model.parameters.control.pwmax.values
         waes = numpy.clip(self.subseqs.waes.values, 0.0, numpy.inf)
         if lower is None:
             lower = waes / pwmax
@@ -152,10 +147,10 @@ class WAeS(lland_sequences.State1DSequence):
     """Wasseräquivalent Gesamtschnee auf der Bodenoberfläche (total water equivalent
     of the snow cover) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = lland_masks.Land()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim values in accordance with :math:`WAeS / PWMax \leq WATS \leq WAeS`, or
         at least in accordance with if :math:`WAeS \geq 0`
 
@@ -187,7 +182,6 @@ class ESnow(lland_sequences.State1DSequence):
     """Thermischer Energieinhalt der Schneedecke bezogen auf 0°C (thermal
     energy content of the snow layer with respect to 0°C) [WT/m²]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (None, None)
     mask = lland_masks.Land()
 
 
@@ -197,7 +191,7 @@ class TauS(lland_sequences.State1DSequence):
     If there is no snow-layer, the value of |TauS| is |numpy.nan|.
     """
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = lland_masks.Land()
 
 
@@ -205,17 +199,16 @@ class EBdn(lland_sequences.State1DSequence):
     """Energiegehalt des Bodenwassers (energy content of the soil water)
     [WT/m²]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (None, None)
     mask = lland_masks.Land()
 
 
 class BoWa(lland_sequences.State1DSequence):
     """Bodenwasserspeicherung (soil water storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 1, False, (0.0, None)
+    SPAN = (0.0, None)
     mask = lland_masks.Soil()
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim in accordance with :math:`0 \leq BoWa \leq WMax`.
 
         >>> from hydpy.models.lland import *
@@ -227,40 +220,42 @@ class BoWa(lland_sequences.State1DSequence):
         bowa(0.0, 0.0, 100.0, 200.0, 200.0)
         """
         if upper is None:
-            upper = self.subseqs.seqs.model.parameters.control.wmax
+            upper = self.subseqs.seqs.model.parameters.control.wmax.values
         return super().trim(lower, upper)
 
 
 class SDG1(sequencetools.StateSequence):
     """Träger Direktabfluss-Gebietsspeicher (slow direct runoff storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0
 
 
 class SDG2(sequencetools.StateSequence):
     """Dynamischer Direktabfluss-Gebietsspeicher (fast direct runoff storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0
 
 
 class SIG1(sequencetools.StateSequence):
     """Erster Zwischenabfluss-Gebietsspeicher (first interflow storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    SPAN = (0.0, None)
 
 
 class SIG2(sequencetools.StateSequence):
     """Zweiter Zwischenabfluss-Gebietsspeicher (second interflow storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    SPAN = (0.0, None)
 
 
 class SBG(sequencetools.StateSequence):
     """Basisabfluss-Gebietsspeicher (base flow storage) [mm]."""
 
-    NDIM, NUMERIC, SPAN = 0, False, (None, None)
+    NDIM: Final[Literal[0]] = 0
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         r"""Trim in accordance with :math:`SBG \leq GSBMax \cdot VolBMax`.
 
         >>> from hydpy.models.lland import *

@@ -91,8 +91,6 @@ Spatially averaged time series values have been stored in files ending with the 
 9.64767, 8.513649, 7.777628, 7.343314, 7.156591
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import collections
 import contextlib
@@ -102,7 +100,6 @@ import os
 import warnings
 from xml.etree import ElementTree
 
-# ...from HydPy
 import hydpy
 from hydpy import conf
 from hydpy import config
@@ -2651,7 +2648,7 @@ class XSDWriter:
 
     @classmethod
     def get_subsequencesinsertion(
-        cls, subsequences: sequencetools.SubSequences[Any, Any, Any], indent: int
+        cls, subsequences: sequencetools.SubSequences[Any, Any, Any, Any], indent: int
     ) -> str:
         """Return the insertion string required for the given group of sequences.
 
@@ -3136,7 +3133,7 @@ class XSDWriter:
     @classmethod
     def _get_subvars(
         cls, model: modeltools.Model, conditions: bool
-    ) -> Iterator[variabletools.SubVariables[Any, Any, Any]]:
+    ) -> Iterator[variabletools.SubVariables[Any, Any, Any, Any]]:
         yield model.parameters.control
         names = ["inputs", "factors", "fluxes"]
         if conditions:
@@ -3151,7 +3148,7 @@ class XSDWriter:
         cls,
         itemgroup: str,
         model: modeltools.Model,
-        subgroup: variabletools.SubVariables[Any, Any, Any],
+        subgroup: variabletools.SubVariables[Any, Any, Any, Any],
         indent: int,
     ) -> str:
         """Return a string defining the required types for the given combination of an

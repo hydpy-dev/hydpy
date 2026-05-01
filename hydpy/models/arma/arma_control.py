@@ -1,11 +1,9 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
+from hydpy.core import modeltools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core.typingtools import *
@@ -205,9 +203,10 @@ the same threshold value(s) twice.
 
     _coefs: dict[str, tuple[tuple[float, ...], tuple[float, ...]]]
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
 
-    def __init__(self, subvars: parametertools.SubParameters) -> None:
+    def __init__(self, subvars: parametertools.SubParameters[modeltools.Model]) -> None:
         with objecttools.ResetAttrFuncs(self):
             super().__init__(subvars)
             self._coefs = {}
@@ -303,7 +302,7 @@ the same threshold value(s) twice.
     @property
     def thresholds(self) -> VectorFloat:
         """Threshold values of the response functions."""
-        return numpy.array(
+        return numpy.asarray(
             sorted(self._key2float(key) for key in self._coefs), dtype=config.NP_FLOAT
         )
 

@@ -236,23 +236,20 @@ runs.  The documentation of class "HydPy" explains how to select and set the rel
 information.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import collections
 import functools
 import contextlib
 import itertools
+import math
 import os
 import time
 import warnings
 
-# ...from site-packages
 import netCDF4 as netcdf4
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import devicetools
@@ -729,7 +726,7 @@ to the NetCDF file `test.nc`, the following error occurred: ...
     >>> create_variable(ncfile, "var1", "f8", ("dim1",))
     >>> import numpy
     >>> from hydpy import print_vector
-    >>> print_vector(numpy.array(ncfile["var1"][:]))
+    >>> print_vector(numpy.asarray(ncfile["var1"][:]))
     nan, nan, nan, nan, nan
 
     >>> ncfile.close()
@@ -745,7 +742,9 @@ to the NetCDF file `test.nc`, the following error occurred: ...
         )
 
 
-def query_variable(ncfile: netcdf4.Dataset, name: str) -> netcdf4.Variable:
+def query_variable(
+    ncfile: netcdf4.Dataset, name: str
+) -> netcdf4.Variable[numpy.float64]:
     """Return the variable with the given name from the given NetCDF file.
 
     Essentially, |query_variable| only queries the variable via keyword access using
@@ -768,7 +767,7 @@ def query_variable(ncfile: netcdf4.Dataset, name: str) -> netcdf4.Variable:
     >>> file_.close()
     """
     try:
-        return ncfile[name]
+        return cast("netcdf4.Variable[numpy.float64]", ncfile[name])
     except (IndexError, KeyError):
         raise RuntimeError(
             f"NetCDF file `{get_filepath(ncfile)}` does not contain variable `{name}`."
@@ -1098,12 +1097,14 @@ length of the second dimension is one, but its name is `realisation` instead of 
     else:
         maskedarray = variable[:]
     fillvalue_ = getattr(variable, "_FillValue", numpy.nan)
-    if not numpy.isnan(fillvalue_):
+    if not math.isnan(fillvalue_):
         maskedarray[maskedarray.mask] = numpy.nan
     return cast(NDArrayFloat, maskedarray.data)
 
 
-def _is_realisation(variable: netcdf4.Variable, ncfile: netcdf4.Dataset) -> bool:
+def _is_realisation(
+    variable: netcdf4.Variable[numpy.float64], ncfile: netcdf4.Dataset
+) -> bool:
     if variable.ndim == 2:
         return False
     if (variable.ndim == 3) and (variable.shape[1] == 1):
@@ -1160,7 +1161,7 @@ class JITAccessInfo(NamedTuple):
     """Helper class for structuring reading from or writing to a NetCDF file "just in
     time" during a simulation run for a specific |NetCDFVariableFlat| object."""
 
-    ncvariable: netcdf4.Variable
+    ncvariable: netcdf4.Variable[numpy.float64]
     """Variable for direct access to the relevant section of the NetCDF file."""
     realisation: bool
     """Flag that indicates if the relevant |JITAccessInfo.ncvariable| comes with an
@@ -2071,21 +2072,21 @@ class NetCDFVariableAggregated(MixinVariableWriter, NetCDFVariable):
     >>> import numpy
     >>> from hydpy import print_matrix
     >>> with TestIO(), netcdf4.Dataset("nied.nc", "r") as ncfile:
-    ...     print_matrix(numpy.array(ncfile["nied"][:]))
+    ...     print_matrix(numpy.asarray(ncfile["nied"][:]))
     | 0.0, 4.0 |
     | 1.0, 5.0 |
     | 2.0, 6.0 |
     | 3.0, 7.0 |
 
     >>> with TestIO(), netcdf4.Dataset("nkor.nc", "r") as ncfile:
-    ...     print_matrix(numpy.array(ncfile["nkor"][:]))
+    ...     print_matrix(numpy.asarray(ncfile["nkor"][:]))
     | 12.0, 16.5 |
     | 13.0, 18.5 |
     | 14.0, 20.5 |
     | 15.0, 22.5 |
 
     >>> with TestIO(), netcdf4.Dataset("sp.nc", "r") as ncfile:
-    ...     print_matrix(numpy.array(ncfile["sp"][:]))
+    ...     print_matrix(numpy.asarray(ncfile["sp"][:]))
     | 70.5 |
     | 76.5 |
     | 82.5 |
@@ -2881,12 +2882,12 @@ data for (sub)device `land_lahn_kalk_0` is available in NetCDF file \
                 ncfile.close()
 
 
-def add_netcdfreading(wrapped: Callable[P, None]) -> Callable[P, None]:
+def add_netcdfreading(wrapped: Callable[P_, None]) -> Callable[P_, None]:
     """Enable a function or method that can read time series from NetCDF files to
     automatically activate the |SequenceManager.netcdfreading| mode if not already
     done."""
 
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> None:
+    def wrapper(*args: P_.args, **kwargs: P_.kwargs) -> None:
         sm = hydpy.pub.sequencemanager
         if sm._netcdfreader is None:  # pylint: disable=protected-access
             with sm.netcdfreading():
@@ -2898,12 +2899,12 @@ def add_netcdfreading(wrapped: Callable[P, None]) -> Callable[P, None]:
     return wrapper
 
 
-def add_netcdfwriting(wrapped: Callable[P, None]) -> Callable[P, None]:
+def add_netcdfwriting(wrapped: Callable[P_, None]) -> Callable[P_, None]:
     """Enable a function or method that can write time series to NetCDF files to
     automatically activate the |SequenceManager.netcdfwriting| mode if not already
     done."""
 
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> None:
+    def wrapper(*args: P_.args, **kwargs: P_.kwargs) -> None:
         sm = hydpy.pub.sequencemanager
         if sm._netcdfwriter is None:  # pylint: disable=protected-access
             with sm.netcdfwriting():

@@ -1,11 +1,8 @@
 """Perform all available consistency checks."""
 
-# import...
-# ...from standard library
 import os
 import sys
 
-# ...from HydPy
 from hydpy import models
 from hydpy.core.testtools import perform_consistencychecks
 

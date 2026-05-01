@@ -1,17 +1,13 @@
 """This module implements statistical functionalities frequently used in hydrological
 modelling."""
 
-# import...
-# ...from standard library
 import abc
 import collections
 import copy
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools

@@ -1,13 +1,10 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from standard library
 from __future__ import annotations
+import math
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core import parametertools
@@ -191,7 +188,9 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
     0.181444, 0.637113, 0.181444
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     strict_valuehandling: bool = False
 
     KEYWORDS = {
@@ -347,16 +346,16 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
             # parameter set.  Time to get rid of it...
             if (full % 1.0) < 1e-4:
                 full //= 1.0
-            full_f = int(numpy.floor(full))
-            full_c = int(numpy.ceil(full))
+            full_f = int(math.floor(full))
+            full_c = int(math.ceil(full))
             if not tp:
                 peak = full / 2.0
             else:
                 if tp > tb:
                     raise ValueError("Parameter 'tp' must not be greater than 'tb'.")
                 peak = tp
-            peak_f = int(numpy.floor(peak))
-            peak_c = int(numpy.ceil(peak))
+            peak_f = int(math.floor(peak))
+            peak_c = int(math.ceil(peak))
             # Calculate the triangle ordinate(s)...
             self.shape = full_c
             uh = self.values.copy()
@@ -419,7 +418,7 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
         if left:
             ts = numpy.arange(1.0, x4)
         else:
-            ts = numpy.arange(2.0 * x4 - numpy.ceil(x4), 0.0, -1.0)[::-1]
+            ts = numpy.arange(2.0 * x4 - math.ceil(x4), 0.0, -1.0)[::-1]
         totals = numpy.empty(len(ts) + 2, dtype=config.NP_FLOAT)
         totals[1:-1] = (ts / x4) ** beta
         totals[0], totals[-1] = 0.0, 1.0
@@ -432,7 +431,10 @@ following error occurred: Wrong arguments for option 'gr_uh2'.
 class RetentionTime(parametertools.Parameter):
     """Retention time of the linear storage cascade [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = False
+    SPAN = (0.0, None)
 
 
 class NmbStorages(parametertools.Parameter):
@@ -448,7 +450,9 @@ class NmbStorages(parametertools.Parameter):
     (5,)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
 
     def __call__(self, *args, **kwargs) -> None:
         super().__call__(*args, **kwargs)
@@ -469,5 +473,8 @@ class NmbSteps(parametertools.Parameter):
     nmbsteps(4.0)
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, int, True, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    TIME = True
+    SPAN = (1, None)
     INIT = 1440.0

@@ -1,7 +1,5 @@
 """This module implements tools for file related string substitutions."""
 
-# import...
-# ...from HydPy
 from hydpy import config
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *

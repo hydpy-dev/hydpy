@@ -1,12 +1,9 @@
 """This module implements some exception classes and related features."""
 
-# import...
-# ...from standard-library
 import enum
 import importlib
 import types
 
-# ...from HydPy
 from hydpy.core import objecttools
 from hydpy.core.typingtools import *
 
@@ -100,15 +97,17 @@ def getattr_(obj: Any, name: str, default: None) -> Any | None: ...
 
 
 @overload
-def getattr_(obj: Any, name: str, default: T) -> T: ...
+def getattr_(obj: Any, name: str, default: T_inv) -> T_inv: ...
 
 
 @overload
-def getattr_(obj: Any, name: str, *, type_: type[T]) -> T: ...
+def getattr_(obj: Any, name: str, *, type_: type[T_inv]) -> T_inv: ...
 
 
 @overload
-def getattr_(obj: Any, name: str, default: None, type_: type[T]) -> T | None: ...
+def getattr_(
+    obj: Any, name: str, default: None, type_: type[T_inv]
+) -> T_inv | None: ...
 
 
 @overload
@@ -118,8 +117,8 @@ def getattr_(obj: Any, name: str, default: T1, type_: type[T2]) -> T1 | T2: ...
 def getattr_(
     obj: Any,
     name: str,
-    default: T | _Enum = _Enum.GETATTR_NO_DEFAULT,
-    type_: type[T] | None = None,
+    default: T_inv | _Enum = _Enum.GETATTR_NO_DEFAULT,
+    type_: type[T_inv] | None = None,
 ) -> Any:
     """Return the attribute with the given name or, if it does not exist,
     the default value, if available.

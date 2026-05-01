@@ -1,13 +1,20 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
+from __future__ import annotations
+
 from hydpy.core import masktools
+from hydpy.core import parametertools
+from hydpy.core import variabletools
+from hydpy.core.typingtools import *
+from hydpy.models.wland import wland_model
 from hydpy.models.wland import wland_constants
 from hydpy.models.wland.wland_constants import WATER, SEALED
 
+if TYPE_CHECKING:
+    from hydpy.models.wland import wland_control
 
-def _exclude(*args):
+
+def _exclude(*args: parametertools.IntConstant) -> tuple[int, ...]:
     return tuple(
         value for (key, value) in wland_constants.CONSTANTS.items() if value not in args
     )
@@ -19,9 +26,10 @@ class Complete(masktools.IndexMask):
     relevant = _exclude()
 
     @staticmethod
-    def get_refindices(variable):
+    def get_refindices(variable: variabletools.Variable) -> wland_control.LT:
         """Reference to the associated instance of |LT|."""
-        return variable.subvars.vars.model.parameters.control.lt
+        model = cast(wland_model.Model, variable.subvars.vars.model)
+        return model.parameters.control.lt
 
 
 class Land(Complete):

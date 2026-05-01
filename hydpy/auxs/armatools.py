@@ -1,23 +1,22 @@
 """This module provides additional features for module |iuhtools|, related to
 Autoregressive-Moving Average (ARMA) models."""
 
-# import...
-# ...from standard library
+from __future__ import annotations
 import itertools
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.auxs import statstools
+from hydpy.auxs import iuhtools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
+    from matplotlib import figure
     from matplotlib import pyplot
     from scipy import integrate
 else:
@@ -217,12 +216,60 @@ check the calculated coefficients: 1.0.
     |MA.nmb_nodes_extra| is ignored if set to a smaller value than |MA.nmb_nodes|. 
     """
 
+    _iuh: iuhtools.IUH | None
     _coefs: VectorFloat | None = None
 
-    def __init__(self, iuh=None, coefs=None) -> None:
+    @overload
+    def __init__(self, *, iuh: iuhtools.IUH) -> None: ...
+
+    @overload
+    def __init__(self, *, coefs: VectorInputFloat) -> None: ...
+
+    def __init__(
+        self, *, iuh: iuhtools.IUH | None = None, coefs: VectorInputFloat | None = None
+    ) -> None:
         self.iuh = iuh
         if coefs is not None:
             self.coefs = coefs
+
+    @property
+    def iuh(self) -> iuhtools.IUH:
+        """The currently handled instantaneous unit hydrograph.
+
+        >>> from hydpy import TranslationDiffusionEquation
+        >>> iuh = TranslationDiffusionEquation(u=5.0, d=15.0, x=50.0)
+        >>> from hydpy.auxs.armatools import MA
+        >>> ma = MA(iuh=iuh)
+        >>> assert ma.iuh is iuh
+        >>> del ma.iuh
+        >>> ma.iuh
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: No instantaneous unit hydrograph \
+(`iuh`) available.
+
+        >>> ma.iuh = iuh
+        >>> assert ma.iuh is iuh
+        >>> ma.iuh = None
+        >>> ma.iuh
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: No instantaneous unit hydrograph \
+(`iuh`) available.
+        """
+        if (iuh := self._iuh) is not None:
+            return iuh
+        raise exceptiontools.AttributeNotReady(
+            "No instantaneous unit hydrograph (`iuh`) available."
+        )
+
+    @iuh.setter
+    def iuh(self, iuh: iuhtools.IUH | None) -> None:
+        self._iuh = iuh
+
+    @iuh.deleter
+    def iuh(self) -> None:
+        self._iuh = None
 
     @property
     def coefs(self) -> VectorFloat:
@@ -266,7 +313,7 @@ check the calculated coefficients: 1.0.
         for t in itertools.count(0.0, 1.0):
 
             responses[:n] = responses[n:]
-            responses[n:] = self.iuh(nodes + t)
+            responses[n:] = self.iuh(cast(VectorFloat, nodes + t))
 
             if (t == 0) and (moment1 < 1.0) and ((m := self.nmb_nodes_extra) > n):
                 fine_nodes = numpy.linspace(0.0 / m, 1.0 - 1.0 / m, m)
@@ -341,7 +388,7 @@ check the calculated coefficients: 1.0.
         moment2 = statstools.calc_mean_time_deviation(self.delays, self.coefs, moment1)
         return moment1, moment2
 
-    def plot(self, threshold=None, **kwargs) -> pyplot.Figure:
+    def plot(self, threshold: float | None = None, **kwargs: Any) -> figure.Figure:
         """Create a barplot of the MA coefficients."""
 
         try:
@@ -368,7 +415,7 @@ check the calculated coefficients: 1.0.
         pyplot.plot(idx, value, "ro")
         return pyplot.gcf()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return objecttools.assignrepr_tuple(self.coefs, "MA(coefs=", 70) + ")"
 
 
@@ -585,17 +632,73 @@ by the MA coefficients `1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0`.
     """Maximum deviation of the sum of all coefficents from one to be accepted by 
     method |ARMA.update_coefs|."""
 
+    _ma: MA | None
     _ma_coefs: VectorFloat | None = None
     _ar_coefs: VectorFloat | None = None
     _rel_rmse: float | None
 
-    def __init__(self, ma_model=None, ar_coefs=None, ma_coefs=None) -> None:
+    @overload
+    def __init__(self, *, ma_model: MA) -> None: ...
+
+    @overload
+    def __init__(
+        self,
+        *,
+        ar_coefs: VectorInputFloat | None = None,
+        ma_coefs: VectorInputFloat | None = None,
+    ) -> None: ...
+
+    def __init__(
+        self,
+        *,
+        ma_model: MA | None = None,
+        ar_coefs: VectorInputFloat | None = None,
+        ma_coefs: VectorInputFloat | None = None,
+    ) -> None:
         self.ma = ma_model
         if ar_coefs is not None:
             self.ar_coefs = ar_coefs
         if ma_coefs is not None:
             self.ma_coefs = ma_coefs
         self._rel_rmse = None
+
+    @property
+    def ma(self) -> MA:
+        """The currently handled moving average model.
+
+        >>> from hydpy.auxs.armatools import ARMA, MA
+        >>> ma = MA(coefs=[0.6, 0.4])
+        >>> arma = ARMA(ma_model=ma)
+        >>> assert arma.ma is ma
+        >>> del arma.ma
+        >>> arma.ma
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: No moving average model (`ma`) \
+available
+
+        >>> arma.ma = ma
+        >>> assert arma.ma is ma
+        >>> arma.ma = None
+        >>> arma.ma
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: No moving average model (`ma`) \
+available
+        """
+        if (ma := self._ma) is not None:
+            return ma
+        raise exceptiontools.AttributeNotReady(
+            "No moving average model (`ma`) available"
+        )
+
+    @ma.setter
+    def ma(self, ma: MA | None) -> None:
+        self._ma = ma
+
+    @ma.deleter
+    def ma(self) -> None:
+        self._ma = None
 
     @property
     def rel_rmse(self) -> float:
@@ -648,7 +751,7 @@ far.
         return ar_coefs
 
     @ar_coefs.setter
-    def ar_coefs(self, values) -> None:
+    def ar_coefs(self, values: VectorInputFloat) -> None:
         self._ar_coefs = numpy.array(values, ndmin=1, dtype=config.NP_FLOAT)
 
     @ar_coefs.deleter
@@ -799,16 +902,18 @@ far.
         """
         turning_idx, _ = ma_model.turningpoint
         values = ma_model.coefs[turning_idx:]
-        self.ar_coefs, residuals = numpy.linalg.lstsq(
+        result = numpy.linalg.lstsq(
             self.get_a(values, ar_order), self.get_b(values, ar_order), rcond=-1
-        )[:2]
+        )
+        self.ar_coefs = cast(VectorFloat, result[0])
+        residuals = result[1]
         if len(residuals) == 1:
             self._rel_rmse = numpy.sqrt(residuals[0]) / numpy.sum(values)
         else:
             self._rel_rmse = 0.0
 
     @staticmethod
-    def get_a(values, n):
+    def get_a(values: VectorInputFloat, n: int) -> MatrixFloat:
         """Extract the independent variables of the given values and return them as a
         matrix with n columns in a form suitable for the least squares approach applied
         in method |ARMA.update_ar_coefs|.
@@ -819,15 +924,15 @@ far.
             i0 = i - 1 if i > 0 else None
             i1 = i + n - 1
             a[i] = values[i1:i0:-1]
-        return numpy.array(a)
+        return a
 
     @staticmethod
-    def get_b(values, n):
+    def get_b(values: VectorInputFloat, n: int) -> VectorFloat:
         """Extract the dependent variables of the values in a vector with n entries in
         a form suitable for the least squares approach applied in method
         |ARMA.update_ar_coefs|.
         """
-        return numpy.array(values[n:])
+        return numpy.asarray(values[n:])
 
     def update_ma_coefs(self) -> None:
         """Determine the MA coefficients.
@@ -861,7 +966,7 @@ far.
                     f"(`{objecttools.repr_(numpy.min(self.response))}`)."
                 )
 
-    def calc_next_ma_coef(self, ma_order, ma_model) -> None:
+    def calc_next_ma_coef(self, ma_order: int, ma_model: MA) -> None:
         """Determine the MA coefficients of the ARMA model based on its predetermined
         AR coefficients and the MA ordinates of the given |MA| model.
 
@@ -896,7 +1001,7 @@ far.
                     value += ar_coef * values[zdx]
             values.append(value)
             sum_values += value
-        return numpy.array(values)
+        return numpy.asarray(values)
 
     @property
     def moments(self) -> tuple[float, float]:
@@ -908,7 +1013,7 @@ far.
         moment2 = statstools.calc_mean_time_deviation(timepoints, response, moment1)
         return moment1, moment2
 
-    def plot(self, threshold=None, **kwargs) -> pyplot.Figure:
+    def plot(self, threshold: float | None = None, **kwargs: Any) -> figure.Figure:
         """Barplot of the ARMA response."""
         try:
             # Works under matplotlib 3.

@@ -5,40 +5,35 @@ Features more specific to either parameters or sequences are implemented in modu
 |parametertools| and |sequencetools|, respectively.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import contextlib
 import copy
 import functools
 import inspect
+import math
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
 from hydpy.core import objecttools
-from hydpy.core import propertytools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
     from hydpy.core import devicetools
+    from hydpy.core import modeltools
     from hydpy.core import parametertools
     from hydpy.core import sequencetools
     from hydpy.cythons import pointerutils
-    from hydpy.cythons import sequenceutils
-
 
 TypeGroup_co = TypeVar(
     "TypeGroup_co",
-    "parametertools.Parameters",
-    "sequencetools.Sequences",
+    "parametertools.Parameters[modeltools.Model]",
+    "sequencetools.Sequences[modeltools.Model]",
     "devicetools.Node",
     covariant=True,
 )
@@ -53,7 +48,7 @@ integer values."""
 TYPE2MISSINGVALUE = {float: numpy.nan, int: INT_NAN, bool: False}
 
 
-def trim(self: Variable, lower=None, upper=None) -> bool:
+def trim(self: Variable, lower: TrimHook = None, upper: TrimHook = None) -> bool:
     """Trim the value(s) of a |Variable| instance.
 
     The returned boolean indicates whether at least one value has been trimmed.
@@ -169,8 +164,8 @@ and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
     var(3.0)
 
-    If a |Variable| subclass does not have (fixed) boundaries, give it either no `SPAN`
-    attribute or a |tuple| containing |None| values:
+    If a |Variable| subclass does not have (fixed) boundaries, give it no `SPAN`
+    attribute:
 
     >>> del Var.SPAN
     >>> var.value = 5.0
@@ -178,7 +173,6 @@ and the new value(s) are `4.0` and `3.0`, respectively.
     >>> var
     var(5.0)
 
-    >>> Var.SPAN = (None, None)
     >>> assert var.trim() is False
     >>> var
     var(5.0)
@@ -351,11 +345,19 @@ is `str`.
         type_ = getattr(self, "TYPE", float)
         if type_ is float:
             if self.NDIM == 0:
-                return _trim_float_0d(self, lower, upper)
+                return _trim_float_0d(
+                    self=self,
+                    lower=cast(float | None, lower),
+                    upper=cast(float | None, upper),
+                )
             return _trim_float_nd(self, lower, upper)
         if type_ is int:
             if self.NDIM == 0:
-                return _trim_int_0d(self, lower, upper)
+                return _trim_int_0d(
+                    self=self,
+                    lower=cast(int | None, lower),
+                    upper=cast(int | None, upper),
+                )
             return _trim_int_nd(self, lower, upper)
         if type_ is bool:
             return False
@@ -367,12 +369,12 @@ is `str`.
     return False
 
 
-def _trim_float_0d(self, lower, upper) -> bool:
-    if numpy.isnan(self.value):
+def _trim_float_0d(self: Variable, lower: float | None, upper: float | None) -> bool:
+    if math.isnan(self.value):
         return False
-    if (lower is None) or numpy.isnan(lower):
+    if (lower is None) or math.isnan(lower):
         lower = -numpy.inf
-    if (upper is None) or numpy.isnan(upper):
+    if (upper is None) or math.isnan(upper):
         upper = numpy.inf
     if self < lower:
         old = self.value
@@ -389,7 +391,7 @@ def _trim_float_0d(self, lower, upper) -> bool:
     return False
 
 
-def _trim_float_nd(self, lower, upper) -> bool:
+def _trim_float_nd(self: Variable, lower: TrimHook, upper: TrimHook) -> bool:
     values = self.values
     shape = values.shape
     if lower is None:
@@ -417,7 +419,7 @@ def _trim_float_nd(self, lower, upper) -> bool:
         values[idxs] = numpy.nan
 
 
-def _trim_int_0d(self, lower, upper) -> bool:
+def _trim_int_0d(self: Variable, lower: int | None, upper: int | None) -> bool:
     if lower is None:
         lower = INT_NAN
     if (upper is None) or (upper == INT_NAN):
@@ -430,13 +432,13 @@ def _trim_int_0d(self, lower, upper) -> bool:
     return False
 
 
-def _trim_int_nd(self, lower, upper) -> bool:
+def _trim_int_nd(self: Variable, lower: TrimHook, upper: TrimHook) -> bool:
     if lower is None:
         lower = INT_NAN
-    lower = numpy.full(self.shape, lower, dtype=config.NP_INT)
+    lower = cast(NDArrayFloat, numpy.full(self.shape, lower, dtype=config.NP_INT))
     if upper is None:
         upper = -INT_NAN
-    upper = numpy.full(self.shape, upper, dtype=config.NP_INT)
+    upper = cast(NDArrayFloat, numpy.full(self.shape, upper, dtype=config.NP_INT))
     upper[upper == INT_NAN] = -INT_NAN
     idxs = numpy.where(self.values == INT_NAN)
     try:
@@ -465,13 +467,13 @@ def get_tolerance(values):
     0.0
     >>> from hydpy import round_
     >>> round_(get_tolerance(
-    ...     numpy.array([1.0, numpy.inf, 2.0, -numpy.inf])), 16)
+    ...     numpy.asarray([1.0, numpy.inf, 2.0, -numpy.inf])), 16)
     0.000000000000001, 0.0, 0.000000000000002, 0.0
     """
     tolerance = numpy.abs(values * 1e-15)
     if hasattr(tolerance, "__setitem__"):
         tolerance[numpy.isinf(tolerance)] = 0.0
-    elif numpy.isinf(tolerance):
+    elif math.isinf(tolerance):
         tolerance = 0.0
     return tolerance
 
@@ -535,7 +537,7 @@ class FastAccess:
     del __setattr__
 
 
-class Variable:
+class Variable(abc.ABC):
     """Base class for |Parameter| and |Sequence_|.
 
     The subclasses are required to provide the class attributes `NDIM`
@@ -1005,12 +1007,24 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     '?'
     """
 
-    # Subclasses need to define...
-    NDIM: int
-    TYPE: type[float | int | bool]  # ToDo: is still `str` in some cases
-    # ...and optionally...
-    SPAN: tuple[int | float | bool | None, int | float | bool | None] = (None, None)
-    INIT: int | float | bool | None = None
+    @property
+    @abc.abstractmethod
+    def NDIM(self) -> TypeNDIM:
+        """Number of dimensions of the values handled by the respective subclass.
+
+        Please override it with a class attribute.
+        """
+
+    @property
+    @abc.abstractmethod
+    def TYPE(self) -> TypeTYPE:
+        """Type of the values handled by the respective subclass.
+
+        Please override it with a class attribute.
+        """
+
+    SPAN: TypeSPAN = (None, None)
+    INIT: TypeINIT = None
 
     _NOT_DEEPCOPYABLE_MEMBERS: Final[frozenset[str]] = frozenset(
         (
@@ -1034,7 +1048,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
     """Unit of the variable."""
     fastaccess: FastAccess
     """Object for accessing the variable's data with little overhead."""
-    subvars: SubVariables
+    subvars: SubVariables[Any, Any, Any, Any]
     """The subgroup to which the variable belongs."""
 
     _refweights: parametertools.Parameter | VectorFloat | None = None
@@ -1056,6 +1070,8 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
 
         >>> from hydpy.core.variabletools import FastAccess, Variable
         >>> class Var1(Variable):
+        ...     NDIM = 1
+        ...     TYPE = float
         ...     initinfo = 0.0, True
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
         >>> class Var2(Variable):
@@ -1099,7 +1115,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
             finally:
                 cls._refweights = old
 
-    def __init__(self, subvars: SubVariables) -> None:
+    def __init__(self, subvars: SubVariables[Any, Any, Any, Any]) -> None:
         self.subvars = subvars
         self.fastaccess = self._CLS_FASTACCESS_PYTHON()
         self._valueready = False
@@ -1145,7 +1161,7 @@ var != [nan, nan, nan], var >= [nan, nan, nan], var > [nan, nan, nan]
         self.values = args
 
     @property
-    def value(self):
+    def value(self) -> Any:
         """The actual parameter or sequence value(s).
 
         First, we prepare a simple (not fully functional) |Variable| subclass:
@@ -1253,7 +1269,8 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         array([], shape=(0, 0), dtype=...)
         """
         if (self.NDIM > 0) and not self._shapeready:
-            self._get_shape()  # raise the proper error
+            # raise the proper error
+            self.shape  # pylint: disable=pointless-statement
         value = self._prepare_getvalue(
             self._valueready or not self.strict_valuehandling,
             getattr(self.fastaccess, self.name, None),
@@ -1267,7 +1284,7 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         return value
 
     @value.setter
-    def value(self, value) -> None:
+    def value(self, value: Any) -> None:
         try:
             value = self._prepare_setvalue(value)
             setattr(self.fastaccess, self.name, value)
@@ -1317,15 +1334,16 @@ occurred: could not broadcast input array from shape (2,) into shape (2,3)
         return value
 
     @property
-    def values(self):
+    def values(self) -> Any:
         """Alias for |Variable.value|."""
         return self.value
 
     @values.setter
-    def values(self, values):
+    def values(self, values: Any) -> None:
         self.value = values
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> ShapeHookGet:
         """A tuple containing the actual lengths of all dimensions.
 
         Note that setting a new |Variable.shape| results in a loss of
@@ -1471,7 +1489,8 @@ as `var` can only be `()`, but `(2,)` is given.
             )
         return ()
 
-    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
+    @shape.setter
+    def shape(self, shape: ShapeHookSet) -> None:
         self._valueready = False
         self._shapeready = False
         initvalue, initflag = self.initinfo
@@ -1503,8 +1522,6 @@ as `var` can only be `()`, but `(2,)` is given.
         if initflag:
             self._valueready = True
 
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
-
     def _raise_wrongshape(self, shape):
         raise ValueError(
             f"The shape information of 0-dimensional variables "
@@ -1528,6 +1545,7 @@ as `var` can only be `()`, but `(2,)` is given.
 
         >>> from hydpy.core.variabletools import FastAccess, Variable
         >>> class Var(Variable):
+        ...     NDIM = 0
         ...     TYPE = float
         ...     initinfo = 0.0, False
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
@@ -1535,7 +1553,6 @@ as `var` can only be `()`, but `(2,)` is given.
 
         0-dimensional variables always handle precisely one value:
 
-        >>> Var.NDIM = 0
         >>> var = Var(None)
         >>> var.shape = ()
         >>> var.numberofvalues
@@ -1626,10 +1643,10 @@ var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
         valueready = self._valueready
         try:
             self._valueready = True
-            nmbnan: int = numpy.sum(numpy.isnan(numpy.array(self.value)[self.mask]))
+            nmbnan: int = numpy.sum(numpy.isnan(numpy.asarray(self.value)[self.mask]))
         finally:
             self._valueready = valueready
-        if nmbnan and ((self.INIT is None) or ~numpy.isnan(self.INIT)):
+        if nmbnan and ((self.INIT is None) or not math.isnan(self.INIT)):
             text = "value has" if nmbnan == 1 else "values have"
             raise RuntimeError(
                 f"For variable {objecttools.devicephrase(self)}, {nmbnan} required "
@@ -1637,7 +1654,7 @@ var([[1.0, nan, 1.0], [1.0, nan, 1.0]]).
             )
 
     @property
-    def valuevector(self) -> Vector:
+    def valuevector(self) -> VectorFloat:
         """The values of the actual |Variable| object, arranged in a 1-dimensional
         vector.
 
@@ -1723,7 +1740,7 @@ its values to a 1-dimensional vector.
         >>> SoilMoisture.NDIM = 1
         >>> import numpy
         >>> SoilMoisture.shape = (3,)
-        >>> SoilMoisture.value = numpy.array([200.0, 400.0, 500.0])
+        >>> SoilMoisture.value = numpy.asarray([200.0, 400.0, 500.0])
         >>> sm.average_values()
         Traceback (most recent call last):
         ...
@@ -1737,8 +1754,9 @@ any weighting coefficients.
 
         >>> class Area(Variable):
         ...     NDIM = 1
+        ...     TYPE = float
         ...     shape = (3,)
-        ...     value = numpy.array([1.0, 1.0, 2.0])
+        ...     value = numpy.asarray([1.0, 1.0, 2.0])
         ...     initinfo = None
         ...     _CLS_FASTACCESS_PYTHON = FastAccess
         >>> area = Area(None)
@@ -1925,8 +1943,8 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             return mask(self, **kwargs)
         return mask
 
-    def __deepcopy__(self, memo):
-        new = type(self)(None)
+    def __deepcopy__(self, memo) -> Self:
+        new = type(self)(None)  # type: ignore[arg-type]
         for key, value in vars(self).items():
             if key not in self._NOT_DEEPCOPYABLE_MEMBERS:
                 setattr(new, key, copy.deepcopy(value, memo))
@@ -1974,7 +1992,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
                 f"but this variable is 0-dimensional and thus unsized.  Consider "
                 f"using the `numberofvalues` property instead."
             )
-        return self._get_shape()[0]
+        return self.shape[0]
 
     def _do_math(self, other, methodname, description):
         try:
@@ -2083,26 +2101,26 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
         try:
             return int(result)
         except TypeError:
-            return numpy.array(result, dtype=config.NP_INT)
+            return numpy.asarray(result, dtype=config.NP_INT)
 
     def __ceil__(self):
         result = numpy.ceil(self.value)
         try:
             return int(result)
         except TypeError:
-            return numpy.array(result, dtype=config.NP_INT)
+            return numpy.asarray(result, dtype=config.NP_INT)
 
     def _compare(
         self,
         other: object,
-        comparefunc: Callable,
+        comparefunc: Callable[..., Any],
         callingfunc: Literal["lt", "le", "eq", "ne", "ge", "gt"],
     ) -> bool:
         try:
             v1 = self.value
             v2 = other.value if isinstance(other, Variable) else numpy.asarray(other)
             if self.NDIM == 0:
-                if numpy.isnan(v1) and bool(numpy.isnan(v2)):
+                if math.isnan(v1) and bool(math.isnan(v2)):
                     if callingfunc in ("le", "eq", "ge"):
                         return True
                     return False
@@ -2228,6 +2246,7 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
 class MixinFixedShape:
     """Mixin class for defining variables with a fixed shape."""
 
+    NDIM: Final[Literal[1]] = 1
     SHAPE: tuple[int, ...]
     name: str
 
@@ -2235,7 +2254,8 @@ class MixinFixedShape:
         super()._finalise_connections()  # type: ignore[misc]
         self.shape = self.SHAPE
 
-    def _get_shape(self) -> tuple[int, ...]:
+    @property
+    def shape(self) -> ShapeHookGet:
         """Variables that mix in |MixinFixedShape| are generally initialised with a
         fixed shape.
 
@@ -2261,19 +2281,19 @@ this was attempted for element `?`.
         See the documentation on property |Variable.shape| of class |Variable| for
         further information.
         """
-        return super()._get_shape()  # type: ignore[misc]
+        return super().shape  # type: ignore[misc]
 
-    def _set_shape(self, shape: int | tuple[int, ...]) -> None:
+    @shape.setter
+    def shape(self, shape: ShapeHookSet) -> None:
         oldshape = exceptiontools.getattr_(self, "shape", None)
         if oldshape is None:
-            super()._set_shape(shape)  # type: ignore[misc]
+            proxy = super(__class__, type(self))  # type: ignore[name-defined]
+            proxy.shape.fset(self, shape)  # type: ignore[attr-defined]
         elif shape != oldshape:
             raise AttributeError(
                 f"The shape of variable `{self.name}` cannot be changed but this was "
                 f"attempted for element `{objecttools.devicename(self)}`."
             )
-
-    shape = propertytools.Property(fget=_get_shape, fset=_set_shape)
 
 
 @overload
@@ -2284,13 +2304,13 @@ def sort_variables(
 
 @overload
 def sort_variables(
-    values: Iterable[tuple[type[TypeVariable_co], T]],
-) -> tuple[tuple[type[TypeVariable_co], T], ...]: ...
+    values: Iterable[tuple[type[TypeVariable_co], T_inv]],
+) -> tuple[tuple[type[TypeVariable_co], T_inv], ...]: ...
 
 
 def sort_variables(
-    values: Iterable[type[TypeVariable] | tuple[type[TypeVariable], T]],
-) -> tuple[type[TypeVariable] | tuple[type[TypeVariable], T], ...]:
+    values: Iterable[type[TypeVariable] | tuple[type[TypeVariable], T_inv]],
+) -> tuple[type[TypeVariable] | tuple[type[TypeVariable], T_inv], ...]:
     """Sort the given |Variable| subclasses by their initialisation order.
 
     When defined in one module, the initialisation order corresponds to the order
@@ -2350,7 +2370,7 @@ def sort_variables(
     return tuple(value for _, _, value in sorted(modulepath_position_value))
 
 
-class SubVariables(Generic[TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
+class SubVariables(Generic[TOM_co, TypeGroup_co, TypeVariable_co, TypeFastAccess_co]):
     """Base class for |SubParameters| and |SubSequences|.
 
     Each subclass of class |SubVariables| is thought for handling a certain group of
@@ -2441,7 +2461,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
     1
     """
 
-    CLASSES: tuple[type[TypeVariable_co], ...]
+    CLASSES: tuple[type[TypeVariable_co], ...] = ()
     vars: TypeGroup_co
     _name2variable: dict[str, TypeVariable_co] = {}
     fastaccess: TypeFastAccess_co
@@ -2453,7 +2473,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
         master: TypeGroup_co,
         cls_fastaccess: type[TypeFastAccess_co] | None = None,
     ):
-        self.vars = master
+        self.vars = master  # type: ignore[assignment]
         if cls_fastaccess:
             self._cls_fastaccess = cls_fastaccess
         self._init_fastaccess()
@@ -2469,7 +2489,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
         """To be overridden."""
 
     @functools.cached_property
-    def names(self) -> frozenset:
+    def names(self) -> frozenset[str]:
         """The names of all handled variables."""
         return frozenset(self._name2variable)
 
@@ -2481,7 +2501,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
         else:
             self.fastaccess = self._cls_fastaccess()
 
-    def __getitem__(self, item) -> TypeVariable_co:
+    def __getitem__(self, item: str) -> TypeVariable_co:
         try:
             return self._name2variable[item]
         except KeyError:
@@ -2490,7 +2510,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
                 f"a variable named `{item}`."
             ) from None
 
-    def __getattr__(self, name) -> TypeVariable_co:
+    def __getattr__(self, name: str) -> TypeVariable_co:
         try:
             return self._name2variable[name]
         except KeyError:
@@ -2499,7 +2519,7 @@ error occurred: 5 values are assigned to the scalar variable `testvar`.
                 f"handle a variable nor another attribute named {name}."
             ) from None
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: object) -> None:
         variable = self._name2variable.get(name)
         if variable is None:
             super().__setattr__(name, value)

@@ -1,10 +1,8 @@
 # pylint: disable=unused-argument
 """This module defines submodel interfaces for calculating 1-dimensional water flows."""
-# import...
-# ...from standard library
+
 from __future__ import annotations
 
-# ...from hydpy
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 
@@ -16,7 +14,7 @@ class CrossSectionModel_V1(modeltools.SubmodelInterface):
     typeid: ClassVar[Literal[1]] = 1
     """Type identifier for |CrossSectionModel_V1| submodels."""
 
-    def prepare_bottomslope(self, bottomslope: int) -> None:
+    def prepare_bottomslope(self, bottomslope: float) -> None:
         """Set the bottom's slope (in the longitudinal direction) [-]."""
 
     def get_depths_of_discontinuity(self) -> tuple[float, ...]:

@@ -1,21 +1,20 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class SNRatio(sequencetools.AideSequence):
     """Ratio of frozen precipitation to total precipitation [-]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class RLAtm(sequencetools.AideSequence):
     """Atmosphärische Gegenstrahlung (longwave radiation emitted from the
     atmosphere) [W/m²]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class TempS(sequencetools.AideSequence):
@@ -25,7 +24,7 @@ class TempS(sequencetools.AideSequence):
     surfaces.
     """
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class TempSInz(sequencetools.AideSequence):
@@ -35,4 +34,4 @@ class TempSInz(sequencetools.AideSequence):
     snow.
     """
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1

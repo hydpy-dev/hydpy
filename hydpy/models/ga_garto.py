@@ -120,6 +120,11 @@ evaporation losses or capillary rise gains.  The chosen rainfall pattern stems f
 >>> inputs.evaporation.series = 0.0
 >>> inputs.capillaryrise.series = 0.0
 
+For the first example, we set the soil compartment's depth to one meter so that it does
+not restrict the movement of any front:
+
+>>> soildepth(1000.0)
+
 The next commands store the current initial conditions, so we can use them later to
 check that |ga_garto| is not violating the water balance:
 
@@ -130,11 +135,6 @@ check that |ga_garto| is not violating the water balance:
 
 deep soil
 ---------
-
-In this example, we set the soil compartment's depth to one meter so that it does not
-restrict the movement of any front:
-
->>> soildepth(1000.0)
 
 The infiltration sums for the first and the second event agree well but not perfectly
 with the results reported by :cite:t:`ref-Lai2015`, table 3  (soil number 4, loam),
@@ -940,13 +940,10 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 """
-# import...
-# ...from HydPy
+
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.core.typingtools import *
-
-# ...from ga
 from hydpy.models.ga import ga_model
 
 

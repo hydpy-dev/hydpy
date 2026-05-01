@@ -1,25 +1,26 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from standard library
 import warnings
 
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy import config
-from hydpy.core.typingtools import *
 from hydpy.core import objecttools
+from hydpy.core import modeltools
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class MixinSequence1D:
     """Mixin class for the 1-dimensional sequences."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
-    subseqs: sequencetools.ModelIOSequences
+    subseqs: sequencetools.ModelIOSequences[
+        modeltools.Model,
+        sequencetools.ModelIOSequence,
+        sequencetools.FastAccessIOSequence,
+    ]
 
     @property
     def refweights(self) -> VectorFloat:

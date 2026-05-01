@@ -1,11 +1,8 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 import hydpy
 from hydpy.core import parametertools
-
-# ...from gland
+from hydpy.core.typingtools import *
 from hydpy.models.gland import gland_control
 
 
@@ -16,7 +13,9 @@ class DOY(parametertools.DOYParameter):
 class Beta(parametertools.Parameter):
     """Percolation factor [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     def update(self) -> None:
         r"""Update |Beta| based on the equation
@@ -80,11 +79,13 @@ class Beta(parametertools.Parameter):
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (gland_control.Area,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |QFactor| based on |Area| and the current simulation
         step size.
 

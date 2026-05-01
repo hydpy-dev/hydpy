@@ -1,7 +1,5 @@
 # pylint: disable=missing-module-docstring
-# imports...
-# ...from standard library
-# ...from HydPy
+
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
@@ -88,7 +86,7 @@ class Determine_Outflow_V1(modeltools.Method):
     RESULTSEQUENCES = (rconc_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         log = model.sequences.logs.fastaccess
@@ -178,7 +176,7 @@ class Determine_Outflow_V2(modeltools.Method):
     RESULTSEQUENCES = (rconc_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -205,7 +203,7 @@ class Set_Inflow_V1(modeltools.Method):
     RESULTSEQUENCES = (rconc_fluxes.Inflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, inflow: float) -> None:
+    def __call__(model: modeltools.Model, inflow: float, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.inflow = inflow
 
@@ -227,7 +225,7 @@ class Get_Outflow_V1(modeltools.Method):
     REQUIREDSEQUENCES = (rconc_fluxes.Outflow,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> float:
+    def __call__(model: modeltools.Model, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.outflow

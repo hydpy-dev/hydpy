@@ -69,8 +69,6 @@ True
 False
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import abc
 import collections
@@ -82,11 +80,9 @@ import typing
 import warnings
 import weakref
 
-# ...from site-packages
 import inflect
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import masktools
@@ -100,10 +96,10 @@ from hydpy.core import timetools
 from hydpy.core.typingtools import *
 
 if TYPE_CHECKING:
+    from matplotlib import figure
     from matplotlib import pyplot
     import pandas
     from hydpy.core import auxfiletools
-    from hydpy.core import hydpytools
     from hydpy.core import modeltools
     from hydpy.cythons import pointerutils
 else:
@@ -356,7 +352,7 @@ class FusedVariable:
 
     Without further configuration, |evap_ret_fao56| cannot perform any simulation
     steps.  Hence, we just call its |Model.load_data| method to show that the input
-    sequence |meteo_inputs.Temperature| of its submodel is well connected to the |Sim|
+    sequence |meteo_inputs.Temperature| of its submodel is well-connected to the |Sim|
     sequence of node `t2` and receives the correct data:
 
     >>> evap.model.load_data(0)
@@ -403,8 +399,8 @@ The already defined sequences of the fused variable `T` are `lland_inputs_TemL a
 meteo_inputs_Temperature` instead of `hland_inputs_T and lland_inputs_TemL`.  Keep in \
 mind, that `name` is the unique identifier for fused variable instances.
 
-    Defining additional fused variables with the same member sequences is not advisable
-    but is allowed:
+    Defining additional fused variables with the same member sequences is not
+    advisable, but is allowed:
 
     >>> Temp = FusedVariable("Temp", meteo_inputs_Temperature, lland_inputs_TemL)
     >>> T is Temp
@@ -425,6 +421,22 @@ mind, that `name` is the unique identifier for fused variable instances.
     ()
     >>> t2.variable
     FusedVariable("T", lland_inputs_TemL, meteo_inputs_Temperature)
+
+    For convenience, |FusedVariable| supports equality comparisons with other fused
+    variables (Are all handled variable types identical?), individual sequences (Is the
+    given sequence type among the handled types?), and sequence names (Is any of the
+    handled types the given name?):
+
+    >>> assert T == Temp
+    >>> assert T != E
+    >>> assert T == meteo_inputs_Temperature
+    >>> assert meteo_inputs_Temperature == T
+    >>> assert T != evap_inputs_ReferenceEvapotranspiration
+    >>> assert evap_inputs_ReferenceEvapotranspiration != T
+    >>> assert T == "TemL"
+    >>> assert "TemL" == T
+    >>> assert T != "ReferenceEvapotranspiration"
+    >>> assert "ReferenceEvapotranspiration" != T
 
     .. testsetup::
 
@@ -481,9 +493,21 @@ mind, that `name` is the unique identifier for fused variable instances.
 
     def __contains__(self, item: object) -> bool:
         sqt = sequencetools
+        if isinstance(item, str):
+            return any(v.__name__ == item for v in self._variables)
         if isinstance(item, (sqt.LinkSequence, sqt.InputSequence, sqt.OutputSequence)):
             item = type(item)
         return item in self._variables
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, FusedVariable):
+            return set(self._variables) == set(other._variables)
+        if other in self:
+            return True
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash((type(self), self._name))
 
     def __str__(self) -> str:
         return self._name
@@ -1683,9 +1707,9 @@ class `Elements` is deprecated.  Use method `prepare_models` instead.
 
     @conditions.setter
     def conditions(self, conditions: Conditions) -> None:
-        for name, subconditions in conditions.items():
-            element = getattr(self, name)
-            element.model.conditions = subconditions
+        for element in self:
+            if (subconditions := conditions.get(element.name)) is not None:
+                element.model.conditions = subconditions
 
     @printtools.print_progress
     def prepare_allseries(self, allocate_ram: bool = True, jit: bool = False) -> None:
@@ -2443,7 +2467,7 @@ changed.  The variable of node `test1` is `Q` instead of `H`.  Keep in mind, tha
         linewidths: int | tuple[int, int] | None = None,
         focus: bool = False,
         stepsize: StepSize | None = None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the |IOSequence.series| data of both the |Sim| and the |Obs| sequence
         object.
 
@@ -2559,7 +2583,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         linewidth: int | None = None,
         focus: bool = False,
         stepsize: StepSize | None = None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
         See method |Node.plot_allseries| for further information.
@@ -2583,7 +2607,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         linewidth: int | None = None,
         focus: bool = False,
         stepsize: StepSize | None = None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the |IOSequence.series| of the |Obs| sequence object.
 
         See method |Node.plot_allseries| for further information.
@@ -2608,7 +2632,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         linewidths: Iterable[int | None],
         focus: bool = False,
         stepsize: StepSize | None = None,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         try:
             idx0, idx1 = hydpy.pub.timegrids.evalindices
             for sequence, label, color, linestyle, linewidth in zip(
@@ -2646,7 +2670,7 @@ occurred: Attribute timegrids of module `pub` is not defined at the moment.
         linestyles: LineStyle | tuple[LineStyle, LineStyle] | None = None,
         linewidths: int | tuple[int, int] | None = None,
         logscale: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the |IOSequence.evalseries| of both the |Sim| and the |Obs| sequence
         in the form of a (flow) duration curve.
 
@@ -2740,7 +2764,7 @@ the following error occurred: '.' is not a valid value for ls; supported values 
         linestyle: LineStyle | None = None,
         linewidth: int | None = None,
         logscale: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the |IOSequence.series| of the |Sim| sequence object.
 
         See method |Node.plot_allseries| for further information.
@@ -2762,7 +2786,7 @@ the following error occurred: '.' is not a valid value for ls; supported values 
         linestyle: LineStyle | None = None,
         linewidth: int | None = None,
         logscale: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the duration curve of the |IOSequence.series| of the |Obs| sequence
         object.
 
@@ -2786,7 +2810,7 @@ the following error occurred: '.' is not a valid value for ls; supported values 
         linestyles: Iterable[str | None],
         linewidths: Iterable[int | None],
         logscale: bool,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         try:
             fig = pyplot.gcf()
             ax = fig.gca()
@@ -3628,7 +3652,8 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         self,
         *,
         subseqs: sequencetools.IOSequences[
-            sequencetools.Sequences,
+            modeltools.Model,
+            sequencetools.Sequences[modeltools.Model],
             sequencetools.IOSequence,
             sequencetools.FastAccessIOSequence,
         ],
@@ -3639,10 +3664,10 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         linestyles: LineStyle | tuple[LineStyle, ...] | None,
         linewidths: int | tuple[int, ...] | None,
         focus: bool,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         def _prepare_tuple(
-            input_: T | tuple[T, ...] | None, nmb_entries: int
-        ) -> tuple[T | None, ...]:
+            input_: T_inv | tuple[T_inv, ...] | None, nmb_entries: int
+        ) -> tuple[T_inv | None, ...]:
             if isinstance(input_, tuple):
                 return input_
             return nmb_entries * (input_,)
@@ -3710,7 +3735,8 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
     def _query_iosequences(
         self,
         subseqs: sequencetools.IOSequences[
-            sequencetools.Sequences,
+            modeltools.Model,
+            sequencetools.Sequences[modeltools.Model],
             sequencetools.IOSequence,
             sequencetools.FastAccessIOSequence,
         ],
@@ -3757,7 +3783,7 @@ class `Element` is deprecated.  Use method `prepare_model` instead.
         linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
         linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot (the selected) |InputSequence| |IOSequence.series| values.
 
         We demonstrate the functionalities of method |Element.plot_inputseries| based
@@ -3861,7 +3887,7 @@ sequence named `xy`.
         linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
         linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the `factor` series of the handled model.
 
         See the documentation on method |Element.plot_inputseries| for additional
@@ -3887,7 +3913,7 @@ sequence named `xy`.
         linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
         linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the `flux` series of the handled model.
 
         See the documentation on method |Element.plot_inputseries| for additional
@@ -3913,7 +3939,7 @@ sequence named `xy`.
         linestyles: LineStyle | tuple[LineStyle, ...] | None = None,
         linewidths: int | tuple[int, ...] | None = None,
         focus: bool = True,
-    ) -> pyplot.Figure:
+    ) -> figure.Figure:
         """Plot the `state` series of the handled model.
 
         See the documentation on method |Element.plot_inputseries| for additional
@@ -4047,5 +4073,6 @@ def _get_pandasindex() -> pandas.Index:
         (tg.firstdate + shift).datetime,
         (tg.lastdate - shift).datetime,
         int((tg.lastdate - tg.firstdate - tg.stepsize) / tg.stepsize) + 1,
+        unit="ns",
     )
     return index

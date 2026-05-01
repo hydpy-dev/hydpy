@@ -2,18 +2,13 @@
 .. _`issue 89`: https://github.com/hydpy-dev/hydpy/issues/89
 """
 
-# imports...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.interfaces import soilinterfaces
-
-# ...from hland
 from hydpy.models.ga import ga_control
 from hydpy.models.ga import ga_derived
 from hydpy.models.ga import ga_inputs
@@ -46,7 +41,7 @@ class Calc_SurfaceWaterSupply_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.SurfaceWaterSupply,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -78,7 +73,7 @@ class Calc_SoilWaterSupply_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.SoilWaterSupply,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -110,7 +105,7 @@ class Calc_Demand_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.Demand,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -166,7 +161,7 @@ class Return_RelativeMoisture_V1(modeltools.Method):
     REQUIREDSEQUENCES = (ga_states.Moisture,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, b: int, s: int) -> float:
+    def __call__(model: modeltools.Model, b: int, s: int, /) -> float:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
 
@@ -223,7 +218,7 @@ class Return_Conductivity_V1(modeltools.Method):
     REQUIREDSEQUENCES = (ga_states.Moisture,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, b: int, s: int) -> float:
+    def __call__(model: modeltools.Model, b: int, s: int, /) -> float:
         con = model.parameters.control.fastaccess
 
         return con.saturatedconductivity[s] * (
@@ -286,7 +281,7 @@ class Return_CapillaryDrive_V1(modeltools.Method):
     REQUIREDSEQUENCES = (ga_states.Moisture,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, b1: int, b2: int, s: int) -> float:
+    def __call__(model: modeltools.Model, b1: int, b2: int, s: int, /) -> float:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
 
@@ -360,7 +355,7 @@ class Percolate_FilledBin_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> None:
+    def __call__(model: modeltools.Model, s: int, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -418,7 +413,7 @@ class Return_DryDepth_V1(modeltools.Method):
     REQUIREDSEQUENCES = (ga_states.Moisture,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int, /) -> float:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -460,7 +455,7 @@ class Return_LastActiveBin_V1(modeltools.Method):
     REQUIREDSEQUENCES = (ga_states.Moisture,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> int:
+    def __call__(model: modeltools.Model, s: int, /) -> int:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
 
@@ -634,7 +629,7 @@ class Active_Bin_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, b: int, s: int) -> None:
+    def __call__(model: modeltools.Model, b: int, s: int, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -871,7 +866,7 @@ class Shift_Front_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, b: int, s: int) -> None:
+    def __call__(model: modeltools.Model, b: int, s: int, /) -> None:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -1128,7 +1123,7 @@ class Redistribute_Front_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, b: int, s: int) -> None:
+    def __call__(model: modeltools.Model, b: int, s: int, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1346,7 +1341,7 @@ class Infiltrate_WettingFrontBins_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> None:
+    def __call__(model: modeltools.Model, s: int, /) -> None:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1494,7 +1489,7 @@ class Merge_FrontDepthOvershootings_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> None:
+    def __call__(model: modeltools.Model, s: int, /) -> None:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
         log = model.sequences.logs.fastaccess
@@ -1643,7 +1638,7 @@ class Merge_SoilDepthOvershootings_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> None:
+    def __call__(model: modeltools.Model, s: int, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1841,7 +1836,7 @@ class Water_AllBins_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int, supply: float) -> None:
+    def __call__(model: modeltools.Model, s: int, supply: float, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2051,7 +2046,7 @@ class Withdraw_AllBins_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int, demand: float) -> None:
+    def __call__(model: modeltools.Model, s: int, demand: float, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -2155,7 +2150,7 @@ class Perform_GARTO_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2214,7 +2209,7 @@ class Calc_TotalInfiltration_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.TotalInfiltration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2249,7 +2244,7 @@ class Calc_TotalPercolation_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.TotalPercolation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2284,7 +2279,7 @@ class Calc_TotalSoilWaterAddition_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.TotalSoilWaterAddition,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2321,7 +2316,7 @@ class Calc_TotalWithdrawal_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.TotalWithdrawal,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2356,7 +2351,7 @@ class Calc_TotalSurfaceRunoff_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.TotalSurfaceRunoff,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -2388,7 +2383,7 @@ class Set_InitialSurfaceWater_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_aides.InitialSurfaceWater,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int, v: float) -> None:
+    def __call__(model: modeltools.Model, s: int, v: float, /) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
 
@@ -2417,7 +2412,7 @@ class Set_ActualSurfaceWater_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_aides.ActualSurfaceWater,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int, v: float) -> None:
+    def __call__(model: modeltools.Model, s: int, v: float, /) -> None:
         con = model.parameters.control.fastaccess
         aid = model.sequences.aides.fastaccess
 
@@ -2441,7 +2436,7 @@ class Set_SoilWaterSupply_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.SoilWaterSupply,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int, v: float) -> None:
+    def __call__(model: modeltools.Model, s: int, v: float, /) -> None:
         flu = model.sequences.fluxes.fastaccess
 
         flu.soilwatersupply[s] = v
@@ -2464,7 +2459,7 @@ class Set_SoilWaterDemand_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.Demand,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int, v: float) -> None:
+    def __call__(model: modeltools.Model, s: int, v: float, /) -> None:
         flu = model.sequences.fluxes.fastaccess
 
         flu.demand[s] = v
@@ -2514,7 +2509,7 @@ class Execute_Infiltration_V1(modeltools.Method):
     )
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> None:
+    def __call__(model: modeltools.Model, s: int, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
@@ -2555,7 +2550,7 @@ class Add_SoilWater_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.SoilWaterAddition,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> None:
+    def __call__(model: modeltools.Model, s: int, /) -> None:
         flu = model.sequences.fluxes.fastaccess
 
         flu.soilwateraddition[s] = 0.0
@@ -2587,7 +2582,7 @@ class Remove_SoilWater_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.Withdrawal,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> None:
+    def __call__(model: modeltools.Model, s: int, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         aid = model.sequences.aides.fastaccess
 
@@ -2615,7 +2610,7 @@ class Get_Infiltration_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.Infiltration,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.infiltration[s]
@@ -2640,7 +2635,7 @@ class Get_Percolation_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.Percolation,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.percolation[s]
@@ -2665,7 +2660,7 @@ class Get_SoilWaterAddition_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.SoilWaterAddition,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.soilwateraddition[s]
@@ -2691,7 +2686,7 @@ class Get_SoilWaterRemoval_V1(modeltools.Method):
     RESULTSEQUENCES = (ga_fluxes.Withdrawal,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int, /) -> float:
         flu = model.sequences.fluxes.fastaccess
 
         return flu.withdrawal[s]
@@ -2736,7 +2731,7 @@ class Get_SoilWaterContent_V1(modeltools.Method):
     REQUIREDSEQUENCES = (ga_states.Moisture, ga_states.FrontDepth)
 
     @staticmethod
-    def __call__(model: modeltools.Model, s: int) -> float:
+    def __call__(model: modeltools.Model, s: int, /) -> float:
         con = model.parameters.control.fastaccess
         sta = model.sequences.states.fastaccess
 

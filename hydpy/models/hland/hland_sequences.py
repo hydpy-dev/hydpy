@@ -1,12 +1,11 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 from hydpy.core.typingtools import *
 from hydpy.core import sequencetools
+from hydpy.models.hland import hland_model
+from hydpy.models.hland import hland_control
 
 
 class Factor1DSequence(sequencetools.FactorSequence):
@@ -28,14 +27,14 @@ class Factor1DSequence(sequencetools.FactorSequence):
     2.75
     """
 
-    NDIM = 1
-    NUMERIC = False
+    NDIM: Final[Literal[1]] = 1
 
     @property
-    def refweights(self):
+    def refweights(self) -> hland_control.ZoneArea:
         """Alias for the associated instance of |ZoneArea| for calculating areal
         values."""
-        return self.subseqs.seqs.model.parameters.control.zonearea
+        model = cast(hland_model.Model, self.subseqs.seqs.model)
+        return model.parameters.control.zonearea
 
 
 class Factor2DSequence(sequencetools.FactorSequence):
@@ -59,14 +58,14 @@ class Factor2DSequence(sequencetools.FactorSequence):
     22.5
     """
 
-    NDIM = 2
-    NUMERIC = False
+    NDIM: Final[Literal[2]] = 2
 
     @property
-    def refweights(self):
+    def refweights(self) -> hland_control.ZoneArea:
         """Alias for the associated instance of |ZoneArea| for calculating areal
         values."""
-        return self.subseqs.seqs.model.parameters.control.zonearea
+        model = cast(hland_model.Model, self.subseqs.seqs.model)
+        return model.parameters.control.zonearea
 
     @property
     def valuevector(self) -> VectorFloat:
@@ -152,14 +151,14 @@ class Flux1DSequence(sequencetools.FluxSequence):
     2.75
     """
 
-    NDIM = 1
-    NUMERIC = False
+    NDIM: Final[Literal[1]] = 1
 
     @property
-    def refweights(self):
+    def refweights(self) -> hland_control.ZoneArea:
         """Alias for the associated instance of |ZoneArea| for calculating areal
         values."""
-        return self.subseqs.seqs.model.parameters.control.zonearea
+        model = cast(hland_model.Model, self.subseqs.seqs.model)
+        return model.parameters.control.zonearea
 
 
 class Flux2DSequence(sequencetools.FluxSequence):
@@ -183,14 +182,14 @@ class Flux2DSequence(sequencetools.FluxSequence):
     22.5
     """
 
-    NDIM = 2
-    NUMERIC = False
+    NDIM: Final[Literal[2]] = 2
 
     @property
-    def refweights(self):
+    def refweights(self) -> hland_control.ZoneArea:
         """Alias for the associated instance of |ZoneArea| for calculating areal
         values."""
-        return self.subseqs.seqs.model.parameters.control.zonearea
+        model = cast(hland_model.Model, self.subseqs.seqs.model)
+        return model.parameters.control.zonearea
 
     @property
     def valuevector(self) -> VectorFloat:
@@ -277,14 +276,14 @@ class State1DSequence(sequencetools.StateSequence):
     30.0
     """
 
-    NDIM = 1
-    NUMERIC = False
+    NDIM: Final[Literal[1]] = 1
 
     @property
-    def refweights(self):
+    def refweights(self) -> hland_control.ZoneArea:
         """Alias for the associated instance of |ZoneArea| for calculating
         areal values."""
-        return self.subseqs.seqs.model.parameters.control.zonearea
+        model = cast(hland_model.Model, self.subseqs.seqs.model)
+        return model.parameters.control.zonearea
 
 
 class State2DSequence(sequencetools.StateSequence):
@@ -308,14 +307,14 @@ class State2DSequence(sequencetools.StateSequence):
     22.5
     """
 
-    NDIM = 2
-    NUMERIC = False
+    NDIM: Final[Literal[2]] = 2
 
     @property
-    def refweights(self):
+    def refweights(self) -> hland_control.ZoneArea:
         """Alias for the associated instance of |ZoneArea| for calculating areal
         values."""
-        return self.subseqs.seqs.model.parameters.control.zonearea
+        model = cast(hland_model.Model, self.subseqs.seqs.model)
+        return model.parameters.control.zonearea
 
     @property
     def valuevector(self) -> VectorFloat:

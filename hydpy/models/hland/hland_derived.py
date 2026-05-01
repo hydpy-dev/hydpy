@@ -1,19 +1,14 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from standard library
 import warnings
 
-# ...from site-packages
 import networkx
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import objecttools
 from hydpy.core import parametertools
-
-# ...from hland
+from hydpy.core.typingtools import *
 from hydpy.models.hland import hland_parameters
 from hydpy.models.hland import hland_control
 from hydpy.models.hland.hland_constants import ILAKE, GLACIER, SEALED
@@ -29,7 +24,8 @@ class DOY(parametertools.DOYParameter):
 class RelZoneAreas(hland_parameters.ParameterComplete):
     """Relative area of all zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
     strict_valuehandling: bool = False
 
     CONTROLPARAMETERS = (
@@ -120,12 +116,14 @@ class RelZoneAreas(hland_parameters.ParameterComplete):
 class RelSoilArea(parametertools.Parameter):
     """Relative area of all |FIELD| and |FOREST| zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |RelSoilArea| based on |RelZoneAreas| and |ZoneType|.
 
         >>> from hydpy.models.hland import *
@@ -148,12 +146,14 @@ class RelSoilArea(parametertools.Parameter):
 class RelLandArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, |GLACIER|, and |SEALED| zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |RelLandArea| based on |RelZoneAreas| and |ZoneType|.
 
         >>> from hydpy.models.hland import *
@@ -173,12 +173,14 @@ class RelLandArea(parametertools.Parameter):
 class RelUpperZoneArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, and |GLACIER| zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |RelUpperZoneArea| based on |RelZoneAreas| and |ZoneType|.
 
         >>> from hydpy.models.hland import *
@@ -200,12 +202,14 @@ class RelUpperZoneArea(parametertools.Parameter):
 class RelLowerZoneArea(parametertools.Parameter):
     """Relative area of all |FIELD|, |FOREST|, |GLACIER|, and |ILAKE| zones [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.ZoneType,)
     DERIVEDPARAMETERS = (RelZoneAreas,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |RelLowerZoneArea| based on |RelZoneAreas| and |ZoneType|.
 
         >>> from hydpy.models.hland import *
@@ -225,7 +229,9 @@ class RelLowerZoneArea(parametertools.Parameter):
 class ZoneAreaRatios(parametertools.Parameter):
     """Ratios of all zone combinations [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+    NDIM: Final[Literal[2]] = 2
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     DERIVEDPARAMETERS = (RelZoneAreas,)
 
@@ -249,7 +255,9 @@ class ZoneAreaRatios(parametertools.Parameter):
 class IndicesZoneZ(parametertools.Parameter):
     """Indices of the zones sorted by altitude [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = int
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (hland_control.ZoneZ,)
 
@@ -270,7 +278,8 @@ class IndicesZoneZ(parametertools.Parameter):
 class Z(parametertools.Parameter):
     """Average (reference) subbasin elevation [100m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
 
     CONTROLPARAMETERS = (
         hland_control.Area,
@@ -301,7 +310,9 @@ class Z(parametertools.Parameter):
 class SRedOrder(parametertools.Parameter):
     """Processing order for the snow redistribution routine [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, int, None, (0, None)
+    NDIM: Final[Literal[2]] = 2
+    TYPE: Final = int
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (hland_control.SRed,)
 
@@ -386,13 +397,15 @@ at least one cycle: (1, 4), (4, 5), and (5, 1).
             except networkx.NetworkXNoCycle:
                 self.values = tuple(networkx.topological_sort(networkx.line_graph(dg)))
         else:
-            self.values = 0.0
+            self.values = 0
 
 
 class SRedEnd(parametertools.Parameter):
     """Flags that indicate the "dead ends" of snow redistribution within a subbasin."""
 
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (False, True)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = bool
+    SPAN = (False, True)
 
     CONTROLPARAMETERS = (hland_control.NmbZones,)
     DERIVEDPARAMETERS = (SRedOrder,)
@@ -400,7 +413,7 @@ class SRedEnd(parametertools.Parameter):
     def update(self) -> None:
         """Update the dead-end flags based on parameter |SRedOrder|.
 
-        >>> from hydpy.models.hland_96 import *
+        >>> from hydpy.models.hland import *
         >>> parameterstep("1d")
         >>> nmbzones(6)
         >>> derived.sredorder.shape = 9, 2
@@ -415,7 +428,7 @@ class SRedEnd(parametertools.Parameter):
         ...                    [3, 5]])
         >>> derived.sredend.update()
         >>> derived.sredend
-        sredend(0, 0, 0, 0, 1, 1)
+        sredend(False, False, False, False, True, True)
         """
         nmbzones = self.subpars.pars.control.nmbzones.value
         sredorder = self.subpars.sredorder.values
@@ -425,7 +438,9 @@ class SRedEnd(parametertools.Parameter):
 class SRedNumber(parametertools.Parameter):
     """The total number of snow redistribution paths [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
 
     CONTROLPARAMETERS = (hland_control.SRed,)
     DERIVEDPARAMETERS = (ZoneAreaRatios,)
@@ -446,11 +461,11 @@ class SRedNumber(parametertools.Parameter):
 class TTM(hland_parameters.ParameterLand):
     """Threshold temperature for snow melting and refreezing [°C]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (None, None)
+    TYPE: Final = float
 
     CONTROLPARAMETERS = (hland_control.TT, hland_control.DTTM)
 
-    def update(self):
+    def update(self) -> None:
         """Update |TTM| based on :math:`TTM = TT + DTTM`.
 
         >>> from hydpy.models.hland import *
@@ -470,11 +485,13 @@ class TTM(hland_parameters.ParameterLand):
 class DT(parametertools.Parameter):
     """Relative time step length for the upper zone layer calculations [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.RecStep,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |DT| based on :math:`DT = \\frac{1}{RecStep}`.
 
         >>> from hydpy.models.hland import *
@@ -502,11 +519,13 @@ class DT(parametertools.Parameter):
 class W0(parametertools.Parameter):
     """Weight for calculating surface runoff [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K0,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |W0| based on :math:`W0 = e^{-1/K0}`.
 
         >>> from hydpy.models.hland import *
@@ -529,11 +548,13 @@ class W0(parametertools.Parameter):
 class W1(parametertools.Parameter):
     """Weight for calculating interflow [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K1,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |W1| based on :math:`W1 = e^{-1/K1}`.
 
         >>> from hydpy.models.hland import *
@@ -556,11 +577,13 @@ class W1(parametertools.Parameter):
 class W2(parametertools.Parameter):
     """Weight for calculating the quick response base flow [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K2,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |W2| based on :math:`W2 = e^{-1/K2}`.
 
         >>> from hydpy.models.hland import *
@@ -584,11 +607,13 @@ class W3(parametertools.Parameter):
     """Weight for calculating the response of the first-order groundwater reservoir
     [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (hland_control.K3,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |W3| based on :math:`W3 = e^{-1/K3}`.
 
         >>> from hydpy.models.hland import *
@@ -610,9 +635,12 @@ class W3(parametertools.Parameter):
 class K4(parametertools.Parameter):
     """Storage time for very delayed baseflow [T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, False, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = False
+    SPAN = (0.0, None)
 
-    def update(self):
+    def update(self) -> None:
         r"""Update |hland_derived.K4| based on :math:`K4 = 9 \cdot K3`.
 
         >>> from hydpy.models.hland import *
@@ -635,11 +663,13 @@ class W4(parametertools.Parameter):
     """Weight for calculating the response of the second-order groundwater reservoir
     [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     DERIVEDPARAMETERS = (K4,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |W4| based on :math:`W4 = e^{-1/K4}`.
 
         >>> from hydpy.models.hland import *
@@ -661,11 +691,13 @@ class W4(parametertools.Parameter):
 class QFactor(parametertools.Parameter):
     """Factor for converting mm/stepsize to m³/s."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (hland_control.Area,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |QFactor| based on |Area| and the current simulation step size.
 
         >>> from hydpy.models.hland import *

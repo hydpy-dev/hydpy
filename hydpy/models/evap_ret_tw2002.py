@@ -99,8 +99,7 @@ calculates the same potential evapotranspiration value:
     | 2000-06-07 |           16.9 |      255.367464 |                    3.787245 |                        3.787245 |
 
 """
-# import...
-# ...from HydPy
+
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces
@@ -154,12 +153,12 @@ class Model(
     )
     SUBMODELS = ()
 
-    tempmodel = modeltools.SubmodelProperty(
-        tempinterfaces.TempModel_V1, tempinterfaces.TempModel_V2
-    )
-    radiationmodel = modeltools.SubmodelProperty(
-        radiationinterfaces.RadiationModel_V1, radiationinterfaces.RadiationModel_V2
-    )
+    tempmodel = modeltools.SubmodelProperty[
+        tempinterfaces.TempModel_V1 | tempinterfaces.TempModel_V2
+    ](tempinterfaces.TempModel_V1, tempinterfaces.TempModel_V2)
+    radiationmodel = modeltools.SubmodelProperty[
+        radiationinterfaces.RadiationModel_V1 | radiationinterfaces.RadiationModel_V2
+    ](radiationinterfaces.RadiationModel_V1, radiationinterfaces.RadiationModel_V2)
 
 
 tester = Tester()

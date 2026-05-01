@@ -3,18 +3,14 @@
 .. _`NetCDF Climate and Forecast (CF) Metadata Conventions`: http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html  # pylint: disable=line-too-long
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import collections
 import contextlib
 import itertools
 import warnings
 
-# ...from site-packages
 import networkx
 
-# ...from HydPy
 import hydpy
 from hydpy.core import devicetools
 from hydpy.core import exceptiontools
@@ -2060,8 +2056,8 @@ needed to be trimmed.  The old and the new value(s) are `1.0, ..., 1.0` and `0.0
         content of the snow layer (|hland_states.SP|) and the relative water-holding
         capacity (|hland_control.WHC|).  Due to this restriction, problems can occur.
         To give an example, we set |hland_control.WHC| to zero temporarily, apply the
-        memorised conditions, and finally reset the original values of |
-        hland_control.WHC|:
+        memorised conditions, and finally reset the original values of
+        |hland_control.WHC|:
 
         >>> for element in hp.elements.catchment:
         ...     element.whc = element.model.parameters.control.whc.values
@@ -2742,8 +2738,6 @@ HydPy instance does not handle any elements at the moment.
             ):
                 assert_never(dm)
         elements = self.collectives
-        for element in elements:
-            funcs.append(element.model.update_senders)
         for element in elements:
             funcs.append(element.model.update_receivers)
         for element in elements:

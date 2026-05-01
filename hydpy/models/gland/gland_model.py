@@ -1,15 +1,11 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import importtools
 from hydpy.core import modeltools
 from hydpy.core.typingtools import *
 from hydpy.cythons import modelutils
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import rconcinterfaces
-
-# ...from gland
 from hydpy.models.gland import gland_control
 from hydpy.models.gland import gland_derived
 from hydpy.models.gland import gland_inputs
@@ -47,7 +43,9 @@ class Calc_E_PETModel_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.E,)
 
     @staticmethod
-    def __call__(model: modeltools.Model, submodel: petinterfaces.PETModel_V1) -> None:
+    def __call__(
+        model: modeltools.Model, submodel: petinterfaces.PETModel_V1, /
+    ) -> None:
         flu = model.sequences.fluxes.fastaccess
         submodel.determine_potentialevapotranspiration()
         flu.e = submodel.get_potentialevapotranspiration(0)
@@ -62,7 +60,7 @@ class Calc_E_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.E,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         if model.petmodel_typeid == 1:
             model.calc_e_petmodel_v1(cast(petinterfaces.PETModel_V1, model.petmodel))
 
@@ -98,7 +96,7 @@ class Calc_EI_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.EI,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -134,7 +132,7 @@ class Calc_PN_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.PN,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -171,7 +169,7 @@ class Calc_EN_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.EN,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.en = max(flu.e - flu.ei, 0.0)
 
@@ -201,7 +199,7 @@ class Update_I_V1(modeltools.Method):
     UPDATEDSEQUENCES = (gland_states.I,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         inp = model.sequences.inputs.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -252,7 +250,7 @@ class Calc_PS_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.PS,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -303,7 +301,7 @@ class Calc_ES_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.ES,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -338,7 +336,7 @@ class Update_S_V1(modeltools.Method):
     UPDATEDSEQUENCES = (gland_states.S,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         sta.s += flu.ps - flu.es
@@ -377,7 +375,7 @@ class Calc_Perc_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.Perc,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
@@ -407,7 +405,7 @@ class Update_S_V2(modeltools.Method):
     UPDATEDSEQUENCES = (gland_states.S,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         sta.s -= flu.perc
@@ -435,7 +433,7 @@ class Calc_AE_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.AE,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.ae = flu.ei + flu.es
 
@@ -463,7 +461,7 @@ class Calc_Pr_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.PR,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.pr = flu.perc + flu.pn - flu.ps
 
@@ -493,7 +491,7 @@ class Calc_PR1_PR9_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.PR9, gland_fluxes.PR1)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.pr9 = 0.9 * flu.pr
         flu.pr1 = 0.1 * flu.pr
@@ -547,7 +545,7 @@ class Calc_Q9_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.Q9,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         if model.rconcmodel_routingstore is None:
             flu.q9 = flu.pr9
@@ -593,7 +591,7 @@ class Calc_Q1_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.Q1,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         if model.rconcmodel_directflow is None:
             flu.q1 = flu.pr1
@@ -639,7 +637,7 @@ class Calc_Q10_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.Q10,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         if model.rconcmodel is None:
             flu.q10 = flu.pr
@@ -674,7 +672,7 @@ class Calc_Q1_Q9_V2(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.Q1, gland_fluxes.Q9)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.q1 = 0.1 * flu.q10
         flu.q9 = 0.9 * flu.q10
@@ -718,7 +716,7 @@ class Calc_FR_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.FR,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -752,7 +750,7 @@ class Calc_FR_V2(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.FR,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -799,7 +797,7 @@ class Update_R_V1(modeltools.Method):
     UPDATEDSEQUENCES = (gland_states.R,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         sta.r += flu.q9 + flu.fr
@@ -849,7 +847,7 @@ class Update_R_V2(modeltools.Method):
     UPDATEDSEQUENCES = (gland_states.R,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         sta.r += 0.6 * flu.q9 + flu.fr
@@ -884,7 +882,7 @@ class Calc_QR_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.QR,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -913,7 +911,7 @@ class Update_R_V3(modeltools.Method):
     UPDATEDSEQUENCES = (gland_states.R,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         sta.r -= flu.qr
@@ -940,7 +938,7 @@ class Calc_FR2_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.FR2,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.fr2 = flu.fr
 
@@ -968,7 +966,7 @@ class Update_R2_V1(modeltools.Method):
     UPDATEDSEQUENCES = (gland_states.R2,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
         sta.r2 += 0.4 * flu.q9 + flu.fr2
@@ -1029,7 +1027,7 @@ class Calc_QR2_R2_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.QR2,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         con = model.parameters.control.fastaccess
         flu = model.sequences.fluxes.fastaccess
         sta = model.sequences.states.fastaccess
@@ -1080,7 +1078,7 @@ class Calc_FD_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.FD,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         if (flu.q1 + flu.fr) <= 0.0:
             flu.fd = -flu.q1
@@ -1116,7 +1114,7 @@ class Calc_QD_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.QD,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.qd = max(flu.q1 + flu.fd, 0.0)
 
@@ -1143,7 +1141,7 @@ class Calc_QH_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.QH,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.qh = flu.qr + flu.qd
 
@@ -1171,7 +1169,7 @@ class Calc_QH_V2(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.QH,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         flu.qh = flu.qr + flu.qr2 + flu.qd
 
@@ -1199,7 +1197,7 @@ class Calc_QV_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_fluxes.QV,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         der = model.parameters.derived.fastaccess
         flu = model.sequences.fluxes.fastaccess
         flu.qv = flu.qh * der.qfactor
@@ -1226,7 +1224,7 @@ class Pass_Q_V1(modeltools.Method):
     RESULTSEQUENCES = (gland_outlets.Q,)
 
     @staticmethod
-    def __call__(model: modeltools.Model) -> None:
+    def __call__(model: modeltools.Model, /) -> None:
         flu = model.sequences.fluxes.fastaccess
         out = model.sequences.outlets.fastaccess
         out.q = flu.qv
@@ -1302,7 +1300,7 @@ class Main_PETModel_V1(modeltools.AdHocModel):
     """Base class for |gland.DOCNAME.long| models that use submodels that comply with
     the |PETModel_V1| interface."""
 
-    petmodel: modeltools.SubmodelProperty
+    petmodel: modeltools.SubmodelProperty[petinterfaces.PETModel_V1]
     petmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     petmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
@@ -1344,7 +1342,7 @@ class Main_RConcModel_V1(modeltools.AdHocModel):
     """Base class for |gland.DOCNAME.long| models that use a single submodel that
     complies with the |RConcModel_V1| interface."""
 
-    rconcmodel: modeltools.SubmodelProperty
+    rconcmodel: modeltools.SubmodelProperty[rconcinterfaces.RConcModel_V1]
     rconcmodel_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     rconcmodel_typeid = modeltools.SubmodelTypeIDProperty()
 
@@ -1380,11 +1378,11 @@ class Main_RConcModel_V2(modeltools.AdHocModel):
     """Base class for |gland.DOCNAME.long| models that use two submodels that comply
     with the |RConcModel_V1| interface."""
 
-    rconcmodel_routingstore: modeltools.SubmodelProperty
+    rconcmodel_routingstore: modeltools.SubmodelProperty[rconcinterfaces.RConcModel_V1]
     rconcmodel_routingstore_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     rconcmodel_routingstore_typeid = modeltools.SubmodelTypeIDProperty()
 
-    rconcmodel_directflow: modeltools.SubmodelProperty
+    rconcmodel_directflow: modeltools.SubmodelProperty[rconcinterfaces.RConcModel_V1]
     rconcmodel_directflow_is_mainmodel = modeltools.SubmodelIsMainmodelProperty()
     rconcmodel_directflow_typeid = modeltools.SubmodelTypeIDProperty()
 

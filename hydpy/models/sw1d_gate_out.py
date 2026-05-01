@@ -528,14 +528,11 @@ There is no indication of an error in the water balance:
 >>> round_(model.check_waterbalance(conditions))
 0.0
 """
-# import...
-# ...from HydPy
+
 from hydpy.exe.modelimports import *
 from hydpy.core import modeltools
 from hydpy.core import sequencetools
 from hydpy.interfaces import routinginterfaces
-
-# ...from musk
 from hydpy.models.sw1d import sw1d_model
 
 

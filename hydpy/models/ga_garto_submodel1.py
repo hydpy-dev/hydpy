@@ -11,15 +11,11 @@ information, see the documentation of method |lland_model.Calc_BoWa_SoilModel_V1
 the integration tests :ref:`lland_dd_acker_garto` of application model |lland_dd| and
 :ref:`lland_knauf_acker_heavy_garto_daily` of application model |lland_knauf|.
 """
-# import...
-# ...from HydPy
+
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
-
-# ...from ga
 from hydpy.models.ga import ga_control
 from hydpy.models.ga import ga_model
-
 
 ADDITIONAL_CONTROLPARAMETERS = (ga_control.NmbSoils,)
 

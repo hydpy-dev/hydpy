@@ -1,11 +1,11 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
+from hydpy.core import exceptiontools
+from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.auxs import smoothtools
 from hydpy.models.kinw import kinw_control
 
@@ -22,11 +22,12 @@ class Seconds(parametertools.SecondsParameter):
 class HV(parametertools.LeftRightParameter):
     """Höhe Vorländer (height of both forelands) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BBV, kinw_control.BNV)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`HV=BBV/BNV`.
 
         Examples:
@@ -55,11 +56,13 @@ class MFM(parametertools.Parameter):
     Hauptgerinne (product of the time-constant terms of the Manning-Strickler
     equation, calculated for the main channel) [m^(1/3)/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.EKM, kinw_control.SKM, kinw_control.Gef)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`MFM=EKM \\cdot SKM \\cdot \\sqrt{Gef}`.
 
         Examples:
@@ -81,11 +84,12 @@ class MFV(parametertools.LeftRightParameter):
     beide Vorländer (product of the time-constant terms of the Manning-Strickler
     equation, calculated for both forelands) [m^(1/3)/s]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.EKV, kinw_control.SKV, kinw_control.Gef)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`MFV=EKV \\cdot SKV \\cdot \\sqrt{Gef}`.
 
         Examples:
@@ -107,11 +111,13 @@ class BNMF(parametertools.Parameter):
     Hauptgerinne (auxiliary term for the calculation of the wetted
     perimeter of the slope of the main channel) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BNM,)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`BNMF= \\sqrt{1+BNM^2}`.
 
         Examples:
@@ -130,11 +136,12 @@ class BNVF(parametertools.LeftRightParameter):
     (auxiliary term for the calculation of the wetted perimeter of the slope
     of both forelands) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BNV,)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`BNVF= \\sqrt{1+BNV^2}`.
 
         Examples:
@@ -153,11 +160,12 @@ class BNVRF(parametertools.LeftRightParameter):
     Vorlandränder (auxiliary term for the calculation of the wetted
     perimeter of the slope of both outer embankments) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.BNVR,)
 
-    def update(self):
+    def update(self) -> None:
         """Update based on :math:`BNVRF= \\sqrt(1+BNVR^2)`.
 
         Examples:
@@ -177,11 +185,13 @@ class HRP(parametertools.Parameter):
     for water stage to be used when applying regularisation function
     |smooth_logistic2|) [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
     CONTROLPARAMETERS = (kinw_control.HR,)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the smoothing parameter value.
 
         The documentation on module |smoothtools| explains the following
@@ -207,14 +217,22 @@ class HRP(parametertools.Parameter):
 class NmbDiscontinuities(parametertools.Parameter):
     """Number of points of discontinuity in the rating curve [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (0, None)
 
-    def update(self):
+    def update(self) -> None:
         """Take the number of discontinuities from the available cross-section
         submodel.
 
         >>> from hydpy.models.kinw_impl_euler import *
         >>> parameterstep()
+        >>> derived.nmbdiscontinuities.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Submodel `wqmodel` is required \
+for updating parameter `nmbdiscontinuities` of element `?`, but is still not available.
+
         >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
         ...     nmbtrapezes(2)
         ...     bottomlevels(1.0, 3.0)
@@ -226,7 +244,12 @@ class NmbDiscontinuities(parametertools.Parameter):
         nmbdiscontinuities(1)
         """
         if (model := self.subpars.pars.model).__HYDPY_ROOTMODEL__:
-            self(len(model.wqmodel.get_depths_of_discontinuity()))
+            if (submodel := model.wqmodel) is None:
+                raise exceptiontools.AttributeNotReady(
+                    f"Submodel `wqmodel` is required for updating parameter "
+                    f"{objecttools.elementphrase(self)}, but is still not available."
+                )
+            self(len(submodel.get_depths_of_discontinuity()))
 
 
 class FinalDepth2InitialVolume(parametertools.Parameter):
@@ -234,9 +257,11 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
     according to the implicit Euler method for each point of discontinuity in the
     rating curve [m and million m³]."""
 
-    NDIM, TYPE, TIME, SPAN = 2, float, None, (0.0, None)
+    NDIM: Final[Literal[2]] = 2
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
-    def update(self):
+    def update(self) -> None:
         """Use the methods |CrossSectionModel_V1.get_depths_of_discontinuity| and
         |Return_InitialWaterVolume_V1| to determine the final water depths and the
         corresponding initial water volumes.
@@ -246,6 +271,14 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
         >>> length(100.0)
         >>> nmbsegments(10)
         >>> derived.seconds(60 * 60 * 24)
+        >>> derived.nmbdiscontinuities(2)
+        >>> derived.finaldepth2initialvolume.update()
+        Traceback (most recent call last):
+        ...
+        hydpy.core.exceptiontools.AttributeNotReady: Submodel `wqmodel` is required \
+for updating parameter `finaldepth2initialvolume` of element `?`, but is still not \
+available.
+
         >>> with model.add_wqmodel_v1("wq_trapeze_strickler"):
         ...     nmbtrapezes(3)
         ...     bottomlevels(1.0, 3.0, 5.0)
@@ -254,7 +287,6 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
         ...     bottomslope(0.001)
         ...     stricklercoefficients(30.0)
         ...     calibrationfactors(1.0)
-        >>> derived.nmbdiscontinuities.update()
         >>> derived.finaldepth2initialvolume.update()
         >>> derived.finaldepth2initialvolume
         finaldepth2initialvolume([[2.0, 5.008867],
@@ -265,5 +297,11 @@ class FinalDepth2InitialVolume(parametertools.Parameter):
             self.shape = (self.subpars.nmbdiscontinuities.value, 2)
             self.values = numpy.nan
             if self.shape[0] > 0:
-                for i, d in enumerate(model.wqmodel.get_depths_of_discontinuity()):
+                if (submodel := model.wqmodel) is None:
+                    raise exceptiontools.AttributeNotReady(
+                        f"Submodel `wqmodel` is required for updating parameter "
+                        f"{objecttools.elementphrase(self)}, but is still not "
+                        f"available."
+                    )
+                for i, d in enumerate(submodel.get_depths_of_discontinuity()):
                     self.values[i, :] = d, model.return_initialwatervolume(d)

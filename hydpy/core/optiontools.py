@@ -1,11 +1,8 @@
 """This module implements features for defining local or global *HydPy* options."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import types
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import propertytools
@@ -362,7 +359,7 @@ class _OptionPropertyEllipsis(OptionPropertyBase[int, _OptionContextEllipsis]):
     _CONTEXT = _OptionContextEllipsis
 
 
-class OptionPropertyStr(OptionPropertyBase[str, OptionContextStr]):
+class OptionPropertyStr(OptionPropertyBase[str, OptionContextStr[str]]):
     """Descriptor for defining string-like options.
 
     Framework developers should implement string-like options as follows:
@@ -420,7 +417,7 @@ class OptionPropertyStr(OptionPropertyBase[str, OptionContextStr]):
     """
 
     _CONVERTER = (str,)
-    _CONTEXT = OptionContextStr
+    _CONTEXT = OptionContextStr[str]
 
 
 class OptionPropertyPeriod(OptionPropertyBase[timetools.Period, OptionContextPeriod]):

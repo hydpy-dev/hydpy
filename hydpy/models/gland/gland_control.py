@@ -1,33 +1,40 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 
 
 class Area(parametertools.Parameter):
     """Subbasin area [km²]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (1e-10, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (1e-10, None)
 
 
 class IMax(parametertools.Parameter):
     """Interception store capacity [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class X1(parametertools.Parameter):
     """Maximum capacity of the production storage [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class X2(parametertools.Parameter):
     """Groundwater exchange coefficient (positive for water imports, negative for
     exports) [mm/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = True
 
     @classmethod
     def get_timefactor(cls) -> float:
@@ -54,7 +61,10 @@ class X2(parametertools.Parameter):
 class X3(parametertools.Parameter):
     """One timestep ahead maximum capacity of the routing store [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, None)
 
     @classmethod
     def get_timefactor(cls) -> float:
@@ -81,10 +91,13 @@ class X3(parametertools.Parameter):
 class X5(parametertools.Parameter):
     """Intercatchment exchange threshold [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (None, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
 
 
 class X6(parametertools.Parameter):
     """Coefficient for emptying the exponential store [mm]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)

@@ -1,19 +1,15 @@
 """This module implements tools for defining subsets of |Node| and |Element| objects of
 large *HydPy* projects, called "selections"."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import collections
 import copy
 import itertools
 import types
 
-# ...from site-packages
 import black
 import networkx
 
-# ...from HydPy
 import hydpy
 from hydpy.core import devicetools
 from hydpy.core import hydpytools

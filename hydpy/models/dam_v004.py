@@ -588,16 +588,12 @@ Furthermore, |AllowedRemoteRelief| itself never exceeds 1.0 m³/s:
     | 20.01. |   0.080446 |           0.0 |                   0.0 |                  0.0 |                 0.0 |               0.0 |    0.0 |                   0.5 |            1.421053 |                  5.0 |           0.998337 |             0.0 |             0.0 |           0.0 |                 0.0 |       0.234092 | 0.234092 |    0.321785 |      0.998337 |           0.0 |            1.5 |    0.0 | 0.234092 |             0.5 |
 """
 
-# import...
-# ...from HydPy
 from hydpy.auxs.anntools import ANN  # pylint: disable=unused-import
 from hydpy.auxs.ppolytools import Poly, PPoly  # pylint: disable=unused-import
 from hydpy.core import modeltools
 from hydpy.exe.modelimports import *
 from hydpy.interfaces import petinterfaces
 from hydpy.interfaces import precipinterfaces
-
-# ...from dam
 from hydpy.models.dam import dam_model
 from hydpy.models.dam import dam_solver
 

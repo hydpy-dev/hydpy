@@ -1,14 +1,12 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from site-packages
 import numpy
 
-# ...from HydPy
 import hydpy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
+from hydpy.core.typingtools import *
 from hydpy.models.meteo import meteo_fixed
 from hydpy.models.meteo import meteo_control
 
@@ -40,7 +38,9 @@ class SCT(parametertools.SCTParameter):
 class HRUAreaFraction(parametertools.Parameter):
     """The area fraction of each hydrological response unit [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 1, float, None, (0.0, 1.0)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, 1.0)
 
     CONTROLPARAMETERS = (meteo_control.HRUArea,)
 
@@ -63,9 +63,11 @@ class HRUAreaFraction(parametertools.Parameter):
 class NmbLogEntries(parametertools.Parameter):
     """The number of log entries required for memorising one day's data [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, int, None, (1, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = int
+    SPAN = (1, None)
 
-    def update(self):
+    def update(self) -> None:
         """Calculate the number of entries and adjust the shape of all relevant log
         sequences.
 
@@ -133,12 +135,14 @@ class UTCLongitude(parametertools.UTCLongitudeParameter):
 class LatitudeRad(parametertools.Parameter):
     """The latitude [rad]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (-1.5708, 1.5708)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (-1.5708, 1.5708)
 
     FIXEDPARAMETERS = (meteo_fixed.Pi,)
     CONTROLPARAMETERS = (meteo_control.Latitude,)
 
-    def update(self):
+    def update(self) -> None:
         """Update |LatitudeRad| based on parameter |Latitude|.
 
         >>> from hydpy import round_

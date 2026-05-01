@@ -1,15 +1,12 @@
 # pylint: disable=missing-module-docstring
-# import...
-# ...from site-packages
+
 import numpy
 
-# ...from HydPy
 from hydpy.core import exceptiontools
 from hydpy.core import objecttools
 from hydpy.core import parametertools
 from hydpy.core import variabletools
-
-# ...from wq
+from hydpy.core.typingtools import *
 from hydpy.models.wq import wq_variables
 
 
@@ -24,7 +21,7 @@ class NmbWidths(parametertools.NmbParameter):
 
     SPAN = (1, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Check according to :math:`NmbWidths \\geq NmbSectors`.
 
         >>> from hydpy.models.wq import *
@@ -55,7 +52,7 @@ class NmbSectors(parametertools.NmbParameter):
 
     SPAN = (1, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Check according to :math:`NmbSectors \\leq NmbWidths`.
 
         >>> from hydpy.models.wq import *
@@ -89,16 +86,14 @@ class Heights(wq_variables.MixinWidths, parametertools.SortedParameter):
     tabulated level to zero.
     """
 
-    TYPE, TIME, SPAN = float, None, (None, None)
-
 
 class FlowWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
     """The widths of those subareas of the cross section involved in water routing
     [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    SPAN = (0.0, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim according to :math:`FlowWidths \\leq TotalWidths`.
 
         >>> from hydpy.models.wq import *
@@ -122,9 +117,9 @@ class FlowWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
 class TotalWidths(wq_variables.MixinWidths, parametertools.SortedParameter):
     """The widths of the total cross section [m]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    SPAN = (0.0, None)
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Trim according to :math:`TotalWidths \\geq FlowWidths`.
 
         >>> from hydpy.models.wq import *
@@ -213,7 +208,9 @@ not strictly rising (1, 4, and 4).
     transitions(-999999)
     """
 
-    NDIM, TYPE, TIME, SPAN = 1, int, None, (1, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = int
+    SPAN = (1, None)
 
     def __hydpy__let_par_set_shape__(self, p: parametertools.NmbParameter, /) -> None:
         if isinstance(p, NmbSectors):
@@ -246,7 +243,7 @@ not strictly rising (1, 4, and 4).
                         f"but {values[-1]} is given."
                     )
 
-    def trim(self, lower=None, upper=None) -> bool:
+    def trim(self, lower: TrimHook = None, upper: TrimHook = None) -> bool:
         """Regular trimming is disabled in favour of the special checks described in the
         main documentation of parameter |Transitions|."""
         return False
@@ -265,8 +262,6 @@ class BottomLevels(wq_variables.MixinTrapezes, parametertools.SortedParameter):
     trapeze's bottom level to zero.
     """
 
-    TYPE, TIME, SPAN = float, None, (None, None)
-
 
 class BottomWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
     """The bottom width for each trapeze [m].
@@ -277,7 +272,9 @@ class BottomWidths(wq_variables.MixinTrapezes, parametertools.Parameter):
     right sides of the first trapeze.
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class SideSlopes(wq_variables.MixinTrapezes, parametertools.Parameter):
@@ -288,7 +285,9 @@ class SideSlopes(wq_variables.MixinTrapezes, parametertools.Parameter):
     trapeze's centre.
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    NDIM: Final[Literal[1]] = 1
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class StricklerCoefficients(
@@ -300,13 +299,15 @@ class StricklerCoefficients(
     values range from 20 to 80.
     """
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class CalibrationFactors(wq_variables.MixinTrapezesOrSectors, parametertools.Parameter):
     """Calibration factor for each trapeze or sector [-]."""
 
-    TYPE, TIME, SPAN = float, None, (0.0, None)
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 1.0
 
     def update(self) -> None:
@@ -343,13 +344,17 @@ class BottomSlope(parametertools.Parameter):
     :math:`BottomSlope = \frac{elevation_{start} - elevation_{end}}{length}`
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class ChannelDepth(parametertools.Parameter):
     """Channel depth [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class CrestHeight(parametertools.Parameter):
@@ -358,24 +363,33 @@ class CrestHeight(parametertools.Parameter):
     Set |CrestHeight| to zero for channels without weirs.
     """
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class CrestHeightTolerance(parametertools.Parameter):
     """Smoothing parameter related to the difference between the water depth and the
     crest height [m]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
 
 
 class BankfullDischarge(parametertools.Parameter):
     """Bankfull discharge [mm/T]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, True, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    TIME = True
+    SPAN = (0.0, None)
 
 
 class DischargeExponent(parametertools.Parameter):
     """Exponent of the water depth-discharge relation [-]."""
 
-    NDIM, TYPE, TIME, SPAN = 0, float, None, (0.0, None)
+    NDIM: Final[Literal[0]] = 0
+    TYPE: Final = float
+    SPAN = (0.0, None)
     INIT = 1.5

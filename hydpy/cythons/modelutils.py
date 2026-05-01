@@ -271,8 +271,6 @@ Traceback (most recent call last):
 NotImplementedError: NDIM of sequence `q` is higher than expected.
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import copy
 
@@ -290,11 +288,10 @@ import types
 
 # ...third party modules
 import numpy
-from numpy import inf  # pylint: disable=unused-import
-from numpy import nan  # pylint: disable=unused-import
+from numpy import inf as _inf
+from numpy import nan as _nan
 import setuptools
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy import cythons
@@ -307,7 +304,6 @@ from hydpy.core import sequencetools
 from hydpy.core import testtools
 from hydpy.core.typingtools import *
 from hydpy.cythons import autogenpath
-
 
 if TYPE_CHECKING:
     import Cython.Build as build
@@ -586,8 +582,8 @@ class Cythonizer:
     """Handles the writing, compiling and initialisation of Cython models."""
 
     Model: type[modeltools.Model]
-    Parameters: type[parametertools.Parameters]
-    Sequences: type[sequencetools.Sequences]
+    Parameters: type[parametertools.Parameters[modeltools.Model]]
+    Sequences: type[sequencetools.Sequences[modeltools.Model]]
     tester: testtools.Tester
     pymodule: str
     _cymodule: types.ModuleType | None
@@ -917,16 +913,16 @@ class PyxWriter:
 
     def constants(self, lines: PyxPxdLines) -> None:
         """Constants declaration lines."""
-        both = lines.add
         for name, member in vars(self.cythonizer).items():
             if (
                 name.isupper()
                 and not inspect.isclass(member)
                 and isinstance(member, CHECKABLE_TYPES)
             ):
-                ndim = numpy.array(member).ndim
+                ndim = numpy.asarray(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
-                both(0, f"cdef public {ctype} {name} = {member}")
+                lines.pxd.add(0, f"cdef public {ctype} {name}")
+                lines.pyx.add(0, f"{name} = {member}")
 
     def parameters(self, lines: PyxPxdLines) -> None:
         """Parameter declaration lines."""
@@ -1059,7 +1055,7 @@ class PyxWriter:
 
     @staticmethod
     def _add_cdef_jdxs(
-        lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any]
+        lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any, Any]
     ) -> None:
         maxndim = max(seq.NDIM for seq in subseqs)
         if maxndim:
@@ -1082,7 +1078,7 @@ class PyxWriter:
 
     @classmethod
     def load_data(
-        cls, lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any]
+        cls, lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any, Any]
     ) -> None:
         """Load data statements."""
         print("            . load_data")
@@ -1130,7 +1126,7 @@ class PyxWriter:
 
     @classmethod
     def save_data(
-        cls, lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any]
+        cls, lines: PyxPxdLines, subseqs: sequencetools.IOSequences[Any, Any, Any, Any]
     ) -> None:
         """Save data statements."""
         print("            . save_data")
@@ -1174,9 +1170,11 @@ class PyxWriter:
         self,
         lines: PyxPxdLines,
         subseqs: (
-            sequencetools.InputSequences
-            | sequencetools.OutputSequences[Any]
-            | sequencetools.LinkSequences[Any]
+            sequencetools.InputSequences[modeltools.Model]
+            | sequencetools.OutputSequences[
+                modeltools.Model, sequencetools.OutputSequence
+            ]
+            | sequencetools.LinkSequences[modeltools.Model, sequencetools.LinkSequence]
         ),
     ) -> None:
         """Set pointer statements for all input, output, and link sequences."""
@@ -1194,7 +1192,10 @@ class PyxWriter:
 
     @staticmethod
     def set_pointer0d(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines,
+        subseqs: sequencetools.LinkSequences[
+            modeltools.Model, sequencetools.LinkSequence
+        ],
     ) -> None:
         """Set pointer statements for 0-dimensional link sequences."""
         print("            . set_pointer0d")
@@ -1209,7 +1210,10 @@ class PyxWriter:
 
     @staticmethod
     def get_pointervalue(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines,
+        subseqs: sequencetools.LinkSequences[
+            modeltools.Model, sequencetools.LinkSequence
+        ],
     ) -> None:
         """Get pointer value statements for link sequences."""
         print("            . get_value")
@@ -1229,7 +1233,10 @@ class PyxWriter:
 
     @staticmethod
     def set_pointervalue(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines,
+        subseqs: sequencetools.LinkSequences[
+            modeltools.Model, sequencetools.LinkSequence
+        ],
     ) -> None:
         """Set pointer value statements for link sequences."""
         print("            . set_pointervalue")
@@ -1254,7 +1261,10 @@ class PyxWriter:
 
     @staticmethod
     def alloc_pointers(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines,
+        subseqs: sequencetools.LinkSequences[
+            modeltools.Model, sequencetools.LinkSequence
+        ],
     ) -> None:
         """Allocate memory statements for 1-dimensional link sequences."""
         print("            . setlength")
@@ -1276,7 +1286,10 @@ class PyxWriter:
 
     @staticmethod
     def dealloc_pointers(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines,
+        subseqs: sequencetools.LinkSequences[
+            modeltools.Model, sequencetools.LinkSequence
+        ],
     ) -> None:
         """Deallocate memory statements for 1-dimensional link sequences."""
         print("            . dealloc")
@@ -1288,7 +1301,10 @@ class PyxWriter:
 
     @staticmethod
     def set_pointer1d(
-        lines: PyxPxdLines, subseqs: sequencetools.LinkSequences[Any]
+        lines: PyxPxdLines,
+        subseqs: sequencetools.LinkSequences[
+            modeltools.Model, sequencetools.LinkSequence
+        ],
     ) -> None:
         """Set_pointer statements for 1-dimensional link sequences."""
         print("            . set_pointer1d")
@@ -1306,7 +1322,7 @@ class PyxWriter:
 
     @classmethod
     def set_pointerinput(
-        cls, lines: PyxPxdLines, subseqs: sequencetools.InputSequences
+        cls, lines: PyxPxdLines, subseqs: sequencetools.InputSequences[modeltools.Model]
     ) -> None:
         """Set pointer statements for input sequences."""
         print("            . set_pointerinput")
@@ -1326,7 +1342,11 @@ class PyxWriter:
 
     @classmethod
     def set_pointeroutput(
-        cls, lines: PyxPxdLines, subseqs: sequencetools.OutputSequences[Any]
+        cls,
+        lines: PyxPxdLines,
+        subseqs: sequencetools.OutputSequences[
+            modeltools.Model, sequencetools.OutputSequence
+        ],
     ) -> None:
         """Set pointer statements for output sequences."""
         print("            . set_pointeroutput")
@@ -1346,13 +1366,15 @@ class PyxWriter:
 
     @staticmethod
     def _filter_inputsequences(
-        subseqs: sequencetools.InputSequences,
+        subseqs: sequencetools.InputSequences[modeltools.Model],
     ) -> list[sequencetools.InputSequence]:
         return [subseq for subseq in subseqs if not subseq.NDIM]
 
     @staticmethod
     def _filter_outputsequences(
-        subseqs: sequencetools.OutputSequences[Any],
+        subseqs: sequencetools.OutputSequences[
+            modeltools.Model, sequencetools.OutputSequence
+        ],
     ) -> list[sequencetools.OutputSequence]:
         return [subseq for subseq in subseqs if not subseq.NDIM]
 
@@ -1595,6 +1617,8 @@ class PyxWriter:
                 pyx(2, "self.new2old()")
         if self.model.OUTLET_METHODS or self.has_submodels:
             pyx(2, "self.update_outlets()")
+        if self.model.SENDER_METHODS or self.has_submodels:
+            pyx(2, "self.update_senders()")
         if seqs.factors or seqs.fluxes or seqs.states:
             pyx(2, "self.update_outputs()")
 
@@ -1606,7 +1630,6 @@ class PyxWriter:
         pyx(2, "with nogil:")
         pyx(3, "for i in range(i0, i1):")
         pyx(4, "self.simulate(i)")
-        pyx(4, "self.update_senders(i)")
         pyx(4, "self.update_receivers(i)")
         pyx(4, "self.save_data(i)")
 
@@ -1919,14 +1942,14 @@ class PyxWriter:
 
     def update_outlets(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._update_outlets_senders(lines=lines, group="outlets", idx_as_arg=False)
+        self._update_outlets_senders(lines=lines, group="outlets")
 
     def update_senders(self, lines: PyxPxdLines) -> None:
         """Lines of the model method with the same name."""
-        self._update_outlets_senders(lines=lines, group="senders", idx_as_arg=True)
+        self._update_outlets_senders(lines=lines, group="senders")
 
     def _update_outlets_senders(
-        self, lines: PyxPxdLines, group: str, idx_as_arg: bool
+        self, lines: PyxPxdLines, group: Literal["outlets", "senders"]
     ) -> None:
 
         new_lines = PyxPxdLines()
@@ -1936,19 +1959,18 @@ class PyxWriter:
             lines=new_lines,
             name=f"update_{group}",
             methods=methods,
-            idx_as_arg=idx_as_arg,
+            idx_as_arg=False,
             inline=False,
         )
 
         lines.pxd.append(new_lines.pxd[0])
-        lines.pyx.extend(new_lines.pyx[: 1 + idx_as_arg])
+        lines.pyx.extend(new_lines.pyx[:1])
         if new_lines.pyx[-1].endswith(" pass") and self.has_submodels:
             del new_lines.pyx[-1]
 
-        methodcall = f"update_{group}({'idx' if idx_as_arg else ''})"
-        self._call_submodel_method(lines=lines, methodcall=methodcall)
+        self._call_submodel_method(lines=lines, methodcall=f"update_{group}()")
 
-        lines.pyx.extend(new_lines.pyx[1 + idx_as_arg :])
+        lines.pyx.extend(new_lines.pyx[1:])
 
         pyx = lines.pyx.add
         pyx(2, f"cdef {INT} i")
@@ -1989,7 +2011,11 @@ class PyxWriter:
             pyx(2, "pass")
 
     def update_outputs(
-        self, lines: PyxPxdLines, subseqs: sequencetools.OutputSequences[Any]
+        self,
+        lines: PyxPxdLines,
+        subseqs: sequencetools.OutputSequences[
+            modeltools.Model, sequencetools.OutputSequence
+        ],
     ) -> None:
         """Lines of the subsequences method with the same name."""
         pyx, both = lines.pyx.add, lines.add
@@ -2596,7 +2622,7 @@ class FuncConverter:
         self.inline = inline
 
     @property
-    def realfunc(self) -> Callable:
+    def realfunc(self) -> types.MethodType | Callable[[modeltools.Model], None]:
         """The "real" function, as as defined by the model developer or user."""
         if (reusablemethod := self.reusablemethod) is not None:
             return reusablemethod.__call__
@@ -3050,12 +3076,12 @@ def exp(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import exp
     >>> from unittest import mock
-    >>> with mock.patch("numpy.exp") as func:
+    >>> with mock.patch("math.exp") as func:
     ...     _ = exp(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.exp(double)
+    return math.exp(double)
 
 
 def log(double: float) -> float:
@@ -3064,12 +3090,12 @@ def log(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import log
     >>> from unittest import mock
-    >>> with mock.patch("numpy.log") as func:
+    >>> with mock.patch("math.log") as func:
     ...     _ = log(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.log(double)
+    return math.log(double)
 
 
 def fabs(double: float) -> float:
@@ -3092,12 +3118,12 @@ def sin(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import sin
     >>> from unittest import mock
-    >>> with mock.patch("numpy.sin") as func:
+    >>> with mock.patch("math.sin") as func:
     ...     _ = sin(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.sin(double)
+    return math.sin(double)
 
 
 def cos(double: float) -> float:
@@ -3106,12 +3132,12 @@ def cos(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import cos
     >>> from unittest import mock
-    >>> with mock.patch("numpy.cos") as func:
+    >>> with mock.patch("math.cos") as func:
     ...     _ = cos(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.cos(double)
+    return math.cos(double)
 
 
 def tan(double: float) -> float:
@@ -3120,12 +3146,12 @@ def tan(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import tan
     >>> from unittest import mock
-    >>> with mock.patch("numpy.tan") as func:
+    >>> with mock.patch("math.tan") as func:
     ...     _ = tan(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.tan(double)
+    return math.tan(double)
 
 
 def asin(double: float) -> float:
@@ -3134,12 +3160,12 @@ def asin(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import asin
     >>> from unittest import mock
-    >>> with mock.patch("numpy.arcsin") as func:
+    >>> with mock.patch("math.asin") as func:
     ...     _ = asin(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.arcsin(double)
+    return math.asin(double)
 
 
 def acos(double: float) -> float:
@@ -3148,12 +3174,12 @@ def acos(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import acos
     >>> from unittest import mock
-    >>> with mock.patch("numpy.arccos") as func:
+    >>> with mock.patch("math.acos") as func:
     ...     _ = acos(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.arccos(double)
+    return math.acos(double)
 
 
 def atan(double: float) -> float:
@@ -3162,12 +3188,12 @@ def atan(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import atan
     >>> from unittest import mock
-    >>> with mock.patch("numpy.arctan") as func:
+    >>> with mock.patch("math.atan") as func:
     ...     _ = atan(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.arctan(double)
+    return math.atan(double)
 
 
 def tanh(double: float) -> float:
@@ -3176,12 +3202,12 @@ def tanh(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import tanh
     >>> from unittest import mock
-    >>> with mock.patch('numpy.tanh') as func:
+    >>> with mock.patch('math.tanh') as func:
     ...     _ = tanh(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.tanh(double)
+    return math.tanh(double)
 
 
 def isnan(double: float) -> float:
@@ -3190,12 +3216,12 @@ def isnan(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import isnan
     >>> from unittest import mock
-    >>> with mock.patch("numpy.isnan") as func:
+    >>> with mock.patch("math.isnan") as func:
     ...     _ = isnan(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.isnan(double)
+    return math.isnan(double)
 
 
 def isinf(double: float) -> float:
@@ -3204,9 +3230,13 @@ def isinf(double: float) -> float:
 
     >>> from hydpy.cythons.modelutils import isnan
     >>> from unittest import mock
-    >>> with mock.patch("numpy.isinf") as func:
+    >>> with mock.patch("math.isinf") as func:
     ...     _ = isinf(123.4)
     >>> func.call_args
     call(123.4)
     """
-    return numpy.isinf(double)
+    return math.isinf(double)
+
+
+inf: Final = _inf
+nan: Final = _nan

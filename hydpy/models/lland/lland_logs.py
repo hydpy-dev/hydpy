@@ -1,17 +1,16 @@
 # pylint: disable=missing-module-docstring
 
-# import...
-# ...from HydPy
 from hydpy.core import sequencetools
+from hydpy.core.typingtools import *
 
 
 class LoggedSunshineDuration(sequencetools.LogSequence):
     """Logged sunshine duration [h]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1
 
 
 class LoggedPossibleSunshineDuration(sequencetools.LogSequence):
     """Logged astronomically possible sunshine duration [h]."""
 
-    NDIM, NUMERIC = 1, False
+    NDIM: Final[Literal[1]] = 1

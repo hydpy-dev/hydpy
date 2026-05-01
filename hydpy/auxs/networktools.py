@@ -4,15 +4,14 @@ data.
 .. _`guideline of the German organisation LAWA`: https://www.lawa.de/documents/richtlinie_fuer_die_gebietsbezeichnung_und_die_verschluesselung_von_fliessgewaessern_1552305779.pdf    # pylint: disable=line-too-long
 """
 
-# import...
-# ...from standard library
 from __future__ import annotations
 
-# ...from HydPy
 from hydpy.core import devicetools
 from hydpy.core import objecttools
 from hydpy.core import selectiontools
 from hydpy.core.typingtools import *
+
+_Tree: TypeAlias = dict[str, "_Tree"]
 
 
 class RiverBasinNumber(str):
@@ -71,7 +70,7 @@ basin number.
     False
     """
 
-    def __new__(cls, value: int | str):
+    def __new__(cls, value: int | str) -> RiverBasinNumber:
         try:
             # PyCharm bug, see https://stackoverflow.com/questions/49465166/
             # noinspection PyArgumentList
@@ -199,7 +198,7 @@ basin number.
         return f"RiverBasinNumber({str.__repr__(self)[1:-1]})"
 
 
-class RiverBasinNumbers(tuple):
+class RiverBasinNumbers(tuple[RiverBasinNumber]):
     """A sorted collection of |RiverBasinNumber| objects.
 
     >>> from hydpy import RiverBasinNumbers
@@ -230,16 +229,16 @@ class RiverBasinNumbers(tuple):
     False
     """
 
-    def __new__(cls, values: Iterable[int | str]):
+    def __new__(cls, values: Iterable[int | str]) -> RiverBasinNumbers:
         _values = tuple(RiverBasinNumber(value) for value in values)
         obj = tuple.__new__(RiverBasinNumbers, sorted(_values))
         vars(obj)["_tree"] = None
         return obj
 
     @property
-    def _tree(self):
+    def _tree(self) -> _Tree:
         if vars(self)["_tree"] is None:
-            tree = {}
+            tree: _Tree = {}
             for rbn in self:
                 subtree = tree
                 for digit in rbn:
@@ -250,7 +249,7 @@ class RiverBasinNumbers(tuple):
                         subtree = subtree[digit]
                 subtree["0"] = {}
             vars(self)["_tree"] = tree
-        return vars(self)["_tree"]
+        return cast(_Tree, vars(self)["_tree"])
 
     def select(self, number: int | str) -> RiverBasinNumbers:
         """Select and return all river basin numbers starting with the given number.
@@ -277,7 +276,7 @@ class RiverBasinNumbers(tuple):
             except KeyError:
                 return RiverBasinNumbers(())
 
-        def _walk(number_: str, tree_: dict[str, dict], numbers: set) -> set:
+        def _walk(number_: str, tree_: _Tree, numbers: set[str]) -> set[str]:
             if tree_:
                 numbers.remove(number_)
                 for digit_, subtree in tree_.items():
@@ -361,7 +360,7 @@ class RiverBasinNumbers(tuple):
         """
         return tuple(self._get_next_number(rbn) for rbn in self)
 
-    def __contains__(self, number) -> bool:
+    def __contains__(self, number: object) -> bool:
         if not isinstance(number, (int, str)):
             return False
         tree = self._tree

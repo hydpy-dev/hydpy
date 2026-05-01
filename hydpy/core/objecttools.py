@@ -1,8 +1,6 @@
 """This module implements tools to help to standardize the functionality of the
 different objects defined by the HydPy framework."""
 
-# import...
-# ...from standard library
 from __future__ import annotations
 import builtins
 import contextlib
@@ -14,12 +12,10 @@ import sys
 import textwrap
 import types
 
-# ...from site-packages
 import black
 import numpy
 import wrapt
 
-# ...from HydPy
 import hydpy
 from hydpy import config
 from hydpy.core import exceptiontools
@@ -270,6 +266,22 @@ not start with numbers, cannot be mistaken with Python built-ins like `for`...)
         )
 
 
+def is_valid_variable_identifier(v: object, /) -> bool:
+    """Check if the given object is a variable variable identifier.
+
+    |is_valid_variable_identifier| is similar to |valid_variable_identifier| but
+    returns |True| or |False| instead of eventually raising an error and allows
+    filtering out non-string values:
+
+    >>> from hydpy.core.objecttools import is_valid_variable_identifier as ivvi
+    >>> assert not ivvi(0)
+    >>> assert ivvi("valid")
+    >>> assert not ivvi("not valid")
+    >>> assert not ivvi("int")
+    """
+    return isinstance(v, str) and (v not in _builtinnames) and v.isidentifier()
+
+
 def augment_excmessage(
     prefix: str | None = None, suffix: str | None = None
 ) -> NoReturn:
@@ -350,7 +362,7 @@ def decorator(wrapper: Callable[..., Any]) -> Callable[[F], F]:
 
 def excmessage_decorator(
     description_: str,
-) -> Callable[[Callable[P, T]], Callable[P, T]]:
+) -> Callable[[Callable[P_, T_inv]], Callable[P_, T_inv]]:
     """Wrap a function with |augment_excmessage|.
 
     Function |excmessage_decorator| is a means to apply function |augment_excmessage|
@@ -604,7 +616,7 @@ class ResetAttrFuncs:
                 delattr(self.cls, name_)
 
 
-def copy_(self: T) -> T:
+def copy_(self: T_inv) -> T_inv:
     """Copy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
@@ -613,7 +625,7 @@ def copy_(self: T) -> T:
         return copy.copy(self)
 
 
-def deepcopy_(self: T, memo: dict[int, object] | None) -> T:
+def deepcopy_(self: T_inv, memo: dict[int, object] | None) -> T_inv:
     """Deepcopy function for classes with modified attribute functions.
 
     See the documentation on class |ResetAttrFuncs| for further information.
@@ -700,7 +712,7 @@ class _PreserveStrings:
     For scalar |numpy.ndarray| objects, |repr_| returns its item's string
     representation:
 
-    >>> repr_(numpy.array(1.0/3.0))
+    >>> repr_(numpy.asarray(1.0/3.0))
     '0.333333'
 
     On all types not mentioned above, the usual |repr| function is applied, e.g.:
@@ -847,7 +859,7 @@ precision of |numpy.float16|.
 
 For scalar |numpy.ndarray| objects, |repr_| returns its item's string representation:
 
->>> repr_(numpy.array(1.0/3.0))
+>>> repr_(numpy.asarray(1.0/3.0))
 '0.333333'
 
 On all types not mentioned above, the usual |repr| function is applied, e.g.:
@@ -1740,7 +1752,7 @@ classes: str and int.
     ('str1', 'str2', 1)
     """
     if isinstance(values, types_):
-        yield values  # type: ignore[misc]  # see issue 4949
+        yield values
     elif skip and (values is None):
         return
     else:
@@ -1760,8 +1772,8 @@ classes: str and int.
 
 
 def enumeration(
-    values: Iterable[T],
-    converter: Callable[[T], str] = str,
+    values: Iterable[T_inv],
+    converter: Callable[[T_inv], str] = str,
     default: str = "",
     conjunction: str = "and",
 ) -> str:

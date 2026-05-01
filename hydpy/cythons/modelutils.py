@@ -913,7 +913,6 @@ class PyxWriter:
 
     def constants(self, lines: PyxPxdLines) -> None:
         """Constants declaration lines."""
-        both = lines.add
         for name, member in vars(self.cythonizer).items():
             if (
                 name.isupper()
@@ -922,7 +921,8 @@ class PyxWriter:
             ):
                 ndim = numpy.asarray(member).ndim
                 ctype = TYPE2STR[type(member)] + NDIM2STR[ndim]
-                both(0, f"cdef public {ctype} {name} = {member}")
+                lines.pxd.add(0, f"cdef public {ctype} {name}")
+                lines.pyx.add(0, f"{name} = {member}")
 
     def parameters(self, lines: PyxPxdLines) -> None:
         """Parameter declaration lines."""

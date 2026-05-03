@@ -116,7 +116,6 @@ from hydpy.exe.replacetools import xml_replace
 from hydpy.exe.servertools import await_server, start_server
 from hydpy.exe.xmltools import XMLInterface, run_simulation, xml_validate
 
-
 __version__ = "6.3.0"
 
 pub.options = optiontools.Options()

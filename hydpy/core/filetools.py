@@ -164,10 +164,7 @@ class _CurrentDirContext(str):
     def __init__(self, manager: FileManager, property_: _CurrentDirProperty, /) -> None:
         self._manager = manager
         self._property = (property_,)
-        if (value := property_.manager2value.get(manager)) is None:
-            self._old_value = manager.DEFAULTDIR
-        else:
-            self._old_value = value
+        self._old_value = property_.manager2value.get(manager)
         self._new_value = None
         self._is_called = False
         self._is_entered = False

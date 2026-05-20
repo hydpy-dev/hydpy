@@ -347,6 +347,7 @@ def summarise_ncfile(ncfile: netcdf4.Dataset | str, /) -> str:
             data type = |S1
             Attributes
                 long_name = station or node identification code
+                cf_role = timeseries_id
         station_names
             dimensions = stations, str_len
             shape = 4, 40
@@ -487,6 +488,7 @@ def write_ncfile(
             data type = |S1
             Attributes
                 long_name = station_id
+                cf_role = timeseries_id
         my_sequence
             dimensions = time, stations
             shape = 3, 2
@@ -1798,6 +1800,7 @@ class MixinVariableWriter(NetCDFVariable, abc.ABC):
         create_dimension(ncfile, nmb_subdevices, statchars.shape[0])
         create_dimension(ncfile, nmb_characters, statchars.shape[1])
         create_variable(ncfile, subdevices, "S1", (nmb_subdevices, nmb_characters))
+        ncfile[subdevices].cf_role = "timeseries_id"
         ncfile[subdevices][:, :] = statchars
 
     def log(

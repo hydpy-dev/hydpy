@@ -414,7 +414,7 @@ class Test:
         """To be implemented by the subclasses of |Test|."""
 
     @abc.abstractmethod
-    def get_output_array(self, parseqs):
+    def get_output_array(self, parseqs: Never) -> NDArrayFloat:
         """To be implemented by the subclasses of |Test|."""
 
     @property
@@ -564,11 +564,16 @@ class IntegrationTest(Test):
     nodes: devicetools.Devices[devicetools.Node]
     parseqs: tuple[sequencetools.IOSequence, ...]
 
+    _dateformat: str | None = None
+
     def __init__(
         self,
         element: devicetools.Element | None = None,
         seqs: tuple[sequencetools.IOSequence, ...] | None = None,
-        inits=None,
+        inits: (
+            Sequence[tuple[sequencetools.ConditionSequence, float | NDArrayFloat]]
+            | None
+        ) = None,
     ) -> None:
         """Prepare the element and its nodes, put them into a HydPy object, and make
         their sequences ready for use for integration testing."""
@@ -696,8 +701,7 @@ standard library for for further information.
         >>> tester.dateformat
         '%x'
         """
-        dateformat = vars(self).get("dateformat")
-        if dateformat is None:
+        if (dateformat := self._dateformat) is None:
             return timetools.Date.formatstrings["iso2"]
         return dateformat
 
@@ -711,9 +715,9 @@ standard library for for further information.
                 f"for `datetime` objects.  Please read the documentation on module "
                 f"datetime of the Python standard library for for further information."
             ) from exc
-        vars(self)["dateformat"] = dateformat
+        self._dateformat = dateformat
 
-    def get_output_array(self, parseqs: sequencetools.IOSequence):
+    def get_output_array(self, parseqs: sequencetools.IOSequence) -> NDArrayFloat:
         """Return the array containing the output results of the given sequence."""
         return parseqs.series
 
@@ -993,7 +997,15 @@ class UnitTest(Test):
     """Stores arrays with the resulting values of parameters and/or
     sequences of each new experiment."""
 
-    def __init__(self, model, method, *, first_example=1, last_example=1, parseqs=None):
+    def __init__(
+        self,
+        model: modeltools.Model,
+        method: modeltools.Method,
+        *,
+        first_example: int = 1,
+        last_example: int = 1,
+        parseqs: tuple[variabletools.Variable],
+    ) -> None:
         del self.inits
         del self.nexts
         del self.results
@@ -1008,21 +1020,23 @@ class UnitTest(Test):
         self.prepare_output_arrays()
 
     @property
-    def nmb_examples(self):
+    def nmb_examples(self) -> int:
         """The number of examples to be calculated."""
         return self.last_example_calc - self.first_example_calc + 1
 
     @property
-    def idx0(self):
+    def idx0(self) -> int:
         """The first index of the examples selected for printing."""
         return self.first_example_plot - self.first_example_calc
 
     @property
-    def idx1(self):
+    def idx1(self) -> int:
         """The last index of the examples selected for printing."""
         return self.nmb_examples - (self.last_example_calc - self.last_example_plot)
 
-    def __call__(self, first_example=None, last_example=None) -> None:
+    def __call__(
+        self, first_example: int | None = None, last_example: int | None = None
+    ) -> None:
         if first_example is None:
             self.first_example_plot = self.first_example_calc
         else:
@@ -1038,18 +1052,18 @@ class UnitTest(Test):
             self._update_outputs(idx)
         self.print_table(self.idx0, self.idx1)
 
-    def get_output_array(self, parseqs):
+    def get_output_array(self, parseqs: variabletools.Variable) -> NDArrayFloat:
         """Return the array containing the output results of the given
         parameter or sequence."""
         return getattr(self.results, parseqs.name)
 
     @property
-    def raw_first_col_strings(self):
+    def raw_first_col_strings(self) -> tuple[str, ...]:
         """The raw integer strings of the first column, except the header."""
-        return [
+        return tuple(
             str(example)
             for example in range(self.first_example_plot, self.last_example_plot + 1)
-        ]
+        )
 
     def memorise_inits(self) -> None:
         """Memorise all initial conditions."""
@@ -1075,14 +1089,14 @@ class UnitTest(Test):
             if inits is not None:
                 parseq(inits)
 
-    def _update_inputs(self, idx) -> None:
+    def _update_inputs(self, idx: int) -> None:
         """Update the actual values with the |UnitTest.nexts| data of
         the given index."""
         for parseq in self.parseqs:
             if hasattr(self.nexts, parseq.name):
                 parseq(getattr(self.nexts, parseq.name)[idx])
 
-    def _update_outputs(self, idx) -> None:
+    def _update_outputs(self, idx: int) -> None:
         """Update the |UnitTest.results| data with the actual values of
         the given index."""
         for parseq in self.parseqs:
@@ -1099,7 +1113,7 @@ class _Open:
 
     texts: list[str]
 
-    def __init__(self, path, mode, *args, **kwargs) -> None:
+    def __init__(self, path: str, mode: str, *args: Any, **kwargs: Any) -> None:
         # pylint: disable=unused-argument
         # all further positional and keyword arguments are ignored.
         self.path = path.replace(os.sep, "/")
@@ -1107,11 +1121,16 @@ class _Open:
         self.texts = []
         self.entered = False
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         self.entered = True
         return self
 
-    def __exit__(self, exception, message, traceback_):
+    def __exit__(
+        self,
+        exception_type: type[BaseException],
+        exception_value: BaseException,
+        traceback_: types.TracebackType,
+    ) -> None:
         self.close()
 
     def read(self) -> NoReturn:
@@ -1126,11 +1145,11 @@ class _Open:
         """Raise a |NotImplementedError| in any case."""
         raise NotImplementedError(self.__readingerror)
 
-    def write(self, text) -> None:
+    def write(self, text: str) -> None:
         """Replace the `write` method of file objects."""
         self.texts.append(text)
 
-    def writelines(self, lines) -> None:
+    def writelines(self, lines: Iterable[str]) -> None:
         """Replace the `writelines` method of file objects."""
         self.texts.extend(lines)
 
@@ -1213,11 +1232,16 @@ for further information.
     def __init__(self) -> None:
         self.open = builtins.open
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         builtins.open = _Open  # type: ignore[assignment]
         return self
 
-    def __exit__(self, exception, message, traceback_) -> None:
+    def __exit__(
+        self,
+        exception_type: type[BaseException],
+        exception_value: BaseException,
+        traceback_: types.TracebackType,
+    ) -> None:
         builtins.open = self.open
 
 

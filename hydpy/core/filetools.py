@@ -690,8 +690,8 @@ Attribute projectname of module `pub` is not defined at the moment.
 
     @property
     def filenames(self) -> list[str]:
-        """The names of the files in the current working directory, except those
-        starting with an underscore.
+        """The names of the Python files in the current working directory, except those
+        starting with an underscore (_) or a dot (.).
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()
@@ -702,12 +702,16 @@ Attribute projectname of module `pub` is not defined at the moment.
         ...     filemanager.currentdir = "testdir"
         ...     open("projectname/basename/testdir/file1.txt", "w").close()
         ...     open("projectname/basename/testdir/file2.npy", "w").close()
-        ...     open("projectname/basename/testdir/_file1.nc", "w").close()
+        ...     open("projectname/basename/testdir/_file1.py", "w").close()
+        ...     open("projectname/basename/testdir/.file1.py", "w").close()
+        ...     open("projectname/basename/testdir/file3.py", "w").close()
         ...     filemanager.filenames
-        ['file1.txt', 'file2.npy']
+        ['file3.py']
         """
         return sorted(
-            fn for fn in os.listdir(self.currentpath) if not fn.startswith("_")
+            fn
+            for fn in os.listdir(self.currentpath)
+            if not fn.startswith(("_", ".")) and fn.endswith(".py")
         )
 
     @property
@@ -1834,6 +1838,31 @@ not allowed to overwrite the existing file `...`.
     _netcdfreader: netcdftools.NetCDFInterfaceReader | None = None
     _netcdfwriter: netcdftools.NetCDFInterfaceWriter | None = None
     _jitaccesshandler: netcdftools.JITAccessHandler | None = None
+
+    @property
+    def filenames(self) -> list[str]:
+        """The names of valid series files (.nc, .npy, .asc) in the current working
+        directory, except those starting with an underscore (_) or a dot (.).
+
+        >>> from hydpy.core.filetools import SequenceManager
+        >>> sequencemanager = SequenceManager()
+        >>> sequencemanager.BASEDIR = "basename"
+        >>> sequencemanager.projectdir = "projectname"
+        >>> from hydpy import TestIO
+        >>> with TestIO():
+        ...     sequencemanager.currentdir = "testdir"
+        ...     open("projectname/basename/testdir/file1.txt", "w").close()
+        ...     open("projectname/basename/testdir/file2.npy", "w").close()
+        ...     open("projectname/basename/testdir/_file1.nc", "w").close()
+        ...     open("projectname/basename/testdir/.file1.asc", "w").close()
+        ...     sequencemanager.filenames
+        ['file2.npy']
+        """
+        return sorted(
+            fn
+            for fn in os.listdir(self.currentpath)
+            if not fn.startswith(("_", ".")) and fn.endswith((".npy", ".nc", ".asc"))
+        )
 
     def load_file(self, sequence: sequencetools.IOSequence) -> None:
         """Load data from a data file and pass it to the given |IOSequence|."""

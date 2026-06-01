@@ -453,7 +453,7 @@ def _trim_int_nd(self: Variable, lower: TrimHook, upper: TrimHook) -> bool:
         self[idxs] = INT_NAN
 
 
-def get_tolerance(values):
+def get_tolerance(values: float | NDArrayFloat) -> float | NDArrayFloat:
     """Return some "numerical accuracy" to be expected for the given floating-point
     value(s).
 
@@ -470,15 +470,17 @@ def get_tolerance(values):
     ...     numpy.asarray([1.0, numpy.inf, 2.0, -numpy.inf])), 16)
     0.000000000000001, 0.0, 0.000000000000002, 0.0
     """
-    tolerance = numpy.abs(values * 1e-15)
-    if hasattr(tolerance, "__setitem__"):
+    if isinstance(values, float):
+        tolerance: float | NDArrayFloat = math.fabs(values * 1e-15)
+        if math.isinf(tolerance):
+            tolerance = 0.0
+    else:
+        tolerance = numpy.abs(values * 1e-15)
         tolerance[numpy.isinf(tolerance)] = 0.0
-    elif math.isinf(tolerance):
-        tolerance = 0.0
     return tolerance
 
 
-def _warn_trim(self, oldvalue, newvalue):
+def _warn_trim(self, oldvalue: ArrayFloat, newvalue: ArrayFloat) -> None:
     if hydpy.pub.options.warntrim:
         warnings.warn(
             f"For variable {objecttools.devicephrase(self)} at least one value "
@@ -1522,7 +1524,7 @@ as `var` can only be `()`, but `(2,)` is given.
         if initflag:
             self._valueready = True
 
-    def _raise_wrongshape(self, shape):
+    def _raise_wrongshape(self, shape: int | tuple[int, ...]) -> NoReturn:
         raise ValueError(
             f"The shape information of 0-dimensional variables "
             f"as {objecttools.devicephrase(self)} can only be `()`, "
@@ -2212,12 +2214,12 @@ has been determined, which is not a submask of `Soil([ True,  True, False])`.
             )
         )
 
-    def _typeconversion(self, type_):
+    def _typeconversion(self, type_: type[Float]) -> Float:
         if self.NDIM:
             raise TypeError(
                 f"The variable {objecttools.devicephrase(self)} is "
-                f"{self.NDIM}-dimensional and thus cannot be converted "
-                f"to a scalar {type_.__name__} value."
+                f"{self.NDIM}-dimensional and thus cannot be converted to a scalar "
+                f"{type_.__name__} value."
             )
         return type_(self.value)
 

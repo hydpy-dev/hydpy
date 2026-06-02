@@ -728,11 +728,12 @@ Attribute projectname of module `pub` is not defined at the moment.
         ...     filemanager.currentdir = "testdir"
         ...     open("projectname/basename/testdir/file1.txt", "w").close()
         ...     open("projectname/basename/testdir/file2.npy", "w").close()
-        ...     open("projectname/basename/testdir/_file1.nc", "w").close()
+        ...     open("projectname/basename/testdir/_file1.py", "w").close()
+        ...     open("projectname/basename/testdir/.file1.py", "w").close()
+        ...     open("projectname/basename/testdir/file3.py", "w").close()
         ...     for filepath in filemanager.filepaths:
         ...         repr_(filepath)  # doctest: +ELLIPSIS
-        '...hydpy/tests/iotesting/projectname/basename/testdir/file1.txt'
-        '...hydpy/tests/iotesting/projectname/basename/testdir/file2.npy'
+        '...hydpy/tests/iotesting/projectname/basename/testdir/file3.py'
         """
         path = self.currentpath
         return [os.path.join(path, name) for name in self.filenames]
@@ -760,10 +761,10 @@ Attribute projectname of module `pub` is not defined at the moment.
         >>> with TestIO():
         ...     os.makedirs(basepath)
         ...     filemanager.currentdir = "folder"
-        ...     open(f"{basepath}/folder/file1.txt", "w").close()
-        ...     open(f"{basepath}/folder/file2.txt", "w").close()
+        ...     open(f"{basepath}/folder/file1.py", "w").close()
+        ...     open(f"{basepath}/folder/file2.py", "w").close()
         ...     filemanager.filenames
-        ['file1.txt', 'file2.txt']
+        ['file1.py', 'file2.py']
 
         The directories under the base path are identical to the ones returned by
         property |FileManager.availabledirs|:
@@ -788,7 +789,7 @@ Attribute projectname of module `pub` is not defined at the moment.
         >>> from zipfile import ZipFile
         >>> with TestIO():
         ...     with ZipFile("projectname/basename/folder.zip", "r") as zp:
-        ...         assert sorted(zp.namelist()) == ["file1.txt", "file2.txt"]
+        ...         assert sorted(zp.namelist()) == ["file1.py", "file2.py"]
 
         The zip file is unpacked again when `folder` becomes the current working
         directory:
@@ -796,7 +797,7 @@ Attribute projectname of module `pub` is not defined at the moment.
         >>> with TestIO(), pub.options.printprogress(True):  # doctest: +ELLIPSIS
         ...     filemanager.currentdir = "folder"
         ...     assert os.listdir(basepath) == ["folder"]
-        ...     assert sorted(filemanager.filenames) == ["file1.txt", "file2.txt"]
+        ...     assert sorted(filemanager.filenames) == ["file1.py", "file2.py"]
         ...     filemanager.availabledirs
         The zip file ...folder.zip has been extracted to directory ...folder and \
 removed.

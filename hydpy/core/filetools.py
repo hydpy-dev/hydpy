@@ -747,7 +747,7 @@ Attribute projectname of module `pub` is not defined at the moment.
         possible inconsistencies.
 
         As an example scenario, we prepare a |FileManager| object with the current
-        working directory `folder` containing the files `test1.txt` and `text2.txt`:
+        working directory `folder` containing the files `test1.py` and `text2.py`:
 
         >>> from hydpy.core.filetools import FileManager
         >>> filemanager = FileManager()

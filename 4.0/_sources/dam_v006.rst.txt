@@ -1,0 +1,32 @@
+.. |AbsErrorMax| replace:: :class:`~hydpy.models.dam.dam_solver.AbsErrorMax`
+.. |AllowedWaterLevelDrop| replace:: :class:`~hydpy.models.dam.dam_control.AllowedWaterLevelDrop`
+.. |CatchmentArea| replace:: :class:`~hydpy.models.dam.dam_control.CatchmentArea`
+.. |DischargeTolerance| replace:: :class:`~hydpy.models.dam.dam_control.DischargeTolerance`
+.. |Element| replace:: :class:`~hydpy.core.devicetools.Element`
+.. |FloodDischarge| replace:: :class:`~hydpy.models.dam.dam_fluxes.FloodDischarge`
+.. |Indexer.timeofyear| replace:: :const:`~hydpy.core.indextools.Indexer.timeofyear`
+.. |Indexer| replace:: :class:`~hydpy.core.indextools.Indexer`
+.. |Node| replace:: :class:`~hydpy.core.devicetools.Node`
+.. |WaterLevel2FloodDischarge| replace:: :class:`~hydpy.models.dam.dam_control.WaterLevel2FloodDischarge`
+.. |WaterLevel| replace:: :class:`~hydpy.models.dam.dam_aides.WaterLevel`
+.. |WaterVolume2WaterLevel| replace:: :class:`~hydpy.models.dam.dam_control.WaterVolume2WaterLevel`
+.. |WaterVolume| replace:: :class:`~hydpy.models.dam.dam_states.WaterVolume`
+.. |dam_v001| replace:: :mod:`~hydpy.models.dam_v001`
+.. |dam_v006| replace:: :mod:`~hydpy.models.dam_v006`
+.. |pub| replace:: :mod:`~hydpy.pub`
+.. |smooth_max1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_max1`
+.. |smooth_min1| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_min1`
+.. |anntools.ANN| replace:: :class:`~hydpy.auxs.anntools.ANN`
+.. |anntools.SeasonalANN| replace:: :class:`~hydpy.auxs.anntools.SeasonalANN`
+.. |dam_outlets.Q| replace:: :class:`~hydpy.models.dam.dam_outlets.Q`
+.. |numpy.inf| replace:: :const:`~numpy.inf`
+
+.. _dam_v006:
+
+dam_v006
+========
+
+.. automodule:: hydpy.models.dam_v006
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, ReceiverSequences, InputSequences, LogSequences, SenderSequences

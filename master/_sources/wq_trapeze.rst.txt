@@ -1,0 +1,18 @@
+.. |BottomLevels| replace:: :class:`~hydpy.models.wq.wq_control.BottomLevels`
+.. |BottomWidths| replace:: :class:`~hydpy.models.wq.wq_control.BottomWidths`
+.. |SideSlopes| replace:: :class:`~hydpy.models.wq.wq_control.SideSlopes`
+.. |TrapezeModel.plot| replace:: :func:`~hydpy.models.wq.wq_model.TrapezeModel.plot`
+.. |True| replace:: :const:`True`
+.. |sw1d_channel| replace:: :mod:`~hydpy.models.sw1d_channel`
+.. |wq_trapeze.DOCNAME.complete| replace:: HydPy-WQ-Trapeze (multi-trapeze river profile submodel)
+.. |wq_trapeze| replace:: :mod:`~hydpy.models.wq_trapeze`
+
+.. _wq_trapeze:
+
+wq_trapeze
+==========
+
+.. automodule:: hydpy.models.wq_trapeze
+    :members:
+    :show-inheritance:
+    :exclude-members: NoExtraItems, IntVar, clear_overloads, Sentinel, Annotated, SupportsFloat, OutletSequences, ForwardRef, Concatenate, RECEIVER_METHODS, FULL_ODE_METHODS, TextIO, TypeIs, SupportsBytes, assert_type, RUN_METHODS, ReadOnly, Required, LogSequences, ChainMap, NewType, Final, ValuesView, AsyncIterator, SupportsAbs, assert_never, AideSequences, OrderedDict, Awaitable, Set, FIXEDPARAMETERS, TypeVar, Format, pars, InletSequences, NoDefault, SupportsRound, get_args, TypeAlias, Sequence, NamedTuple, ClassVar, ItemsView, no_type_check_decorator, IO, Type, fastaccess_old, Text, Counter, Literal, ContextManager, SUBMODELINTERFACES, subseqs, TYPE_CHECKING, get_overloads, PART_ODE_METHODS, ReceiverSequences, InputSequences, Sized, SupportsInt, cast, Container, ObserverSequences, subvars, SOLVERSEQUENCES, LiteralString, ParamSpecKwargs, MutableSequence, OUTLET_METHODS, Deque, SenderSequences, Optional, overload, final, Unpack, AnyStr, StateSequences, SupportsIndex, CapsuleType, SUBMODELS, AsyncGenerator, fastaccess_new, DERIVEDPARAMETERS, MappingView, Doc, get_type_hints, Pattern, seqs, get_original_bases, ByteString, SOLVERPARAMETERS, FluxSequences, TypeVarTuple, BinaryIO, Mapping, CONTROLPARAMETERS, fastaccess, Callable, Reversible, get_origin, AsyncContextManager, NoReturn, Generator, runtime_checkable, DefaultDict, TypeAliasType, TypedDict, SUBMETHODS, get_annotations, ADD_METHODS, is_typeddict, Union, Buffer, MutableSet, Reader, Iterator, SENDER_METHODS, Writer, RESULTSEQUENCES, ParamSpecArgs, Match, TypeForm, ParamSpec, REQUIREDSEQUENCES, subpars, evaluate_forward_ref, NotRequired, Generic, Coroutine, disjoint_base, Hashable, MutableMapping, OBSERVER_METHODS, Tuple, KeysView, no_type_check, AbstractSet, dataclass_transform, AsyncIterable, runtime, Never, override, List, get_protocol_members, TypeGuard, UPDATEDSEQUENCES, Any, SupportsComplex, CLASSES, FrozenSet, is_protocol, INTERFACE_METHODS, Iterable, INLET_METHODS, reveal_type, Collection, Dict, Self, type_repr, Protocol, deprecated

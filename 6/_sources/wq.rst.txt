@@ -1,0 +1,37 @@
+.. |BottomWidths| replace:: :class:`~hydpy.models.wq.wq_control.BottomWidths`
+.. |Calc_DischargeDerivatives_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_DischargeDerivatives_V1`
+.. |Calc_Discharges_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_Discharges_V1`
+.. |Calc_SurfaceWidths_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_SurfaceWidths_V1`
+.. |Calc_WaterDepth_V2| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WaterDepth_V2`
+.. |Calc_WettedArea_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedArea_V1`
+.. |Calc_WettedAreas_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedAreas_V1`
+.. |Calc_WettedPerimeterDerivatives_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedPerimeterDerivatives_V1`
+.. |Calc_WettedPerimeters_V1| replace:: :class:`~hydpy.models.wq.wq_model.Calc_WettedPerimeters_V1`
+.. |CrestHeight| replace:: :class:`~hydpy.models.wq.wq_control.CrestHeight`
+.. |DischargeModel_V2| replace:: :class:`~hydpy.interfaces.dischargeinterfaces.DischargeModel_V2`
+.. |Excess| replace:: :class:`~hydpy.models.wq.wq_aides.Excess`
+.. |Index| replace:: :class:`~hydpy.models.wq.wq_aides.Index`
+.. |NmbSectors| replace:: :class:`~hydpy.models.wq.wq_control.NmbSectors`
+.. |NmbTrapezes| replace:: :class:`~hydpy.models.wq.wq_control.NmbTrapezes`
+.. |NmbWidths| replace:: :class:`~hydpy.models.wq.wq_control.NmbWidths`
+.. |NumericalDifferentiator| replace:: :class:`~hydpy.core.testtools.NumericalDifferentiator`
+.. |Transitions| replace:: :class:`~hydpy.models.wq.wq_control.Transitions`
+.. |Weight| replace:: :class:`~hydpy.models.wq.wq_aides.Weight`
+.. |smoothtools| replace:: :mod:`~hydpy.auxs.smoothtools`
+.. |wq.DOCNAME.complete| replace:: HydPy-WQ (base model)
+.. |wq.DOCNAME.long| replace:: HydPy-WQ
+.. |wq_trapeze| replace:: :mod:`~hydpy.models.wq_trapeze`
+.. |wq_widths_strickler| replace:: :mod:`~hydpy.models.wq_widths_strickler`
+.. |numpy.nan| replace:: :const:`~numpy.nan`
+.. |wq_control.FlowWidths| replace:: :class:`~hydpy.models.wq.wq_control.FlowWidths`
+.. |wq_control.TotalWidths| replace:: :class:`~hydpy.models.wq.wq_control.TotalWidths`
+
+.. _wq:
+
+wq
+==
+
+.. automodule:: hydpy.models.wq
+    :members:
+    :show-inheritance:
+    :exclude-members: RECEIVER_METHODS, get_protocol_members, Writer, evaluate_forward_ref, is_protocol, ObserverSequences, get_annotations, LogSequences, Any, BinaryIO, LiteralString, AsyncIterable, TypeAlias, deprecated, SUBMODELS, get_overloads, TypeIs, subseqs, NoExtraItems, Dict, DefaultDict, Type, ByteString, Container, ItemsView, get_type_hints, MappingView, Coroutine, Reversible, Text, OBSERVER_METHODS, TypeGuard, Iterator, AbstractSet, Pattern, MutableSet, StateSequences, ADD_METHODS, overload, Callable, AsyncIterator, cast, type_repr, DERIVEDPARAMETERS, SOLVERSEQUENCES, Never, Doc, MutableSequence, ParamSpecKwargs, SenderSequences, Sized, is_typeddict, Deque, Literal, ChainMap, TYPE_CHECKING, subvars, ClassVar, fastaccess_new, NoDefault, Self, dataclass_transform, get_origin, fastaccess_old, SUBMETHODS, CLASSES, IntVar, TypeAliasType, Iterable, SENDER_METHODS, get_original_bases, AnyStr, AsyncGenerator, SupportsAbs, InletSequences, TextIO, RESULTSEQUENCES, Annotated, Buffer, SupportsBytes, Mapping, SUBMODELINTERFACES, Counter, NoReturn, TypedDict, ReceiverSequences, ValuesView, Tuple, SupportsFloat, CapsuleType, Concatenate, ReadOnly, get_args, no_type_check_decorator, disjoint_base, assert_type, NewType, runtime, pars, SupportsComplex, REQUIREDSEQUENCES, Set, ContextManager, Hashable, TypeForm, assert_never, Format, no_type_check, ParamSpec, ForwardRef, Awaitable, List, ParamSpecArgs, Collection, CONTROLPARAMETERS, clear_overloads, Union, OUTLET_METHODS, FULL_ODE_METHODS, Sequence, final, Generator, Unpack, subpars, Protocol, Match, TypeVarTuple, SOLVERPARAMETERS, Generic, PART_ODE_METHODS, Reader, INLET_METHODS, UPDATEDSEQUENCES, override, NotRequired, FrozenSet, fastaccess, Final, FIXEDPARAMETERS, Optional, SupportsRound, NamedTuple, Sentinel, OrderedDict, seqs, Required, OutletSequences, TypeVar, runtime_checkable, KeysView, RUN_METHODS, InputSequences, SupportsIndex, INTERFACE_METHODS, AsyncContextManager, SupportsInt, IO, MutableMapping, reveal_type

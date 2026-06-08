@@ -1,0 +1,30 @@
+.. |AbsErrorMax| replace:: :class:`~hydpy.models.lstream.lstream_solver.AbsErrorMax`
+.. |Characteristics| replace:: :class:`~hydpy.models.lstream_v001.Characteristics`
+.. |ELSModel| replace:: :class:`~hydpy.core.modeltools.ELSModel`
+.. |GTS| replace:: :class:`~hydpy.models.lstream.lstream_control.GTS`
+.. |HM| replace:: :class:`~hydpy.models.lstream.lstream_control.HM`
+.. |HR| replace:: :class:`~hydpy.models.lstream.lstream_control.HR`
+.. |H| replace:: :class:`~hydpy.models.lstream.lstream_states.H`
+.. |LinearStorageCascade| replace:: :class:`~hydpy.auxs.iuhtools.LinearStorageCascade`
+.. |Model.calculate_characteristiclength| replace:: :func:`~hydpy.models.lstream_v001.Model.calculate_characteristiclength`
+.. |QG| replace:: :class:`~hydpy.models.lstream.lstream_fluxes.QG`
+.. |RHLVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHLVR`
+.. |RHM| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHM`
+.. |RHRVR| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHRVR`
+.. |RHV| replace:: :class:`~hydpy.models.lstream.lstream_aides.RHV`
+.. |RelErrorMax| replace:: :class:`~hydpy.models.lstream.lstream_solver.RelErrorMax`
+.. |WBMin| replace:: :class:`~hydpy.models.lstream.lstream_fixed.WBMin`
+.. |arma_v1| replace:: :mod:`~hydpy.models.arma_v1`
+.. |lstream_v001| replace:: :mod:`~hydpy.models.lstream_v001`
+.. |smooth_logistic2| replace:: :func:`~hydpy.cythons.autogen.smoothutils.smooth_logistic2`
+.. |lstream_model.Return_H_V1| replace:: :class:`~hydpy.models.lstream.lstream_model.Return_H_V1`
+
+.. _lstream_v001:
+
+lstream_v001
+============
+
+.. automodule:: hydpy.models.lstream_v001
+    :members:
+    :show-inheritance:
+    :exclude-members: CLASSES, RUN_METHODS, ADD_METHODS, INLET_METHODS, OUTLET_METHODS, RECEIVER_METHODS, SENDER_METHODS, PART_ODE_METHODS, FULL_ODE_METHODS, CONTROLPARAMETERS, DERIVEDPARAMETERS, FIXEDPARAMETERS, REQUIREDSEQUENCES, UPDATEDSEQUENCES, RESULTSEQUENCES, SOLVERPARAMETERS, SOLVERSEQUENCES, SUBMETHODS, SUBMODELS, fastaccess, fastaccess_new, fastaccess_old, pars, seqs, ReceiverSequences, InputSequences, LogSequences, SenderSequences

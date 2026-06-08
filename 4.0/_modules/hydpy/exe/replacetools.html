@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>hydpy.exe.replacetools &#8212; HydPy 4.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.exe.replacetools</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for hydpy.exe.replacetools</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;This module implements tools for file related string substitutions.&quot;&quot;&quot;</span>
+
+<span class="c1"># import...</span>
+<span class="c1"># ...from HydPy</span>
+<span class="kn">from</span> <span class="nn">hydpy.core</span> <span class="kn">import</span> <span class="n">objecttools</span>
+
+
+<div class="viewcode-block" id="xml_replace"><a class="viewcode-back" href="../../../replacetools.html#hydpy.exe.replacetools.xml_replace">[docs]</a><span class="k">def</span> <span class="nf">xml_replace</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">printflag</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">replacements</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Read the content of an XML template file (XMLT), apply the given</span>
+<span class="sd">    `replacements` to its substitution  markers, and write the result into</span>
+<span class="sd">    an XML file with the same name but ending with `xml` instead of `xmlt`.</span>
+
+<span class="sd">    First, we write an XMLT file, containing a regular HTML comment, a</span>
+<span class="sd">    readily defined element `e1`, and some other elements with</span>
+<span class="sd">    substitutions markers.  Substitution markers are HTML comments</span>
+<span class="sd">    starting and ending with the `|` character:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import xml_replace, TestIO</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;test1.xmlt&quot;, &quot;w&quot;) as templatefile:</span>
+<span class="sd">    ...         _ = templatefile.write(</span>
+<span class="sd">    ...             &quot;&lt;!--a normal comment--&gt;\\n&quot;</span>
+<span class="sd">    ...             &quot;&lt;e1&gt;element 1&lt;/e1&gt;\\n&quot;</span>
+<span class="sd">    ...             &quot;&lt;e2&gt;&lt;!--|e2|--&gt;&lt;/e2&gt;\\n&quot;</span>
+<span class="sd">    ...             &quot;&lt;e3&gt;&lt;!--|e3_|--&gt;&lt;/e3&gt;\\n&quot;</span>
+<span class="sd">    ...             &quot;&lt;e4&gt;&lt;!--|e4=element 4|--&gt;&lt;/e4&gt;\\n&quot;</span>
+<span class="sd">    ...             &quot;&lt;e2&gt;&lt;!--|e2|--&gt;&lt;/e2&gt;&quot;)</span>
+
+<span class="sd">    Function |xml_replace| can both be called within a Python session and</span>
+<span class="sd">    from a command line.  We start with the first type of application.</span>
+
+<span class="sd">    Each substitution marker must be met by a keyword argument unless</span>
+<span class="sd">    it holds a default value (`e4`).  All arguments are converted to</span>
+<span class="sd">    a |str| object (`e3`).  Template files can use the same substitution</span>
+<span class="sd">    marker multiple times (`e2`):</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     xml_replace(&quot;test1&quot;, e2=&quot;E2&quot;, e3_=3, e4=&quot;ELEMENT 4&quot;)</span>
+<span class="sd">    template file: test1.xmlt</span>
+<span class="sd">    target file: test1.xml</span>
+<span class="sd">    replacements:</span>
+<span class="sd">      e2 --&gt; E2 (given argument)</span>
+<span class="sd">      e3_ --&gt; 3 (given argument)</span>
+<span class="sd">      e4 --&gt; ELEMENT 4 (given argument)</span>
+<span class="sd">      e2 --&gt; E2 (given argument)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;test1.xml&quot;) as targetfile:</span>
+<span class="sd">    ...         print(targetfile.read())</span>
+<span class="sd">    &lt;!--a normal comment--&gt;</span>
+<span class="sd">    &lt;e1&gt;element 1&lt;/e1&gt;</span>
+<span class="sd">    &lt;e2&gt;E2&lt;/e2&gt;</span>
+<span class="sd">    &lt;e3&gt;3&lt;/e3&gt;</span>
+<span class="sd">    &lt;e4&gt;ELEMENT 4&lt;/e4&gt;</span>
+<span class="sd">    &lt;e2&gt;E2&lt;/e2&gt;</span>
+
+<span class="sd">    Without custom values, |xml_replace| applies predefined default</span>
+<span class="sd">    values, if available (`e4`):</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     xml_replace(&quot;test1&quot;, e2=&quot;E2&quot;, e3_=3)    # doctest: +ELLIPSIS</span>
+<span class="sd">    template file: test1.xmlt</span>
+<span class="sd">    target file: test1.xml</span>
+<span class="sd">    replacements:</span>
+<span class="sd">      e2 --&gt; E2 (given argument)</span>
+<span class="sd">      e3_ --&gt; 3 (given argument)</span>
+<span class="sd">      e4 --&gt; element 4 (default argument)</span>
+<span class="sd">      e2 --&gt; E2 (given argument)</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;test1.xml&quot;) as targetfile:</span>
+<span class="sd">    ...         print(targetfile.read())</span>
+<span class="sd">    &lt;!--a normal comment--&gt;</span>
+<span class="sd">    &lt;e1&gt;element 1&lt;/e1&gt;</span>
+<span class="sd">    &lt;e2&gt;E2&lt;/e2&gt;</span>
+<span class="sd">    &lt;e3&gt;3&lt;/e3&gt;</span>
+<span class="sd">    &lt;e4&gt;element 4&lt;/e4&gt;</span>
+<span class="sd">    &lt;e2&gt;E2&lt;/e2&gt;</span>
+
+<span class="sd">    Missing and useless keyword arguments result in errors:</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     xml_replace(&quot;test1&quot;, e2=&quot;E2&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to replace the markers `e2, e3_, and e4` \</span>
+<span class="sd">of the XML template file `test1.xmlt` with the available keywords `e2`, \</span>
+<span class="sd">the following error occurred: Marker `e3_` cannot be replaced.</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     xml_replace(&quot;test1&quot;, e2=&quot;e2&quot;, e3_=&quot;E3&quot;, e4=&quot;e4&quot;, e5=&quot;e5&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: While trying to replace the markers `e2, e3_, and e4` \</span>
+<span class="sd">of the XML template file `test1.xmlt` with the available keywords `e2, e3_, \</span>
+<span class="sd">e4, and e5`, the following error occurred: Keyword(s) `e5` cannot be used.</span>
+
+<span class="sd">    Using different default values for the same substitution marker</span>
+<span class="sd">    is not allowed:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import pub, TestIO, xml_replace</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;test2.xmlt&quot;, &quot;w&quot;) as templatefile:</span>
+<span class="sd">    ...         _ = templatefile.write(</span>
+<span class="sd">    ...             &quot;&lt;e4&gt;&lt;!--|e4=element 4|--&gt;&lt;/e4&gt;\\n&quot;</span>
+<span class="sd">    ...             &quot;&lt;e4&gt;&lt;!--|e4=ELEMENT 4|--&gt;&lt;/e4&gt;&quot;)</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     xml_replace(&quot;test2&quot;, e4=4)</span>
+<span class="sd">    template file: test2.xmlt</span>
+<span class="sd">    target file: test2.xml</span>
+<span class="sd">    replacements:</span>
+<span class="sd">      e4 --&gt; 4 (given argument)</span>
+<span class="sd">      e4 --&gt; 4 (given argument)</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;test2.xml&quot;) as targetfile:</span>
+<span class="sd">    ...         print(targetfile.read())</span>
+<span class="sd">    &lt;e4&gt;4&lt;/e4&gt;</span>
+<span class="sd">    &lt;e4&gt;4&lt;/e4&gt;</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     xml_replace(&quot;test2&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">    ...</span>
+<span class="sd">    RuntimeError: Template file `test2.xmlt` defines different default values \</span>
+<span class="sd">for marker `e4`.</span>
+
+<span class="sd">    As mentioned above, function |xml_replace| is registered as a &quot;script</span>
+<span class="sd">    function&quot; and can thus be used via command line:</span>
+
+<span class="sd">    &gt;&gt;&gt; pub.scriptfunctions[&quot;xml_replace&quot;].__name__</span>
+<span class="sd">    &#39;xml_replace&#39;</span>
+<span class="sd">    &gt;&gt;&gt; pub.scriptfunctions[&quot;xml_replace&quot;].__module__</span>
+<span class="sd">    &#39;hydpy.exe.replacetools&#39;</span>
+
+<span class="sd">    Use script |hyd| to execute function |xml_replace|:</span>
+
+<span class="sd">    &gt;&gt;&gt; from hydpy import run_subprocess</span>
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     result = run_subprocess(</span>
+<span class="sd">    ...         &#39;hyd.py xml_replace test1 e2=&quot;Element 2&quot; e3_=3&#39;)</span>
+<span class="sd">    template file: test1.xmlt</span>
+<span class="sd">    target file: test1.xml</span>
+<span class="sd">    replacements:</span>
+<span class="sd">      e2 --&gt; Element 2 (given argument)</span>
+<span class="sd">      e3_ --&gt; 3 (given argument)</span>
+<span class="sd">      e4 --&gt; element 4 (default argument)</span>
+<span class="sd">      e2 --&gt; Element 2 (given argument)</span>
+
+<span class="sd">    &gt;&gt;&gt; with TestIO():</span>
+<span class="sd">    ...     with open(&quot;test1.xml&quot;) as targetfile:</span>
+<span class="sd">    ...         print(targetfile.read())</span>
+<span class="sd">    &lt;!--a normal comment--&gt;</span>
+<span class="sd">    &lt;e1&gt;element 1&lt;/e1&gt;</span>
+<span class="sd">    &lt;e2&gt;Element 2&lt;/e2&gt;</span>
+<span class="sd">    &lt;e3&gt;3&lt;/e3&gt;</span>
+<span class="sd">    &lt;e4&gt;element 4&lt;/e4&gt;</span>
+<span class="sd">    &lt;e2&gt;Element 2&lt;/e2&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">keywords</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">replacements</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">templatename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.xmlt&quot;</span>
+    <span class="n">targetname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.xml&quot;</span>
+    <span class="k">if</span> <span class="n">printflag</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;template file: </span><span class="si">{</span><span class="n">templatename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;target file: </span><span class="si">{</span><span class="n">targetname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;replacements:&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">templatename</span><span class="p">)</span> <span class="k">as</span> <span class="n">templatefile</span><span class="p">:</span>
+        <span class="n">templatebody</span> <span class="o">=</span> <span class="n">templatefile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">templatebody</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&lt;!--|&quot;</span><span class="p">,</span> <span class="s2">&quot;|--&gt;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;|--&gt;&quot;</span><span class="p">)</span>
+    <span class="n">defaults</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">part</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">parts</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">subparts</span> <span class="o">=</span> <span class="n">part</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">subparts</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+                <span class="n">parts</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">subparts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">subparts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">replacements</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">subparts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">defaults</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                        <span class="n">defaults</span><span class="p">[</span><span class="n">subparts</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">(</span><span class="n">subparts</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Template file `</span><span class="si">{</span><span class="n">templatename</span><span class="si">}</span><span class="s2">` defines &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;different default values for marker &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">subparts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">`.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="n">defaults</span><span class="p">[</span><span class="n">subparts</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">subparts</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+    <span class="n">markers</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">unused_keywords</span> <span class="o">=</span> <span class="n">keywords</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">part</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">parts</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">argument_info</span> <span class="o">=</span> <span class="s2">&quot;given argument&quot;</span>
+                <span class="n">newpart</span> <span class="o">=</span> <span class="n">replacements</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">newpart</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">argument_info</span> <span class="o">=</span> <span class="s2">&quot;default argument&quot;</span>
+                    <span class="n">newpart</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">newpart</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Marker `</span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2">` cannot be replaced.&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">printflag</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2"> --&gt; </span><span class="si">{</span><span class="n">newpart</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">argument_info</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="n">parts</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">newpart</span><span class="p">)</span>
+                <span class="n">unused_keywords</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+        <span class="n">targetbody</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">unused_keywords</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Keyword(s) `</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="n">unused_keywords</span><span class="p">)</span><span class="si">}</span><span class="s2">` &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;cannot be used.&quot;</span>
+            <span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">targetname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">targetfile</span><span class="p">:</span>
+            <span class="n">targetfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">targetbody</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">BaseException</span><span class="p">:</span>
+        <span class="n">objecttools</span><span class="o">.</span><span class="n">augment_excmessage</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;While trying to replace the markers &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;`</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">markers</span><span class="p">)))</span><span class="si">}</span><span class="s2">` of the &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;XML template file `</span><span class="si">{</span><span class="n">templatename</span><span class="si">}</span><span class="s2">` with the available &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;keywords `</span><span class="si">{</span><span class="n">objecttools</span><span class="o">.</span><span class="n">enumeration</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">keywords</span><span class="p">))</span><span class="si">}</span><span class="s2">`&quot;</span>
+        <span class="p">)</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/HydPy_Logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../../../index.html">Table of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how_to.html">How to…</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../framework.html">Framework Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modelcollection.html">Model Collection</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../development.html">Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Example Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../zbibliography.html">Bibliography</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">HydPy 4.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">hydpy.exe.replacetools</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, HydPy Developers.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 3.5.2.
+    </div>
+  </body>
+</html>

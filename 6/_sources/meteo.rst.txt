@@ -1,0 +1,50 @@
+.. |AngstromAlternative| replace:: :class:`~hydpy.models.meteo.meteo_control.AngstromAlternative`
+.. |AngstromConstant| replace:: :class:`~hydpy.models.meteo.meteo_control.AngstromConstant`
+.. |Calc_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_DailyGlobalRadiation_V1`
+.. |Calc_EarthSunDistance_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_EarthSunDistance_V1`
+.. |Calc_ExtraterrestrialRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_ExtraterrestrialRadiation_V1`
+.. |Calc_GlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V1`
+.. |Calc_GlobalRadiation_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_GlobalRadiation_V2`
+.. |Calc_PortionDailyRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_PortionDailyRadiation_V1`
+.. |Calc_SolarDeclination_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SolarDeclination_V1`
+.. |Calc_SolarDeclination_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SolarDeclination_V2`
+.. |Calc_SunshineDuration_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SunshineDuration_V1`
+.. |Calc_SunshineDuration_V2| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_SunshineDuration_V2`
+.. |Calc_UnadjustedGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_UnadjustedGlobalRadiation_V1`
+.. |Calc_UnadjustedSunshineDuration_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Calc_UnadjustedSunshineDuration_V1`
+.. |DOY| replace:: :class:`~hydpy.models.meteo.meteo_derived.DOY`
+.. |DailyGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.DailyGlobalRadiation`
+.. |DailyPossibleSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.DailyPossibleSunshineDuration`
+.. |DailySunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.DailySunshineDuration`
+.. |ExtraterrestrialRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.ExtraterrestrialRadiation`
+.. |LatitudeRad| replace:: :class:`~hydpy.models.meteo.meteo_derived.LatitudeRad`
+.. |Latitude| replace:: :class:`~hydpy.models.meteo.meteo_control.Latitude`
+.. |LoggedUnadjustedGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_logs.LoggedUnadjustedGlobalRadiation`
+.. |Longitude| replace:: :class:`~hydpy.models.meteo.meteo_control.Longitude`
+.. |Model.idx_sim| replace:: :const:`~hydpy.core.modeltools.Model.idx_sim`
+.. |NmbHRU| replace:: :class:`~hydpy.models.meteo.meteo_control.NmbHRU`
+.. |NmbLogEntries| replace:: :class:`~hydpy.models.meteo.meteo_derived.NmbLogEntries`
+.. |PortionDailyRadiation| replace:: :class:`~hydpy.models.meteo.meteo_factors.PortionDailyRadiation`
+.. |Return_DailyGlobalRadiation_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Return_DailyGlobalRadiation_V1`
+.. |Return_SunshineDuration_V1| replace:: :class:`~hydpy.models.meteo.meteo_model.Return_SunshineDuration_V1`
+.. |UTCLongitude| replace:: :class:`~hydpy.models.meteo.meteo_derived.UTCLongitude`
+.. |UnadjustedGlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.UnadjustedGlobalRadiation`
+.. |meteo.DOCNAME.complete| replace:: HydPy-Meteo (base model)
+.. |meteo.DOCNAME.long| replace:: HydPy-Meteo
+.. |meteo_factors.PossibleSunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.PossibleSunshineDuration`
+.. |meteo_factors.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_factors.SunshineDuration`
+.. |meteo_fluxes.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_fluxes.GlobalRadiation`
+.. |meteo_inputs.GlobalRadiation| replace:: :class:`~hydpy.models.meteo.meteo_inputs.GlobalRadiation`
+.. |meteo_inputs.SunshineDuration| replace:: :class:`~hydpy.models.meteo.meteo_inputs.SunshineDuration`
+.. |meteo_parameters.ZipParameter1D| replace:: :class:`~hydpy.models.meteo.meteo_parameters.ZipParameter1D`
+.. |meteo_sequences.FluxSequence1D| replace:: :class:`~hydpy.models.meteo.meteo_sequences.FluxSequence1D`
+
+.. _meteo:
+
+meteo
+=====
+
+.. automodule:: hydpy.models.meteo
+    :members:
+    :show-inheritance:
+    :exclude-members: RECEIVER_METHODS, get_protocol_members, Writer, evaluate_forward_ref, is_protocol, ObserverSequences, get_annotations, Any, BinaryIO, LiteralString, AsyncIterable, TypeAlias, deprecated, SUBMODELS, get_overloads, TypeIs, subseqs, NoExtraItems, Dict, DefaultDict, Type, ByteString, Container, ItemsView, get_type_hints, MappingView, Coroutine, Reversible, Text, OBSERVER_METHODS, TypeGuard, Iterator, AbstractSet, Pattern, MutableSet, StateSequences, ADD_METHODS, overload, Callable, AsyncIterator, cast, type_repr, DERIVEDPARAMETERS, SOLVERSEQUENCES, Never, Doc, MutableSequence, ParamSpecKwargs, SenderSequences, Sized, is_typeddict, Deque, Literal, ChainMap, TYPE_CHECKING, subvars, ClassVar, fastaccess_new, NoDefault, Self, dataclass_transform, get_origin, fastaccess_old, SUBMETHODS, CLASSES, IntVar, TypeAliasType, Iterable, SENDER_METHODS, get_original_bases, AnyStr, AsyncGenerator, SupportsAbs, InletSequences, TextIO, RESULTSEQUENCES, Annotated, Buffer, SupportsBytes, Mapping, SUBMODELINTERFACES, Counter, NoReturn, TypedDict, ReceiverSequences, ValuesView, Tuple, SupportsFloat, CapsuleType, Concatenate, ReadOnly, get_args, no_type_check_decorator, disjoint_base, assert_type, NewType, runtime, pars, SupportsComplex, REQUIREDSEQUENCES, Set, ContextManager, Hashable, TypeForm, assert_never, Format, no_type_check, ParamSpec, ForwardRef, Awaitable, List, ParamSpecArgs, Collection, CONTROLPARAMETERS, clear_overloads, Union, OUTLET_METHODS, FULL_ODE_METHODS, Sequence, final, AideSequences, Generator, Unpack, subpars, Protocol, Match, TypeVarTuple, SOLVERPARAMETERS, Generic, PART_ODE_METHODS, Reader, INLET_METHODS, UPDATEDSEQUENCES, override, NotRequired, FrozenSet, fastaccess, Final, FIXEDPARAMETERS, Optional, SupportsRound, NamedTuple, Sentinel, OrderedDict, seqs, Required, OutletSequences, TypeVar, runtime_checkable, KeysView, RUN_METHODS, SupportsIndex, INTERFACE_METHODS, AsyncContextManager, SupportsInt, IO, MutableMapping, reveal_type

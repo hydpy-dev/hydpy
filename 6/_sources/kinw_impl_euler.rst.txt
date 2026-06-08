@@ -1,0 +1,22 @@
+.. |Calc_WaterDepth_V1| replace:: :class:`~hydpy.models.kinw.kinw_model.Calc_WaterDepth_V1`
+.. |CrossSectionModel_V1| replace:: :class:`~hydpy.interfaces.routinginterfaces.CrossSectionModel_V1`
+.. |Model.check_waterbalance| replace:: :func:`~hydpy.models.kinw_impl_euler.Model.check_waterbalance`
+.. |Model.prepare_states| replace:: :func:`~hydpy.models.kinw_impl_euler.Model.prepare_states`
+.. |RunModel.RUN_METHODS| replace:: :attr:`~hydpy.core.modeltools.RunModel.RUN_METHODS`
+.. |Sequences.conditions| replace:: :const:`~hydpy.core.sequencetools.Sequences.conditions`
+.. |WaterDepthTolerance| replace:: :class:`~hydpy.models.kinw.kinw_solver.WaterDepthTolerance`
+.. |WaterVolumeTolerance| replace:: :class:`~hydpy.models.kinw.kinw_solver.WaterVolumeTolerance`
+.. |kinw_impl_euler.DOCNAME.complete| replace:: HydPy-KinW-Implicit-Euler (A-stable routing based on the implicit Euler method)
+.. |kinw_impl_euler| replace:: :mod:`~hydpy.models.kinw_impl_euler`
+.. |kinw_williams| replace:: :mod:`~hydpy.models.kinw_williams`
+.. |musk_mct| replace:: :mod:`~hydpy.models.musk_mct`
+
+.. _kinw_impl_euler:
+
+kinw_impl_euler
+===============
+
+.. automodule:: hydpy.models.kinw_impl_euler
+    :members:
+    :show-inheritance:
+    :exclude-members: RECEIVER_METHODS, get_protocol_members, Writer, evaluate_forward_ref, is_protocol, ObserverSequences, get_annotations, LogSequences, Any, BinaryIO, LiteralString, AsyncIterable, TypeAlias, deprecated, SUBMODELS, get_overloads, TypeIs, subseqs, NoExtraItems, Dict, DefaultDict, Type, ByteString, Container, ItemsView, get_type_hints, MappingView, Coroutine, Reversible, Text, OBSERVER_METHODS, TypeGuard, Iterator, AbstractSet, Pattern, MutableSet, ADD_METHODS, overload, Callable, AsyncIterator, cast, type_repr, DERIVEDPARAMETERS, SOLVERSEQUENCES, Never, Doc, MutableSequence, ParamSpecKwargs, SenderSequences, Sized, is_typeddict, Deque, Literal, ChainMap, TYPE_CHECKING, subvars, ClassVar, fastaccess_new, NoDefault, Self, dataclass_transform, get_origin, fastaccess_old, SUBMETHODS, CLASSES, IntVar, TypeAliasType, Iterable, SENDER_METHODS, get_original_bases, AnyStr, AsyncGenerator, SupportsAbs, TextIO, RESULTSEQUENCES, Annotated, Buffer, SupportsBytes, Mapping, SUBMODELINTERFACES, Counter, NoReturn, TypedDict, ReceiverSequences, ValuesView, Tuple, SupportsFloat, CapsuleType, Concatenate, ReadOnly, get_args, no_type_check_decorator, disjoint_base, assert_type, NewType, runtime, pars, SupportsComplex, REQUIREDSEQUENCES, Set, ContextManager, Hashable, TypeForm, assert_never, Format, no_type_check, ParamSpec, ForwardRef, Awaitable, List, ParamSpecArgs, Collection, CONTROLPARAMETERS, clear_overloads, Union, OUTLET_METHODS, FULL_ODE_METHODS, Sequence, final, AideSequences, Generator, Unpack, subpars, Protocol, Match, TypeVarTuple, SOLVERPARAMETERS, Generic, PART_ODE_METHODS, Reader, INLET_METHODS, UPDATEDSEQUENCES, override, NotRequired, FrozenSet, fastaccess, Final, FIXEDPARAMETERS, Optional, SupportsRound, NamedTuple, Sentinel, OrderedDict, seqs, Required, TypeVar, runtime_checkable, KeysView, RUN_METHODS, InputSequences, SupportsIndex, INTERFACE_METHODS, AsyncContextManager, SupportsInt, IO, MutableMapping, reveal_type
